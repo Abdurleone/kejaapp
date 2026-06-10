@@ -1,43 +1,125 @@
-# KejaApp
+🏠 Keja App
 
-KejaApp is currently an initialized repository for the `kejaapp` project. The codebase is still at the scaffold stage, so this README reflects the repository as it exists now rather than assuming a framework, runtime, or package manager that has not been added yet.
+Kejaapp is a location-first rental platform that helps users discover, evaluate, and move into properties with full pricing transparency and verified listings.
 
-## Repository Structure
+📁 Project Structure
 
-```text
-.
-├── README.md
-├── .agents/
-├── .codex/
-└── .git/
-```
+Here’s a realistic structure based on your architecture (React + Node + mongoDB):
 
-### Current Files
+kejaapp/
+│
+├── backend/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── config/
+│   ├── middleware/
+│   ├── server.js
+│   └── package.json
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   ├── api/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   └── package.json
+│
+├── docs/
+│   └── KejaHub_Full_Documentation.pdf
+│
+├── .env
+├── .gitignore
+└── README.md
+⚙️ Tech Stack
+Frontend
+React (Vite or CRA)
+JavaScript / JSX
+Map integration (Google Maps / Leaflet)
+Backend
+Node.js
+Express
+Database
+PostgreSQL
+🚀 Features
+📍 Map-based property discovery
+🏘️ Property listings (owner vs agency)
+🔍 Advanced search & filters
+⭐ Reviews & ratings
+💰 Transparent pricing breakdown
+🚚 Optional moving services
+🔌 Backend Overview
+Key Modules
+Models
+Users
+Properties
+Reviews
+Movers
+Additional Charges
 
-- `README.md` - Project documentation.
-- `.agents/` - Local agent configuration/context directory.
-- `.codex/` - Local Codex configuration/context directory.
-- `.git/` - Git repository metadata.
+Routes
 
-## Project Status
+/api/properties
+/api/reviews
+/api/users
+/api/movers
+Core Logic
+Property CRUD
+Review system
+Pricing calculation
+Map coordinates handling
+🎨 Frontend Overview
+Main Sections
+Home (Map + Listings)
+Property Details Page
+Search & Filters
+Reviews Section
+Movers / Relocation Page
+State Management
+Context API or similar
+🧮 Pricing Logic
+Deposit = Rent × Deposit Months
 
-This repository does not currently contain application source code, dependency manifests, tests, or build scripts. Once the app scaffold is added, this README should be updated with the actual stack, setup commands, environment variables, and development workflow.
+Total Move-in Cost =
+Deposit + First Month Rent + Service Charge + Additional Fees
+🧪 Running the Project
+1. Clone the repo
+git clone https://github.com/abdurleone/kejaapp.git
+cd kejahub
+2. Setup Backend
+cd backend
+npm install
+npm run dev
+3. Setup Frontend
+cd frontend
+npm install
+npm run dev
+🔐 Environment Variables
 
-## Getting Started
+Create a .env file in the backend:
 
-At the moment, there are no install or run commands required.
-
-When the application code is added, this section should include:
-
-- Required runtime versions.
-- Dependency installation command.
-- Local development command.
-- Test command.
-- Build or deployment command.
-
-## Git Remote
-
-```text
-origin: https://github.com/Abdurleone/kejaapp.git
-branch: main
-```
+PORT=5000
+DATABASE_URL=your_postgres_connection
+MAP_API_KEY=your_map_key
+📊 Roadmap
+✅ POC (Completed)
+🚧 MVP (Auth + DB)
+📈 Payments + Mobile App
+💼 Monetization
+Featured listings
+Agency subscriptions
+Verified badges
+Rental commissions (future)
+⚠️ Risks & Mitigation
+Fake listings → Verification + reviews
+Hidden costs → Full pricing breakdown
+Adoption → UX + trust-first design
+🤝 Contributing
+Fork the repo
+Create a branch
+Submit a PR
+📄 License
