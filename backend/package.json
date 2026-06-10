@@ -11,7 +11,7 @@
 		"url": "https://github.com/abdurleone/kejaapp/issues"
 	},
 	"repository": {
-		"type": "git",
+		"type": "module",
 		"url": "git+https://github.com/abdurleone/kejaapp.git"
 	},
 	"license": "UNLICENSED",
