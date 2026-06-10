@@ -1,0 +1,38 @@
+{
+	"name": "yes",
+	"version": "1.0.0",
+	"description": "Keja App",
+	"keywords": [
+		"Keja",
+		"App"
+	],
+	"homepage": "https://github.com/abdurleone/kejaapp#readme",
+	"bugs": {
+		"url": "https://github.com/abdurleone/kejaapp/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/abdurleone/kejaapp.git"
+	},
+	"license": "UNLICENSED",
+	"author": "Abdurleone",
+	"type": "commonjs",
+	"main": "index.js",
+	"scripts": {
+		"dev": "nodemon server.js",
+    "start": "node server.js"
+	},
+	"dependencies": {
+		"bcryptjs": "^3.0.3",
+		"cors": "^2.8.6",
+		"dotenv": "^17.4.2",
+		"express": "^5.2.1",
+		"helmet": "^8.2.0",
+		"jsonwebtoken": "^9.0.3",
+		"mongoose": "^9.7.0",
+		"morgan": "^1.11.0"
+	},
+	"devDependencies": {
+		"nodemon": "^3.1.14"
+	}
+}
