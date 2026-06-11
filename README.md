@@ -4,9 +4,9 @@ KejaApp is a location-first rental platform for tenants, landlords, agencies, ad
 
 ## Current Status
 
-The backend API is under active MVP development. It currently includes authentication, account management, property management, property image management, saved properties, transparent pricing, property inquiries, viewing requests, reviews, agency verification, admin moderation, notifications, mover discovery, seed data, tests, and an Insomnia collection for manual API testing.
+The backend API and first web frontend are under active MVP development. The backend currently includes authentication, account management, property management, property image management, saved properties, transparent pricing, property inquiries, viewing requests, reviews, agency verification, admin moderation, notifications, mover discovery, seed data, tests, and an Insomnia collection for manual API testing.
 
-A first web frontend is available in `frontend/`. React Native is planned.
+A static adaptive web app is available in `frontend/`. React Native is planned.
 
 ## Core Features
 
@@ -30,6 +30,8 @@ A first web frontend is available in `frontend/`. React Native is planned.
 
 Frontend:
 - Static web MVP
+- Adaptive responsive UI for desktop, tablet, and phone screens
+- Kenyan flag color theme toggle
 - React Native planned
 
 Backend:
@@ -158,8 +160,8 @@ Developer workflow:
 - Insomnia collection at `docs/kejaapp-insomnia.json`.
 - Scaling and load-balancing notes at `docs/scaling-load-balancing.md`.
 - Demo seed script at `backend/seeders/seedDemoData.js`.
-- Root package scripts that proxy common backend commands.
-- Test coverage for app routes, validators, middleware, models, services, password hashing, cookies, and admin workflows.
+- Root package scripts for backend, frontend, seeding, and tests.
+- Test coverage for app routes, validators, middleware, models, services, password hashing, cookies, admin workflows, frontend utilities, and responsive CSS guardrails.
 - Opt-in MongoDB integration testing with `TEST_MONGODB_URI`.
 
 ## Implemented Frontend
@@ -168,18 +170,34 @@ The first web frontend is in `frontend/` and runs without a build step.
 
 Included flows:
 - Public property discovery with filters.
+- Adaptive property cards, insights, sorting, and loading states.
 - Login with demo account shortcuts.
 - Role-aware dashboard summary.
 - Saved property actions.
 - Inquiry and viewing request actions.
 - Owner property creation and listing management.
 - Admin user list and account status moderation.
+- Theme toggle between the standard palette and Kenyan flag colors.
+
+Responsive behavior:
+- Header, connection controls, filters, dashboard panels, and workspace tabs reflow across desktop, tablet, and phone widths.
+- Property grids use container-safe card sizing so listings do not overflow narrow screens.
+- Owner tools and admin moderation tables adapt for smaller screens.
+- Dialogs, toast messages, form controls, and action buttons include narrow-screen overflow protection.
 
 Run the frontend:
 
 ```bash
 npm run frontend
 ```
+
+Or from inside `frontend/`:
+
+```bash
+npm run dev
+```
+
+If port `5173` is busy, the frontend dev server automatically uses the next open port and prints the URL.
 
 Then open:
 
@@ -191,6 +209,12 @@ Keep the backend running separately:
 
 ```bash
 npm run dev
+```
+
+Run frontend tests:
+
+```bash
+npm run test:frontend
 ```
 
 ## User Stories
@@ -521,6 +545,14 @@ backend/
 ├── app.js
 └── server.js
 
+frontend/
+├── tests/
+├── app.js
+├── dev-server.js
+├── index.html
+├── package.json
+└── styles.css
+
 docs/
 └── kejaapp-insomnia.json
 ```
@@ -563,6 +595,14 @@ The API should be available at:
 http://localhost:5000
 ```
 
+Run the frontend from the repo root:
+
+```bash
+npm run frontend
+```
+
+The frontend dev server starts on `http://localhost:5173` when available. If that port is already in use, it automatically tries the next open port and prints the URL.
+
 ## MongoDB Troubleshooting
 
 If startup shows an SSL error like `tlsv1 alert internal error` or `SSL alert number 80`, the app reached MongoDB Atlas but the TLS connection was rejected before Mongoose could authenticate. Check:
@@ -578,11 +618,17 @@ Use `GET /api/health/database` to actively ping MongoDB. A `200` response means 
 
 ## Testing
 
-Run the backend test suite:
+Run the full test suite from the repo root:
 
 ```bash
-cd backend
 npm test
+```
+
+Run backend or frontend tests separately:
+
+```bash
+npm run test:backend
+npm run test:frontend
 ```
 
 Seed demo data:
@@ -646,11 +692,11 @@ TEST_MONGODB_URI="mongodb://localhost:27017" TEST_MONGODB_DB_NAME=kejaapp_test n
 
 Completed:
 - Backend POC.
-- Auth, account management, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, tests, seeding, and Insomnia collection.
+- Auth, account management, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, static web frontend, tests, seeding, and Insomnia collection.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
-- React web frontend.
+- Expand the web frontend from the static MVP into a richer app experience.
 - React Native mobile app.
 
 ## License

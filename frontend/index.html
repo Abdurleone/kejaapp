@@ -15,9 +15,26 @@
           <p>Find, compare, and contact verified property owners.</p>
         </div>
       </div>
+      <div class="header-stats" aria-label="Product highlights">
+        <div>
+          <strong>Verified</strong>
+          <span>agency workflows</span>
+        </div>
+        <div>
+          <strong>Clear</strong>
+          <span>move-in costs</span>
+        </div>
+        <div>
+          <strong>Fast</strong>
+          <span>viewing requests</span>
+        </div>
+      </div>
       <div class="connection-bar">
         <label for="baseUrl">API</label>
         <input id="baseUrl" type="url" value="http://localhost:5000" />
+        <button id="themeToggle" class="icon-button flag-toggle" title="Toggle Kenyan flag theme" aria-label="Toggle Kenyan flag theme">
+          <span>KE</span>
+        </button>
         <button id="healthButton" class="icon-button" title="Check API health" aria-label="Check API health">
           <span>i</span>
         </button>
@@ -96,8 +113,16 @@
               <h2>Available homes</h2>
               <p id="propertyCount">Loading listings...</p>
             </div>
-            <button id="refreshProperties" class="secondary-button" type="button">Refresh</button>
+            <div class="view-actions">
+              <select id="sortProperties" aria-label="Sort properties">
+                <option value="newest">Newest</option>
+                <option value="rent-asc">Rent low to high</option>
+                <option value="rent-desc">Rent high to low</option>
+              </select>
+              <button id="refreshProperties" class="secondary-button" type="button">Refresh</button>
+            </div>
           </div>
+          <div id="propertyInsights" class="insight-strip"></div>
           <div id="properties" class="property-grid"></div>
         </section>
 
