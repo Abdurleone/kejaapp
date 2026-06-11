@@ -75,6 +75,53 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   });
 });
 
+const updateCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  if (req.body.name !== undefined) {
+    user.name = req.body.name;
+  }
+
+  if (req.body.phone !== undefined) {
+    user.phone = req.body.phone;
+  }
+
+  await user.save();
+
+  res.status(httpStatus.OK).json({
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+    },
+  });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("+password");
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  if (!(await user.matchPassword(req.body.currentPassword))) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Current password is incorrect");
+  }
+
+  user.password = req.body.newPassword;
+  await user.save();
+
+  res.status(httpStatus.OK).json({
+    message: "Password updated",
+  });
+});
+
 const logoutUser = asyncHandler(async (req, res) => {
   res.clearCookie(env.authCookieName, {
     httpOnly: true,
@@ -87,4 +134,11 @@ const logoutUser = asyncHandler(async (req, res) => {
   });
 });
 
-export { getCurrentUser, loginUser, logoutUser, registerUser };
+export {
+  changePassword,
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  registerUser,
+  updateCurrentUser,
+};

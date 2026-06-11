@@ -41,6 +41,26 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("requires authentication for profile updates", async () => {
+    const response = await request("/api/auth/me", {
+      method: "PUT",
+      body: JSON.stringify({ name: "Updated User" }),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for password changes", async () => {
+    const response = await request("/api/auth/password", {
+      method: "PUT",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
   it("rejects malformed bearer tokens for current user", async () => {
     const response = await request("/api/auth/me", {
       headers: {

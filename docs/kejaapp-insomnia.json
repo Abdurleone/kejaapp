@@ -129,6 +129,50 @@
       }
     },
     {
+      "_id": "req_auth_update_profile",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Update Profile",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/auth/me",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Demo Agency Updated\",\n  \"phone\": \"+254711000000\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_auth_change_password",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Change Password",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/auth/password",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
       "_id": "fld_properties",
       "_type": "request_group",
       "parentId": "wrk_kejaapp",
