@@ -291,6 +291,23 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("requires authentication for owner review lists", async () => {
+    const response = await request("/api/reviews/mine");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for owner review responses", async () => {
+    const response = await request("/api/reviews/000000000000000000000000/response", {
+      method: "PUT",
+      body: JSON.stringify({ message: "Thank you." }),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
   it("requires authentication for creating inquiries", async () => {
     const response = await request("/api/inquiries", {
       method: "POST",
@@ -453,6 +470,13 @@ describe("KejaApp API", () => {
 
   it("requires authentication for admin user status history", async () => {
     const response = await request("/api/admin/users/000000000000000000000000/status-history");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin review list", async () => {
+    const response = await request("/api/admin/reviews");
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token missing");

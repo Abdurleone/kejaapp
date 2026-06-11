@@ -9,6 +9,7 @@ describe("Insomnia collection", () => {
     const serializedCollection = JSON.stringify(collection);
 
     assert.equal(serializedCollection.includes(":property_id"), false);
+    assert.equal(serializedCollection.includes(":review_id"), false);
     assert.equal(serializedCollection.includes(":image_id"), false);
     assert.equal(serializedCollection.includes(":inquiry_id"), false);
     assert.equal(serializedCollection.includes(":viewing_id"), false);
@@ -21,6 +22,7 @@ describe("Insomnia collection", () => {
 
     assert.ok(environment);
     assert.equal(environment.data.property_id, "");
+    assert.equal(environment.data.review_id, "");
     assert.equal(environment.data.image_id, "");
     assert.equal(environment.data.inquiry_id, "");
     assert.equal(environment.data.viewing_id, "");

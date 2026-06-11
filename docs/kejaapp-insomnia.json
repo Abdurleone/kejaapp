@@ -19,6 +19,7 @@
         "base_url": "http://localhost:5000",
         "token": "",
         "property_id": "",
+        "review_id": "",
         "image_id": "",
         "inquiry_id": "",
         "viewing_id": "",
@@ -32,6 +33,7 @@
           "base_url",
           "token",
           "property_id",
+          "review_id",
           "image_id",
           "inquiry_id",
           "viewing_id",
@@ -619,6 +621,42 @@
       }
     },
     {
+      "_id": "req_reviews_mine",
+      "_type": "request",
+      "parentId": "fld_reviews",
+      "name": "List My Property Reviews",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/reviews/mine",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_reviews_respond",
+      "_type": "request",
+      "parentId": "fld_reviews",
+      "name": "Respond To Review",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/reviews/{{ _.review_id }}/response",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"message\": \"Thank you for the feedback. We have followed up on this.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
       "_id": "fld_inquiries",
       "_type": "request_group",
       "parentId": "wrk_kejaapp",
@@ -911,6 +949,20 @@
       "name": "List User Status History",
       "method": "GET",
       "url": "{{ _.base_url }}/api/admin/users/{{ _.user_id }}/status-history",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_reviews_list",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "List Reviews",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/reviews",
       "headers": [],
       "body": {},
       "authentication": {

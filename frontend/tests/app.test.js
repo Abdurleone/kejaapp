@@ -19,6 +19,7 @@ import {
   resolveViewFromPath,
   sortProperties,
   statusTone,
+  summarizeReview,
   summarizeProperties,
 } from "../app.js";
 
@@ -122,6 +123,17 @@ describe("frontend app utilities", () => {
     assert.equal(summary.openViewings, 1);
     assert.equal(summary.scheduledViewings, 2);
     assert.equal(summary.areaCount, 2);
+  });
+
+  it("summarizes reviews for owner and admin tables", () => {
+    assert.equal(
+      summarizeReview({
+        property: { title: "Modern Kilimani Apartment" },
+        user: { name: "Demo Tenant" },
+        rating: 4,
+      }),
+      "Modern Kilimani Apartment - 4/5 by Demo Tenant"
+    );
   });
 
   it("sorts properties by rent", () => {

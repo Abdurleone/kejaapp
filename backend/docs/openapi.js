@@ -145,6 +145,52 @@ const openApiSpec = {
         },
       },
     },
+    "/api/reviews": {
+      post: {
+        tags: ["Reviews"],
+        summary: "Create a tenant review and rating for a property",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          201: {
+            description: "Created review",
+          },
+        },
+      },
+    },
+    "/api/reviews/mine": {
+      get: {
+        tags: ["Reviews"],
+        summary: "List reviews for properties managed by the current owner",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Reviews for owned properties",
+          },
+        },
+      },
+    },
+    "/api/reviews/{id}/response": {
+      put: {
+        tags: ["Reviews"],
+        summary: "Respond to a review as the landlord or agency that owns the property",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Updated review response",
+          },
+        },
+      },
+    },
     "/api/admin/users": {
       get: {
         tags: ["Admin"],
@@ -153,6 +199,18 @@ const openApiSpec = {
         responses: {
           200: {
             description: "Paginated user list",
+          },
+        },
+      },
+    },
+    "/api/admin/reviews": {
+      get: {
+        tags: ["Admin"],
+        summary: "List all property reviews and ratings without deletion rights",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "All property reviews",
           },
         },
       },

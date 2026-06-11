@@ -24,6 +24,22 @@ const reviewSchema = new mongoose.Schema(
       trim: true,
       maxlength: 1000,
     },
+    ownerResponse: {
+      message: {
+        type: String,
+        trim: true,
+        maxlength: 1000,
+      },
+      respondedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+      respondedAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,
