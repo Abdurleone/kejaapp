@@ -55,4 +55,23 @@ describe("Property model", () => {
     assert.equal(property.images[0].alt, "Living room");
     assert.ok(property.images[0]._id);
   });
+
+  it("stores GeoJSON coordinates when provided", () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+      location: {
+        coordinates: {
+          type: "Point",
+          coordinates: [36.782, -1.2921],
+        },
+      },
+    });
+
+    assert.equal(property.location.coordinates.type, "Point");
+    assert.deepEqual(property.location.coordinates.coordinates, [36.782, -1.2921]);
+  });
 });
