@@ -23,7 +23,8 @@
         "inquiry_id": "",
         "viewing_id": "",
         "notification_id": "",
-        "verification_id": ""
+        "verification_id": "",
+        "violation_id": ""
       },
       "dataPropertyOrder": {
         "&": [
@@ -34,7 +35,8 @@
           "inquiry_id",
           "viewing_id",
           "notification_id",
-          "verification_id"
+          "verification_id",
+          "violation_id"
         ]
       },
       "color": null,
@@ -180,6 +182,25 @@
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"email\": \"agency@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_login_rejected_agency",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login Rejected Agency",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"rejected.agency@example.com\",\n  \"password\": \"password123\"\n}"
       },
       "authentication": {}
     },
@@ -793,6 +814,42 @@
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"reason\": \"Missing or unclear registration documents\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_violations_list",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "List Violations",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/violations?status=open",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_violation_update",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "Update Violation Status",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/admin/violations/{{ _.violation_id }}/status",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"reviewed\",\n  \"notes\": \"Reviewed duplicate image evidence.\"\n}"
       },
       "authentication": {
         "type": "bearer",

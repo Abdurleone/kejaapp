@@ -1,9 +1,13 @@
 import mongoose from "mongoose";
 import { pathToFileURL } from "node:url";
 import connectDB, { disconnectDB } from "../config/db.js";
+import AgencyVerification from "../models/AgencyVerification.js";
+import Inquiry from "../models/Inquiry.js";
 import Mover from "../models/Mover.js";
 import Property from "../models/Property.js";
 import User from "../models/User.js";
+import ViewingRequest from "../models/ViewingRequest.js";
+import { fingerprintPropertyImage } from "../services/imageFingerprintService.js";
 
 const users = [
   {
@@ -33,6 +37,13 @@ const users = [
     password: "password123",
     role: "agency",
     phone: "+254700000001",
+  },
+  {
+    name: "Rejected Realty Agency",
+    email: "rejected.agency@example.com",
+    password: "password123",
+    role: "agency",
+    phone: "+254700000002",
   },
   {
     name: "Demo Landlord",
@@ -90,6 +101,65 @@ const movers = [
   },
 ];
 
+const agencyVerifications = [
+  {
+    userEmail: "agency@example.com",
+    agencyName: "Demo Homes Agency",
+    registrationNumber: "BN-123456",
+    businessEmail: "agency@example.com",
+    businessPhone: "+254700000000",
+    officeAddress: "Kilimani, Nairobi",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/demo-homes-registration.pdf",
+      },
+      {
+        type: "tax_certificate",
+        url: "https://example.com/demo-homes-tax-certificate.pdf",
+      },
+    ],
+    status: "pending",
+  },
+  {
+    userEmail: "urban.agency@example.com",
+    agencyName: "Urban Nest Agency",
+    registrationNumber: "BN-654321",
+    businessEmail: "urban.agency@example.com",
+    businessPhone: "+254700000001",
+    officeAddress: "Westlands, Nairobi",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/urban-nest-registration.pdf",
+      },
+      {
+        type: "license",
+        url: "https://example.com/urban-nest-license.pdf",
+      },
+    ],
+    status: "approved",
+    reviewedByEmail: "admin@example.com",
+  },
+  {
+    userEmail: "rejected.agency@example.com",
+    agencyName: "Rejected Realty Agency",
+    registrationNumber: "BN-000111",
+    businessEmail: "rejected.agency@example.com",
+    businessPhone: "+254700000002",
+    officeAddress: "Upper Hill, Nairobi",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/rejected-realty-registration.pdf",
+      },
+    ],
+    status: "rejected",
+    reviewedByEmail: "admin@example.com",
+    rejectionReason: "Registration document could not be verified.",
+  },
+];
+
 const properties = [
   {
     title: "Modern Kilimani Apartment",
@@ -112,6 +182,12 @@ const properties = [
     bedrooms: 2,
     bathrooms: 2,
     amenities: ["parking", "wifi", "security"],
+    images: [
+      {
+        url: "https://example.com/shared-living-room.jpg",
+        alt: "Bright living room with balcony",
+      },
+    ],
     listedBy: "agency",
     status: "available",
     viewingType: "scheduled",
@@ -210,6 +286,12 @@ const properties = [
     bedrooms: 3,
     bathrooms: 3,
     amenities: ["parking", "garden", "water storage"],
+    images: [
+      {
+        url: "https://example.com/shared-living-room.jpg",
+        alt: "Living room reused from another listing",
+      },
+    ],
     listedBy: "owner",
     ownerEmail: "mary.landlord@example.com",
     status: "draft",
@@ -257,6 +339,45 @@ const properties = [
   },
 ];
 
+const inquiries = [
+  {
+    propertyTitle: "Modern Kilimani Apartment",
+    senderEmail: "tenant@example.com",
+    subject: "Viewing and availability",
+    message: "Is this apartment still available, and can I view it this week?",
+    contactPreference: "phone",
+    status: "open",
+  },
+  {
+    propertyTitle: "Spacious Nakuru Maisonette",
+    senderEmail: "grace.tenant@example.com",
+    subject: "School commute question",
+    message: "How far is the home from nearby primary schools?",
+    contactPreference: "email",
+    status: "responded",
+    response: "There are two primary schools within a short drive of the property.",
+    respondedByEmail: "landlord@example.com",
+  },
+];
+
+const viewingRequests = [
+  {
+    propertyTitle: "Modern Kilimani Apartment",
+    requesterEmail: "tenant@example.com",
+    requestedDate: "2026-07-01T10:00:00.000Z",
+    message: "I would like to view this property in the morning.",
+    status: "pending",
+  },
+  {
+    propertyTitle: "Cozy Westlands Studio",
+    requesterEmail: "grace.tenant@example.com",
+    message: "I plan to attend the open viewing.",
+    status: "approved",
+    reviewedByEmail: "agency@example.com",
+    decisionReason: "Open viewing attendance confirmed.",
+  },
+];
+
 const upsertUsers = async () => {
   const savedUsers = {};
 
@@ -293,9 +414,35 @@ const upsertMovers = async () => {
   }
 };
 
+const upsertAgencyVerifications = async (savedUsers) => {
+  for (const verification of agencyVerifications) {
+    const user = savedUsers[verification.userEmail];
+    const reviewedBy = verification.reviewedByEmail ? savedUsers[verification.reviewedByEmail] : null;
+    const { reviewedByEmail, userEmail, ...verificationData } = verification;
+
+    await AgencyVerification.findOneAndUpdate(
+      { user: user._id },
+      {
+        ...verificationData,
+        user: user._id,
+        reviewedBy: reviewedBy?._id || null,
+        reviewedAt: verification.status === "approved" || verification.status === "rejected" ? new Date() : null,
+        rejectionReason: verification.status === "rejected" ? verification.rejectionReason : undefined,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        setDefaultsOnInsert: true,
+        upsert: true,
+      }
+    );
+  }
+};
+
 const upsertProperties = async (savedUsers) => {
   const agency = savedUsers["agency@example.com"];
   const landlord = savedUsers["landlord@example.com"];
+  const savedProperties = {};
 
   for (const property of properties) {
     let owner = property.listedBy === "agency" ? agency : landlord;
@@ -306,7 +453,7 @@ const upsertProperties = async (savedUsers) => {
 
     const { ownerEmail, ...propertyData } = property;
 
-    await Property.findOneAndUpdate(
+    const savedProperty = await Property.findOneAndUpdate(
       { title: property.title },
       {
         ...propertyData,
@@ -319,6 +466,84 @@ const upsertProperties = async (savedUsers) => {
         upsert: true,
       }
     );
+
+    savedProperties[savedProperty.title] = savedProperty;
+  }
+
+  return savedProperties;
+};
+
+const upsertInquiries = async (savedUsers, savedProperties) => {
+  for (const inquiry of inquiries) {
+    const property = savedProperties[inquiry.propertyTitle];
+    const sender = savedUsers[inquiry.senderEmail];
+    const respondedBy = inquiry.respondedByEmail ? savedUsers[inquiry.respondedByEmail] : null;
+    const { propertyTitle, respondedByEmail, senderEmail, ...inquiryData } = inquiry;
+
+    await Inquiry.findOneAndUpdate(
+      {
+        property: property._id,
+        sender: sender._id,
+        subject: inquiry.subject,
+      },
+      {
+        ...inquiryData,
+        property: property._id,
+        sender: sender._id,
+        owner: property.owner,
+        respondedBy: respondedBy?._id || null,
+        respondedAt: inquiry.status === "responded" ? new Date() : null,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        setDefaultsOnInsert: true,
+        upsert: true,
+      }
+    );
+  }
+};
+
+const upsertViewingRequests = async (savedUsers, savedProperties) => {
+  for (const viewingRequest of viewingRequests) {
+    const property = savedProperties[viewingRequest.propertyTitle];
+    const requester = savedUsers[viewingRequest.requesterEmail];
+    const reviewedBy = viewingRequest.reviewedByEmail ? savedUsers[viewingRequest.reviewedByEmail] : null;
+    const { propertyTitle, requesterEmail, reviewedByEmail, ...viewingRequestData } = viewingRequest;
+
+    await ViewingRequest.findOneAndUpdate(
+      {
+        property: property._id,
+        requester: requester._id,
+        status: viewingRequest.status,
+      },
+      {
+        ...viewingRequestData,
+        property: property._id,
+        requester: requester._id,
+        owner: property.owner,
+        reviewedBy: reviewedBy?._id || null,
+        reviewedAt: reviewedBy ? new Date() : null,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        setDefaultsOnInsert: true,
+        upsert: true,
+      }
+    );
+  }
+};
+
+const upsertImageFingerprints = async (savedProperties) => {
+  for (const property of Object.values(savedProperties)) {
+    for (const image of property.images) {
+      await fingerprintPropertyImage({
+        image,
+        property,
+        uploadedBy: property.owner,
+      });
+    }
   }
 };
 
@@ -328,7 +553,11 @@ const seedDemoData = async () => {
 
     const savedUsers = await upsertUsers();
     await upsertMovers();
-    await upsertProperties(savedUsers);
+    await upsertAgencyVerifications(savedUsers);
+    const savedProperties = await upsertProperties(savedUsers);
+    await upsertInquiries(savedUsers, savedProperties);
+    await upsertViewingRequests(savedUsers, savedProperties);
+    await upsertImageFingerprints(savedProperties);
 
     console.log("Demo data seeded successfully");
   } catch (error) {
@@ -344,4 +573,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   seedDemoData();
 }
 
-export { movers, properties, seedDemoData, users };
+export {
+  agencyVerifications,
+  inquiries,
+  movers,
+  properties,
+  seedDemoData,
+  users,
+  viewingRequests,
+};
