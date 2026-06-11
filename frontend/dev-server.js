@@ -23,6 +23,12 @@ const send = (res, statusCode, body, headers = {}) => {
   res.end(body);
 };
 
+const sendFile = async (res, filePath) => {
+  const body = await fs.readFile(filePath);
+  const contentType = mimeTypes[path.extname(filePath)] || "application/octet-stream";
+  send(res, 200, body, { "Content-Type": contentType });
+};
+
 const createServer = () =>
   http.createServer(async (req, res) => {
     try {
@@ -36,11 +42,16 @@ const createServer = () =>
         return;
       }
 
-      const body = await fs.readFile(filePath);
-      const contentType = mimeTypes[path.extname(filePath)] || "application/octet-stream";
-      send(res, 200, body, { "Content-Type": contentType });
+      await sendFile(res, filePath);
     } catch (error) {
       if (error.code === "ENOENT") {
+        const requestPath = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
+
+        if (!path.extname(requestPath)) {
+          await sendFile(res, path.join(root, "index.html"));
+          return;
+        }
+
         send(res, 404, "Not found");
         return;
       }

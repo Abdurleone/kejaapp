@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildQueryString,
+  createApiUrl,
   formatStatusLabel,
   formatKes,
   getPropertyImage,
+  getViewPath,
   nextTheme,
+  normalizeApiBaseUrl,
   resolveAssetUrl,
+  resolveViewFromPath,
   sortProperties,
   statusTone,
   summarizeProperties,
@@ -26,6 +30,12 @@ describe("frontend app utilities", () => {
       }),
       "?county=Nairobi&minRent=50000"
     );
+  });
+
+  it("normalizes backend API URLs", () => {
+    assert.equal(normalizeApiBaseUrl("http://localhost:5000/"), "http://localhost:5000");
+    assert.equal(normalizeApiBaseUrl(""), "http://localhost:5000");
+    assert.equal(createApiUrl("api/health", "http://localhost:5000/"), "http://localhost:5000/api/health");
   });
 
   it("resolves relative uploaded assets against the API base URL", () => {
@@ -57,6 +67,13 @@ describe("frontend app utilities", () => {
   it("toggles between the default and Kenyan flag themes", () => {
     assert.equal(nextTheme("default"), "kenya");
     assert.equal(nextTheme("kenya"), "default");
+  });
+
+  it("maps frontend paths to workspace views", () => {
+    assert.equal(resolveViewFromPath("/admin"), "admin");
+    assert.equal(resolveViewFromPath("/owner/"), "owner");
+    assert.equal(resolveViewFromPath("/unknown"), "discover");
+    assert.equal(getViewPath("saved"), "/saved");
   });
 
   it("summarizes property collections", () => {

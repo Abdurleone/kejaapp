@@ -1,12 +1,25 @@
 const fallbackImage =
   "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=70";
 
+export const defaultApiBaseUrl = "http://localhost:5000";
+
+export const normalizeApiBaseUrl = (value) => {
+  const baseUrl = String(value || "").trim() || defaultApiBaseUrl;
+  return baseUrl.replace(/\/+$/, "");
+};
+
+export const createApiUrl = (path, baseUrl = defaultApiBaseUrl) => {
+  const normalizedBaseUrl = normalizeApiBaseUrl(baseUrl);
+  const normalizedPath = String(path || "").startsWith("/") ? path : `/${path}`;
+  return `${normalizedBaseUrl}${normalizedPath}`;
+};
+
 const storage = {
   get baseUrl() {
-    return localStorage.getItem("keja_base_url") || "http://localhost:5000";
+    return normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
   },
   set baseUrl(value) {
-    localStorage.setItem("keja_base_url", value);
+    localStorage.setItem("keja_base_url", normalizeApiBaseUrl(value));
   },
   get token() {
     return localStorage.getItem("keja_token") || "";
@@ -67,7 +80,7 @@ export const resolveAssetUrl = (url, baseUrl) => {
   return `${baseUrl.replace(/\/$/, "")}${url}`;
 };
 
-export const getPropertyImage = (property, baseUrl = "http://localhost:5000") =>
+export const getPropertyImage = (property, baseUrl = defaultApiBaseUrl) =>
   resolveAssetUrl(property.images?.[0]?.url, baseUrl);
 
 export const statusTone = (status) => {
@@ -123,6 +136,21 @@ export const sortProperties = (properties, sortMode) => {
 
 export const nextTheme = (theme) => (theme === "kenya" ? "default" : "kenya");
 
+const viewPaths = {
+  discover: "/",
+  saved: "/saved",
+  owner: "/owner",
+  admin: "/admin",
+};
+
+export const resolveViewFromPath = (path) => {
+  const normalizedPath = path === "/" ? "/" : String(path || "").replace(/\/$/, "");
+  const match = Object.entries(viewPaths).find(([, viewPath]) => viewPath === normalizedPath);
+  return match?.[0] || "discover";
+};
+
+export const getViewPath = (view) => viewPaths[view] || viewPaths.discover;
+
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
 
@@ -141,22 +169,44 @@ const showToast = (message) => {
   showToast.timer = window.setTimeout(() => toast.classList.remove("visible"), 3200);
 };
 
+const setApiStatus = (status, label) => {
+  const apiState = qs("#apiState");
+
+  if (!apiState) {
+    return;
+  }
+
+  apiState.textContent = label;
+  apiState.dataset.status = status;
+};
+
 const apiRequest = async (path, options = {}) => {
   const headers = {
     ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...(storage.token ? { Authorization: `Bearer ${storage.token}` } : {}),
     ...(options.headers || {}),
   };
-  const response = await fetch(`${storage.baseUrl}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+
+  try {
+    response = await fetch(createApiUrl(path, storage.baseUrl), {
+      ...options,
+      credentials: "include",
+      headers,
+    });
+  } catch {
+    setApiStatus("offline", "API offline");
+    throw new Error(`Could not reach API at ${storage.baseUrl}`);
+  }
+
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
+    setApiStatus("error", "API error");
     throw new Error(body?.message || `Request failed with ${response.status}`);
   }
 
+  setApiStatus("online", "API online");
   return body;
 };
 
@@ -509,20 +559,31 @@ const createProperty = async (event) => {
   loadMyProperties();
 };
 
-const switchView = (view) => {
-  state.currentView = view;
-  qsa(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
-  qsa(".view").forEach((section) => section.classList.toggle("active-view", section.id === `${view}View`));
+const switchView = (view, options = {}) => {
+  const nextView = viewPaths[view] ? view : "discover";
+  const { pushState = true } = options;
 
-  if (view === "saved") {
+  if (pushState && typeof window !== "undefined") {
+    const nextPath = getViewPath(nextView);
+
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ view: nextView }, "", nextPath);
+    }
+  }
+
+  state.currentView = nextView;
+  qsa(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === nextView));
+  qsa(".view").forEach((section) => section.classList.toggle("active-view", section.id === `${nextView}View`));
+
+  if (nextView === "saved") {
     loadFavorites().catch((error) => showToast(error.message));
   }
 
-  if (view === "owner") {
+  if (nextView === "owner") {
     loadMyProperties().catch((error) => showToast(error.message));
   }
 
-  if (view === "admin") {
+  if (nextView === "admin") {
     loadUsers().catch((error) => showToast(error.message));
   }
 };
@@ -530,7 +591,9 @@ const switchView = (view) => {
 const bindEvents = () => {
   qs("#baseUrl").value = storage.baseUrl;
   qs("#baseUrl").addEventListener("change", (event) => {
-    storage.baseUrl = event.target.value.replace(/\/$/, "");
+    storage.baseUrl = event.target.value;
+    event.target.value = storage.baseUrl;
+    setApiStatus("unknown", "Check API");
   });
   qs("#themeToggle").addEventListener("click", () => {
     storage.theme = nextTheme(storage.theme);
@@ -621,12 +684,20 @@ const bindEvents = () => {
   qsa(".tab").forEach((tab) => {
     tab.addEventListener("click", () => switchView(tab.dataset.view));
   });
+  window.addEventListener("popstate", () => {
+    switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
+  });
 };
 
 const init = () => {
   applyTheme();
   renderSession();
   bindEvents();
+  switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
+  setApiStatus("unknown", "Checking API");
+  apiRequest("/api/health")
+    .then((body) => setApiStatus(body.database?.status === "connected" ? "online" : "degraded", body.database?.status || "API online"))
+    .catch((error) => showToast(error.message));
   loadProperties().catch((error) => showToast(error.message));
 
   if (storage.token) {
