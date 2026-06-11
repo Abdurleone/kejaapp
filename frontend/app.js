@@ -107,6 +107,16 @@ export const formatStatusLabel = (value) =>
     .join(" ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+export const formatRatingSummary = (ratingAverage, ratingCount) => {
+  const count = Number(ratingCount || 0);
+
+  if (!count) {
+    return "No ratings";
+  }
+
+  return `${Number(ratingAverage || 0).toFixed(1)} rating (${count})`;
+};
+
 export const summarizeProperties = (properties) => {
   const rents = properties
     .map((property) => Number(property.price?.rent || 0))
@@ -152,6 +162,17 @@ export const nextTheme = (theme) => (theme === "kenya" ? "default" : "kenya");
 
 export const nextColorMode = (mode) => (mode === "dark" ? "light" : "dark");
 
+export const demoAccounts = {
+  tenant: "tenant@example.com",
+  landlord: "landlord@example.com",
+  agency: "agency@example.com",
+  admin: "admin@example.com",
+};
+
+export const getDemoEmailForRole = (role) => demoAccounts[role] || demoAccounts.tenant;
+
+export const canRegisterRole = (role) => ["tenant", "landlord", "agency"].includes(role);
+
 const roleViewAccess = {
   tenant: ["discover", "saved"],
   landlord: ["owner"],
@@ -175,8 +196,10 @@ export const canManageListings = (role) => ["landlord", "agency", "admin"].inclu
 
 export const canSearchListings = (role) => !role || role === "tenant";
 
+export const shouldShowSplash = ({ isSignedIn, path = "/" }) => !isSignedIn && String(path || "/").replace(/\/$/, "") === "";
+
 const viewPaths = {
-  discover: "/",
+  discover: "/search",
   saved: "/saved",
   owner: "/owner",
   admin: "/admin",
@@ -184,6 +207,11 @@ const viewPaths = {
 
 export const resolveViewFromPath = (path) => {
   const normalizedPath = path === "/" ? "/" : String(path || "").replace(/\/$/, "");
+
+  if (normalizedPath === "/") {
+    return "discover";
+  }
+
   const match = Object.entries(viewPaths).find(([, viewPath]) => viewPath === normalizedPath);
   return match?.[0] || "discover";
 };
@@ -206,6 +234,15 @@ const showToast = (message) => {
   toast.classList.add("visible");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => toast.classList.remove("visible"), 3200);
+};
+
+const promptTaskbarAuth = () => {
+  const authBar = qs(".connection-bar");
+  authBar.classList.add("auth-nudge");
+  qs("#roleLogin").focus();
+  authBar.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.clearTimeout(promptTaskbarAuth.timer);
+  promptTaskbarAuth.timer = window.setTimeout(() => authBar.classList.remove("auth-nudge"), 2200);
 };
 
 const setApiStatus = (status, label) => {
@@ -276,9 +313,18 @@ const renderSession = () => {
 
 const renderAuthGate = () => {
   const isSignedIn = Boolean(storage.user && storage.token);
-  qs("#landingPage").hidden = isSignedIn;
-  qs("#appShell").hidden = false;
+  const showSplash = shouldShowSplash({
+    isSignedIn,
+    path: typeof window === "undefined" ? "/" : window.location.pathname,
+  });
+
+  qs(".app-header").hidden = showSplash;
+  qs("#landingPage").hidden = !showSplash;
+  qs("#appShell").hidden = showSplash;
   qs("#logoutButton").hidden = !isSignedIn;
+  qs("#signInButton").hidden = isSignedIn;
+  qs("#signUpButton").hidden = isSignedIn;
+  qs("#roleLogin").hidden = isSignedIn;
 };
 
 const renderRoleAccess = () => {
@@ -306,11 +352,9 @@ const applyTheme = (theme = storage.theme) => {
 
 const applyColorMode = (mode = storage.colorMode) => {
   document.documentElement.dataset.colorMode = mode;
-  qs("#colorModeToggle span").textContent = mode === "dark" ? "Light" : "Dark";
-  qs("#colorModeToggle").setAttribute(
-    "aria-label",
-    mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
-  );
+  qsa('input[name="colorMode"]').forEach((input) => {
+    input.checked = input.value === mode;
+  });
 };
 
 const renderMetrics = (summary) => {
@@ -388,6 +432,10 @@ const renderPropertyCard = (property, options = {}) => {
   const id = property._id || property.id;
   const amenities = (property.amenities || []).slice(0, 3);
   const role = storage.user?.role;
+  const ratingSummary = formatRatingSummary(property.ratingAverage, property.ratingCount);
+  const contactMethod = property.contact?.preferredMethod
+    ? formatStatusLabel(property.contact.preferredMethod)
+    : "In-app";
   const actions = options.owner
     ? `<button class="secondary-button" data-status="${id}" data-next-status="taken">Mark taken</button>`
     : canUseTenantPropertyActions(role)
@@ -408,7 +456,10 @@ const renderPropertyCard = (property, options = {}) => {
     <article class="property-card">
       <div class="property-photo">
         <img src="${imageUrl}" alt="${property.images?.[0]?.alt || property.title}" />
-        <span class="pill">${formatStatusLabel(property.viewingType || "scheduled")}</span>
+        <div class="photo-badges">
+          <span class="pill">${formatStatusLabel(property.viewingType || "scheduled")}</span>
+          <span class="rating-badge">${ratingSummary}</span>
+        </div>
       </div>
       <div class="property-body">
         <div>
@@ -424,6 +475,7 @@ const renderPropertyCard = (property, options = {}) => {
           <span>${property.bedrooms || 0} beds</span>
           <span>${property.bathrooms || 0} baths</span>
           <span>${formatStatusLabel(property.listedBy || "owner")}</span>
+          <span>${contactMethod}</span>
         </div>
         ${
           amenities.length
@@ -447,7 +499,10 @@ const renderReviewRows = (reviews, options = {}) =>
           return `
             <article class="review-row">
               <div>
-                <strong>${summarizeReview(review)}</strong>
+                <div class="review-heading">
+                  <strong>${summarizeReview(review)}</strong>
+                  <span>${Number(review.rating || 0)}/5</span>
+                </div>
                 <p>${review.comment || "No comment provided."}</p>
                 ${
                   response
@@ -593,6 +648,88 @@ const respondToReview = async (reviewId) => {
   loadOwnerReviews();
 };
 
+const signInWithSelectedRole = async () => {
+  const email = getDemoEmailForRole(qs("#roleLogin").value);
+  const body = await apiRequest("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password: "password123",
+    }),
+  });
+
+  setSession(body);
+  showToast(`Signed in as ${formatStatusLabel(body.user.role)}`);
+  switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
+
+  if (canSearchListings(storage.user?.role)) {
+    loadProperties().catch((error) => showToast(error.message));
+  }
+
+  loadDashboard();
+};
+
+const createAccount = async () => {
+  const role = qs("#signupRole").value;
+  const body = await apiRequest("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({
+      name: qs("#signupName").value,
+      email: qs("#signupEmail").value,
+      password: qs("#signupPassword").value,
+      phone: qs("#signupPhone").value,
+      role,
+    }),
+  });
+
+  setSession(body);
+  qs("#actionDialog").close();
+  showToast(`Account created as ${formatStatusLabel(body.user.role)}`);
+  switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
+
+  if (canSearchListings(storage.user?.role)) {
+    loadProperties().catch((error) => showToast(error.message));
+  }
+
+  loadDashboard();
+};
+
+const openSignUpDialog = () => {
+  const selectedRole = canRegisterRole(qs("#roleLogin").value) ? qs("#roleLogin").value : "tenant";
+
+  openActionDialog(
+    "Create account",
+    `
+      <div class="stack">
+        <input id="signupName" type="text" placeholder="Full name or business name" />
+        <input id="signupEmail" type="email" placeholder="Email" />
+        <input id="signupPassword" type="password" placeholder="Password, 8+ characters" />
+        <input id="signupPhone" type="tel" placeholder="Phone optional" />
+        <select id="signupRole">
+          <option value="tenant"${selectedRole === "tenant" ? " selected" : ""}>Tenant</option>
+          <option value="landlord"${selectedRole === "landlord" ? " selected" : ""}>Landlord</option>
+          <option value="agency"${selectedRole === "agency" ? " selected" : ""}>Agency</option>
+        </select>
+        <div class="dialog-actions">
+          <button class="primary-button" type="button" id="createAccountButton">Create account</button>
+        </div>
+      </div>
+    `
+  );
+  qs("#signupName").focus();
+  qs("#createAccountButton").addEventListener("click", () => createAccount().catch((error) => showToast(error.message)));
+};
+
+const enterApp = () => {
+  if (typeof window !== "undefined" && window.location.pathname !== getViewPath("discover")) {
+    window.history.pushState({ view: "discover" }, "", getViewPath("discover"));
+  }
+
+  renderAuthGate();
+  switchView("discover", { pushState: false });
+  loadProperties().catch((error) => showToast(error.message));
+};
+
 const createInquiry = async (propertyId) => {
   const subject = qs("#inquirySubject").value;
   const message = qs("#inquiryMessage").value;
@@ -629,8 +766,7 @@ const bindPropertyActions = (event) => {
 
   if (authAction) {
     showToast("Sign in or sign up to contact this property owner");
-    qs("#landingPage").hidden = false;
-    qs("#landingPage").scrollIntoView({ behavior: "smooth", block: "start" });
+    promptTaskbarAuth();
     return;
   }
 
@@ -785,45 +921,45 @@ const switchView = (view, options = {}) => {
 };
 
 const bindEvents = () => {
-  qs("#baseUrl").value = storage.baseUrl;
-  qs("#baseUrl").addEventListener("change", (event) => {
-    storage.baseUrl = event.target.value;
-    event.target.value = storage.baseUrl;
-    setApiStatus("unknown", "Check API");
-  });
+  if (qs("#baseUrl")) {
+    qs("#baseUrl").value = storage.baseUrl;
+    qs("#baseUrl").addEventListener("change", (event) => {
+      storage.baseUrl = event.target.value;
+      event.target.value = storage.baseUrl;
+      setApiStatus("unknown", "Check API");
+    });
+  }
   qs("#themeToggle").addEventListener("click", () => {
     storage.theme = nextTheme(storage.theme);
     applyTheme(storage.theme);
   });
-  qs("#colorModeToggle").addEventListener("click", () => {
-    storage.colorMode = nextColorMode(storage.colorMode);
+  qs("#colorModeControl").addEventListener("change", (event) => {
+    if (event.target.name !== "colorMode") {
+      return;
+    }
+
+    storage.colorMode = event.target.value;
     applyColorMode(storage.colorMode);
   });
-  qs("#healthButton").addEventListener("click", () => {
+  qs("#healthButton")?.addEventListener("click", () => {
     apiRequest("/api/health")
       .then((body) => showToast(`API ${body.status}; database ${body.database.status}`))
       .catch((error) => showToast(error.message));
   });
-  qs("#loginForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      const body = await apiRequest("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-          email: qs("#email").value,
-          password: qs("#password").value,
-        }),
-      });
-      setSession(body);
-      showToast("Signed in");
-      switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
-      if (canSearchListings(storage.user?.role)) {
-        loadProperties().catch((error) => showToast(error.message));
-      }
-      loadDashboard();
-    } catch (error) {
-      showToast(error.message);
+  qs("#signInButton").addEventListener("click", () => signInWithSelectedRole().catch((error) => showToast(error.message)));
+  qs("#signUpButton").addEventListener("click", () => openSignUpDialog());
+  qs("#enterAppButton").addEventListener("click", (event) => {
+    event.stopPropagation();
+    enterApp();
+  });
+  qs("#landingPage").addEventListener("click", () => enterApp());
+  window.addEventListener("keydown", (event) => {
+    if (qs("#landingPage").hidden || !["Enter", " "].includes(event.key)) {
+      return;
     }
+
+    event.preventDefault();
+    enterApp();
   });
   qs("#logoutButton").addEventListener("click", async () => {
     try {
@@ -839,12 +975,6 @@ const bindEvents = () => {
     switchView("discover");
     loadProperties().catch((error) => showToast(error.message));
     showToast("Logged out");
-  });
-  qsa("[data-login]").forEach((button) => {
-    button.addEventListener("click", () => {
-      qs("#email").value = button.dataset.login;
-      qs("#password").value = "password123";
-    });
   });
   qs("#filterForm").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -894,6 +1024,7 @@ const bindEvents = () => {
     tab.addEventListener("click", () => switchView(tab.dataset.view));
   });
   window.addEventListener("popstate", () => {
+    renderAuthGate();
     switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
   });
 };
@@ -911,7 +1042,7 @@ const init = () => {
     .then((body) => setApiStatus(body.database?.status === "connected" ? "online" : "degraded", body.database?.status || "API online"))
     .catch((error) => showToast(error.message));
 
-  if (canSearchListings(storage.user?.role)) {
+  if (!shouldShowSplash({ isSignedIn: Boolean(storage.user && storage.token), path: window.location.pathname }) && canSearchListings(storage.user?.role)) {
     loadProperties().catch((error) => showToast(error.message));
   }
 

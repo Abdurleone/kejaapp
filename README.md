@@ -178,6 +178,7 @@ Included flows:
 - Login with demo account shortcuts.
 - Role-aware dashboard summary.
 - Role-aware navigation and actions so tenants, owners, agencies, and admins only see the tools they can use.
+- Polished responsive web UI with a standalone image-led splash landing page, anonymous search entry, top taskbar sign-in and sign-up by user category, richer listing cards, owner review responses, admin review visibility, and light/dark plus Kenyan flag theme toggles.
 - Saved property actions.
 - Inquiry and viewing request actions.
 - Owner property creation and listing management.
@@ -202,10 +203,10 @@ Responsive behavior:
 - Dialogs, toast messages, form controls, and action buttons include narrow-screen overflow protection.
 
 Backend connection:
-- The API base URL input defaults to `http://localhost:5000`.
-- The frontend stores the API base URL in `localStorage` after you edit it.
+- The web UI hides backend connection controls from regular users.
+- The frontend uses `http://localhost:5000` as its local development API base URL by default.
+- Developers can still override the API base URL through the existing `keja_base_url` localStorage key if needed.
 - Browser requests include bearer tokens and cookies, so the app works with API tokens and HTTP-only auth cookies.
-- The header shows API connection status after checking `GET /api/health`.
 - In development, the backend accepts local frontend origins such as `http://localhost:5173` and fallback ports like `http://localhost:5174`.
 
 Run the frontend:
@@ -231,7 +232,8 @@ http://localhost:5173
 Direct frontend paths:
 
 ```text
-/          -> Discover
+/          -> Splash landing page
+/search    -> Anonymous Discover search
 /saved     -> Saved properties
 /owner     -> Owner tools
 /admin     -> Admin moderation
@@ -650,9 +652,7 @@ Run the frontend from the repo root:
 npm run frontend
 ```
 
-The frontend dev server starts on `http://localhost:5173` when available. If that port is already in use, it automatically tries the next open port and prints the URL.
-
-If the frontend starts on a fallback port such as `http://localhost:5174`, keep the API input set to `http://localhost:5000`. The backend development CORS config allows these local frontend ports.
+The frontend dev server starts on `http://localhost:5173` when available. If that port is already in use, it automatically tries the next open port and prints the URL. The backend development CORS config allows these local frontend ports.
 
 ## MongoDB Troubleshooting
 

@@ -7,7 +7,7 @@ const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8")
 describe("responsive stylesheet", () => {
   it("keeps primary layout regions container-safe", () => {
     assert.match(styles, /grid-template-columns:\s*minmax\(280px,\s*330px\)\s+minmax\(0,\s*1fr\)/);
-    assert.match(styles, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*260px\),\s*1fr\)\)/);
+    assert.match(styles, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*270px\),\s*1fr\)\)/);
   });
 
   it("includes tablet and phone breakpoints", () => {
