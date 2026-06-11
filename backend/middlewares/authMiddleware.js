@@ -42,6 +42,10 @@ const protect = asyncHandler(async (req, res, next) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Not authorized, user not found");
   }
 
+  if (req.user.accountStatus && req.user.accountStatus !== "active") {
+    throw new ApiError(httpStatus.FORBIDDEN, "Account is not active");
+  }
+
   next();
 });
 

@@ -1,9 +1,12 @@
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
+import AuthSession from "../models/AuthSession.js";
 import User from "../models/User.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
+import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
 
 const getCookieOptions = () => ({
   httpOnly: true,
@@ -12,11 +15,43 @@ const getCookieOptions = () => ({
   secure: env.authCookieSecure,
 });
 
-const sendAuthResponse = (res, statusCode, user) => {
+const getRefreshCookieOptions = () => ({
+  httpOnly: true,
+  maxAge: env.refreshTokenMaxAge,
+  sameSite: env.authCookieSecure ? "none" : "lax",
+  secure: env.authCookieSecure,
+});
+
+const createRefreshSession = async (req, user) => {
+  const refreshToken = generateOpaqueToken();
+
+  await AuthSession.create({
+    user: user._id,
+    tokenHash: hashToken(refreshToken),
+    userAgent: req.headers["user-agent"],
+    ipAddress: req.ip,
+    expiresAt: new Date(Date.now() + env.refreshTokenMaxAge),
+  });
+
+  return refreshToken;
+};
+
+const getRefreshTokenFromRequest = (req) => {
+  if (req.body.refreshToken) {
+    return req.body.refreshToken;
+  }
+
+  const cookies = parseCookies(req.headers.cookie);
+  return cookies[env.refreshCookieName];
+};
+
+const sendAuthResponse = async (req, res, statusCode, user) => {
   const userId = user._id.toString();
   const token = generateToken({ id: userId, role: user.role });
+  const refreshToken = await createRefreshSession(req, user);
 
   res.cookie(env.authCookieName, token, getCookieOptions());
+  res.cookie(env.refreshCookieName, refreshToken, getRefreshCookieOptions());
 
   res.status(statusCode).json({
     user: {
@@ -27,6 +62,7 @@ const sendAuthResponse = (res, statusCode, user) => {
       phone: user.phone,
     },
     token,
+    refreshToken,
     tokenType: "Bearer",
     expiresIn: env.jwtExpiresIn,
   });
@@ -49,7 +85,7 @@ const registerUser = asyncHandler(async (req, res) => {
     role,
   });
 
-  sendAuthResponse(res, httpStatus.CREATED, user);
+  await sendAuthResponse(req, res, httpStatus.CREATED, user);
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -60,7 +96,35 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid email or password");
   }
 
-  sendAuthResponse(res, httpStatus.OK, user);
+  await sendAuthResponse(req, res, httpStatus.OK, user);
+});
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const refreshToken = getRefreshTokenFromRequest(req);
+
+  if (!refreshToken) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Refresh token missing");
+  }
+
+  const session = await AuthSession.findOne({
+    tokenHash: hashToken(refreshToken),
+    revokedAt: null,
+    expiresAt: { $gt: new Date() },
+  }).populate("user");
+
+  if (!session || !session.user) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Refresh token invalid");
+  }
+
+  if (session.user.accountStatus && session.user.accountStatus !== "active") {
+    throw new ApiError(httpStatus.FORBIDDEN, "Account is not active");
+  }
+
+  session.revokedAt = new Date();
+  session.lastUsedAt = new Date();
+  await session.save();
+
+  await sendAuthResponse(req, res, httpStatus.OK, session.user);
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -123,7 +187,26 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+  const refreshToken = getRefreshTokenFromRequest(req);
+
+  if (refreshToken) {
+    await AuthSession.findOneAndUpdate(
+      {
+        tokenHash: hashToken(refreshToken),
+        revokedAt: null,
+      },
+      {
+        revokedAt: new Date(),
+      }
+    );
+  }
+
   res.clearCookie(env.authCookieName, {
+    httpOnly: true,
+    sameSite: env.authCookieSecure ? "none" : "lax",
+    secure: env.authCookieSecure,
+  });
+  res.clearCookie(env.refreshCookieName, {
     httpOnly: true,
     sameSite: env.authCookieSecure ? "none" : "lax",
     secure: env.authCookieSecure,
@@ -139,6 +222,7 @@ export {
   getCurrentUser,
   loginUser,
   logoutUser,
+  refreshAccessToken,
   registerUser,
   updateCurrentUser,
 };

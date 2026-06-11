@@ -4,6 +4,7 @@ import {
   costCalculationSchema,
   createPropertySchema,
   propertyImageSchema,
+  uploadPropertyImageSchema,
   updatePropertySchema,
 } from "../../validators/propertyValidators.js";
 
@@ -82,6 +83,15 @@ describe("propertyValidators", () => {
     const message = propertyImageSchema.alt.validate("a".repeat(201));
 
     assert.equal(message, "alt must be 200 characters or fewer");
+  });
+
+  it("allows supported upload image mime types", () => {
+    assert.deepEqual(uploadPropertyImageSchema.mimeType.enum, ["image/jpeg", "image/png", "image/webp"]);
+  });
+
+  it("requires upload image data", () => {
+    assert.equal(uploadPropertyImageSchema.data.required, true);
+    assert.equal(uploadPropertyImageSchema.data.minLength, 8);
   });
 
   it("accepts valid GeoJSON property coordinates", () => {

@@ -33,4 +33,14 @@ describe("User model", () => {
 
     assert.equal(user.password, hashedPassword);
   });
+
+  it("defaults accounts to active status", () => {
+    const user = new User({
+      name: "Active User",
+      email: "active@example.com",
+      password: "password123",
+    });
+
+    assert.equal(user.accountStatus, "active");
+  });
 });

@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import path from "node:path";
 
 dotenv.config({ quiet: true });
 
@@ -67,6 +68,28 @@ const parseBoolean = (value, fallback, key) => {
   throw new Error(`${key} must be true or false`);
 };
 
+const parseTrustProxy = (value) => {
+  if (value === undefined || value === "") {
+    return false;
+  }
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  const hops = Number(value);
+
+  if (Number.isInteger(hops) && hops >= 0) {
+    return hops;
+  }
+
+  throw new Error("TRUST_PROXY must be true, false, or a non-negative integer");
+};
+
 const normalizeMongoUri = (value, databaseName) => {
   const uri = new URL(value);
 
@@ -83,6 +106,7 @@ const nodeEnv = process.env.NODE_ENV || "development";
 const env = {
   nodeEnv,
   port: parsePort(process.env.PORT),
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   mongoDbName,
   mongoUri: normalizeMongoUri(process.env.MONGODB_URI, mongoDbName),
   dbRequired: parseBoolean(process.env.DB_REQUIRED, nodeEnv === "production", "DB_REQUIRED"),
@@ -98,11 +122,31 @@ const env = {
   ),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   jwtSecret: process.env.JWT_SECRET,
+  refreshTokenMaxAge: parseCookieMaxAge(process.env.REFRESH_TOKEN_MAX_AGE_DAYS || 30),
   bcryptSaltRounds: parsePositiveInteger(process.env.BCRYPT_SALT_ROUNDS, 12, "BCRYPT_SALT_ROUNDS"),
   authCookieName: process.env.AUTH_COOKIE_NAME || "keja_token",
+  refreshCookieName: process.env.REFRESH_COOKIE_NAME || "keja_refresh",
   authCookieMaxAge: parseCookieMaxAge(process.env.AUTH_COOKIE_MAX_AGE_DAYS),
   authCookieSecure: process.env.AUTH_COOKIE_SECURE === "true",
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGIN),
+  rateLimitWindowMs: parsePositiveInteger(
+    process.env.RATE_LIMIT_WINDOW_MS,
+    15 * 60 * 1000,
+    "RATE_LIMIT_WINDOW_MS"
+  ),
+  rateLimitMax: parsePositiveInteger(process.env.RATE_LIMIT_MAX, 500, "RATE_LIMIT_MAX"),
+  authRateLimitMax: parsePositiveInteger(
+    process.env.AUTH_RATE_LIMIT_MAX,
+    50,
+    "AUTH_RATE_LIMIT_MAX"
+  ),
+  uploadDir: path.resolve(process.env.UPLOAD_DIR || "uploads"),
+  uploadPublicBaseUrl: process.env.UPLOAD_PUBLIC_BASE_URL || "",
+  maxUploadBytes: parsePositiveInteger(
+    process.env.MAX_UPLOAD_BYTES,
+    5 * 1024 * 1024,
+    "MAX_UPLOAD_BYTES"
+  ),
 };
 
 export default env;

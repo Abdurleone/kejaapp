@@ -6,4 +6,16 @@ const rejectAgencyVerificationSchema = {
   },
 };
 
-export { rejectAgencyVerificationSchema };
+const updateUserStatusSchema = {
+  status: {
+    required: true,
+    type: "string",
+    enum: ["active", "suspended", "banned"],
+  },
+  reason: {
+    type: "string",
+    minLength: 5,
+  },
+};
+
+export { rejectAgencyVerificationSchema, updateUserStatusSchema };

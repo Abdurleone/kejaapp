@@ -3,13 +3,26 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "node:test";
 import {
   changePassword,
+  refreshAccessToken,
   updateCurrentUser,
 } from "../../controllers/authController.js";
+import AuthSession from "../../models/AuthSession.js";
 import User from "../../models/User.js";
+import { hashToken } from "../../utils/tokens.js";
 
 const createResponse = () => ({
   body: null,
+  cookies: {},
+  clearedCookies: [],
   statusCode: 200,
+  cookie(name, value, options) {
+    this.cookies[name] = { value, options };
+    return this;
+  },
+  clearCookie(name) {
+    this.clearedCookies.push(name);
+    return this;
+  },
   status(code) {
     this.statusCode = code;
     return this;
@@ -100,5 +113,77 @@ describe("authController", () => {
 
     assert.equal(nextError.statusCode, 401);
     assert.equal(nextError.message, "Current password is incorrect");
+  });
+
+  it("rejects missing refresh tokens", async () => {
+    const req = {
+      body: {},
+      headers: {},
+    };
+    const res = createResponse();
+    let nextError;
+
+    await refreshAccessToken(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 401);
+    assert.equal(nextError.message, "Refresh token missing");
+  });
+
+  it("rotates valid refresh sessions", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      name: "Tenant User",
+      email: "tenant@example.com",
+      role: "tenant",
+      phone: "+254700000000",
+      accountStatus: "active",
+    };
+    const session = {
+      user,
+      revokedAt: null,
+      lastUsedAt: null,
+      saveCalled: false,
+      async save() {
+        this.saveCalled = true;
+      },
+    };
+    let findFilters;
+    let createdSession;
+
+    mock.method(AuthSession, "findOne", (filters) => {
+      findFilters = filters;
+
+      return {
+        populate: async () => session,
+      };
+    });
+    mock.method(AuthSession, "create", async (payload) => {
+      createdSession = payload;
+      return payload;
+    });
+
+    const req = {
+      body: { refreshToken: "refresh-token-value" },
+      headers: { "user-agent": "node-test" },
+      ip: "127.0.0.1",
+    };
+    const res = createResponse();
+
+    await refreshAccessToken(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(findFilters.tokenHash, hashToken("refresh-token-value"));
+    assert.equal(session.revokedAt instanceof Date, true);
+    assert.equal(session.lastUsedAt instanceof Date, true);
+    assert.equal(session.saveCalled, true);
+    assert.equal(createdSession.user, userId);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.user.email, "tenant@example.com");
+    assert.equal(typeof res.body.token, "string");
+    assert.equal(typeof res.body.refreshToken, "string");
   });
 });

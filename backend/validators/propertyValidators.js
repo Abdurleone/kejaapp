@@ -237,12 +237,33 @@ const propertyImageSchema = {
   },
 };
 
+const uploadPropertyImageSchema = {
+  fileName: {
+    type: "string",
+  },
+  mimeType: {
+    required: true,
+    type: "string",
+    enum: ["image/jpeg", "image/png", "image/webp"],
+  },
+  data: {
+    required: true,
+    type: "string",
+    minLength: 8,
+  },
+  alt: {
+    type: "string",
+    validate: validateImageAlt,
+  },
+};
+
 export {
   costCalculationSchema,
   contactMethods,
   createPropertySchema,
   propertyStatuses,
   propertyImageSchema,
+  uploadPropertyImageSchema,
   updatePropertySchema,
   viewingTypes,
 };

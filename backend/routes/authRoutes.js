@@ -4,6 +4,7 @@ import {
   getCurrentUser,
   loginUser,
   logoutUser,
+  refreshAccessToken,
   registerUser,
   updateCurrentUser,
 } from "../controllers/authController.js";
@@ -12,6 +13,7 @@ import validateRequest from "../middlewares/validateRequest.js";
 import {
   changePasswordSchema,
   loginUserSchema,
+  refreshTokenSchema,
   registerUserSchema,
   updateProfileSchema,
 } from "../validators/authValidators.js";
@@ -20,6 +22,7 @@ const router = express.Router();
 
 router.post("/register", validateRequest(registerUserSchema), registerUser);
 router.post("/login", validateRequest(loginUserSchema), loginUser);
+router.post("/refresh", validateRequest(refreshTokenSchema), refreshAccessToken);
 router.post("/logout", logoutUser);
 router.get("/me", protect, getCurrentUser);
 router.put("/me", protect, validateRequest(updateProfileSchema), updateCurrentUser);

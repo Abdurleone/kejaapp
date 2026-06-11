@@ -19,6 +19,29 @@ describe("KejaApp API", () => {
     assert.equal(response.body.database.status, "disconnected");
   });
 
+  it("returns liveness status for load balancers", async () => {
+    const response = await request("/api/health/live");
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.status, "ok");
+  });
+
+  it("returns readiness status for load balancers", async () => {
+    const response = await request("/api/health/ready");
+
+    assert.equal(response.status, 503);
+    assert.equal(response.body.status, "not_ready");
+    assert.equal(response.body.database.ok, false);
+  });
+
+  it("serves OpenAPI documentation", async () => {
+    const response = await request("/api/docs/openapi.json");
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.openapi, "3.1.0");
+    assert.equal(response.body.info.title, "KejaApp API");
+  });
+
   it("returns database readiness status", async () => {
     const response = await request("/api/health/database");
 
@@ -45,6 +68,13 @@ describe("KejaApp API", () => {
 
   it("requires authentication for current user", async () => {
     const response = await request("/api/auth/me");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for dashboard summary", async () => {
+    const response = await request("/api/dashboard/summary");
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token missing");
@@ -100,7 +130,18 @@ describe("KejaApp API", () => {
 
     assert.equal(response.status, 200);
     assert.equal(response.body.message, "Logged out");
-    assert.match(response.headers["set-cookie"], /keja_token=/);
+    assert.match(response.headers["set-cookie"].join(";"), /keja_token=/);
+    assert.match(response.headers["set-cookie"].join(";"), /keja_refresh=/);
+  });
+
+  it("requires refresh tokens for auth refresh", async () => {
+    const response = await request("/api/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Refresh token missing");
   });
 
   it("requires authentication for creating properties", async () => {
@@ -122,6 +163,16 @@ describe("KejaApp API", () => {
 
   it("requires authentication for adding property images", async () => {
     const response = await request("/api/properties/000000000000000000000000/images", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for uploading property images", async () => {
+    const response = await request("/api/properties/000000000000000000000000/images/upload", {
       method: "POST",
       body: JSON.stringify({}),
     });
@@ -371,6 +422,37 @@ describe("KejaApp API", () => {
 
   it("requires authentication for admin agency verification list", async () => {
     const response = await request("/api/admin/agencies/verifications");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin user list", async () => {
+    const response = await request("/api/admin/users");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin user summary", async () => {
+    const response = await request("/api/admin/users/000000000000000000000000/summary");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin user status updates", async () => {
+    const response = await request("/api/admin/users/000000000000000000000000/status", {
+      method: "PUT",
+      body: JSON.stringify({ status: "suspended" }),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin user status history", async () => {
+    const response = await request("/api/admin/users/000000000000000000000000/status-history");
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token missing");

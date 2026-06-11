@@ -87,12 +87,37 @@ const notifyPropertyInquiryResponded = (inquiry) =>
     },
   });
 
+const notifyUserStatusChanged = ({ user, status, reason }) => {
+  const titles = {
+    active: "Account restored",
+    suspended: "Account suspended",
+    banned: "Account banned",
+  };
+  const messages = {
+    active: "Your account has been restored.",
+    suspended: "Your account has been suspended.",
+    banned: "Your account has been banned.",
+  };
+
+  return createNotification({
+    user: user._id || user,
+    type: "system",
+    title: titles[status],
+    message: reason || messages[status],
+    data: {
+      accountStatus: status,
+      reason,
+    },
+  });
+};
+
 export {
   createNotification,
   notifyAgencyVerificationDecision,
   notifyPropertyInquiryCreated,
   notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,
+  notifyUserStatusChanged,
   notifyViewingRequestCreated,
   notifyViewingRequestStatusChanged,
 };

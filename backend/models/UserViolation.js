@@ -49,6 +49,7 @@ const userViolationSchema = new mongoose.Schema(
       },
       imageUrl: String,
       exactHash: String,
+      perceptualHash: String,
     },
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
