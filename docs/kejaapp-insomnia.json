@@ -1,0 +1,344 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-06-11T00:00:00.000Z",
+  "__export_source": "Codex",
+  "resources": [
+    {
+      "_id": "wrk_kejaapp",
+      "_type": "workspace",
+      "name": "KejaApp API",
+      "description": "Insomnia collection for the KejaApp backend API."
+    },
+    {
+      "_id": "env_kejaapp_base",
+      "_type": "environment",
+      "parentId": "wrk_kejaapp",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:5000",
+        "token": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "token"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Health",
+      "description": ""
+    },
+    {
+      "_id": "req_health_root",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "API Root",
+      "method": "GET",
+      "url": "{{ _.base_url }}/",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_health_status",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "API Health",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/health",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Auth",
+      "description": ""
+    },
+    {
+      "_id": "req_auth_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/register",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Demo Agency\",\n  \"email\": \"agency@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"agency\",\n  \"phone\": \"+254700000000\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"agency@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_me",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Current User",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/auth/me",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "fld_properties",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Properties",
+      "description": ""
+    },
+    {
+      "_id": "req_properties_list",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "List Properties",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/properties?page=1&limit=20",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_properties_create",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Create Property",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/properties",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Modern Kilimani Apartment\",\n  \"description\": \"Bright apartment near shops and transit.\",\n  \"type\": \"apartment\",\n  \"price\": {\n    \"rent\": 65000,\n    \"deposit\": 65000,\n    \"agencyFee\": 5000\n  },\n  \"location\": {\n    \"county\": \"Nairobi\",\n    \"town\": \"Nairobi\",\n    \"area\": \"Kilimani\"\n  },\n  \"bedrooms\": 2,\n  \"bathrooms\": 2,\n  \"amenities\": [\"parking\", \"wifi\", \"security\"],\n  \"listedBy\": \"agency\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_properties_get",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Get Property",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/properties/:property_id",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_properties_update",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Update Property",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/properties/:property_id",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"isAvailable\": false\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_properties_delete",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Delete Property",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/properties/:property_id",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_properties_reviews",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "List Property Reviews",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/properties/:property_id/reviews",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "fld_reviews",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Reviews",
+      "description": ""
+    },
+    {
+      "_id": "req_reviews_create",
+      "_type": "request",
+      "parentId": "fld_reviews",
+      "name": "Create Review",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/reviews",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"property\": \":property_id\",\n  \"rating\": 5,\n  \"comment\": \"Great listing and smooth viewing process.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "fld_notifications",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Notifications",
+      "description": ""
+    },
+    {
+      "_id": "req_notifications_list",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "name": "List Notifications",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/notifications",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_notifications_read",
+      "_type": "request",
+      "parentId": "fld_notifications",
+      "name": "Mark Notification Read",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/notifications/:notification_id/read",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "fld_agencies",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Agencies",
+      "description": ""
+    },
+    {
+      "_id": "req_agencies_verify",
+      "_type": "request",
+      "parentId": "fld_agencies",
+      "name": "Submit Verification",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/agencies/verify",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"agencyName\": \"Demo Homes Agency\",\n  \"registrationNumber\": \"BN-123456\",\n  \"businessEmail\": \"agency@example.com\",\n  \"businessPhone\": \"+254700000000\",\n  \"officeAddress\": \"Kilimani, Nairobi\",\n  \"documents\": [\n    {\n      \"type\": \"business_registration\",\n      \"url\": \"https://example.com/document.pdf\"\n    }\n  ]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_agencies_status",
+      "_type": "request",
+      "parentId": "fld_agencies",
+      "name": "Get Verification Status",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/agencies/status",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "fld_movers",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Movers",
+      "description": ""
+    },
+    {
+      "_id": "req_movers_list",
+      "_type": "request",
+      "parentId": "fld_movers",
+      "name": "List Movers",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/movers?page=1&limit=20",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    }
+  ]
+}

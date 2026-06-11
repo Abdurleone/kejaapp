@@ -13,7 +13,12 @@ const validateRequest = (schema) => (req, res, next) => {
       continue;
     }
 
-    if (rules.type && typeof value !== rules.type) {
+    if (rules.type === "array" && !Array.isArray(value)) {
+      errors.push(`${field} must be an array`);
+      continue;
+    }
+
+    if (rules.type && rules.type !== "array" && typeof value !== rules.type) {
       errors.push(`${field} must be a ${rules.type}`);
       continue;
     }

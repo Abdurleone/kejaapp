@@ -1,3 +1,4 @@
+import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
 import User from "../models/User.js";
 import ApiError from "../utils/apiError.js";
@@ -16,6 +17,8 @@ const sendAuthResponse = (res, statusCode, user) => {
       phone: user.phone,
     },
     token: generateToken({ id: userId, role: user.role }),
+    tokenType: "Bearer",
+    expiresIn: env.jwtExpiresIn,
   });
 };
 
@@ -50,4 +53,16 @@ const loginUser = asyncHandler(async (req, res) => {
   sendAuthResponse(res, httpStatus.OK, user);
 });
 
-export { loginUser, registerUser };
+const getCurrentUser = asyncHandler(async (req, res) => {
+  res.status(httpStatus.OK).json({
+    user: {
+      id: req.user._id.toString(),
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      phone: req.user.phone,
+    },
+  });
+});
+
+export { getCurrentUser, loginUser, registerUser };

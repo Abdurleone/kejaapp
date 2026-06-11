@@ -13,7 +13,17 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 
   const token = authHeader.split(" ")[1];
-  const decoded = jwt.verify(token, env.jwtSecret);
+  let decoded;
+
+  try {
+    decoded = jwt.verify(token, env.jwtSecret);
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Not authorized, token expired");
+    }
+
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Not authorized, token invalid");
+  }
 
   req.user = await User.findById(decoded.id).select("-password");
 
