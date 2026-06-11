@@ -2,11 +2,16 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildQueryString,
+  canAccessView,
+  canManageListings,
+  canUseTenantPropertyActions,
   createApiUrl,
   formatStatusLabel,
   formatKes,
   getPropertyImage,
   getViewPath,
+  getDefaultViewForRole,
+  nextColorMode,
   nextTheme,
   normalizeApiBaseUrl,
   resolveAssetUrl,
@@ -69,11 +74,29 @@ describe("frontend app utilities", () => {
     assert.equal(nextTheme("kenya"), "default");
   });
 
+  it("toggles between light and dark color modes", () => {
+    assert.equal(nextColorMode("light"), "dark");
+    assert.equal(nextColorMode("dark"), "light");
+  });
+
   it("maps frontend paths to workspace views", () => {
     assert.equal(resolveViewFromPath("/admin"), "admin");
     assert.equal(resolveViewFromPath("/owner/"), "owner");
     assert.equal(resolveViewFromPath("/unknown"), "discover");
     assert.equal(getViewPath("saved"), "/saved");
+  });
+
+  it("enforces role-specific frontend access", () => {
+    assert.equal(canAccessView("tenant", "owner"), false);
+    assert.equal(canAccessView("tenant", "saved"), true);
+    assert.equal(canAccessView("landlord", "owner"), true);
+    assert.equal(canAccessView("agency", "admin"), false);
+    assert.equal(canAccessView("admin", "admin"), true);
+    assert.equal(getDefaultViewForRole("tenant"), "discover");
+    assert.equal(canUseTenantPropertyActions("tenant"), true);
+    assert.equal(canUseTenantPropertyActions("landlord"), false);
+    assert.equal(canManageListings("tenant"), false);
+    assert.equal(canManageListings("agency"), true);
   });
 
   it("summarizes property collections", () => {

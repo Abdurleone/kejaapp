@@ -46,6 +46,12 @@ const storage = {
   set theme(value) {
     localStorage.setItem("keja_theme", value);
   },
+  get colorMode() {
+    return localStorage.getItem("keja_color_mode") || "light";
+  },
+  set colorMode(value) {
+    localStorage.setItem("keja_color_mode", value);
+  },
 };
 
 export const formatKes = (value) =>
@@ -136,6 +142,23 @@ export const sortProperties = (properties, sortMode) => {
 
 export const nextTheme = (theme) => (theme === "kenya" ? "default" : "kenya");
 
+export const nextColorMode = (mode) => (mode === "dark" ? "light" : "dark");
+
+const roleViewAccess = {
+  tenant: ["discover", "saved"],
+  landlord: ["discover", "owner"],
+  agency: ["discover", "owner"],
+  admin: ["discover", "owner", "admin"],
+};
+
+export const canAccessView = (role, view) => Boolean(roleViewAccess[role]?.includes(view));
+
+export const getDefaultViewForRole = (role) => roleViewAccess[role]?.[0] || "discover";
+
+export const canUseTenantPropertyActions = (role) => role === "tenant";
+
+export const canManageListings = (role) => ["landlord", "agency", "admin"].includes(role);
+
 const viewPaths = {
   discover: "/",
   saved: "/saved",
@@ -215,6 +238,8 @@ const setSession = ({ user, token, refreshToken }) => {
   storage.token = token;
   storage.refreshToken = refreshToken;
   renderSession();
+  renderRoleAccess();
+  renderAuthGate();
 };
 
 const clearSession = () => {
@@ -222,6 +247,8 @@ const clearSession = () => {
   storage.token = "";
   storage.refreshToken = "";
   renderSession();
+  renderRoleAccess();
+  renderAuthGate();
 };
 
 const renderSession = () => {
@@ -231,12 +258,37 @@ const renderSession = () => {
   sessionState.classList.toggle("muted", !user);
 };
 
+const renderAuthGate = () => {
+  const isSignedIn = Boolean(storage.user && storage.token);
+  qs("#landingPage").hidden = isSignedIn;
+  qs("#appShell").hidden = !isSignedIn;
+};
+
+const renderRoleAccess = () => {
+  const role = storage.user?.role;
+
+  qsa(".tab").forEach((tab) => {
+    tab.hidden = !canAccessView(role, tab.dataset.view);
+  });
+
+  qs("#propertyForm").hidden = !canManageListings(role);
+};
+
 const applyTheme = (theme = storage.theme) => {
   document.documentElement.dataset.theme = theme;
   qs("#themeToggle span").textContent = theme === "kenya" ? "STD" : "KE";
   qs("#themeToggle").setAttribute(
     "aria-label",
     theme === "kenya" ? "Switch to standard theme" : "Switch to Kenyan flag theme"
+  );
+};
+
+const applyColorMode = (mode = storage.colorMode) => {
+  document.documentElement.dataset.colorMode = mode;
+  qs("#colorModeToggle span").textContent = mode === "dark" ? "Light" : "Dark";
+  qs("#colorModeToggle").setAttribute(
+    "aria-label",
+    mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
   );
 };
 
@@ -314,13 +366,16 @@ const renderPropertyCard = (property, options = {}) => {
   const imageUrl = getPropertyImage(property, storage.baseUrl);
   const id = property._id || property.id;
   const amenities = (property.amenities || []).slice(0, 3);
+  const role = storage.user?.role;
   const actions = options.owner
     ? `<button class="secondary-button" data-status="${id}" data-next-status="taken">Mark taken</button>`
-    : `
+    : canUseTenantPropertyActions(role)
+      ? `
       <button class="secondary-button" data-save="${id}">Save</button>
       <button class="secondary-button" data-inquire="${id}">Inquire</button>
       <button class="secondary-button" data-viewing="${id}">Viewing</button>
-    `;
+    `
+      : `<span class="muted-copy">View-only access</span>`;
 
   return `
     <article class="property-card">
@@ -533,6 +588,12 @@ const bindPropertyActions = (event) => {
 
 const createProperty = async (event) => {
   event.preventDefault();
+
+  if (!canManageListings(storage.user?.role)) {
+    showToast("Only landlords, agencies, and admins can create listings");
+    return;
+  }
+
   const payload = {
     title: qs("#propertyTitle").value,
     description: qs("#propertyDescription").value,
@@ -560,20 +621,28 @@ const createProperty = async (event) => {
 };
 
 const switchView = (view, options = {}) => {
-  const nextView = viewPaths[view] ? view : "discover";
+  const requestedView = viewPaths[view] ? view : "discover";
+  const role = storage.user?.role;
+  const nextView = canAccessView(role, requestedView) ? requestedView : getDefaultViewForRole(role);
   const { pushState = true } = options;
 
-  if (pushState && typeof window !== "undefined") {
+  if (typeof window !== "undefined") {
     const nextPath = getViewPath(nextView);
 
-    if (window.location.pathname !== nextPath) {
+    if (pushState && window.location.pathname !== nextPath) {
       window.history.pushState({ view: nextView }, "", nextPath);
+    } else if (!pushState && requestedView !== nextView && window.location.pathname !== nextPath) {
+      window.history.replaceState({ view: nextView }, "", nextPath);
     }
   }
 
   state.currentView = nextView;
   qsa(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === nextView));
   qsa(".view").forEach((section) => section.classList.toggle("active-view", section.id === `${nextView}View`));
+
+  if (!storage.token) {
+    return;
+  }
 
   if (nextView === "saved") {
     loadFavorites().catch((error) => showToast(error.message));
@@ -599,6 +668,10 @@ const bindEvents = () => {
     storage.theme = nextTheme(storage.theme);
     applyTheme(storage.theme);
   });
+  qs("#colorModeToggle").addEventListener("click", () => {
+    storage.colorMode = nextColorMode(storage.colorMode);
+    applyColorMode(storage.colorMode);
+  });
   qs("#healthButton").addEventListener("click", () => {
     apiRequest("/api/health")
       .then((body) => showToast(`API ${body.status}; database ${body.database.status}`))
@@ -616,6 +689,8 @@ const bindEvents = () => {
       });
       setSession(body);
       showToast("Signed in");
+      switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
+      loadProperties().catch((error) => showToast(error.message));
       loadDashboard();
     } catch (error) {
       showToast(error.message);
@@ -691,16 +766,19 @@ const bindEvents = () => {
 
 const init = () => {
   applyTheme();
+  applyColorMode();
   renderSession();
+  renderRoleAccess();
+  renderAuthGate();
   bindEvents();
   switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
   setApiStatus("unknown", "Checking API");
   apiRequest("/api/health")
     .then((body) => setApiStatus(body.database?.status === "connected" ? "online" : "degraded", body.database?.status || "API online"))
     .catch((error) => showToast(error.message));
-  loadProperties().catch((error) => showToast(error.message));
 
   if (storage.token) {
+    loadProperties().catch((error) => showToast(error.message));
     loadDashboard().catch((error) => showToast(error.message));
   }
 };

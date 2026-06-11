@@ -33,6 +33,9 @@
         <label for="baseUrl">API</label>
         <input id="baseUrl" type="url" value="http://localhost:5000" />
         <span id="apiState" class="api-state" data-status="unknown">Check API</span>
+        <button id="colorModeToggle" class="icon-button mode-toggle" title="Toggle light and dark mode" aria-label="Toggle dark mode">
+          <span>Dark</span>
+        </button>
         <button id="themeToggle" class="icon-button flag-toggle" title="Toggle Kenyan flag theme" aria-label="Toggle Kenyan flag theme">
           <span>KE</span>
         </button>
@@ -42,23 +45,31 @@
       </div>
     </header>
 
-    <main class="app-shell">
+    <section id="landingPage" class="landing-page">
+      <div class="landing-copy">
+        <span class="pill">KejaApp access</span>
+        <h2>Sign in to continue</h2>
+        <p>Choose a demo account or use your credentials to open the rental workspace.</p>
+      </div>
+      <form id="loginForm" class="landing-auth">
+        <input id="email" type="email" placeholder="Email" value="tenant@example.com" autocomplete="email" />
+        <input id="password" type="password" placeholder="Password" value="password123" autocomplete="current-password" />
+        <button type="submit" class="primary-button">Sign in</button>
+        <div class="quick-logins">
+          <button type="button" data-login="tenant@example.com">Tenant</button>
+          <button type="button" data-login="landlord@example.com">Landlord</button>
+          <button type="button" data-login="agency@example.com">Agency</button>
+          <button type="button" data-login="admin@example.com">Admin</button>
+        </div>
+      </form>
+    </section>
+
+    <main id="appShell" class="app-shell" hidden>
       <aside class="sidebar">
         <section class="panel auth-panel">
           <div class="panel-heading">
             <h2>Session</h2>
             <span id="sessionState" class="pill muted">Guest</span>
-          </div>
-          <form id="loginForm" class="stack">
-            <input id="email" type="email" placeholder="Email" value="tenant@example.com" autocomplete="email" />
-            <input id="password" type="password" placeholder="Password" value="password123" autocomplete="current-password" />
-            <button type="submit" class="primary-button">Sign in</button>
-          </form>
-          <div class="quick-logins">
-            <button type="button" data-login="tenant@example.com">Tenant</button>
-            <button type="button" data-login="landlord@example.com">Landlord</button>
-            <button type="button" data-login="agency@example.com">Agency</button>
-            <button type="button" data-login="admin@example.com">Admin</button>
           </div>
           <button id="logoutButton" class="ghost-button" type="button">Log out</button>
         </section>

@@ -34,6 +34,31 @@
   --shadow-strong: 0 18px 44px rgba(18, 21, 19, 0.18);
 }
 
+:root[data-color-mode="dark"] {
+  --bg: #101512;
+  --surface: #18211c;
+  --surface-strong: #202b25;
+  --ink: #eef4ef;
+  --muted: #a8b7ad;
+  --line: #314038;
+  --green: #41a06d;
+  --green-dark: #8ed5ae;
+  --amber: #d99a45;
+  --red: #e16d64;
+  --teal: #62b6b5;
+  --blue: #8fb9dd;
+  --coral: #df7c6d;
+  --shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
+  --shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme="kenya"][data-color-mode="dark"] {
+  --green: #1aa66a;
+  --green-dark: #9ce2bd;
+  --red: #f06f80;
+  --amber: #f06f80;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -53,6 +78,16 @@ body {
     linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 248, 245, 0.94) 240px),
     linear-gradient(180deg, #121513 0 18px, #ffffff 18px 22px, #bb1e32 22px 38px, #ffffff 38px 42px, #006b3f 42px 60px),
     var(--bg);
+}
+
+:root[data-color-mode="dark"] body {
+  background:
+    linear-gradient(180deg, rgba(16, 21, 18, 0.82), rgba(16, 21, 18, 0.96) 260px),
+    var(--bg);
+}
+
+[hidden] {
+  display: none !important;
 }
 
 button,
@@ -88,6 +123,14 @@ button {
     linear-gradient(180deg, #121513 0 24%, #ffffff 24% 30%, #bb1e32 30% 62%, #ffffff 62% 68%, #006b3f 68% 100%),
     url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=70");
   background-blend-mode: normal, multiply, normal;
+  background-size: cover;
+  background-position: center;
+}
+
+:root[data-color-mode="dark"] .app-header {
+  background:
+    linear-gradient(90deg, rgba(16, 21, 18, 0.96), rgba(16, 21, 18, 0.78)),
+    url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=70");
   background-size: cover;
   background-position: center;
 }
@@ -192,6 +235,12 @@ h3 {
   backdrop-filter: blur(8px);
 }
 
+:root[data-color-mode="dark"] .connection-bar,
+:root[data-color-mode="dark"] .header-stats div {
+  background: rgba(24, 33, 28, 0.88);
+  border-color: rgba(122, 145, 131, 0.3);
+}
+
 .connection-bar label {
   color: var(--muted);
   font-size: 0.86rem;
@@ -226,6 +275,56 @@ h3 {
 .api-state[data-status="offline"] {
   background: #f8e5e2;
   color: var(--red);
+}
+
+.mode-toggle {
+  width: auto;
+  min-width: 58px;
+  padding-inline: 8px;
+  font-size: 0.72rem;
+}
+
+.landing-page {
+  min-height: calc(100vh - 128px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 430px);
+  gap: 28px;
+  align-items: center;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 64px) 18px;
+}
+
+.landing-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.landing-copy h2 {
+  max-width: 760px;
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  line-height: 0.98;
+}
+
+.landing-copy p {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.landing-auth {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-strong);
+  backdrop-filter: blur(12px);
+}
+
+:root[data-color-mode="dark"] .landing-auth {
+  background: rgba(24, 33, 28, 0.92);
 }
 
 .app-shell {
@@ -306,6 +405,13 @@ textarea {
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
+:root[data-color-mode="dark"] input,
+:root[data-color-mode="dark"] select,
+:root[data-color-mode="dark"] textarea {
+  background: #111813;
+  color: var(--ink);
+}
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -373,6 +479,15 @@ textarea {
   background: #fff;
   border-color: var(--line);
   color: var(--muted);
+}
+
+:root[data-color-mode="dark"] .ghost-button,
+:root[data-color-mode="dark"] .icon-button,
+:root[data-color-mode="dark"] .tab,
+:root[data-color-mode="dark"] .quick-logins button {
+  background: #111813;
+  border-color: var(--line);
+  color: var(--ink);
 }
 
 .text-button {
@@ -474,6 +589,10 @@ textarea {
   border-radius: 8px;
   background: rgba(245, 246, 243, 0.86);
   backdrop-filter: blur(10px);
+}
+
+:root[data-color-mode="dark"] .tabs {
+  background: rgba(16, 21, 18, 0.86);
 }
 
 .view-actions {
@@ -637,6 +756,14 @@ textarea {
   border: 1px solid var(--line);
 }
 
+:root[data-color-mode="dark"] .cost-row span,
+:root[data-color-mode="dark"] .metric,
+:root[data-color-mode="dark"] .mini-chip,
+:root[data-color-mode="dark"] .amenity-row span,
+:root[data-color-mode="dark"] .empty-state {
+  background: #111813;
+}
+
 .cost-row strong {
   display: block;
   color: var(--ink);
@@ -668,6 +795,13 @@ textarea {
   min-width: 0;
   padding-inline: 8px;
   overflow-wrap: anywhere;
+}
+
+.card-actions .muted-copy {
+  grid-column: 1 / -1;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .metric-grid {
@@ -755,6 +889,10 @@ dialog::backdrop {
   border-radius: 8px;
 }
 
+:root[data-color-mode="dark"] .dialog-card {
+  background: var(--surface);
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -834,6 +972,7 @@ dialog::backdrop {
 @media (max-width: 980px) {
   .app-header,
   .app-shell,
+  .landing-page,
   .owner-layout {
     grid-template-columns: 1fr;
   }
@@ -857,6 +996,11 @@ dialog::backdrop {
 
   .view-actions {
     margin-left: auto;
+  }
+
+  .landing-page {
+    min-height: auto;
+    align-items: start;
   }
 }
 
@@ -930,8 +1074,13 @@ dialog::backdrop {
     gap: 12px;
   }
 
+  .landing-page {
+    padding: 18px 10px;
+  }
+
   .panel,
   .table-panel,
+  .landing-auth,
   .dialog-card {
     padding: 12px;
   }
