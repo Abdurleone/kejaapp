@@ -128,6 +128,9 @@ Reviews and ratings:
 - Public property review listing.
 - Rating aggregation on property records.
 - Guardrail preventing owners from reviewing their own listings.
+- Owner review inbox for landlords and agencies to see ratings across their listings.
+- Owner response endpoint for landlords and agencies; reviews and ratings are not deletable by tenants, owners, or admins.
+- Admin read-only review listing for moderation visibility.
 - Review notifications for property owners.
 
 Agency verification and admin moderation:
@@ -344,6 +347,9 @@ As a tenant, I want to review a property after interacting with it, so that futu
 Acceptance criteria:
 - Given I am logged in, when I submit a valid rating and comment for a property I do not own, then the review is saved.
 - Given a property has reviews, when I view the property reviews, then I can see the review list and aggregated rating.
+- Given I am logged in as the landlord or agency that owns the reviewed property, when I respond to a review, then my response is attached to the review.
+- Given I am a tenant, landlord, agency, or admin, when I view reviews, then I cannot delete a review or rating.
+- Given I am logged in as an admin, when I open review moderation, then I can see reviews and ratings in read-only mode.
 - Given a new review is created, when the property owner has an account, then they receive a notification.
 
 ### Property Inquiries
@@ -476,6 +482,8 @@ Reviews:
 
 ```text
 POST   /api/reviews
+GET    /api/reviews/mine                                  landlord, agency, admin
+PUT    /api/reviews/:id/response                          landlord, agency property owner only
 GET    /api/properties/:id/reviews
 ```
 
@@ -519,6 +527,7 @@ GET    /api/admin/users/:id
 GET    /api/admin/users/:id/summary
 GET    /api/admin/users/:id/status-history
 PUT    /api/admin/users/:id/status
+GET    /api/admin/reviews
 GET    /api/admin/agencies/verifications
 PUT    /api/admin/agencies/verifications/:id/approve
 PUT    /api/admin/agencies/verifications/:id/reject

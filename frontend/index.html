@@ -187,6 +187,13 @@
             </form>
             <div id="myProperties" class="property-grid compact-grid"></div>
           </div>
+          <section class="panel review-panel">
+            <div class="panel-heading">
+              <h3>Listing reviews</h3>
+              <button id="refreshOwnerReviews" class="text-button" type="button">Refresh</button>
+            </div>
+            <div id="ownerReviews" class="review-list"></div>
+          </section>
         </section>
 
         <section id="adminView" class="view">
@@ -198,6 +205,13 @@
             <button id="refreshUsers" class="secondary-button" type="button">Load users</button>
           </div>
           <div id="adminUsers" class="table-panel"></div>
+          <section class="panel review-panel">
+            <div class="panel-heading">
+              <h3>Review visibility</h3>
+              <button id="refreshAdminReviews" class="text-button" type="button">Load reviews</button>
+            </div>
+            <div id="adminReviews" class="review-list"></div>
+          </section>
         </section>
       </section>
     </main>

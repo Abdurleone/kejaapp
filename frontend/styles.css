@@ -851,6 +851,52 @@ textarea {
   border-bottom: 0;
 }
 
+.review-panel {
+  margin-top: 14px;
+}
+
+.review-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, auto);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.review-row:last-child {
+  border-bottom: 0;
+}
+
+.review-row p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.owner-response {
+  padding: 8px;
+  border-radius: 8px;
+  background: #eef4f5;
+}
+
+:root[data-color-mode="dark"] .owner-response {
+  background: #111813;
+}
+
+.owner-response span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--teal);
+  font-weight: 800;
+  font-size: 0.76rem;
+}
+
 .status-active {
   color: var(--green-dark);
 }
@@ -1013,6 +1059,7 @@ dialog::backdrop {
   .view-actions,
   .header-stats,
   .insight-strip,
+  .review-row,
   .user-row {
     grid-template-columns: 1fr;
   }

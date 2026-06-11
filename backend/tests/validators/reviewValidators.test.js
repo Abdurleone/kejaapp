@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import validateRequest from "../../middlewares/validateRequest.js";
-import { createReviewSchema } from "../../validators/reviewValidators.js";
+import {
+  createReviewSchema,
+  updateReviewResponseSchema,
+} from "../../validators/reviewValidators.js";
 
-const validate = (body) => {
+const validate = (schema, body) => {
   const res = {
     body: null,
     statusCode: 200,
@@ -18,7 +21,7 @@ const validate = (body) => {
   };
   let nextCalled = false;
 
-  validateRequest(createReviewSchema)({ body }, res, () => {
+  validateRequest(schema)({ body }, res, () => {
     nextCalled = true;
   });
 
@@ -27,7 +30,7 @@ const validate = (body) => {
 
 describe("reviewValidators", () => {
   it("rejects missing property and out-of-range rating", () => {
-    const { res } = validate({
+    const { res } = validate(createReviewSchema, {
       rating: 6,
     });
 
@@ -39,10 +42,32 @@ describe("reviewValidators", () => {
   });
 
   it("accepts a valid review payload", () => {
-    const { nextCalled } = validate({
+    const { nextCalled } = validate(createReviewSchema, {
       property: "000000000000000000000000",
       rating: 5,
       comment: "Great property.",
+    });
+
+    assert.equal(nextCalled, true);
+  });
+
+  it("rejects blank and oversized owner review responses", () => {
+    const blank = validate(updateReviewResponseSchema, {
+      message: "   ",
+    });
+    const oversized = validate(updateReviewResponseSchema, {
+      message: "x".repeat(1001),
+    });
+
+    assert.equal(blank.res.statusCode, 400);
+    assert.deepEqual(blank.res.body.errors, ["message is required"]);
+    assert.equal(oversized.res.statusCode, 400);
+    assert.deepEqual(oversized.res.body.errors, ["message must be 1000 characters or fewer"]);
+  });
+
+  it("accepts a valid owner review response", () => {
+    const { nextCalled } = validate(updateReviewResponseSchema, {
+      message: "Thank you for the feedback.",
     });
 
     assert.equal(nextCalled, true);

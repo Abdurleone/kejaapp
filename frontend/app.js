@@ -126,6 +126,14 @@ export const summarizeProperties = (properties) => {
   };
 };
 
+export const summarizeReview = (review) => {
+  const propertyTitle = review.property?.title || "Property";
+  const reviewer = review.user?.name || "Tenant";
+  const rating = Number(review.rating || 0);
+
+  return `${propertyTitle} - ${rating}/5 by ${reviewer}`;
+};
+
 export const sortProperties = (properties, sortMode) => {
   const sorted = [...properties];
 
@@ -428,6 +436,36 @@ const renderPropertyCard = (property, options = {}) => {
   `;
 };
 
+const renderReviewRows = (reviews, options = {}) =>
+  reviews.length
+    ? reviews
+        .map((review) => {
+          const id = review._id || review.id;
+          const response = review.ownerResponse?.message;
+          const canRespond = options.respond && !response;
+
+          return `
+            <article class="review-row">
+              <div>
+                <strong>${summarizeReview(review)}</strong>
+                <p>${review.comment || "No comment provided."}</p>
+                ${
+                  response
+                    ? `<p class="owner-response"><span>Owner response</span>${response}</p>`
+                    : `<p class="muted-copy">No owner response yet.</p>`
+                }
+              </div>
+              ${
+                canRespond
+                  ? `<button class="secondary-button" data-review-response="${id}" type="button">Respond</button>`
+                  : `<span class="mini-chip">Read only</span>`
+              }
+            </article>
+          `;
+        })
+        .join("")
+    : `<div class="empty-state">No reviews yet.</div>`;
+
 const renderProperties = () => {
   if (!canSearchListings(storage.user?.role)) {
     qs("#propertyCount").textContent = "Tenant search only";
@@ -494,6 +532,15 @@ const loadMyProperties = async () => {
     : `<div class="empty-state">Your listings will appear here.</div>`;
 };
 
+const loadOwnerReviews = async () => {
+  qs("#ownerReviews").innerHTML = `<div class="empty-state">Loading reviews...</div>`;
+  const body = await apiRequest("/api/reviews/mine");
+  const reviews = body.data || [];
+  qs("#ownerReviews").innerHTML = renderReviewRows(reviews, {
+    respond: ["landlord", "agency"].includes(storage.user?.role),
+  });
+};
+
 const loadUsers = async () => {
   qs("#adminUsers").innerHTML = `<div class="empty-state">Loading users...</div>`;
   const body = await apiRequest("/api/admin/users?limit=20");
@@ -522,10 +569,28 @@ const loadUsers = async () => {
     : `<div class="empty-state">No users returned.</div>`;
 };
 
+const loadAdminReviews = async () => {
+  qs("#adminReviews").innerHTML = `<div class="empty-state">Loading reviews...</div>`;
+  const body = await apiRequest("/api/admin/reviews");
+  const reviews = body.data || [];
+  qs("#adminReviews").innerHTML = renderReviewRows(reviews, { respond: false });
+};
+
 const openActionDialog = (title, html) => {
   qs("#dialogTitle").textContent = title;
   qs("#dialogBody").innerHTML = html;
   qs("#actionDialog").showModal();
+};
+
+const respondToReview = async (reviewId) => {
+  const message = qs("#reviewResponseMessage").value;
+  await apiRequest(`/api/reviews/${reviewId}/response`, {
+    method: "PUT",
+    body: JSON.stringify({ message }),
+  });
+  qs("#actionDialog").close();
+  showToast("Review response saved");
+  loadOwnerReviews();
 };
 
 const createInquiry = async (propertyId) => {
@@ -625,6 +690,27 @@ const bindPropertyActions = (event) => {
   }
 };
 
+const bindReviewActions = (event) => {
+  const reviewId = event.target.closest("[data-review-response]")?.dataset.reviewResponse;
+
+  if (!reviewId) {
+    return;
+  }
+
+  openActionDialog(
+    "Respond to review",
+    `
+      <div class="stack">
+        <textarea id="reviewResponseMessage" placeholder="Write a clear owner response"></textarea>
+        <div class="dialog-actions">
+          <button class="primary-button" type="button" id="sendReviewResponse">Respond</button>
+        </div>
+      </div>
+    `
+  );
+  qs("#sendReviewResponse").addEventListener("click", () => respondToReview(reviewId).catch((error) => showToast(error.message)));
+};
+
 const createProperty = async (event) => {
   event.preventDefault();
 
@@ -689,10 +775,12 @@ const switchView = (view, options = {}) => {
 
   if (nextView === "owner") {
     loadMyProperties().catch((error) => showToast(error.message));
+    loadOwnerReviews().catch((error) => showToast(error.message));
   }
 
   if (nextView === "admin") {
     loadUsers().catch((error) => showToast(error.message));
+    loadAdminReviews().catch((error) => showToast(error.message));
   }
 };
 
@@ -774,11 +862,14 @@ const bindEvents = () => {
   qs("#refreshDashboard").addEventListener("click", () => loadDashboard().catch((error) => showToast(error.message)));
   qs("#refreshFavorites").addEventListener("click", () => loadFavorites().catch((error) => showToast(error.message)));
   qs("#refreshMine").addEventListener("click", () => loadMyProperties().catch((error) => showToast(error.message)));
+  qs("#refreshOwnerReviews").addEventListener("click", () => loadOwnerReviews().catch((error) => showToast(error.message)));
   qs("#refreshUsers").addEventListener("click", () => loadUsers().catch((error) => showToast(error.message)));
+  qs("#refreshAdminReviews").addEventListener("click", () => loadAdminReviews().catch((error) => showToast(error.message)));
   qs("#propertyForm").addEventListener("submit", (event) => createProperty(event).catch((error) => showToast(error.message)));
   qs("#properties").addEventListener("click", bindPropertyActions);
   qs("#favorites").addEventListener("click", bindPropertyActions);
   qs("#myProperties").addEventListener("click", bindPropertyActions);
+  qs("#ownerReviews").addEventListener("click", bindReviewActions);
   qs("#adminUsers").addEventListener("change", (event) => {
     const userId = event.target.dataset.userStatus;
 

@@ -12,6 +12,9 @@ import {
   updateUserStatus,
 } from "../controllers/adminUserController.js";
 import {
+  listMyPropertyReviews,
+} from "../controllers/reviewController.js";
+import {
   listViolations,
   updateViolationStatus,
 } from "../controllers/violationController.js";
@@ -32,6 +35,7 @@ router.get("/users/:id/summary", getUserSummary);
 router.get("/users/:id/status-history", listUserStatusHistory);
 router.put("/users/:id/status", validateRequest(updateUserStatusSchema), updateUserStatus);
 router.get("/users/:id", getUser);
+router.get("/reviews", listMyPropertyReviews);
 router.get("/agencies/verifications", listAgencyVerifications);
 router.put("/agencies/verifications/:id/approve", approveAgencyVerification);
 router.put(
