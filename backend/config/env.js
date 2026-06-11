@@ -51,6 +51,22 @@ const parsePositiveInteger = (value, fallback, key) => {
   return number;
 };
 
+const parseBoolean = (value, fallback, key) => {
+  if (value === undefined || value === "") {
+    return fallback;
+  }
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  throw new Error(`${key} must be true or false`);
+};
+
 const normalizeMongoUri = (value, databaseName) => {
   const uri = new URL(value);
 
@@ -62,12 +78,14 @@ const normalizeMongoUri = (value, databaseName) => {
 };
 
 const mongoDbName = process.env.MONGODB_DB_NAME || "kejaapp";
+const nodeEnv = process.env.NODE_ENV || "development";
 
 const env = {
-  nodeEnv: process.env.NODE_ENV || "development",
+  nodeEnv,
   port: parsePort(process.env.PORT),
   mongoDbName,
   mongoUri: normalizeMongoUri(process.env.MONGODB_URI, mongoDbName),
+  dbRequired: parseBoolean(process.env.DB_REQUIRED, nodeEnv === "production", "DB_REQUIRED"),
   mongoConnectRetries: parsePositiveInteger(
     process.env.MONGODB_CONNECT_RETRIES,
     5,

@@ -1,10 +1,25 @@
 import mongoose from "mongoose";
+import { pathToFileURL } from "node:url";
 import connectDB, { disconnectDB } from "../config/db.js";
 import Mover from "../models/Mover.js";
 import Property from "../models/Property.js";
 import User from "../models/User.js";
 
 const users = [
+  {
+    name: "Demo Tenant",
+    email: "tenant@example.com",
+    password: "password123",
+    role: "tenant",
+    phone: "+254733000000",
+  },
+  {
+    name: "Grace Tenant",
+    email: "grace.tenant@example.com",
+    password: "password123",
+    role: "tenant",
+    phone: "+254733000001",
+  },
   {
     name: "Demo Agency",
     email: "agency@example.com",
@@ -13,11 +28,32 @@ const users = [
     phone: "+254700000000",
   },
   {
+    name: "Urban Nest Agency",
+    email: "urban.agency@example.com",
+    password: "password123",
+    role: "agency",
+    phone: "+254700000001",
+  },
+  {
     name: "Demo Landlord",
     email: "landlord@example.com",
     password: "password123",
     role: "landlord",
     phone: "+254711000000",
+  },
+  {
+    name: "Mary Landlord",
+    email: "mary.landlord@example.com",
+    password: "password123",
+    role: "landlord",
+    phone: "+254711000001",
+  },
+  {
+    name: "Demo Admin",
+    email: "admin@example.com",
+    password: "password123",
+    role: "admin",
+    phone: "+254722000000",
   },
 ];
 
@@ -77,8 +113,17 @@ const properties = [
     bathrooms: 2,
     amenities: ["parking", "wifi", "security"],
     listedBy: "agency",
+    status: "available",
     viewingType: "scheduled",
     viewingInstructions: "Viewing available by appointment after agency confirmation.",
+    contact: {
+      preferredMethod: "whatsapp",
+      phone: "+254700000000",
+      whatsapp: "+254700000000",
+      email: "agency@example.com",
+      availableHours: "Weekdays 9 AM to 5 PM",
+      notes: "Use WhatsApp for fastest viewing confirmation.",
+    },
   },
   {
     title: "Cozy Westlands Studio",
@@ -102,8 +147,15 @@ const properties = [
     bathrooms: 1,
     amenities: ["security", "water", "backup power"],
     listedBy: "agency",
+    status: "available",
     viewingType: "open",
     viewingInstructions: "Open viewing on weekdays from 10 AM to 4 PM. Call the agency on arrival.",
+    contact: {
+      preferredMethod: "phone",
+      phone: "+254700000000",
+      email: "agency@example.com",
+      availableHours: "Weekdays 10 AM to 4 PM",
+    },
   },
   {
     title: "Spacious Nakuru Maisonette",
@@ -127,8 +179,81 @@ const properties = [
     bathrooms: 3,
     amenities: ["garden", "parking", "water storage"],
     listedBy: "owner",
+    status: "available",
     viewingType: "scheduled",
     viewingInstructions: "Weekend viewings only after landlord confirmation.",
+    contact: {
+      preferredMethod: "inquiry",
+      phone: "+254711000000",
+      email: "landlord@example.com",
+      availableHours: "Saturday and Sunday afternoons",
+    },
+  },
+  {
+    title: "Draft Kileleshwa Duplex",
+    description: "Quiet duplex undergoing final paint touch-ups before public listing.",
+    type: "maisonette",
+    price: {
+      rent: 120000,
+      deposit: 120000,
+      agencyFee: 0,
+    },
+    location: {
+      county: "Nairobi",
+      town: "Nairobi",
+      area: "Kileleshwa",
+      coordinates: {
+        type: "Point",
+        coordinates: [36.7878, -1.2814],
+      },
+    },
+    bedrooms: 3,
+    bathrooms: 3,
+    amenities: ["parking", "garden", "water storage"],
+    listedBy: "owner",
+    ownerEmail: "mary.landlord@example.com",
+    status: "draft",
+    viewingType: "scheduled",
+    viewingInstructions: "Viewings will open after maintenance is complete.",
+    contact: {
+      preferredMethod: "email",
+      phone: "+254711000001",
+      email: "mary.landlord@example.com",
+      availableHours: "Weekdays 2 PM to 6 PM",
+    },
+  },
+  {
+    title: "Taken Lavington Townhouse",
+    description: "Recently matched townhouse kept for owner history and dashboard testing.",
+    type: "house",
+    price: {
+      rent: 150000,
+      deposit: 150000,
+      agencyFee: 10000,
+    },
+    location: {
+      county: "Nairobi",
+      town: "Nairobi",
+      area: "Lavington",
+      coordinates: {
+        type: "Point",
+        coordinates: [36.7688, -1.2833],
+      },
+    },
+    bedrooms: 4,
+    bathrooms: 4,
+    amenities: ["security", "garden", "parking", "backup power"],
+    listedBy: "agency",
+    ownerEmail: "urban.agency@example.com",
+    status: "taken",
+    viewingType: "scheduled",
+    viewingInstructions: "This listing is taken and not open for viewing requests.",
+    contact: {
+      preferredMethod: "phone",
+      phone: "+254700000001",
+      email: "urban.agency@example.com",
+      availableHours: "Weekdays 9 AM to 4 PM",
+    },
   },
 ];
 
@@ -140,6 +265,11 @@ const upsertUsers = async () => {
 
     if (!user) {
       user = await User.create(userData);
+    } else {
+      user.name = userData.name;
+      user.role = userData.role;
+      user.phone = userData.phone;
+      await user.save();
     }
 
     savedUsers[user.email] = user;
@@ -168,12 +298,18 @@ const upsertProperties = async (savedUsers) => {
   const landlord = savedUsers["landlord@example.com"];
 
   for (const property of properties) {
-    const owner = property.listedBy === "agency" ? agency : landlord;
+    let owner = property.listedBy === "agency" ? agency : landlord;
+
+    if (property.ownerEmail) {
+      owner = savedUsers[property.ownerEmail];
+    }
+
+    const { ownerEmail, ...propertyData } = property;
 
     await Property.findOneAndUpdate(
       { title: property.title },
       {
-        ...property,
+        ...propertyData,
         owner: owner._id,
       },
       {
@@ -204,4 +340,8 @@ const seedDemoData = async () => {
   }
 };
 
-seedDemoData();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  seedDemoData();
+}
+
+export { movers, properties, seedDemoData, users };

@@ -1,7 +1,10 @@
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const listedByTypes = ["owner", "agency"];
+const propertyStatuses = ["draft", "available", "taken", "archived"];
 const viewingTypes = ["scheduled", "open"];
+const contactMethods = ["phone", "email", "whatsapp", "inquiry"];
 const imageUrlPattern = /^https?:\/\/\S+$/i;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const coordinateType = "Point";
 
 const isValidLongitude = (value) => typeof value === "number" && value >= -180 && value <= 180;
@@ -77,6 +80,26 @@ const validateLocation = (value) => {
   return null;
 };
 
+const validateContact = (value) => {
+  if (value.preferredMethod !== undefined && !contactMethods.includes(value.preferredMethod)) {
+    return `contact.preferredMethod must be one of: ${contactMethods.join(", ")}`;
+  }
+
+  if (value.email !== undefined && !emailPattern.test(value.email)) {
+    return "contact.email must be a valid email";
+  }
+
+  if (value.availableHours !== undefined && value.availableHours.length > 200) {
+    return "contact.availableHours must be 200 characters or fewer";
+  }
+
+  if (value.notes !== undefined && value.notes.length > 500) {
+    return "contact.notes must be 500 characters or fewer";
+  }
+
+  return null;
+};
+
 const createPropertySchema = {
   title: {
     required: true,
@@ -109,6 +132,10 @@ const createPropertySchema = {
     type: "string",
     enum: listedByTypes,
   },
+  status: {
+    type: "string",
+    enum: propertyStatuses,
+  },
   viewingType: {
     type: "string",
     enum: viewingTypes,
@@ -122,6 +149,10 @@ const createPropertySchema = {
 
       return null;
     },
+  },
+  contact: {
+    type: "object",
+    validate: validateContact,
   },
   isAvailable: {
     type: "boolean",
@@ -158,6 +189,10 @@ const updatePropertySchema = {
     type: "string",
     enum: listedByTypes,
   },
+  status: {
+    type: "string",
+    enum: propertyStatuses,
+  },
   viewingType: {
     type: "string",
     enum: viewingTypes,
@@ -171,6 +206,10 @@ const updatePropertySchema = {
 
       return null;
     },
+  },
+  contact: {
+    type: "object",
+    validate: validateContact,
   },
   isAvailable: {
     type: "boolean",
@@ -200,7 +239,9 @@ const propertyImageSchema = {
 
 export {
   costCalculationSchema,
+  contactMethods,
   createPropertySchema,
+  propertyStatuses,
   propertyImageSchema,
   updatePropertySchema,
   viewingTypes,

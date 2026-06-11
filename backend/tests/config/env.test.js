@@ -20,4 +20,8 @@ describe("env config", () => {
     assert.equal(env.mongoConnectRetries, 5);
     assert.equal(env.mongoConnectRetryDelayMs, 3000);
   });
+
+  it("does not require MongoDB during local test startup by default", () => {
+    assert.equal(env.dbRequired, false);
+  });
 });

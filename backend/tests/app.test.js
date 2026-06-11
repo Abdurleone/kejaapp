@@ -19,6 +19,15 @@ describe("KejaApp API", () => {
     assert.equal(response.body.database.status, "disconnected");
   });
 
+  it("returns database readiness status", async () => {
+    const response = await request("/api/health/database");
+
+    assert.equal(response.status, 503);
+    assert.equal(response.body.status, "unavailable");
+    assert.equal(response.body.database.ok, false);
+    assert.equal(response.body.database.message, "Database is not connected");
+  });
+
   it("validates register payloads", async () => {
     const response = await request("/api/auth/register", {
       method: "POST",
@@ -99,6 +108,13 @@ describe("KejaApp API", () => {
       method: "POST",
       body: JSON.stringify({}),
     });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for listing my properties", async () => {
+    const response = await request("/api/properties/mine");
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token missing");

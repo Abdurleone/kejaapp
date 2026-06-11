@@ -45,10 +45,31 @@ describe("propertyValidators", () => {
     assert.deepEqual(updatePropertySchema.viewingType.enum, ["scheduled", "open"]);
   });
 
+  it("allows property lifecycle statuses", () => {
+    assert.deepEqual(createPropertySchema.status.enum, ["draft", "available", "taken", "archived"]);
+    assert.deepEqual(updatePropertySchema.status.enum, ["draft", "available", "taken", "archived"]);
+  });
+
   it("limits viewing instructions", () => {
     const message = createPropertySchema.viewingInstructions.validate("a".repeat(1001));
 
     assert.equal(message, "viewingInstructions must be 1000 characters or fewer");
+  });
+
+  it("allows listing contact methods for property owners", () => {
+    assert.deepEqual(createPropertySchema.contact.validate({ preferredMethod: "whatsapp" }), null);
+    assert.deepEqual(updatePropertySchema.contact.validate({ preferredMethod: "inquiry" }), null);
+  });
+
+  it("rejects invalid listing contact details", () => {
+    assert.equal(
+      createPropertySchema.contact.validate({ preferredMethod: "sms" }),
+      "contact.preferredMethod must be one of: phone, email, whatsapp, inquiry"
+    );
+    assert.equal(
+      createPropertySchema.contact.validate({ email: "not-an-email" }),
+      "contact.email must be a valid email"
+    );
   });
 
   it("requires valid HTTP property image URLs", () => {

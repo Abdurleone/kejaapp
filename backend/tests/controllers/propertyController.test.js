@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "node:test";
 import {
   addPropertyImage,
+  listMyProperties,
+  listProperties,
   removePropertyImage,
 } from "../../controllers/propertyController.js";
 import Property from "../../models/Property.js";
@@ -23,6 +25,177 @@ const createResponse = () => ({
 describe("propertyController", () => {
   afterEach(() => {
     mock.restoreAll();
+  });
+
+  it("lists only available properties by default", async () => {
+    let findFilters;
+    let countFilters;
+    mock.method(Property, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        populate() {
+          return this;
+        },
+        sort() {
+          return this;
+        },
+        skip() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve([]);
+        },
+      };
+    });
+    mock.method(Property, "countDocuments", (filters) => {
+      countFilters = filters;
+      return Promise.resolve(0);
+    });
+
+    const req = { query: {} };
+    const res = createResponse();
+
+    await listProperties(req, res, () => {});
+
+    assert.deepEqual(findFilters, { status: "available" });
+    assert.deepEqual(countFilters, { status: "available" });
+    assert.equal(res.statusCode, 200);
+  });
+
+  it("allows explicit property status filters", async () => {
+    let findFilters;
+    mock.method(Property, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        populate() {
+          return this;
+        },
+        sort() {
+          return this;
+        },
+        skip() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve([]);
+        },
+      };
+    });
+    mock.method(Property, "countDocuments", () => Promise.resolve(0));
+
+    const req = { query: { status: "taken" } };
+    const res = createResponse();
+
+    await listProperties(req, res, () => {});
+
+    assert.deepEqual(findFilters, { status: "taken" });
+    assert.equal(res.statusCode, 200);
+  });
+
+  it("rejects invalid property status filters", async () => {
+    const req = { query: { status: "rented" } };
+    const res = createResponse();
+    let nextError;
+
+    await listProperties(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.equal(nextError.message, "status must be one of: draft, available, taken, archived");
+  });
+
+  it("lists the current owner's properties across statuses", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    let findFilters;
+    let countFilters;
+    mock.method(Property, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        populate() {
+          return this;
+        },
+        sort() {
+          return this;
+        },
+        skip() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve([]);
+        },
+      };
+    });
+    mock.method(Property, "countDocuments", (filters) => {
+      countFilters = filters;
+      return Promise.resolve(0);
+    });
+
+    const req = {
+      query: {},
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await listMyProperties(req, res, () => {});
+
+    assert.deepEqual(findFilters, { owner: ownerId });
+    assert.deepEqual(countFilters, { owner: ownerId });
+    assert.equal(res.statusCode, 200);
+  });
+
+  it("filters the current owner's properties by status", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    let findFilters;
+    mock.method(Property, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        populate() {
+          return this;
+        },
+        sort() {
+          return this;
+        },
+        skip() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve([]);
+        },
+      };
+    });
+    mock.method(Property, "countDocuments", () => Promise.resolve(0));
+
+    const req = {
+      query: { status: "taken" },
+      user: { _id: ownerId, role: "agency" },
+    };
+    const res = createResponse();
+
+    await listMyProperties(req, res, () => {});
+
+    assert.deepEqual(findFilters, { owner: ownerId, status: "taken" });
+    assert.equal(res.statusCode, 200);
+  });
+
+  it("rejects invalid owner property status filters", async () => {
+    const req = {
+      query: { status: "leased" },
+      user: { _id: new mongoose.Types.ObjectId(), role: "landlord" },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await listMyProperties(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.equal(nextError.message, "status must be one of: draft, available, taken, archived");
   });
 
   it("returns not found when adding an image to a missing property", async () => {
