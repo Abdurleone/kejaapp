@@ -169,17 +169,28 @@ Developer workflow:
 The first web frontend is in `frontend/` and runs without a build step.
 
 Included flows:
+- Sign-in-first landing page with only authentication options before the workspace opens.
 - Public property discovery with filters.
 - Adaptive property cards, insights, sorting, and loading states.
 - Login with demo account shortcuts.
 - Role-aware dashboard summary.
+- Role-aware navigation and actions so tenants, owners, agencies, and admins only see the tools they can use.
 - Saved property actions.
 - Inquiry and viewing request actions.
 - Owner property creation and listing management.
 - Admin user list and account status moderation.
 - Theme toggle between the standard palette and Kenyan flag colors.
+- Light and dark mode toggle that persists locally.
+
+Frontend access model:
+- Tenants can discover homes, save listings, send inquiries, and request viewings.
+- Landlords and agencies can discover homes and manage their own listings.
+- Admins can discover homes, manage listings where needed, and access admin moderation.
+- Tenants do not see or submit the property creation form.
+- Non-admin users do not see admin moderation.
 
 Responsive behavior:
+- The landing page adapts from desktop split layout to a single-column phone layout.
 - Header, connection controls, filters, dashboard panels, and workspace tabs reflow across desktop, tablet, and phone widths.
 - Property grids use container-safe card sizing so listings do not overflow narrow screens.
 - Owner tools and admin moderation tables adapt for smaller screens.
@@ -255,6 +266,7 @@ Acceptance criteria:
 - Given I search near a latitude and longitude with a radius, then I only see properties with coordinates inside that area.
 - Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, listing contact details, reviews, and pricing.
 - Given a property has rent, deposit, or agency fees, when I view it, then I can see the total upfront cost and recurring monthly cost.
+- Given I am signed in as a tenant, when I use the frontend, then I cannot access the owner listing creation tools.
 
 ### Property Lifecycle
 

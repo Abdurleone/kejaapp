@@ -20,4 +20,10 @@ describe("responsive stylesheet", () => {
     assert.match(styles, /\.table-panel\s*{[^}]*overflow-x:\s*auto;/s);
     assert.match(styles, /dialog\s*{[^}]*max-width:\s*calc\(100vw - 24px\);/s);
   });
+
+  it("includes landing and color-mode styles", () => {
+    assert.match(styles, /\[hidden\]\s*{[^}]*display:\s*none\s*!important;/s);
+    assert.match(styles, /\.landing-page\s*{[^}]*grid-template-columns:/s);
+    assert.match(styles, /:root\[data-color-mode="dark"\]/);
+  });
 });
