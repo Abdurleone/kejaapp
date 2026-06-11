@@ -182,6 +182,45 @@ describe("propertyController", () => {
     assert.equal(res.statusCode, 200);
   });
 
+  it("lets admins list all managed properties", async () => {
+    let findFilters;
+    let countFilters;
+    mock.method(Property, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        populate() {
+          return this;
+        },
+        sort() {
+          return this;
+        },
+        skip() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve([]);
+        },
+      };
+    });
+    mock.method(Property, "countDocuments", (filters) => {
+      countFilters = filters;
+      return Promise.resolve(0);
+    });
+
+    const req = {
+      query: {},
+      user: { _id: new mongoose.Types.ObjectId(), role: "admin" },
+    };
+    const res = createResponse();
+
+    await listMyProperties(req, res, () => {});
+
+    assert.deepEqual(findFilters, {});
+    assert.deepEqual(countFilters, {});
+    assert.equal(res.statusCode, 200);
+  });
+
   it("rejects invalid owner property status filters", async () => {
     const req = {
       query: { status: "leased" },

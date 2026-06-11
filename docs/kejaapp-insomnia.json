@@ -61,7 +61,10 @@
       "url": "{{ _.base_url }}/",
       "headers": [],
       "body": {},
-      "authentication": {}
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
     },
     {
       "_id": "req_health_status",
@@ -72,7 +75,10 @@
       "url": "{{ _.base_url }}/api/health",
       "headers": [],
       "body": {},
-      "authentication": {}
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
     },
     {
       "_id": "req_health_database",
