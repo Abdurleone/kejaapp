@@ -35,6 +35,54 @@ describe("Property model", () => {
     assert.equal(property.viewingType, "scheduled");
   });
 
+  it("defaults properties to available status", async () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+    });
+
+    await property.validate();
+
+    assert.equal(property.status, "available");
+    assert.equal(property.isAvailable, true);
+  });
+
+  it("marks taken properties as unavailable", async () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+      status: "taken",
+    });
+
+    await property.validate();
+
+    assert.equal(property.status, "taken");
+    assert.equal(property.isAvailable, false);
+  });
+
+  it("maps legacy unavailable updates to taken status", async () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+    });
+
+    await property.validate();
+    property.isAvailable = false;
+    await property.validate();
+
+    assert.equal(property.status, "taken");
+    assert.equal(property.isAvailable, false);
+  });
+
   it("stores image subdocuments with alt text", () => {
     const property = new Property({
       title: "Modern Kilimani Apartment",
@@ -73,5 +121,27 @@ describe("Property model", () => {
 
     assert.equal(property.location.coordinates.type, "Point");
     assert.deepEqual(property.location.coordinates.coordinates, [36.782, -1.2921]);
+  });
+
+  it("stores listing-specific contact details", () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+      contact: {
+        preferredMethod: "whatsapp",
+        phone: "+254700000000",
+        email: "AGENCY@EXAMPLE.COM",
+        whatsapp: "+254700000000",
+        availableHours: "Weekdays 9 AM to 5 PM",
+        notes: "Use inquiry messages for detailed questions.",
+      },
+    });
+
+    assert.equal(property.contact.preferredMethod, "whatsapp");
+    assert.equal(property.contact.email, "agency@example.com");
+    assert.equal(property.contact.availableHours, "Weekdays 9 AM to 5 PM");
   });
 });

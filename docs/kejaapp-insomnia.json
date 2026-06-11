@@ -17,12 +17,24 @@
       "name": "Base Environment",
       "data": {
         "base_url": "http://localhost:5000",
-        "token": ""
+        "token": "",
+        "property_id": "",
+        "image_id": "",
+        "inquiry_id": "",
+        "viewing_id": "",
+        "notification_id": "",
+        "verification_id": ""
       },
       "dataPropertyOrder": {
         "&": [
           "base_url",
-          "token"
+          "token",
+          "property_id",
+          "image_id",
+          "inquiry_id",
+          "viewing_id",
+          "notification_id",
+          "verification_id"
         ]
       },
       "color": null,
@@ -54,6 +66,17 @@
       "name": "API Health",
       "method": "GET",
       "url": "{{ _.base_url }}/api/health",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
+      "_id": "req_health_database",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Database Health",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/health/database",
       "headers": [],
       "body": {},
       "authentication": {}
@@ -100,6 +123,82 @@
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"email\": \"agency@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_login_tenant",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login Tenant",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"tenant@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_login_landlord",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login Landlord",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"landlord@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_login_agency",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login Agency",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"agency@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_login_admin",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login Admin",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
       },
       "authentication": {}
     },
@@ -202,6 +301,20 @@
       "authentication": {}
     },
     {
+      "_id": "req_properties_mine",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "List My Properties",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/properties/mine?page=1&limit=20",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
       "_id": "req_properties_calculate_costs",
       "_type": "request",
       "parentId": "fld_properties",
@@ -235,7 +348,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"title\": \"Modern Kilimani Apartment\",\n  \"description\": \"Bright apartment near shops and transit.\",\n  \"type\": \"apartment\",\n  \"price\": {\n    \"rent\": 65000,\n    \"deposit\": 65000,\n    \"agencyFee\": 5000\n  },\n  \"location\": {\n    \"county\": \"Nairobi\",\n    \"town\": \"Nairobi\",\n    \"area\": \"Kilimani\",\n    \"coordinates\": {\n      \"type\": \"Point\",\n      \"coordinates\": [36.782, -1.2921]\n    }\n  },\n  \"bedrooms\": 2,\n  \"bathrooms\": 2,\n  \"amenities\": [\"parking\", \"wifi\", \"security\"],\n  \"listedBy\": \"agency\",\n  \"viewingType\": \"scheduled\",\n  \"viewingInstructions\": \"Viewing available by appointment after agency confirmation.\"\n}"
+        "text": "{\n  \"title\": \"Modern Kilimani Apartment\",\n  \"description\": \"Bright apartment near shops and transit.\",\n  \"type\": \"apartment\",\n  \"price\": {\n    \"rent\": 65000,\n    \"deposit\": 65000,\n    \"agencyFee\": 5000\n  },\n  \"location\": {\n    \"county\": \"Nairobi\",\n    \"town\": \"Nairobi\",\n    \"area\": \"Kilimani\",\n    \"coordinates\": {\n      \"type\": \"Point\",\n      \"coordinates\": [36.782, -1.2921]\n    }\n  },\n  \"bedrooms\": 2,\n  \"bathrooms\": 2,\n  \"amenities\": [\"parking\", \"wifi\", \"security\"],\n  \"listedBy\": \"agency\",\n  \"status\": \"available\",\n  \"viewingType\": \"scheduled\",\n  \"viewingInstructions\": \"Viewing available by appointment after agency confirmation.\",\n  \"contact\": {\n    \"preferredMethod\": \"whatsapp\",\n    \"phone\": \"+254700000000\",\n    \"whatsapp\": \"+254700000000\",\n    \"email\": \"agency@example.com\",\n    \"availableHours\": \"Weekdays 9 AM to 5 PM\",\n    \"notes\": \"Use WhatsApp for fastest viewing confirmation.\"\n  }\n}"
       },
       "authentication": {
         "type": "bearer",
@@ -248,7 +361,7 @@
       "parentId": "fld_properties",
       "name": "Get Property",
       "method": "GET",
-      "url": "{{ _.base_url }}/api/properties/:property_id",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}",
       "headers": [],
       "body": {},
       "authentication": {}
@@ -259,7 +372,7 @@
       "parentId": "fld_properties",
       "name": "Update Property",
       "method": "PUT",
-      "url": "{{ _.base_url }}/api/properties/:property_id",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}",
       "headers": [
         {
           "name": "Content-Type",
@@ -268,7 +381,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"isAvailable\": false\n}"
+        "text": "{\n  \"status\": \"taken\"\n}"
       },
       "authentication": {
         "type": "bearer",
@@ -281,7 +394,7 @@
       "parentId": "fld_properties",
       "name": "Delete Property",
       "method": "DELETE",
-      "url": "{{ _.base_url }}/api/properties/:property_id",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}",
       "headers": [],
       "body": {},
       "authentication": {
@@ -295,7 +408,7 @@
       "parentId": "fld_properties",
       "name": "Add Property Image",
       "method": "POST",
-      "url": "{{ _.base_url }}/api/properties/:property_id/images",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}/images",
       "headers": [
         {
           "name": "Content-Type",
@@ -317,7 +430,7 @@
       "parentId": "fld_properties",
       "name": "Remove Property Image",
       "method": "DELETE",
-      "url": "{{ _.base_url }}/api/properties/:property_id/images/:image_id",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}/images/{{ _.image_id }}",
       "headers": [],
       "body": {},
       "authentication": {
@@ -331,7 +444,7 @@
       "parentId": "fld_properties",
       "name": "List Property Reviews",
       "method": "GET",
-      "url": "{{ _.base_url }}/api/properties/:property_id/reviews",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}/reviews",
       "headers": [],
       "body": {},
       "authentication": {}
@@ -363,7 +476,7 @@
       "parentId": "fld_favorites",
       "name": "Save Property",
       "method": "POST",
-      "url": "{{ _.base_url }}/api/favorites/:property_id",
+      "url": "{{ _.base_url }}/api/favorites/{{ _.property_id }}",
       "headers": [],
       "body": {},
       "authentication": {
@@ -377,7 +490,7 @@
       "parentId": "fld_favorites",
       "name": "Remove Saved Property",
       "method": "DELETE",
-      "url": "{{ _.base_url }}/api/favorites/:property_id",
+      "url": "{{ _.base_url }}/api/favorites/{{ _.property_id }}",
       "headers": [],
       "body": {},
       "authentication": {
@@ -407,7 +520,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"property\": \":property_id\",\n  \"rating\": 5,\n  \"comment\": \"Great listing and smooth viewing process.\"\n}"
+        "text": "{\n  \"property\": \"{{ _.property_id }}\",\n  \"rating\": 5,\n  \"comment\": \"Great listing and smooth viewing process.\"\n}"
       },
       "authentication": {
         "type": "bearer",
@@ -436,7 +549,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"property\": \":property_id\",\n  \"subject\": \"Availability question\",\n  \"message\": \"Is this property still available, and can I get more details?\",\n  \"contactPreference\": \"phone\"\n}"
+        "text": "{\n  \"property\": \"{{ _.property_id }}\",\n  \"subject\": \"Availability question\",\n  \"message\": \"Is this property still available, and can I get more details?\",\n  \"contactPreference\": \"phone\"\n}"
       },
       "authentication": {
         "type": "bearer",
@@ -463,7 +576,7 @@
       "parentId": "fld_inquiries",
       "name": "List Property Inquiries",
       "method": "GET",
-      "url": "{{ _.base_url }}/api/properties/:property_id/inquiries",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}/inquiries",
       "headers": [],
       "body": {},
       "authentication": {
@@ -477,7 +590,7 @@
       "parentId": "fld_inquiries",
       "name": "Respond To Inquiry",
       "method": "PUT",
-      "url": "{{ _.base_url }}/api/inquiries/:inquiry_id",
+      "url": "{{ _.base_url }}/api/inquiries/{{ _.inquiry_id }}",
       "headers": [
         {
           "name": "Content-Type",
@@ -515,7 +628,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"property\": \":property_id\",\n  \"requestedDate\": \"2026-07-01T10:00:00.000Z\",\n  \"message\": \"I would like to view this property in the morning.\"\n}"
+        "text": "{\n  \"property\": \"{{ _.property_id }}\",\n  \"requestedDate\": \"2026-07-01T10:00:00.000Z\",\n  \"message\": \"I would like to view this property in the morning.\"\n}"
       },
       "authentication": {
         "type": "bearer",
@@ -537,7 +650,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"property\": \":property_id\",\n  \"message\": \"I plan to attend the open viewing.\"\n}"
+        "text": "{\n  \"property\": \"{{ _.property_id }}\",\n  \"message\": \"I plan to attend the open viewing.\"\n}"
       },
       "authentication": {
         "type": "bearer",
@@ -564,7 +677,7 @@
       "parentId": "fld_viewings",
       "name": "List Property Viewing Requests",
       "method": "GET",
-      "url": "{{ _.base_url }}/api/properties/:property_id/viewings",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}/viewings",
       "headers": [],
       "body": {},
       "authentication": {
@@ -578,7 +691,7 @@
       "parentId": "fld_viewings",
       "name": "Update Viewing Status",
       "method": "PUT",
-      "url": "{{ _.base_url }}/api/viewings/:viewing_id/status",
+      "url": "{{ _.base_url }}/api/viewings/{{ _.viewing_id }}/status",
       "headers": [
         {
           "name": "Content-Type",
@@ -621,7 +734,7 @@
       "parentId": "fld_notifications",
       "name": "Mark Notification Read",
       "method": "PUT",
-      "url": "{{ _.base_url }}/api/notifications/:notification_id/read",
+      "url": "{{ _.base_url }}/api/notifications/{{ _.notification_id }}/read",
       "headers": [],
       "body": {},
       "authentication": {
@@ -656,7 +769,7 @@
       "parentId": "fld_admin",
       "name": "Approve Agency Verification",
       "method": "PUT",
-      "url": "{{ _.base_url }}/api/admin/agencies/verifications/:verification_id/approve",
+      "url": "{{ _.base_url }}/api/admin/agencies/verifications/{{ _.verification_id }}/approve",
       "headers": [],
       "body": {},
       "authentication": {
@@ -670,7 +783,7 @@
       "parentId": "fld_admin",
       "name": "Reject Agency Verification",
       "method": "PUT",
-      "url": "{{ _.base_url }}/api/admin/agencies/verifications/:verification_id/reject",
+      "url": "{{ _.base_url }}/api/admin/agencies/verifications/{{ _.verification_id }}/reject",
       "headers": [
         {
           "name": "Content-Type",

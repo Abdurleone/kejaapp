@@ -1,5 +1,6 @@
 import httpStatus from "../constants/httpStatus.js";
 import Property from "../models/Property.js";
+import { propertyStatuses } from "../models/Property.js";
 import {
   attachCostSummaries,
   attachCostSummary,
@@ -21,7 +22,9 @@ const parseGeoQueryNumber = (value, field) => {
 };
 
 const buildPropertyFilters = (query) => {
-  const filters = {};
+  const filters = {
+    status: "available",
+  };
 
   if (query.type) {
     filters.type = query.type;
@@ -29,6 +32,14 @@ const buildPropertyFilters = (query) => {
 
   if (query.listedBy) {
     filters.listedBy = query.listedBy;
+  }
+
+  if (query.status) {
+    if (!propertyStatuses.includes(query.status)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `status must be one of: ${propertyStatuses.join(", ")}`);
+    }
+
+    filters.status = query.status;
   }
 
   if (query.viewingType) {
@@ -128,8 +139,10 @@ const propertyFields = [
   "amenities",
   "images",
   "listedBy",
+  "status",
   "viewingType",
   "viewingInstructions",
+  "contact",
   "isAvailable",
 ];
 
@@ -158,6 +171,38 @@ const listProperties = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
   const filters = buildPropertyFilters(req.query);
   const sort = req.query.sort || "-createdAt";
+
+  const [properties, total] = await Promise.all([
+    Property.find(filters)
+      .populate("owner", "name email role phone")
+      .sort(sort)
+      .skip(skip)
+      .limit(limit),
+    Property.countDocuments(filters),
+  ]);
+
+  res.status(httpStatus.OK).json({
+    data: attachCostSummaries(properties),
+    pagination: formatPagination(page, limit, total),
+  });
+});
+
+const listMyProperties = asyncHandler(async (req, res) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const skip = (page - 1) * limit;
+  const filters = {
+    owner: req.user._id,
+  };
+  const sort = req.query.sort || "-createdAt";
+
+  if (req.query.status) {
+    if (!propertyStatuses.includes(req.query.status)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `status must be one of: ${propertyStatuses.join(", ")}`);
+    }
+
+    filters.status = req.query.status;
+  }
 
   const [properties, total] = await Promise.all([
     Property.find(filters)
@@ -294,6 +339,7 @@ export {
   createProperty,
   deleteProperty,
   getProperty,
+  listMyProperties,
   listProperties,
   removePropertyImage,
   updateProperty,

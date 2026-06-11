@@ -52,7 +52,7 @@ Deployment targets:
 Application foundation:
 - Express app split into `backend/app.js` and `backend/server.js`.
 - Centralized environment loading and validation in `backend/config/env.js`.
-- MongoDB Atlas connection helper with retry support in `backend/config/db.js`.
+- MongoDB Atlas connection helper with retry support and local degraded startup support in `backend/config/db.js`.
 - Health endpoint with database status and configured database path.
 - CORS, Helmet, Morgan logging, centralized async handling, and error middleware.
 - Nodemon watch configuration for backend auto-refresh.
@@ -69,12 +69,15 @@ Authentication and authorization:
 - Role-based authorization for tenant/user, landlord, agency, and admin workflows.
 
 Properties and pricing:
-- Property model with owner, location, price, amenities, images, availability, and rating summary fields.
+- Property model with owner, location, price, amenities, images, listing contact details, lifecycle status, availability, and rating summary fields.
 - Public property listing and property detail endpoints.
+- Protected owner property management list across lifecycle statuses.
 - Protected property create, update, and delete endpoints for landlords, agencies, and admins.
+- Property lifecycle statuses for `draft`, `available`, `taken`, and `archived` listings.
 - Rent, deposit, and agency fee fields.
 - Cost summary enrichment on property responses.
 - Protected image URL and alt text management for property galleries.
+- Listing-specific contact method, contact hours, and contact notes for landlords and agencies.
 - Public read-only cost calculator endpoint.
 - Filters for rent range, location text, listing type, viewing type, availability, text search, and radius search.
 - GeoJSON coordinate support using `[longitude, latitude]` order.
@@ -158,9 +161,29 @@ As a tenant, I want to browse and filter available rental properties by location
 
 Acceptance criteria:
 - Given I am on the property list, when I filter by rent, location, type, or availability, then I only see matching properties.
+- Given I browse public listings without a status filter, then I only see properties marked as available.
 - Given I search near a latitude and longitude with a radius, then I only see properties with coordinates inside that area.
-- Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, reviews, and pricing.
+- Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, listing contact details, reviews, and pricing.
 - Given a property has rent, deposit, or agency fees, when I view it, then I can see the total upfront cost and recurring monthly cost.
+
+### Property Lifecycle
+
+As a landlord or agency, I want to mark a property as draft, available, taken, or archived, so that tenants only see listings that are actually open.
+
+Acceptance criteria:
+- Given I create a property without a status, then it defaults to available.
+- Given I mark a property as taken, draft, or archived, then it is hidden from the default public property list.
+- Given a property is not available, when a tenant requests a viewing, then the API rejects the viewing request.
+- Given older clients send `isAvailable=false`, then the API maps that listing to taken for compatibility.
+
+### Owner Property Management
+
+As a landlord or agency, I want to view all my listings including draft, taken, and archived properties, so that I can manage my inventory without exposing inactive homes to tenants.
+
+Acceptance criteria:
+- Given I am authenticated as a landlord or agency, when I open my properties, then I can see my own listings across all statuses.
+- Given I filter my properties by status, then I only see my own listings matching that lifecycle state.
+- Given I am not authenticated, when I request my properties, then the API rejects the request.
 
 ### Transparent Pricing
 
@@ -170,6 +193,15 @@ Acceptance criteria:
 - Given I am logged in as a landlord, agency, or admin, when I create or update a property, then I can save valid pricing fields.
 - Given I am not authenticated or I have a tenant role, when I try to create or update property pricing, then the API rejects the request.
 - Given I am any user, when I submit price values to the cost calculator, then I receive calculated first-month, upfront, and recurring monthly totals without creating or changing a property.
+
+### Listing Contact Details
+
+As a landlord or agency, I want to define the best contact method and available contact hours on each listing, so that tenants know how to reach me without KejaApp handling payments or private negotiations.
+
+Acceptance criteria:
+- Given I am authenticated as a landlord or agency, when I create or update a property, then I can add a preferred contact method, phone, email, WhatsApp number, contact hours, and notes.
+- Given a tenant views a property, when contact details are present, then they can read those contact details but cannot edit them.
+- Given I submit invalid contact details, when validation runs, then the API rejects unsupported contact methods and invalid emails.
 
 ### Property Image Management
 
@@ -278,6 +310,7 @@ Health:
 ```text
 GET    /
 GET    /api/health
+GET    /api/health/database
 ```
 
 Auth:
@@ -296,6 +329,7 @@ Properties:
 ```text
 GET    /api/properties
 GET    /api/properties?lat=-1.2921&lng=36.782&radiusKm=5
+GET    /api/properties/mine
 POST   /api/properties
 GET    /api/properties/:id
 PUT    /api/properties/:id
@@ -371,8 +405,10 @@ GET    /api/movers
 - Cost calculation for rent, deposit, and agency fees.
 - Account profile update and password change workflow.
 - Property response enrichment with first-month, upfront, and recurring monthly totals.
+- Property lifecycle status and compatibility syncing with legacy availability flags.
 - GeoJSON coordinate validation and radius-based property filtering.
 - Property image URL and alt text management.
+- Listing-specific owner and agency contact preferences.
 - Saved property list enrichment with property cost summaries.
 - Property inquiry and owner response workflow.
 - Review aggregation for property ratings.
@@ -433,6 +469,8 @@ cp backend/.env.example backend/.env
 
 Update `backend/.env` with your MongoDB URI and JWT secret.
 
+For local development, `DB_REQUIRED=false` lets the API start even when Atlas temporarily rejects the connection. Database-backed routes still need MongoDB, but health checks and non-DB routes remain available while you fix the connection.
+
 Run the backend from the repo root:
 
 ```bash
@@ -453,6 +491,19 @@ The API should be available at:
 http://localhost:5000
 ```
 
+## MongoDB Troubleshooting
+
+If startup shows an SSL error like `tlsv1 alert internal error` or `SSL alert number 80`, the app reached MongoDB Atlas but the TLS connection was rejected before Mongoose could authenticate. Check:
+
+- Atlas Network Access includes your current public IP address.
+- `MONGODB_URI` has the correct username, password, cluster host, and database path.
+- Your VPN, firewall, DNS, or network is not interrupting Atlas connections.
+- `DB_REQUIRED=false` is set in `backend/.env` while developing locally, then restart `npm run dev`.
+
+Use `GET /api/health` in Insomnia to confirm whether the API is running with `database.status` as `connected` or `disconnected`.
+
+Use `GET /api/health/database` to actively ping MongoDB. A `200` response means the API and database are linked; a `503` response means the API is running but MongoDB is not reachable.
+
 ## Testing
 
 Run the backend test suite:
@@ -469,6 +520,18 @@ cd backend
 npm run seed
 ```
 
+Demo login accounts all use `password123`:
+
+```text
+tenant@example.com
+grace.tenant@example.com
+landlord@example.com
+mary.landlord@example.com
+agency@example.com
+urban.agency@example.com
+admin@example.com
+```
+
 ## API Testing With Insomnia
 
 1. Import `docs/kejaapp-insomnia.json` into Insomnia.
@@ -476,7 +539,8 @@ npm run seed
 3. Confirm `base_url` is set to `http://localhost:5000`.
 4. Register or log in.
 5. Copy the returned token into the `token` environment variable.
-6. Use the grouped requests for Auth, Properties, Favorites, Reviews, Inquiries, Viewings, Notifications, Agencies, Admin, and Movers.
+6. After creating resources, copy returned ids into the matching environment variables such as `property_id`, `image_id`, `inquiry_id`, `viewing_id`, `notification_id`, and `verification_id`.
+7. Use the grouped requests for Auth, Properties, Favorites, Reviews, Inquiries, Viewings, Notifications, Agencies, Admin, and Movers.
 
 ## Roadmap
 

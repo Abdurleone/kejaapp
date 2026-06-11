@@ -5,6 +5,7 @@ import {
   createProperty,
   deleteProperty,
   getProperty,
+  listMyProperties,
   listProperties,
   removePropertyImage,
   updateProperty,
@@ -34,6 +35,8 @@ router
   );
 
 router.post("/costs/calculate", validateRequest(costCalculationSchema), calculatePropertyCost);
+
+router.get("/mine", protect, authorize("landlord", "agency", "admin"), listMyProperties);
 
 router.get("/:id/inquiries", protect, authorize("landlord", "agency", "admin"), listPropertyInquiries);
 router.get("/:id/reviews", listPropertyReviews);

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const propertyStatuses = ["draft", "available", "taken", "archived"];
+
 const propertySchema = new mongoose.Schema(
   {
     title: {
@@ -89,6 +91,12 @@ const propertySchema = new mongoose.Schema(
       enum: ["owner", "agency"],
       default: "owner",
     },
+    status: {
+      type: String,
+      enum: propertyStatuses,
+      default: "available",
+      index: true,
+    },
     viewingType: {
       type: String,
       enum: ["scheduled", "open"],
@@ -99,6 +107,36 @@ const propertySchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: 1000,
+    },
+    contact: {
+      preferredMethod: {
+        type: String,
+        enum: ["phone", "email", "whatsapp", "inquiry"],
+        default: "inquiry",
+      },
+      phone: {
+        type: String,
+        trim: true,
+      },
+      email: {
+        type: String,
+        trim: true,
+        lowercase: true,
+      },
+      whatsapp: {
+        type: String,
+        trim: true,
+      },
+      availableHours: {
+        type: String,
+        trim: true,
+        maxlength: 200,
+      },
+      notes: {
+        type: String,
+        trim: true,
+        maxlength: 500,
+      },
     },
     isAvailable: {
       type: Boolean,
@@ -121,9 +159,18 @@ const propertySchema = new mongoose.Schema(
   }
 );
 
+propertySchema.pre("validate", function syncAvailabilityWithStatus() {
+  if (this.isModified("status")) {
+    this.isAvailable = this.status === "available";
+  } else if (this.isModified("isAvailable")) {
+    this.status = this.isAvailable ? "available" : "taken";
+  }
+});
+
 propertySchema.index({ "location.coordinates": "2dsphere" });
 propertySchema.index({ title: "text", description: "text", "location.area": "text" });
 
 const Property = mongoose.model("Property", propertySchema);
 
+export { propertyStatuses };
 export default Property;

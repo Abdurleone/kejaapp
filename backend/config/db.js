@@ -70,5 +70,25 @@ const getDBHealth = () => ({
   status: connectionStates[mongoose.connection.readyState] || "unknown",
 });
 
-export { disconnectDB, getDBHealth };
+const pingDB = async () => {
+  const health = getDBHealth();
+
+  if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+    return {
+      ...health,
+      ok: false,
+      message: "Database is not connected",
+    };
+  }
+
+  await mongoose.connection.db.admin().ping();
+
+  return {
+    ...getDBHealth(),
+    ok: true,
+    message: "Database ping successful",
+  };
+};
+
+export { disconnectDB, getDBHealth, pingDB };
 export default connectDB;

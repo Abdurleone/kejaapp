@@ -48,6 +48,7 @@ describe("viewingController", () => {
     mock.method(Property, "findById", async () => ({
       _id: new mongoose.Types.ObjectId(),
       owner: userId,
+      status: "available",
       isAvailable: true,
     }));
     const req = {
@@ -71,6 +72,7 @@ describe("viewingController", () => {
     mock.method(Property, "findById", async () => ({
       _id: propertyId,
       owner: new mongoose.Types.ObjectId(),
+      status: "available",
       isAvailable: true,
       viewingType: "scheduled",
     }));
@@ -95,6 +97,7 @@ describe("viewingController", () => {
     mock.method(Property, "findById", async () => ({
       _id: propertyId,
       owner: new mongoose.Types.ObjectId(),
+      status: "available",
       isAvailable: true,
       viewingType: "open",
     }));

@@ -22,7 +22,17 @@ const shutdown = async (signal) => {
 
 const startServer = async () => {
   try {
-    await connectDB();
+    try {
+      await connectDB();
+    } catch (error) {
+      if (env.dbRequired) {
+        throw error;
+      }
+
+      console.warn(
+        `MongoDB startup failed but DB_REQUIRED=false; starting API without database connection: ${error.message}`
+      );
+    }
 
     server = app.listen(env.port, () => {
       console.log(`Server running on port ${env.port}`);

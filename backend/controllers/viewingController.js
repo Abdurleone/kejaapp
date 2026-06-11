@@ -12,7 +12,7 @@ const activeViewingStatuses = ["pending", "approved"];
 
 const populateViewingRequest = (query) =>
   query
-    .populate("property", "title location price listedBy viewingType viewingInstructions isAvailable")
+    .populate("property", "title location price listedBy status viewingType viewingInstructions isAvailable")
     .populate("requester", "name email phone role")
     .populate("owner", "name email phone role")
     .populate("reviewedBy", "name email role");
@@ -34,7 +34,7 @@ const createViewingRequest = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
   }
 
-  if (!property.isAvailable) {
+  if (property.status !== "available") {
     throw new ApiError(httpStatus.BAD_REQUEST, "Property is not available for viewing requests");
   }
 
@@ -65,7 +65,7 @@ const createViewingRequest = asyncHandler(async (req, res) => {
     status: property.viewingType === "open" ? "approved" : "pending",
   });
 
-  await viewingRequest.populate("property", "title location price listedBy viewingType viewingInstructions isAvailable");
+  await viewingRequest.populate("property", "title location price listedBy status viewingType viewingInstructions isAvailable");
   await viewingRequest.populate("requester", "name email phone role");
   await viewingRequest.populate("owner", "name email phone role");
   await notifyViewingRequestCreated({ property, viewingRequest });
@@ -137,7 +137,7 @@ const updateViewingRequestStatus = asyncHandler(async (req, res) => {
   viewingRequest.reviewedAt = new Date();
 
   await viewingRequest.save();
-  await viewingRequest.populate("property", "title location price listedBy viewingType viewingInstructions isAvailable");
+  await viewingRequest.populate("property", "title location price listedBy status viewingType viewingInstructions isAvailable");
   await viewingRequest.populate("requester", "name email phone role");
   await viewingRequest.populate("owner", "name email phone role");
   await viewingRequest.populate("reviewedBy", "name email role");
