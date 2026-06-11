@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildQueryString,
+  formatStatusLabel,
   formatKes,
   getPropertyImage,
+  nextTheme,
   resolveAssetUrl,
+  sortProperties,
   statusTone,
+  summarizeProperties,
 } from "../app.js";
 
 describe("frontend app utilities", () => {
@@ -44,5 +48,38 @@ describe("frontend app utilities", () => {
     assert.equal(statusTone("active"), "status-active");
     assert.equal(statusTone("suspended"), "status-suspended");
     assert.equal(statusTone("banned"), "status-banned");
+  });
+
+  it("formats status labels", () => {
+    assert.equal(formatStatusLabel("open_viewing"), "Open Viewing");
+  });
+
+  it("toggles between the default and Kenyan flag themes", () => {
+    assert.equal(nextTheme("default"), "kenya");
+    assert.equal(nextTheme("kenya"), "default");
+  });
+
+  it("summarizes property collections", () => {
+    const summary = summarizeProperties([
+      { price: { rent: 50000 }, viewingType: "open", location: { area: "Kilimani" } },
+      { price: { rent: 70000 }, viewingType: "scheduled", location: { area: "Westlands" } },
+      { price: { rent: 90000 }, viewingType: "scheduled", location: { area: "Kilimani" } },
+    ]);
+
+    assert.equal(summary.total, 3);
+    assert.equal(summary.medianRent, 70000);
+    assert.equal(summary.openViewings, 1);
+    assert.equal(summary.scheduledViewings, 2);
+    assert.equal(summary.areaCount, 2);
+  });
+
+  it("sorts properties by rent", () => {
+    const properties = [
+      { title: "B", price: { rent: 70000 } },
+      { title: "A", price: { rent: 50000 } },
+    ];
+
+    assert.equal(sortProperties(properties, "rent-asc")[0].title, "A");
+    assert.equal(sortProperties(properties, "rent-desc")[0].title, "B");
   });
 });

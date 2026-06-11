@@ -27,6 +27,12 @@ const storage = {
   set user(value) {
     value ? localStorage.setItem("keja_user", JSON.stringify(value)) : localStorage.removeItem("keja_user");
   },
+  get theme() {
+    return localStorage.getItem("keja_theme") || "default";
+  },
+  set theme(value) {
+    localStorage.setItem("keja_theme", value);
+  },
 };
 
 export const formatKes = (value) =>
@@ -76,6 +82,47 @@ export const statusTone = (status) => {
   return "status-banned";
 };
 
+export const formatStatusLabel = (value) =>
+  String(value || "")
+    .split("_")
+    .join(" ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+export const summarizeProperties = (properties) => {
+  const rents = properties
+    .map((property) => Number(property.price?.rent || 0))
+    .filter((rent) => rent > 0)
+    .sort((a, b) => a - b);
+  const medianRent = rents.length ? rents[Math.floor((rents.length - 1) / 2)] : 0;
+  const openViewings = properties.filter((property) => property.viewingType === "open").length;
+  const scheduledViewings = properties.filter((property) => property.viewingType === "scheduled").length;
+  const areas = new Set(properties.map((property) => property.location?.area).filter(Boolean));
+
+  return {
+    total: properties.length,
+    medianRent,
+    openViewings,
+    scheduledViewings,
+    areaCount: areas.size,
+  };
+};
+
+export const sortProperties = (properties, sortMode) => {
+  const sorted = [...properties];
+
+  if (sortMode === "rent-asc") {
+    return sorted.sort((a, b) => Number(a.price?.rent || 0) - Number(b.price?.rent || 0));
+  }
+
+  if (sortMode === "rent-desc") {
+    return sorted.sort((a, b) => Number(b.price?.rent || 0) - Number(a.price?.rent || 0));
+  }
+
+  return sorted;
+};
+
+export const nextTheme = (theme) => (theme === "kenya" ? "default" : "kenya");
+
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
 
@@ -83,6 +130,7 @@ const state = {
   properties: [],
   favorites: [],
   currentView: "discover",
+  propertySort: "newest",
 };
 
 const showToast = (message) => {
@@ -133,6 +181,15 @@ const renderSession = () => {
   sessionState.classList.toggle("muted", !user);
 };
 
+const applyTheme = (theme = storage.theme) => {
+  document.documentElement.dataset.theme = theme;
+  qs("#themeToggle span").textContent = theme === "kenya" ? "STD" : "KE";
+  qs("#themeToggle").setAttribute(
+    "aria-label",
+    theme === "kenya" ? "Switch to standard theme" : "Switch to Kenyan flag theme"
+  );
+};
+
 const renderMetrics = (summary) => {
   if (!summary) {
     qs("#dashboard").innerHTML = `<p class="muted-copy">Sign in to load your summary.</p>`;
@@ -175,10 +232,29 @@ const propertyCostText = (property) => {
 
   return `
     <div class="cost-row">
-      <span>Upfront ${formatKes(summary.upfrontTotal)}</span>
-      <span>Monthly ${formatKes(summary.monthlyTotal)}</span>
+      <span><strong>${formatKes(summary.upfrontTotal)}</strong> upfront</span>
+      <span><strong>${formatKes(summary.monthlyTotal)}</strong> monthly</span>
     </div>
   `;
+};
+
+const renderPropertyInsights = () => {
+  const insights = summarizeProperties(state.properties);
+  qs("#propertyInsights").innerHTML = [
+    ["Listings", insights.total],
+    ["Median rent", formatKes(insights.medianRent)],
+    ["Open viewings", insights.openViewings],
+    ["Areas", insights.areaCount],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="insight">
+          <strong>${value}</strong>
+          <span>${label}</span>
+        </div>
+      `
+    )
+    .join("");
 };
 
 const renderPropertyCard = (property, options = {}) => {
@@ -187,6 +263,7 @@ const renderPropertyCard = (property, options = {}) => {
     .join(", ");
   const imageUrl = getPropertyImage(property, storage.baseUrl);
   const id = property._id || property.id;
+  const amenities = (property.amenities || []).slice(0, 3);
   const actions = options.owner
     ? `<button class="secondary-button" data-status="${id}" data-next-status="taken">Mark taken</button>`
     : `
@@ -199,20 +276,28 @@ const renderPropertyCard = (property, options = {}) => {
     <article class="property-card">
       <div class="property-photo">
         <img src="${imageUrl}" alt="${property.images?.[0]?.alt || property.title}" />
-        <span class="pill">${property.viewingType || "scheduled"}</span>
+        <span class="pill">${formatStatusLabel(property.viewingType || "scheduled")}</span>
       </div>
       <div class="property-body">
         <div>
           <h3 class="property-title">${property.title}</h3>
           <p class="property-meta">${location || "Location pending"}</p>
         </div>
-        <div class="price">${formatKes(property.price?.rent)}</div>
+        <div class="price-line">
+          <div class="price">${formatKes(property.price?.rent)}</div>
+          <span class="mini-chip ${statusTone(property.status)}">${formatStatusLabel(property.status || "available")}</span>
+        </div>
         ${propertyCostText(property)}
         <div class="mini-meta">
           <span>${property.bedrooms || 0} beds</span>
           <span>${property.bathrooms || 0} baths</span>
-          <span class="${statusTone(property.status)}">${property.status || "available"}</span>
+          <span>${formatStatusLabel(property.listedBy || "owner")}</span>
         </div>
+        ${
+          amenities.length
+            ? `<div class="amenity-row">${amenities.map((amenity) => `<span>${formatStatusLabel(amenity)}</span>`).join("")}</div>`
+            : ""
+        }
         <div class="card-actions">${actions}</div>
       </div>
     </article>
@@ -220,13 +305,17 @@ const renderPropertyCard = (property, options = {}) => {
 };
 
 const renderProperties = () => {
-  qs("#propertyCount").textContent = `${state.properties.length} listings`;
-  qs("#properties").innerHTML = state.properties.length
-    ? state.properties.map((property) => renderPropertyCard(property)).join("")
+  const properties = sortProperties(state.properties, state.propertySort);
+  qs("#propertyCount").textContent = `${state.properties.length} listings ready to compare`;
+  renderPropertyInsights();
+  qs("#properties").innerHTML = properties.length
+    ? properties.map((property) => renderPropertyCard(property)).join("")
     : `<div class="empty-state">No properties found. Try clearing the filters.</div>`;
 };
 
 const loadProperties = async () => {
+  qs("#propertyCount").textContent = "Loading listings...";
+  qs("#properties").innerHTML = Array.from({ length: 6 }, () => `<div class="skeleton-card"></div>`).join("");
   const filters = {
     search: qs("#search").value,
     county: qs("#county").value,
@@ -251,6 +340,7 @@ const loadDashboard = async () => {
 };
 
 const loadFavorites = async () => {
+  qs("#favorites").innerHTML = Array.from({ length: 3 }, () => `<div class="skeleton-card"></div>`).join("");
   const body = await apiRequest("/api/favorites");
   state.favorites = body.data || [];
   const properties = state.favorites.map((favorite) => favorite.property).filter(Boolean);
@@ -260,6 +350,7 @@ const loadFavorites = async () => {
 };
 
 const loadMyProperties = async () => {
+  qs("#myProperties").innerHTML = Array.from({ length: 3 }, () => `<div class="skeleton-card"></div>`).join("");
   const body = await apiRequest("/api/properties/mine?limit=50");
   const properties = body.data || [];
   qs("#myProperties").innerHTML = properties.length
@@ -268,6 +359,7 @@ const loadMyProperties = async () => {
 };
 
 const loadUsers = async () => {
+  qs("#adminUsers").innerHTML = `<div class="empty-state">Loading users...</div>`;
   const body = await apiRequest("/api/admin/users?limit=20");
   const users = body.data || [];
   qs("#adminUsers").innerHTML = users.length
@@ -279,8 +371,8 @@ const loadUsers = async () => {
                 <strong>${user.name}</strong>
                 <p class="muted-copy">${user.email}</p>
               </div>
-              <span>${user.role}</span>
-              <span class="${statusTone(user.accountStatus || "active")}">${user.accountStatus || "active"}</span>
+              <span>${formatStatusLabel(user.role)}</span>
+              <span class="${statusTone(user.accountStatus || "active")}">${formatStatusLabel(user.accountStatus || "active")}</span>
               <select data-user-status="${user._id}">
                 <option value="">Change status</option>
                 <option value="active">Active</option>
@@ -440,6 +532,10 @@ const bindEvents = () => {
   qs("#baseUrl").addEventListener("change", (event) => {
     storage.baseUrl = event.target.value.replace(/\/$/, "");
   });
+  qs("#themeToggle").addEventListener("click", () => {
+    storage.theme = nextTheme(storage.theme);
+    applyTheme(storage.theme);
+  });
   qs("#healthButton").addEventListener("click", () => {
     apiRequest("/api/health")
       .then((body) => showToast(`API ${body.status}; database ${body.database.status}`))
@@ -490,6 +586,10 @@ const bindEvents = () => {
     loadProperties().catch((error) => showToast(error.message));
   });
   qs("#refreshProperties").addEventListener("click", () => loadProperties().catch((error) => showToast(error.message)));
+  qs("#sortProperties").addEventListener("change", (event) => {
+    state.propertySort = event.target.value;
+    renderProperties();
+  });
   qs("#refreshDashboard").addEventListener("click", () => loadDashboard().catch((error) => showToast(error.message)));
   qs("#refreshFavorites").addEventListener("click", () => loadFavorites().catch((error) => showToast(error.message)));
   qs("#refreshMine").addEventListener("click", () => loadMyProperties().catch((error) => showToast(error.message)));
@@ -524,6 +624,7 @@ const bindEvents = () => {
 };
 
 const init = () => {
+  applyTheme();
   renderSession();
   bindEvents();
   loadProperties().catch((error) => showToast(error.message));
