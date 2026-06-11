@@ -196,9 +196,7 @@ const listMyProperties = asyncHandler(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
   const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
   const skip = (page - 1) * limit;
-  const filters = {
-    owner: req.user._id,
-  };
+  const filters = req.user.role === "admin" ? {} : { owner: req.user._id };
   const sort = req.query.sort || "-createdAt";
 
   if (req.query.status) {

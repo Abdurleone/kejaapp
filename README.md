@@ -80,7 +80,7 @@ Authentication and authorization:
 
 Properties and pricing:
 - Property model with owner, location, price, amenities, images, listing contact details, lifecycle status, availability, and rating summary fields.
-- Public property listing and property detail endpoints.
+- Anonymous property listing search with protected contact actions and property detail endpoints.
 - Protected owner property management list across lifecycle statuses.
 - Protected property create, update, and delete endpoints for landlords, agencies, and admins.
 - Property lifecycle statuses for `draft`, `available`, `taken`, and `archived` listings.
@@ -169,8 +169,8 @@ Developer workflow:
 The first web frontend is in `frontend/` and runs without a build step.
 
 Included flows:
-- Sign-in-first landing page with only authentication options before the workspace opens.
-- Public property discovery with filters.
+- Sign-in landing section plus anonymous listing search before authentication.
+- Anonymous property discovery with filters.
 - Adaptive property cards, insights, sorting, and loading states.
 - Login with demo account shortcuts.
 - Role-aware dashboard summary.
@@ -183,9 +183,11 @@ Included flows:
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
-- Tenants can discover homes, save listings, send inquiries, and request viewings.
-- Landlords and agencies can discover homes and manage their own listings.
-- Admins can discover homes, manage listings where needed, and access admin moderation.
+- Anonymous visitors can search and view available listings.
+- Tenants can search homes, save listings, send inquiries, and request viewings after signing in.
+- Landlords and agencies can upload, create, and manage only their own listings.
+- Admins can manage all property listings and access admin moderation.
+- Visitors must sign in or sign up before contacting landlords or agencies.
 - Tenants do not see or submit the property creation form.
 - Non-admin users do not see admin moderation.
 
@@ -258,15 +260,16 @@ Acceptance criteria:
 
 ### Tenant Property Discovery
 
-As a tenant, I want to browse and filter available rental properties by location, price, and property type, so that I can quickly find homes that match my needs and budget.
+As a visitor or tenant, I want to browse and filter available rental properties by location, price, and property type, so that I can quickly find homes that match my needs and budget.
 
 Acceptance criteria:
 - Given I am on the property list, when I filter by rent, location, type, or availability, then I only see matching properties.
-- Given I browse public listings without a status filter, then I only see properties marked as available.
+- Given I browse listings without a status filter, then I only see properties marked as available.
 - Given I search near a latitude and longitude with a radius, then I only see properties with coordinates inside that area.
 - Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, listing contact details, reviews, and pricing.
 - Given a property has rent, deposit, or agency fees, when I view it, then I can see the total upfront cost and recurring monthly cost.
 - Given I am signed in as a tenant, when I use the frontend, then I cannot access the owner listing creation tools.
+- Given I am not signed in, when I try to save, inquire, or request a viewing, then the frontend prompts me to sign in or sign up.
 
 ### Property Lifecycle
 
@@ -286,6 +289,15 @@ Acceptance criteria:
 - Given I am authenticated as a landlord or agency, when I open my properties, then I can see my own listings across all statuses.
 - Given I filter my properties by status, then I only see my own listings matching that lifecycle state.
 - Given I am not authenticated, when I request my properties, then the API rejects the request.
+
+### Admin Listing Management
+
+As an admin, I want to view and manage all property listings, so that I can moderate platform inventory regardless of who created the listing.
+
+Acceptance criteria:
+- Given I am authenticated as an admin, when I open listing management, then I can see listings across all owners and statuses.
+- Given I am authenticated as an admin, when I update or remove a listing, then the API allows the moderation action.
+- Given I am not an admin, when I open listing management, then I only see listings I own.
 
 ### Transparent Pricing
 
@@ -441,7 +453,7 @@ Properties:
 ```text
 GET    /api/properties
 GET    /api/properties?lat=-1.2921&lng=36.782&radiusKm=5
-GET    /api/properties/mine
+GET    /api/properties/mine                                 landlord, agency, admin
 POST   /api/properties
 GET    /api/properties/:id
 PUT    /api/properties/:id

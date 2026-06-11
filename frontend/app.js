@@ -146,18 +146,26 @@ export const nextColorMode = (mode) => (mode === "dark" ? "light" : "dark");
 
 const roleViewAccess = {
   tenant: ["discover", "saved"],
-  landlord: ["discover", "owner"],
-  agency: ["discover", "owner"],
-  admin: ["discover", "owner", "admin"],
+  landlord: ["owner"],
+  agency: ["owner"],
+  admin: ["admin", "owner"],
 };
 
-export const canAccessView = (role, view) => Boolean(roleViewAccess[role]?.includes(view));
+export const canAccessView = (role, view) => {
+  if (!role) {
+    return view === "discover";
+  }
+
+  return Boolean(roleViewAccess[role]?.includes(view));
+};
 
 export const getDefaultViewForRole = (role) => roleViewAccess[role]?.[0] || "discover";
 
 export const canUseTenantPropertyActions = (role) => role === "tenant";
 
 export const canManageListings = (role) => ["landlord", "agency", "admin"].includes(role);
+
+export const canSearchListings = (role) => !role || role === "tenant";
 
 const viewPaths = {
   discover: "/",
@@ -261,7 +269,8 @@ const renderSession = () => {
 const renderAuthGate = () => {
   const isSignedIn = Boolean(storage.user && storage.token);
   qs("#landingPage").hidden = isSignedIn;
-  qs("#appShell").hidden = !isSignedIn;
+  qs("#appShell").hidden = false;
+  qs("#logoutButton").hidden = !isSignedIn;
 };
 
 const renderRoleAccess = () => {
@@ -272,6 +281,10 @@ const renderRoleAccess = () => {
   });
 
   qs("#propertyForm").hidden = !canManageListings(role);
+  qs("#filterPanel").hidden = !canSearchListings(role);
+  qs("#ownerViewTitle").textContent = role === "admin" ? "Listing management" : "Owner tools";
+  qs("#ownerViewCopy").textContent =
+    role === "admin" ? "Review and manage all property listings." : "Create and review your property inventory.";
 };
 
 const applyTheme = (theme = storage.theme) => {
@@ -375,7 +388,13 @@ const renderPropertyCard = (property, options = {}) => {
       <button class="secondary-button" data-inquire="${id}">Inquire</button>
       <button class="secondary-button" data-viewing="${id}">Viewing</button>
     `
-      : `<span class="muted-copy">View-only access</span>`;
+      : !role
+        ? `
+      <button class="secondary-button" data-auth-required="save">Save</button>
+      <button class="secondary-button" data-auth-required="inquire">Inquire</button>
+      <button class="secondary-button" data-auth-required="viewing">Viewing</button>
+    `
+        : `<span class="muted-copy">View-only access</span>`;
 
   return `
     <article class="property-card">
@@ -410,6 +429,13 @@ const renderPropertyCard = (property, options = {}) => {
 };
 
 const renderProperties = () => {
+  if (!canSearchListings(storage.user?.role)) {
+    qs("#propertyCount").textContent = "Tenant search only";
+    qs("#propertyInsights").innerHTML = "";
+    qs("#properties").innerHTML = `<div class="empty-state">Only tenant accounts can search available listings.</div>`;
+    return;
+  }
+
   const properties = sortProperties(state.properties, state.propertySort);
   qs("#propertyCount").textContent = `${state.properties.length} listings ready to compare`;
   renderPropertyInsights();
@@ -419,6 +445,11 @@ const renderProperties = () => {
 };
 
 const loadProperties = async () => {
+  if (!canSearchListings(storage.user?.role)) {
+    renderProperties();
+    return;
+  }
+
   qs("#propertyCount").textContent = "Loading listings...";
   qs("#properties").innerHTML = Array.from({ length: 6 }, () => `<div class="skeleton-card"></div>`).join("");
   const filters = {
@@ -525,10 +556,18 @@ const createViewing = async (propertyId) => {
 };
 
 const bindPropertyActions = (event) => {
+  const authAction = event.target.closest("[data-auth-required]")?.dataset.authRequired;
   const saveId = event.target.closest("[data-save]")?.dataset.save;
   const inquiryId = event.target.closest("[data-inquire]")?.dataset.inquire;
   const viewingId = event.target.closest("[data-viewing]")?.dataset.viewing;
   const statusId = event.target.closest("[data-status]")?.dataset.status;
+
+  if (authAction) {
+    showToast("Sign in or sign up to contact this property owner");
+    qs("#landingPage").hidden = false;
+    qs("#landingPage").scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
 
   if (saveId) {
     apiRequest(`/api/favorites/${saveId}`, { method: "POST" })
@@ -690,7 +729,9 @@ const bindEvents = () => {
       setSession(body);
       showToast("Signed in");
       switchView(resolveViewFromPath(window.location.pathname), { pushState: false });
-      loadProperties().catch((error) => showToast(error.message));
+      if (canSearchListings(storage.user?.role)) {
+        loadProperties().catch((error) => showToast(error.message));
+      }
       loadDashboard();
     } catch (error) {
       showToast(error.message);
@@ -707,6 +748,8 @@ const bindEvents = () => {
     }
     clearSession();
     renderMetrics(null);
+    switchView("discover");
+    loadProperties().catch((error) => showToast(error.message));
     showToast("Logged out");
   });
   qsa("[data-login]").forEach((button) => {
@@ -777,8 +820,11 @@ const init = () => {
     .then((body) => setApiStatus(body.database?.status === "connected" ? "online" : "degraded", body.database?.status || "API online"))
     .catch((error) => showToast(error.message));
 
-  if (storage.token) {
+  if (canSearchListings(storage.user?.role)) {
     loadProperties().catch((error) => showToast(error.message));
+  }
+
+  if (storage.token) {
     loadDashboard().catch((error) => showToast(error.message));
   }
 };

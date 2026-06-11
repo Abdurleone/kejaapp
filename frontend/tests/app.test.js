@@ -4,6 +4,7 @@ import {
   buildQueryString,
   canAccessView,
   canManageListings,
+  canSearchListings,
   canUseTenantPropertyActions,
   createApiUrl,
   formatStatusLabel,
@@ -87,12 +88,22 @@ describe("frontend app utilities", () => {
   });
 
   it("enforces role-specific frontend access", () => {
+    assert.equal(canAccessView(undefined, "discover"), true);
+    assert.equal(canAccessView(undefined, "saved"), false);
     assert.equal(canAccessView("tenant", "owner"), false);
     assert.equal(canAccessView("tenant", "saved"), true);
+    assert.equal(canAccessView("landlord", "discover"), false);
     assert.equal(canAccessView("landlord", "owner"), true);
     assert.equal(canAccessView("agency", "admin"), false);
+    assert.equal(canAccessView("admin", "discover"), false);
     assert.equal(canAccessView("admin", "admin"), true);
+    assert.equal(canAccessView("admin", "owner"), true);
     assert.equal(getDefaultViewForRole("tenant"), "discover");
+    assert.equal(getDefaultViewForRole("landlord"), "owner");
+    assert.equal(getDefaultViewForRole("admin"), "admin");
+    assert.equal(canSearchListings(undefined), true);
+    assert.equal(canSearchListings("tenant"), true);
+    assert.equal(canSearchListings("agency"), false);
     assert.equal(canUseTenantPropertyActions("tenant"), true);
     assert.equal(canUseTenantPropertyActions("landlord"), false);
     assert.equal(canManageListings("tenant"), false);

@@ -48,8 +48,8 @@
     <section id="landingPage" class="landing-page">
       <div class="landing-copy">
         <span class="pill">KejaApp access</span>
-        <h2>Sign in to continue</h2>
-        <p>Choose a demo account or use your credentials to open the rental workspace.</p>
+        <h2>Search first, sign in when ready</h2>
+        <p>Browse listings anonymously, then use an account when you want to save, inquire, or request a viewing.</p>
       </div>
       <form id="loginForm" class="landing-auth">
         <input id="email" type="email" placeholder="Email" value="tenant@example.com" autocomplete="email" />
@@ -74,7 +74,7 @@
           <button id="logoutButton" class="ghost-button" type="button">Log out</button>
         </section>
 
-        <section class="panel">
+        <section id="filterPanel" class="panel">
           <div class="panel-heading">
             <h2>Filters</h2>
             <button id="clearFilters" class="text-button" type="button">Clear</button>
@@ -152,10 +152,10 @@
         <section id="ownerView" class="view">
           <div class="view-header">
             <div>
-              <h2>Owner tools</h2>
-              <p>Create and review your property inventory.</p>
+              <h2 id="ownerViewTitle">Owner tools</h2>
+              <p id="ownerViewCopy">Create and review your property inventory.</p>
             </div>
-            <button id="refreshMine" class="secondary-button" type="button">My listings</button>
+            <button id="refreshMine" class="secondary-button" type="button">Listings</button>
           </div>
           <div class="owner-layout">
             <form id="propertyForm" class="panel form-panel">
