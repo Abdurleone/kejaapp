@@ -182,7 +182,7 @@ h3 {
   width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: auto minmax(120px, 1fr) auto auto;
+  grid-template-columns: auto minmax(120px, 1fr) auto auto auto;
   gap: 8px;
   align-items: center;
   padding: 8px;
@@ -196,6 +196,36 @@ h3 {
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 700;
+}
+
+.api-state {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef0ee;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.api-state[data-status="online"] {
+  background: #e4f2ea;
+  color: var(--green-dark);
+}
+
+.api-state[data-status="degraded"],
+.api-state[data-status="error"] {
+  background: #fff3df;
+  color: var(--amber);
+}
+
+.api-state[data-status="offline"] {
+  background: #f8e5e2;
+  color: var(--red);
 }
 
 .app-shell {
@@ -849,6 +879,11 @@ dialog::backdrop {
 
   .connection-bar label {
     grid-column: 1 / -1;
+  }
+
+  .api-state {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
   }
 
   .connection-bar input {

@@ -185,6 +185,13 @@ Responsive behavior:
 - Owner tools and admin moderation tables adapt for smaller screens.
 - Dialogs, toast messages, form controls, and action buttons include narrow-screen overflow protection.
 
+Backend connection:
+- The API base URL input defaults to `http://localhost:5000`.
+- The frontend stores the API base URL in `localStorage` after you edit it.
+- Browser requests include bearer tokens and cookies, so the app works with API tokens and HTTP-only auth cookies.
+- The header shows API connection status after checking `GET /api/health`.
+- In development, the backend accepts local frontend origins such as `http://localhost:5173` and fallback ports like `http://localhost:5174`.
+
 Run the frontend:
 
 ```bash
@@ -203,6 +210,15 @@ Then open:
 
 ```text
 http://localhost:5173
+```
+
+Direct frontend paths:
+
+```text
+/          -> Discover
+/saved     -> Saved properties
+/owner     -> Owner tools
+/admin     -> Admin moderation
 ```
 
 Keep the backend running separately:
@@ -602,6 +618,8 @@ npm run frontend
 ```
 
 The frontend dev server starts on `http://localhost:5173` when available. If that port is already in use, it automatically tries the next open port and prints the URL.
+
+If the frontend starts on a fallback port such as `http://localhost:5174`, keep the API input set to `http://localhost:5000`. The backend development CORS config allows these local frontend ports.
 
 ## MongoDB Troubleshooting
 
