@@ -1,15 +1,36 @@
+import env from "../config/env.js";
+import httpStatus from "../constants/httpStatus.js";
+
 const notFound = (req, res, next) => {
   const error = new Error(`Not found - ${req.originalUrl}`);
-  res.status(404);
+  res.status(httpStatus.NOT_FOUND);
   next(error);
 };
 
 const errorHandler = (err, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  let statusCode = err.statusCode || (res.statusCode === 200 ? httpStatus.INTERNAL_SERVER_ERROR : res.statusCode);
+  let message = err.message;
+
+  if (err.name === "CastError") {
+    statusCode = httpStatus.BAD_REQUEST;
+    message = "Invalid resource id";
+  }
+
+  if (err.name === "ValidationError") {
+    statusCode = httpStatus.BAD_REQUEST;
+    message = Object.values(err.errors)
+      .map((error) => error.message)
+      .join(", ");
+  }
+
+  if (err.code === 11000) {
+    statusCode = httpStatus.CONFLICT;
+    message = "Duplicate resource";
+  }
 
   res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+    message,
+    stack: env.nodeEnv === "production" ? undefined : err.stack,
   });
 };
 

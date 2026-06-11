@@ -1,17 +1,11 @@
 import express from "express";
+import { loginUser, registerUser } from "../controllers/authController.js";
+import validateRequest from "../middlewares/validateRequest.js";
+import { loginUserSchema, registerUserSchema } from "../validators/authValidators.js";
 
 const router = express.Router();
 
-router.post("/register", (req, res) => {
-  res.status(501).json({
-    message: "Register endpoint is not implemented yet",
-  });
-});
-
-router.post("/login", (req, res) => {
-  res.status(501).json({
-    message: "Login endpoint is not implemented yet",
-  });
-});
+router.post("/register", validateRequest(registerUserSchema), registerUser);
+router.post("/login", validateRequest(loginUserSchema), loginUser);
 
 export default router;
