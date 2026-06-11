@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "node:test";
 import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
+import User from "../../models/User.js";
 import UserViolation from "../../models/UserViolation.js";
 import {
   createExactHash,
@@ -20,6 +21,10 @@ describe("imageFingerprintService", () => {
       "https://example.com/property.jpg"
     );
     assert.equal(createExactHash("a").length, 64);
+  });
+
+  it("normalizes relative upload URLs", () => {
+    assert.equal(normalizeImageUrl("/uploads/properties/image.jpg"), "/uploads/properties/image.jpg");
   });
 
   it("marks first-seen image fingerprints as clear", async () => {
@@ -53,6 +58,8 @@ describe("imageFingerprintService", () => {
     mock.method(PropertyImageFingerprint, "findOne", async () => existingFingerprint);
     mock.method(PropertyImageFingerprint, "findOneAndUpdate", async () => fingerprint);
     mock.method(UserViolation, "findOneAndUpdate", async () => violation);
+    mock.method(UserViolation, "countDocuments", async () => 1);
+    mock.method(User, "findById", async () => null);
 
     const result = await fingerprintPropertyImage({
       image: {
@@ -67,5 +74,32 @@ describe("imageFingerprintService", () => {
 
     assert.equal(result.fingerprint.status, "suspicious");
     assert.equal(result.violation.status, "open");
+  });
+
+  it("checks perceptual hashes when present", async () => {
+    let findFilters;
+    mock.method(PropertyImageFingerprint, "findOne", async (filters) => {
+      findFilters = filters;
+      return null;
+    });
+    mock.method(PropertyImageFingerprint, "findOneAndUpdate", async () => ({
+      _id: new mongoose.Types.ObjectId(),
+      status: "clear",
+    }));
+
+    await fingerprintPropertyImage({
+      image: {
+        _id: new mongoose.Types.ObjectId(),
+        url: "/uploads/properties/image.jpg",
+        perceptualHash: "ff00ff00ff00ff00",
+      },
+      property: {
+        _id: new mongoose.Types.ObjectId(),
+      },
+      uploadedBy: new mongoose.Types.ObjectId(),
+    });
+
+    assert.equal(findFilters.$or.length, 2);
+    assert.deepEqual(findFilters.$or[1], { perceptualHash: "ff00ff00ff00ff00" });
   });
 });

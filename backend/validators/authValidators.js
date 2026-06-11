@@ -61,9 +61,17 @@ const changePasswordSchema = {
   },
 };
 
+const refreshTokenSchema = {
+  refreshToken: {
+    type: "string",
+    minLength: 20,
+  },
+};
+
 export {
   changePasswordSchema,
   loginUserSchema,
+  refreshTokenSchema,
   registerUserSchema,
   updateProfileSchema,
 };

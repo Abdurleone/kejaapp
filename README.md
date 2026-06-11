@@ -54,12 +54,20 @@ Application foundation:
 - Centralized environment loading and validation in `backend/config/env.js`.
 - MongoDB Atlas connection helper with retry support and local degraded startup support in `backend/config/db.js`.
 - Health endpoint with database status and configured database path.
+- Load-balancer liveness and readiness endpoints.
 - CORS, Helmet, Morgan logging, centralized async handling, and error middleware.
 - Nodemon watch configuration for backend auto-refresh.
+- Configurable API and auth rate limiting.
+- OpenAPI JSON exposed for API tooling.
+- Protected role-aware dashboard summary endpoint.
+- Admin user account status moderation for active, suspended, and banned accounts.
+- Admin user account status history for moderation audit trails.
+- User notifications when account status changes.
 
 Authentication and authorization:
 - User registration and login.
 - JWT generation and validation.
+- Refresh-token session records with hashed tokens at rest.
 - Bearer token support for API clients.
 - HTTP-only auth cookie support.
 - Logout endpoint that clears the auth cookie.
@@ -77,6 +85,7 @@ Properties and pricing:
 - Rent, deposit, and agency fee fields.
 - Cost summary enrichment on property responses.
 - Protected image URL and alt text management for property galleries.
+- Protected local property image upload storage with file metadata.
 - Property image fingerprinting for duplicate image detection.
 - Admin violation review for suspicious duplicate property images.
 - Listing-specific contact method, contact hours, and contact notes for landlords and agencies.
@@ -137,6 +146,7 @@ Trust and safety:
 - Property image fingerprint records for uploaded listing images.
 - Duplicate property image violation records when different owners reuse the same listing image.
 - Admin violation listing and review status updates.
+- Automatic user bans on the fourth active violation.
 
 Movers:
 - Mover model.
@@ -146,9 +156,11 @@ Movers:
 
 Developer workflow:
 - Insomnia collection at `docs/kejaapp-insomnia.json`.
+- Scaling and load-balancing notes at `docs/scaling-load-balancing.md`.
 - Demo seed script at `backend/seeders/seedDemoData.js`.
 - Root package scripts that proxy common backend commands.
 - Test coverage for app routes, validators, middleware, models, services, password hashing, cookies, and admin workflows.
+- Opt-in MongoDB integration testing with `TEST_MONGODB_URI`.
 
 ## User Stories
 
@@ -318,6 +330,15 @@ Health:
 GET    /
 GET    /api/health
 GET    /api/health/database
+GET    /api/health/live
+GET    /api/health/ready
+GET    /api/docs/openapi.json
+```
+
+Dashboard:
+
+```text
+GET    /api/dashboard/summary
 ```
 
 Auth:
@@ -325,6 +346,7 @@ Auth:
 ```text
 POST   /api/auth/register
 POST   /api/auth/login
+POST   /api/auth/refresh
 POST   /api/auth/logout
 GET    /api/auth/me
 PUT    /api/auth/me
@@ -343,6 +365,7 @@ PUT    /api/properties/:id
 DELETE /api/properties/:id
 POST   /api/properties/costs/calculate
 POST   /api/properties/:id/images
+POST   /api/properties/:id/images/upload
 DELETE /api/properties/:id/images/:imageId
 ```
 
@@ -396,6 +419,11 @@ GET    /api/agencies/status
 Admin:
 
 ```text
+GET    /api/admin/users
+GET    /api/admin/users/:id
+GET    /api/admin/users/:id/summary
+GET    /api/admin/users/:id/status-history
+PUT    /api/admin/users/:id/status
 GET    /api/admin/agencies/verifications
 PUT    /api/admin/agencies/verifications/:id/approve
 PUT    /api/admin/agencies/verifications/:id/reject
@@ -419,6 +447,9 @@ GET    /api/movers
 - Property image URL and alt text management.
 - Property image fingerprinting and duplicate image violation creation.
 - Listing-specific owner and agency contact preferences.
+- Role-aware dashboard summary counts for tenants, owners, agencies, and admins.
+- Admin account moderation notifications for restored, suspended, and banned users.
+- Automatic violation threshold enforcement for repeated suspicious listing behavior.
 - Saved property list enrichment with property cost summaries.
 - Property inquiry and owner response workflow.
 - Review aggregation for property ratings.
@@ -573,6 +604,12 @@ Modern Kilimani Apartment and Draft Kileleshwa Duplex intentionally share one im
 5. Copy the returned token into the `token` environment variable.
 6. After creating resources, copy returned ids into the matching environment variables such as `property_id`, `image_id`, `inquiry_id`, `viewing_id`, `notification_id`, and `verification_id`.
 7. Use the grouped requests for Auth, Properties, Favorites, Reviews, Inquiries, Viewings, Notifications, Agencies, Admin, and Movers.
+
+Run MongoDB integration tests against a disposable test database:
+
+```bash
+TEST_MONGODB_URI="mongodb://localhost:27017" TEST_MONGODB_DB_NAME=kejaapp_test npm test
+```
 
 ## Roadmap
 

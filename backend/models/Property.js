@@ -84,6 +84,11 @@ const propertySchema = new mongoose.Schema(
       {
         url: String,
         alt: String,
+        fileName: String,
+        mimeType: String,
+        size: Number,
+        storagePath: String,
+        perceptualHash: String,
       },
     ],
     listedBy: {

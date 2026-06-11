@@ -12,6 +12,36 @@ const getHealth = (req, res) => {
   });
 };
 
+const getLiveness = (req, res) => {
+  res.status(httpStatus.OK).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+};
+
+const getReadiness = async (req, res) => {
+  try {
+    const database = await pingDB();
+
+    res.status(database.ok ? httpStatus.OK : httpStatus.SERVICE_UNAVAILABLE).json({
+      status: database.ok ? "ready" : "not_ready",
+      database,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(httpStatus.SERVICE_UNAVAILABLE).json({
+      status: "not_ready",
+      database: {
+        ...getDBHealth(),
+        ok: false,
+        message: error.message,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
 const getDatabaseHealth = async (req, res) => {
   try {
     const database = await pingDB();
@@ -34,4 +64,4 @@ const getDatabaseHealth = async (req, res) => {
   }
 };
 
-export { getDatabaseHealth, getHealth };
+export { getDatabaseHealth, getHealth, getLiveness, getReadiness };

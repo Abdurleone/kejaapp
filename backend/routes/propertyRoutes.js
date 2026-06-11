@@ -8,6 +8,7 @@ import {
   listMyProperties,
   listProperties,
   removePropertyImage,
+  uploadPropertyImage,
   updateProperty,
 } from "../controllers/propertyController.js";
 import { authorize, protect } from "../middlewares/authMiddleware.js";
@@ -16,6 +17,7 @@ import {
   costCalculationSchema,
   createPropertySchema,
   propertyImageSchema,
+  uploadPropertyImageSchema,
   updatePropertySchema,
 } from "../validators/propertyValidators.js";
 import { listPropertyReviews } from "../controllers/reviewController.js";
@@ -47,6 +49,13 @@ router.post(
   authorize("landlord", "agency", "admin"),
   validateRequest(propertyImageSchema),
   addPropertyImage
+);
+router.post(
+  "/:id/images/upload",
+  protect,
+  authorize("landlord", "agency", "admin"),
+  validateRequest(uploadPropertyImageSchema),
+  uploadPropertyImage
 );
 router.delete(
   "/:id/images/:imageId",

@@ -7,6 +7,7 @@ import {
   notifyPropertyInquiryCreated,
   notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,
+  notifyUserStatusChanged,
   notifyViewingRequestCreated,
   notifyViewingRequestStatusChanged,
 } from "../../services/notificationService.js";
@@ -168,6 +169,27 @@ describe("notificationService", () => {
     assert.equal(notification.title, "Property inquiry response");
     assert.equal(notification.data.property, propertyId);
     assert.equal(notification.data.status, "responded");
+    create.mock.restore();
+  });
+
+  it("creates a notification when an account status changes", async () => {
+    const create = mock.method(Notification, "create", async (payload) => payload);
+    const user = {
+      _id: new mongoose.Types.ObjectId(),
+    };
+
+    const notification = await notifyUserStatusChanged({
+      user,
+      status: "suspended",
+      reason: "Repeated duplicate listing uploads",
+    });
+
+    assert.equal(create.mock.callCount(), 1);
+    assert.equal(notification.user, user._id);
+    assert.equal(notification.type, "system");
+    assert.equal(notification.title, "Account suspended");
+    assert.equal(notification.message, "Repeated duplicate listing uploads");
+    assert.equal(notification.data.accountStatus, "suspended");
     create.mock.restore();
   });
 

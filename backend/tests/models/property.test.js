@@ -104,6 +104,30 @@ describe("Property model", () => {
     assert.ok(property.images[0]._id);
   });
 
+  it("stores uploaded image metadata", () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+      images: [
+        {
+          url: "/uploads/properties/image.jpg",
+          fileName: "image.jpg",
+          mimeType: "image/jpeg",
+          size: 123,
+          storagePath: "/tmp/image.jpg",
+          perceptualHash: "ff00ff00ff00ff00",
+        },
+      ],
+    });
+
+    assert.equal(property.images[0].mimeType, "image/jpeg");
+    assert.equal(property.images[0].size, 123);
+    assert.equal(property.images[0].perceptualHash, "ff00ff00ff00ff00");
+  });
+
   it("stores GeoJSON coordinates when provided", () => {
     const property = new Property({
       title: "Modern Kilimani Apartment",

@@ -12,6 +12,11 @@ describe("env config", () => {
     assert.equal(env.jwtExpiresIn, "7d");
   });
 
+  it("uses default refresh token settings", () => {
+    assert.equal(env.refreshTokenMaxAge, 30 * 24 * 60 * 60 * 1000);
+    assert.equal(env.refreshCookieName, "keja_refresh");
+  });
+
   it("uses the default bcrypt salt rounds", () => {
     assert.equal(env.bcryptSaltRounds, 12);
   });
@@ -21,7 +26,23 @@ describe("env config", () => {
     assert.equal(env.mongoConnectRetryDelayMs, 3000);
   });
 
+  it("does not trust reverse proxies by default", () => {
+    assert.equal(env.trustProxy, false);
+  });
+
   it("does not require MongoDB during local test startup by default", () => {
     assert.equal(env.dbRequired, false);
+  });
+
+  it("uses default rate limit settings", () => {
+    assert.equal(env.rateLimitWindowMs, 900000);
+    assert.equal(env.rateLimitMax, 500);
+    assert.equal(env.authRateLimitMax, 50);
+  });
+
+  it("uses default upload settings", () => {
+    assert.match(env.uploadDir, /uploads$/);
+    assert.equal(env.uploadPublicBaseUrl, "");
+    assert.equal(env.maxUploadBytes, 5 * 1024 * 1024);
   });
 });

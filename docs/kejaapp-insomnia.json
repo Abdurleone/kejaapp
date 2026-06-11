@@ -24,7 +24,8 @@
         "viewing_id": "",
         "notification_id": "",
         "verification_id": "",
-        "violation_id": ""
+        "violation_id": "",
+        "user_id": ""
       },
       "dataPropertyOrder": {
         "&": [
@@ -36,7 +37,8 @@
           "viewing_id",
           "notification_id",
           "verification_id",
-          "violation_id"
+          "violation_id",
+          "user_id"
         ]
       },
       "color": null,
@@ -82,6 +84,27 @@
       "headers": [],
       "body": {},
       "authentication": {}
+    },
+    {
+      "_id": "fld_dashboard",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Dashboard",
+      "description": ""
+    },
+    {
+      "_id": "req_dashboard_summary",
+      "_type": "request",
+      "parentId": "fld_dashboard",
+      "name": "Dashboard Summary",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/dashboard/summary",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
     },
     {
       "_id": "fld_auth",
@@ -144,6 +167,25 @@
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"email\": \"tenant@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "req_auth_refresh",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/refresh",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"\"\n}"
       },
       "authentication": {}
     },
@@ -460,6 +502,28 @@
       }
     },
     {
+      "_id": "req_properties_upload_image",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Upload Property Image",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/properties/{{ _.property_id }}/images/upload",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"fileName\": \"living-room.jpg\",\n  \"mimeType\": \"image/jpeg\",\n  \"data\": \"aW1hZ2UtYnl0ZXM=\",\n  \"alt\": \"Bright living room with balcony\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
       "_id": "req_properties_reviews",
       "_type": "request",
       "parentId": "fld_properties",
@@ -769,6 +833,84 @@
       "parentId": "wrk_kejaapp",
       "name": "Admin",
       "description": ""
+    },
+    {
+      "_id": "req_admin_users_list",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "List Users",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/users?page=1&limit=20",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_users_get",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "Get User",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/users/{{ _.user_id }}",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_users_summary",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "Get User Summary",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/users/{{ _.user_id }}/summary",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_users_update_status",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "Update User Status",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/admin/users/{{ _.user_id }}/status",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"suspended\",\n  \"reason\": \"Repeated duplicate listing uploads\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_admin_users_status_history",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "List User Status History",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/users/{{ _.user_id }}/status-history",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
     },
     {
       "_id": "req_admin_agency_verifications",

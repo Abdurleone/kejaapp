@@ -30,6 +30,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    accountStatus: {
+      type: String,
+      enum: ["active", "suspended", "banned"],
+      default: "active",
+    },
+    accountStatusReason: {
+      type: String,
+      trim: true,
+    },
+    accountStatusUpdatedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

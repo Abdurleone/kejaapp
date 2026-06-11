@@ -6,6 +6,7 @@ import {
   attachCostSummary,
   calculatePropertyCosts,
 } from "../services/costService.js";
+import { storePropertyImage } from "../services/fileStorageService.js";
 import {
   fingerprintPropertyImage,
   removePropertyImageFingerprint,
@@ -307,6 +308,47 @@ const addPropertyImage = asyncHandler(async (req, res) => {
   });
 });
 
+const uploadPropertyImage = asyncHandler(async (req, res) => {
+  const property = await Property.findById(req.params.id);
+
+  if (!property) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
+  }
+
+  ensurePropertyOwner(property, req.user);
+
+  property.images.push({
+    url: "pending-upload",
+    alt: req.body.alt,
+  });
+  const image = property.images[property.images.length - 1];
+  const storedImage = await storePropertyImage({
+    propertyId: property._id,
+    imageId: image._id,
+    fileName: req.body.fileName,
+    mimeType: req.body.mimeType,
+    data: req.body.data,
+  });
+
+  Object.assign(image, storedImage);
+
+  await property.save();
+  const imageReview = await fingerprintPropertyImage({
+    image,
+    property,
+    uploadedBy: req.user._id,
+  });
+  await property.populate("owner", "name email role phone");
+
+  res.status(httpStatus.CREATED).json({
+    data: attachCostSummary(property),
+    imageReview: {
+      status: imageReview.fingerprint.status,
+      violation: imageReview.violation?._id || null,
+    },
+  });
+});
+
 const removePropertyImage = asyncHandler(async (req, res) => {
   const property = await Property.findById(req.params.id);
 
@@ -360,5 +402,6 @@ export {
   listMyProperties,
   listProperties,
   removePropertyImage,
+  uploadPropertyImage,
   updateProperty,
 };

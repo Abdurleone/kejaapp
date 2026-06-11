@@ -1,13 +1,14 @@
 import crypto from "node:crypto";
 import PropertyImageFingerprint from "../models/PropertyImageFingerprint.js";
 import UserViolation from "../models/UserViolation.js";
+import { enforceViolationThreshold } from "./accountModerationService.js";
 
 const normalizeImageUrl = (value) => {
-  const url = new URL(value);
+  const url = new URL(value, "http://local-upload");
   url.hash = "";
   url.hostname = url.hostname.toLowerCase();
 
-  return url.toString();
+  return value.startsWith("/") ? url.pathname : url.toString();
 };
 
 const createExactHash = (value) => crypto.createHash("sha256").update(value).digest("hex");
@@ -15,10 +16,19 @@ const createExactHash = (value) => crypto.createHash("sha256").update(value).dig
 const fingerprintPropertyImage = async ({ image, property, uploadedBy }) => {
   const normalizedImageUrl = normalizeImageUrl(image.url);
   const exactHash = createExactHash(normalizedImageUrl);
-  const existingFingerprint = await PropertyImageFingerprint.findOne({
-    exactHash,
-    uploadedBy: { $ne: uploadedBy },
-  });
+  const duplicateFilters = image.perceptualHash
+    ? {
+        $or: [
+          { exactHash },
+          { perceptualHash: image.perceptualHash },
+        ],
+        uploadedBy: { $ne: uploadedBy },
+      }
+    : {
+        exactHash,
+        uploadedBy: { $ne: uploadedBy },
+      };
+  const existingFingerprint = await PropertyImageFingerprint.findOne(duplicateFilters);
 
   const status = existingFingerprint ? "suspicious" : "clear";
   const fingerprint = await PropertyImageFingerprint.findOneAndUpdate(
@@ -33,6 +43,7 @@ const fingerprintPropertyImage = async ({ image, property, uploadedBy }) => {
       imageUrl: image.url,
       normalizedImageUrl,
       exactHash,
+      perceptualHash: image.perceptualHash,
       status,
       matchedFingerprint: existingFingerprint?._id || null,
       matchedProperty: existingFingerprint?.property || null,
@@ -72,6 +83,7 @@ const fingerprintPropertyImage = async ({ image, property, uploadedBy }) => {
         matchedImageFingerprint: existingFingerprint._id,
         imageUrl: image.url,
         exactHash,
+        perceptualHash: image.perceptualHash,
       },
     },
     {
@@ -81,6 +93,7 @@ const fingerprintPropertyImage = async ({ image, property, uploadedBy }) => {
       upsert: true,
     }
   );
+  await enforceViolationThreshold(uploadedBy);
 
   return {
     fingerprint,
