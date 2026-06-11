@@ -186,6 +186,52 @@ const updateProperty = asyncHandler(async (req, res) => {
   });
 });
 
+const addPropertyImage = asyncHandler(async (req, res) => {
+  const property = await Property.findById(req.params.id);
+
+  if (!property) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
+  }
+
+  ensurePropertyOwner(property, req.user);
+
+  property.images.push({
+    url: req.body.url,
+    alt: req.body.alt,
+  });
+
+  await property.save();
+  await property.populate("owner", "name email role phone");
+
+  res.status(httpStatus.CREATED).json({
+    data: attachCostSummary(property),
+  });
+});
+
+const removePropertyImage = asyncHandler(async (req, res) => {
+  const property = await Property.findById(req.params.id);
+
+  if (!property) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
+  }
+
+  ensurePropertyOwner(property, req.user);
+
+  const image = property.images.id(req.params.imageId);
+
+  if (!image) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Property image not found");
+  }
+
+  image.deleteOne();
+  await property.save();
+  await property.populate("owner", "name email role phone");
+
+  res.status(httpStatus.OK).json({
+    data: attachCostSummary(property),
+  });
+});
+
 const deleteProperty = asyncHandler(async (req, res) => {
   const property = await Property.findById(req.params.id);
 
@@ -203,10 +249,12 @@ const deleteProperty = asyncHandler(async (req, res) => {
 });
 
 export {
+  addPropertyImage,
   calculatePropertyCost,
   createProperty,
   deleteProperty,
   getProperty,
   listProperties,
+  removePropertyImage,
   updateProperty,
 };

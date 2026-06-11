@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   costCalculationSchema,
   createPropertySchema,
+  propertyImageSchema,
   updatePropertySchema,
 } from "../../validators/propertyValidators.js";
 
@@ -48,5 +49,17 @@ describe("propertyValidators", () => {
     const message = createPropertySchema.viewingInstructions.validate("a".repeat(1001));
 
     assert.equal(message, "viewingInstructions must be 1000 characters or fewer");
+  });
+
+  it("requires valid HTTP property image URLs", () => {
+    assert.equal(propertyImageSchema.url.required, true);
+    assert.equal(propertyImageSchema.url.pattern.test("https://example.com/property.jpg"), true);
+    assert.equal(propertyImageSchema.url.pattern.test("ftp://example.com/property.jpg"), false);
+  });
+
+  it("limits property image alt text", () => {
+    const message = propertyImageSchema.alt.validate("a".repeat(201));
+
+    assert.equal(message, "alt must be 200 characters or fewer");
   });
 });

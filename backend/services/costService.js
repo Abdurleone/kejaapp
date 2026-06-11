@@ -38,7 +38,21 @@ const attachCostSummary = (property) => {
 
 const attachCostSummaries = (properties) => properties.map((property) => attachCostSummary(property));
 
+const attachFavoritePropertyCostSummary = (favorite) => {
+  const plainFavorite = favorite?.toObject ? favorite.toObject() : { ...favorite };
+
+  return {
+    ...plainFavorite,
+    property: plainFavorite.property ? attachCostSummary(plainFavorite.property) : plainFavorite.property,
+  };
+};
+
+const attachFavoritePropertyCostSummaries = (favorites) =>
+  favorites.map((favorite) => attachFavoritePropertyCostSummary(favorite));
+
 export {
+  attachFavoritePropertyCostSummaries,
+  attachFavoritePropertyCostSummary,
   attachCostSummaries,
   attachCostSummary,
   calculatePropertyCosts,

@@ -60,9 +60,38 @@ const notifyViewingRequestStatusChanged = (viewingRequest) =>
     },
   });
 
+const notifyPropertyInquiryCreated = ({ property, inquiry }) =>
+  createNotification({
+    user: property.owner,
+    type: "inquiry",
+    title: "New property inquiry",
+    message: `${property.title} received a new inquiry.`,
+    data: {
+      property: property._id,
+      inquiry: inquiry._id,
+      contactPreference: inquiry.contactPreference,
+      status: inquiry.status,
+    },
+  });
+
+const notifyPropertyInquiryResponded = (inquiry) =>
+  createNotification({
+    user: inquiry.sender._id || inquiry.sender,
+    type: "inquiry",
+    title: "Property inquiry response",
+    message: `Your inquiry about ${inquiry.property.title} was responded to.`,
+    data: {
+      property: inquiry.property._id || inquiry.property,
+      inquiry: inquiry._id,
+      status: inquiry.status,
+    },
+  });
+
 export {
   createNotification,
   notifyAgencyVerificationDecision,
+  notifyPropertyInquiryCreated,
+  notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,
   notifyViewingRequestCreated,
   notifyViewingRequestStatusChanged,

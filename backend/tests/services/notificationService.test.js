@@ -4,6 +4,8 @@ import { describe, it, mock } from "node:test";
 import Notification from "../../models/Notification.js";
 import {
   notifyAgencyVerificationDecision,
+  notifyPropertyInquiryCreated,
+  notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,
   notifyViewingRequestCreated,
   notifyViewingRequestStatusChanged,
@@ -119,4 +121,54 @@ describe("notificationService", () => {
     assert.equal(notification.data.reason, "See you at 10 AM");
     create.mock.restore();
   });
+
+  it("creates a notification for a new property inquiry", async () => {
+    const create = mock.method(Notification, "create", async (payload) => payload);
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: new mongoose.Types.ObjectId(),
+      title: "Modern Kilimani Apartment",
+    };
+    const inquiry = {
+      _id: new mongoose.Types.ObjectId(),
+      contactPreference: "phone",
+      status: "open",
+    };
+
+    const notification = await notifyPropertyInquiryCreated({ property, inquiry });
+
+    assert.equal(create.mock.callCount(), 1);
+    assert.equal(notification.user, property.owner);
+    assert.equal(notification.type, "inquiry");
+    assert.equal(notification.title, "New property inquiry");
+    assert.equal(notification.data.property, property._id);
+    assert.equal(notification.data.inquiry, inquiry._id);
+    assert.equal(notification.data.contactPreference, "phone");
+    create.mock.restore();
+  });
+
+  it("creates a notification when a property inquiry is responded to", async () => {
+    const create = mock.method(Notification, "create", async (payload) => payload);
+    const propertyId = new mongoose.Types.ObjectId();
+    const inquiry = {
+      _id: new mongoose.Types.ObjectId(),
+      property: {
+        _id: propertyId,
+        title: "Modern Kilimani Apartment",
+      },
+      sender: new mongoose.Types.ObjectId(),
+      status: "responded",
+    };
+
+    const notification = await notifyPropertyInquiryResponded(inquiry);
+
+    assert.equal(create.mock.callCount(), 1);
+    assert.equal(notification.user, inquiry.sender);
+    assert.equal(notification.type, "inquiry");
+    assert.equal(notification.title, "Property inquiry response");
+    assert.equal(notification.data.property, propertyId);
+    assert.equal(notification.data.status, "responded");
+    create.mock.restore();
+  });
+
 });
