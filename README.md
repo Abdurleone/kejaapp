@@ -6,7 +6,7 @@ KejaApp is a location-first rental platform for tenants, landlords, agencies, ad
 
 The backend API is under active MVP development. It currently includes authentication, account management, property management, property image management, saved properties, transparent pricing, property inquiries, viewing requests, reviews, agency verification, admin moderation, notifications, mover discovery, seed data, tests, and an Insomnia collection for manual API testing.
 
-Frontend clients are planned for React Web and React Native.
+A first web frontend is available in `frontend/`. React Native is planned.
 
 ## Core Features
 
@@ -29,7 +29,7 @@ Frontend clients are planned for React Web and React Native.
 ## Tech Stack
 
 Frontend:
-- React Web
+- Static web MVP
 - React Native planned
 
 Backend:
@@ -161,6 +161,37 @@ Developer workflow:
 - Root package scripts that proxy common backend commands.
 - Test coverage for app routes, validators, middleware, models, services, password hashing, cookies, and admin workflows.
 - Opt-in MongoDB integration testing with `TEST_MONGODB_URI`.
+
+## Implemented Frontend
+
+The first web frontend is in `frontend/` and runs without a build step.
+
+Included flows:
+- Public property discovery with filters.
+- Login with demo account shortcuts.
+- Role-aware dashboard summary.
+- Saved property actions.
+- Inquiry and viewing request actions.
+- Owner property creation and listing management.
+- Admin user list and account status moderation.
+
+Run the frontend:
+
+```bash
+npm run frontend
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+Keep the backend running separately:
+
+```bash
+npm run dev
+```
 
 ## User Stories
 

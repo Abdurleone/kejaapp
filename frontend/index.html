@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KejaApp</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand-block">
+        <span class="brand-mark">K</span>
+        <div>
+          <h1>KejaApp</h1>
+          <p>Find, compare, and contact verified property owners.</p>
+        </div>
+      </div>
+      <div class="connection-bar">
+        <label for="baseUrl">API</label>
+        <input id="baseUrl" type="url" value="http://localhost:5000" />
+        <button id="healthButton" class="icon-button" title="Check API health" aria-label="Check API health">
+          <span>i</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <aside class="sidebar">
+        <section class="panel auth-panel">
+          <div class="panel-heading">
+            <h2>Session</h2>
+            <span id="sessionState" class="pill muted">Guest</span>
+          </div>
+          <form id="loginForm" class="stack">
+            <input id="email" type="email" placeholder="Email" value="tenant@example.com" autocomplete="email" />
+            <input id="password" type="password" placeholder="Password" value="password123" autocomplete="current-password" />
+            <button type="submit" class="primary-button">Sign in</button>
+          </form>
+          <div class="quick-logins">
+            <button type="button" data-login="tenant@example.com">Tenant</button>
+            <button type="button" data-login="landlord@example.com">Landlord</button>
+            <button type="button" data-login="agency@example.com">Agency</button>
+            <button type="button" data-login="admin@example.com">Admin</button>
+          </div>
+          <button id="logoutButton" class="ghost-button" type="button">Log out</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Filters</h2>
+            <button id="clearFilters" class="text-button" type="button">Clear</button>
+          </div>
+          <form id="filterForm" class="stack">
+            <input id="search" type="search" placeholder="Search listings" />
+            <div class="two-col">
+              <input id="county" type="text" placeholder="County" />
+              <input id="area" type="text" placeholder="Area" />
+            </div>
+            <div class="two-col">
+              <input id="minRent" type="number" min="0" placeholder="Min rent" />
+              <input id="maxRent" type="number" min="0" placeholder="Max rent" />
+            </div>
+            <select id="viewingType">
+              <option value="">Any viewing</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="open">Open</option>
+            </select>
+            <button class="secondary-button" type="submit">Apply filters</button>
+          </form>
+        </section>
+
+        <section class="panel dashboard-panel">
+          <div class="panel-heading">
+            <h2>Dashboard</h2>
+            <button id="refreshDashboard" class="icon-button" title="Refresh dashboard" aria-label="Refresh dashboard">
+              <span>r</span>
+            </button>
+          </div>
+          <div id="dashboard" class="metric-grid">
+            <p class="muted-copy">Sign in to load your summary.</p>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <nav class="tabs" aria-label="Workspace views">
+          <button class="tab active" data-view="discover" type="button">Discover</button>
+          <button class="tab" data-view="saved" type="button">Saved</button>
+          <button class="tab" data-view="owner" type="button">Owner</button>
+          <button class="tab" data-view="admin" type="button">Admin</button>
+        </nav>
+
+        <section id="discoverView" class="view active-view">
+          <div class="view-header">
+            <div>
+              <h2>Available homes</h2>
+              <p id="propertyCount">Loading listings...</p>
+            </div>
+            <button id="refreshProperties" class="secondary-button" type="button">Refresh</button>
+          </div>
+          <div id="properties" class="property-grid"></div>
+        </section>
+
+        <section id="savedView" class="view">
+          <div class="view-header">
+            <div>
+              <h2>Saved properties</h2>
+              <p>Keep the serious contenders close.</p>
+            </div>
+            <button id="refreshFavorites" class="secondary-button" type="button">Refresh</button>
+          </div>
+          <div id="favorites" class="property-grid"></div>
+        </section>
+
+        <section id="ownerView" class="view">
+          <div class="view-header">
+            <div>
+              <h2>Owner tools</h2>
+              <p>Create and review your property inventory.</p>
+            </div>
+            <button id="refreshMine" class="secondary-button" type="button">My listings</button>
+          </div>
+          <div class="owner-layout">
+            <form id="propertyForm" class="panel form-panel">
+              <h3>Create listing</h3>
+              <input id="propertyTitle" type="text" placeholder="Title" />
+              <textarea id="propertyDescription" placeholder="Description"></textarea>
+              <div class="two-col">
+                <input id="propertyRent" type="number" min="0" placeholder="Rent" />
+                <input id="propertyDeposit" type="number" min="0" placeholder="Deposit" />
+              </div>
+              <div class="two-col">
+                <input id="propertyCounty" type="text" placeholder="County" />
+                <input id="propertyArea" type="text" placeholder="Area" />
+              </div>
+              <div class="two-col">
+                <select id="propertyType">
+                  <option value="apartment">Apartment</option>
+                  <option value="house">House</option>
+                  <option value="bedsitter">Bedsitter</option>
+                  <option value="studio">Studio</option>
+                  <option value="maisonette">Maisonette</option>
+                </select>
+                <select id="propertyViewingType">
+                  <option value="scheduled">Scheduled viewing</option>
+                  <option value="open">Open viewing</option>
+                </select>
+              </div>
+              <button class="primary-button" type="submit">Create property</button>
+            </form>
+            <div id="myProperties" class="property-grid compact-grid"></div>
+          </div>
+        </section>
+
+        <section id="adminView" class="view">
+          <div class="view-header">
+            <div>
+              <h2>Admin moderation</h2>
+              <p>Review users and account status quickly.</p>
+            </div>
+            <button id="refreshUsers" class="secondary-button" type="button">Load users</button>
+          </div>
+          <div id="adminUsers" class="table-panel"></div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="actionDialog">
+      <form method="dialog" class="dialog-card">
+        <div class="panel-heading">
+          <h2 id="dialogTitle">Property action</h2>
+          <button class="icon-button" value="cancel" title="Close" aria-label="Close dialog">
+            <span>x</span>
+          </button>
+        </div>
+        <div id="dialogBody"></div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
