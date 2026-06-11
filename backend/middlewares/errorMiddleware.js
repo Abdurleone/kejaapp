@@ -28,6 +28,15 @@ const errorHandler = (err, req, res, next) => {
     message = "Duplicate resource";
   }
 
+  if (
+    err.name === "MongoNetworkError" ||
+    err.name === "MongoServerSelectionError" ||
+    err.errorLabelSet?.has("RetryableError")
+  ) {
+    statusCode = httpStatus.SERVICE_UNAVAILABLE;
+    message = "Database temporarily unavailable. Please retry the request.";
+  }
+
   res.status(statusCode).json({
     message,
     stack: env.nodeEnv === "production" ? undefined : err.stack,
