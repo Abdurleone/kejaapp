@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="app-header">
+    <header class="app-header" hidden>
       <div class="brand-block">
         <span class="brand-mark">K</span>
         <div>
@@ -30,17 +30,28 @@
         </div>
       </div>
       <div class="connection-bar">
-        <label for="baseUrl">API</label>
-        <input id="baseUrl" type="url" value="http://localhost:5000" />
-        <span id="apiState" class="api-state" data-status="unknown">Check API</span>
-        <button id="colorModeToggle" class="icon-button mode-toggle" title="Toggle light and dark mode" aria-label="Toggle dark mode">
-          <span>Dark</span>
-        </button>
+        <select id="roleLogin" aria-label="Choose demo user category">
+          <option value="tenant">Tenant</option>
+          <option value="landlord">Landlord</option>
+          <option value="agency">Agency</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button id="signInButton" class="primary-button taskbar-auth" type="button">Sign in</button>
+        <button id="signUpButton" class="secondary-button taskbar-auth" type="button">Sign up</button>
+        <span id="sessionState" class="pill muted">Guest</span>
+        <button id="logoutButton" class="ghost-button taskbar-auth" type="button">Log out</button>
+        <fieldset id="colorModeControl" class="mode-radio" aria-label="Color mode">
+          <label>
+            <input type="radio" name="colorMode" value="light" />
+            <span>Light</span>
+          </label>
+          <label>
+            <input type="radio" name="colorMode" value="dark" />
+            <span>Dark</span>
+          </label>
+        </fieldset>
         <button id="themeToggle" class="icon-button flag-toggle" title="Toggle Kenyan flag theme" aria-label="Toggle Kenyan flag theme">
           <span>KE</span>
-        </button>
-        <button id="healthButton" class="icon-button" title="Check API health" aria-label="Check API health">
-          <span>i</span>
         </button>
       </div>
     </header>
@@ -50,30 +61,31 @@
         <span class="pill">KejaApp access</span>
         <h2>Search first, sign in when ready</h2>
         <p>Browse listings anonymously, then use an account when you want to save, inquire, or request a viewing.</p>
-      </div>
-      <form id="loginForm" class="landing-auth">
-        <input id="email" type="email" placeholder="Email" value="tenant@example.com" autocomplete="email" />
-        <input id="password" type="password" placeholder="Password" value="password123" autocomplete="current-password" />
-        <button type="submit" class="primary-button">Sign in</button>
-        <div class="quick-logins">
-          <button type="button" data-login="tenant@example.com">Tenant</button>
-          <button type="button" data-login="landlord@example.com">Landlord</button>
-          <button type="button" data-login="agency@example.com">Agency</button>
-          <button type="button" data-login="admin@example.com">Admin</button>
+        <div class="landing-proof" aria-label="Marketplace strengths">
+          <span>Transparent costs</span>
+          <span>Verified agency flow</span>
+          <span>Owner responses</span>
         </div>
-      </form>
+        <button id="enterAppButton" class="landing-cta" type="button">Start searching</button>
+      </div>
+      <div class="landing-showcase">
+        <div>
+          <strong>Tenant</strong>
+          <span>Search anonymously, then sign in to save, inquire, review, or request viewings.</span>
+        </div>
+        <div>
+          <strong>Landlord or agency</strong>
+          <span>Upload listings, manage availability, and respond to tenant reviews.</span>
+        </div>
+        <div>
+          <strong>Admin</strong>
+          <span>Monitor users, reviews, verifications, and trust signals from one workspace.</span>
+        </div>
+      </div>
     </section>
 
     <main id="appShell" class="app-shell" hidden>
       <aside class="sidebar">
-        <section class="panel auth-panel">
-          <div class="panel-heading">
-            <h2>Session</h2>
-            <span id="sessionState" class="pill muted">Guest</span>
-          </div>
-          <button id="logoutButton" class="ghost-button" type="button">Log out</button>
-        </section>
-
         <section id="filterPanel" class="panel">
           <div class="panel-heading">
             <h2>Filters</h2>
@@ -101,8 +113,8 @@
         <section class="panel dashboard-panel">
           <div class="panel-heading">
             <h2>Dashboard</h2>
-            <button id="refreshDashboard" class="icon-button" title="Refresh dashboard" aria-label="Refresh dashboard">
-              <span>r</span>
+            <button id="refreshDashboard" class="text-button" type="button">
+              Refresh
             </button>
           </div>
           <div id="dashboard" class="metric-grid">
@@ -120,6 +132,13 @@
         </nav>
 
         <section id="discoverView" class="view active-view">
+          <div class="market-banner">
+            <div>
+              <span class="pill">Live marketplace</span>
+              <h2>Homes you can compare before you commit</h2>
+            </div>
+            <p>Search anonymously, check the real move-in cost, then sign in only when you are ready to contact the owner.</p>
+          </div>
           <div class="view-header">
             <div>
               <h2>Available homes</h2>

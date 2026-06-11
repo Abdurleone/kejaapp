@@ -4,11 +4,14 @@ import {
   buildQueryString,
   canAccessView,
   canManageListings,
+  canRegisterRole,
   canSearchListings,
   canUseTenantPropertyActions,
   createApiUrl,
+  getDemoEmailForRole,
   formatStatusLabel,
   formatKes,
+  formatRatingSummary,
   getPropertyImage,
   getViewPath,
   getDefaultViewForRole,
@@ -17,6 +20,7 @@ import {
   normalizeApiBaseUrl,
   resolveAssetUrl,
   resolveViewFromPath,
+  shouldShowSplash,
   sortProperties,
   statusTone,
   summarizeReview,
@@ -71,6 +75,11 @@ describe("frontend app utilities", () => {
     assert.equal(formatStatusLabel("open_viewing"), "Open Viewing");
   });
 
+  it("formats listing rating summaries", () => {
+    assert.equal(formatRatingSummary(4.25, 3), "4.3 rating (3)");
+    assert.equal(formatRatingSummary(0, 0), "No ratings");
+  });
+
   it("toggles between the default and Kenyan flag themes", () => {
     assert.equal(nextTheme("default"), "kenya");
     assert.equal(nextTheme("kenya"), "default");
@@ -81,11 +90,35 @@ describe("frontend app utilities", () => {
     assert.equal(nextColorMode("dark"), "light");
   });
 
+  it("maps taskbar demo roles to login emails", () => {
+    assert.equal(getDemoEmailForRole("tenant"), "tenant@example.com");
+    assert.equal(getDemoEmailForRole("landlord"), "landlord@example.com");
+    assert.equal(getDemoEmailForRole("agency"), "agency@example.com");
+    assert.equal(getDemoEmailForRole("admin"), "admin@example.com");
+    assert.equal(getDemoEmailForRole("unknown"), "tenant@example.com");
+  });
+
+  it("allows public sign-up for non-admin user categories", () => {
+    assert.equal(canRegisterRole("tenant"), true);
+    assert.equal(canRegisterRole("landlord"), true);
+    assert.equal(canRegisterRole("agency"), true);
+    assert.equal(canRegisterRole("admin"), false);
+  });
+
   it("maps frontend paths to workspace views", () => {
+    assert.equal(resolveViewFromPath("/"), "discover");
+    assert.equal(resolveViewFromPath("/search"), "discover");
     assert.equal(resolveViewFromPath("/admin"), "admin");
     assert.equal(resolveViewFromPath("/owner/"), "owner");
     assert.equal(resolveViewFromPath("/unknown"), "discover");
+    assert.equal(getViewPath("discover"), "/search");
     assert.equal(getViewPath("saved"), "/saved");
+  });
+
+  it("shows the splash only for anonymous users on the root path", () => {
+    assert.equal(shouldShowSplash({ isSignedIn: false, path: "/" }), true);
+    assert.equal(shouldShowSplash({ isSignedIn: false, path: "/search" }), false);
+    assert.equal(shouldShowSplash({ isSignedIn: true, path: "/" }), false);
   });
 
   it("enforces role-specific frontend access", () => {
