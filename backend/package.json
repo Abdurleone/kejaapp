@@ -17,6 +17,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
+    "seed": "node seeders/seedDemoData.js",
     "start": "node server.js",
     "test": "NODE_ENV=test node --test"
   },

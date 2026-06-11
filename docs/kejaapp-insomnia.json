@@ -104,6 +104,17 @@
       "authentication": {}
     },
     {
+      "_id": "req_auth_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/logout",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
       "_id": "req_auth_me",
       "_type": "request",
       "parentId": "fld_auth",

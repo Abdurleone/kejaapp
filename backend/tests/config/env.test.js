@@ -11,4 +11,9 @@ describe("env config", () => {
   it("uses the default JWT expiry", () => {
     assert.equal(env.jwtExpiresIn, "7d");
   });
+
+  it("uses default Mongo connection retry settings", () => {
+    assert.equal(env.mongoConnectRetries, 5);
+    assert.equal(env.mongoConnectRetryDelayMs, 3000);
+  });
 });
