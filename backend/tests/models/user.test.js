@@ -16,4 +16,21 @@ describe("User model", () => {
     assert.notEqual(user.password, "password123");
     assert.equal(await user.matchPassword("password123"), true);
   });
+
+  it("does not rehash an unchanged password", async () => {
+    const user = new User({
+      name: "Test User",
+      email: "test2@example.com",
+      password: "password123",
+    });
+
+    await user.validate();
+    await user.$__schema.s.hooks.execPre("save", user, []);
+    const hashedPassword = user.password;
+    user.unmarkModified("password");
+
+    await user.$__schema.s.hooks.execPre("save", user, []);
+
+    assert.equal(user.password, hashedPassword);
+  });
 });

@@ -1,5 +1,6 @@
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const listedByTypes = ["owner", "agency"];
+const viewingTypes = ["scheduled", "open"];
 
 const validatePrice = (value) => {
   if (typeof value.rent !== "number") {
@@ -68,6 +69,20 @@ const createPropertySchema = {
     type: "string",
     enum: listedByTypes,
   },
+  viewingType: {
+    type: "string",
+    enum: viewingTypes,
+  },
+  viewingInstructions: {
+    type: "string",
+    validate(value) {
+      if (value.length > 1000) {
+        return "viewingInstructions must be 1000 characters or fewer";
+      }
+
+      return null;
+    },
+  },
   isAvailable: {
     type: "boolean",
   },
@@ -102,9 +117,31 @@ const updatePropertySchema = {
     type: "string",
     enum: listedByTypes,
   },
+  viewingType: {
+    type: "string",
+    enum: viewingTypes,
+  },
+  viewingInstructions: {
+    type: "string",
+    validate(value) {
+      if (value.length > 1000) {
+        return "viewingInstructions must be 1000 characters or fewer";
+      }
+
+      return null;
+    },
+  },
   isAvailable: {
     type: "boolean",
   },
 };
 
-export { createPropertySchema, updatePropertySchema };
+const costCalculationSchema = {
+  price: {
+    required: true,
+    type: "object",
+    validate: validatePrice,
+  },
+};
+
+export { costCalculationSchema, createPropertySchema, updatePropertySchema, viewingTypes };

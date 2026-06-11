@@ -22,4 +22,16 @@ describe("Property model", () => {
 
     assert.equal(doc.location.coordinates, undefined);
   });
+
+  it("defaults properties to scheduled viewings", () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+    });
+
+    assert.equal(property.viewingType, "scheduled");
+  });
 });

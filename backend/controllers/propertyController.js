@@ -1,5 +1,10 @@
 import httpStatus from "../constants/httpStatus.js";
 import Property from "../models/Property.js";
+import {
+  attachCostSummaries,
+  attachCostSummary,
+  calculatePropertyCosts,
+} from "../services/costService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -12,6 +17,10 @@ const buildPropertyFilters = (query) => {
 
   if (query.listedBy) {
     filters.listedBy = query.listedBy;
+  }
+
+  if (query.viewingType) {
+    filters.viewingType = query.viewingType;
   }
 
   if (query.isAvailable !== undefined) {
@@ -79,6 +88,8 @@ const propertyFields = [
   "amenities",
   "images",
   "listedBy",
+  "viewingType",
+  "viewingInstructions",
   "isAvailable",
 ];
 
@@ -118,8 +129,16 @@ const listProperties = asyncHandler(async (req, res) => {
   ]);
 
   res.status(httpStatus.OK).json({
-    data: properties,
+    data: attachCostSummaries(properties),
     pagination: formatPagination(page, limit, total),
+  });
+});
+
+const calculatePropertyCost = asyncHandler(async (req, res) => {
+  res.status(httpStatus.OK).json({
+    data: {
+      costSummary: calculatePropertyCosts(req.body.price),
+    },
   });
 });
 
@@ -133,7 +152,7 @@ const createProperty = asyncHandler(async (req, res) => {
   const populatedProperty = await property.populate("owner", "name email role phone");
 
   res.status(httpStatus.CREATED).json({
-    data: populatedProperty,
+    data: attachCostSummary(populatedProperty),
   });
 });
 
@@ -145,7 +164,7 @@ const getProperty = asyncHandler(async (req, res) => {
   }
 
   res.status(httpStatus.OK).json({
-    data: property,
+    data: attachCostSummary(property),
   });
 });
 
@@ -163,7 +182,7 @@ const updateProperty = asyncHandler(async (req, res) => {
   await property.populate("owner", "name email role phone");
 
   res.status(httpStatus.OK).json({
-    data: property,
+    data: attachCostSummary(property),
   });
 });
 
@@ -184,6 +203,7 @@ const deleteProperty = asyncHandler(async (req, res) => {
 });
 
 export {
+  calculatePropertyCost,
   createProperty,
   deleteProperty,
   getProperty,

@@ -1,6 +1,7 @@
 import httpStatus from "../constants/httpStatus.js";
 import Property from "../models/Property.js";
 import Review from "../models/Review.js";
+import { notifyPropertyReviewCreated } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -48,6 +49,7 @@ const createReview = asyncHandler(async (req, res) => {
   });
 
   await review.populate("user", "name role");
+  await notifyPropertyReviewCreated({ property, review });
 
   res.status(httpStatus.CREATED).json({
     data: review,
