@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  attachFavoritePropertyCostSummaries,
+  attachFavoritePropertyCostSummary,
   attachCostSummaries,
   attachCostSummary,
   calculatePropertyCosts,
@@ -98,5 +100,41 @@ describe("costService", () => {
     assert.equal(results.length, 2);
     assert.equal(results[0].costSummary.upfrontTotal, 30000);
     assert.equal(results[1].costSummary.upfrontTotal, 103000);
+  });
+
+  it("attaches cost summaries to favorite property payloads", () => {
+    const favorite = {
+      _id: "favorite-id",
+      property: {
+        title: "Modern Kilimani Apartment",
+        price: {
+          rent: 65000,
+          deposit: 65000,
+          agencyFee: 5000,
+        },
+      },
+    };
+
+    const result = attachFavoritePropertyCostSummary(favorite);
+
+    assert.equal(result._id, "favorite-id");
+    assert.equal(result.property.title, "Modern Kilimani Apartment");
+    assert.equal(result.property.costSummary.upfrontTotal, 135000);
+  });
+
+  it("attaches cost summaries to favorite lists", () => {
+    const favorites = [
+      {
+        property: {
+          price: {
+            rent: 30000,
+          },
+        },
+      },
+    ];
+
+    const results = attachFavoritePropertyCostSummaries(favorites);
+
+    assert.equal(results[0].property.costSummary.recurringMonthlyTotal, 30000);
   });
 });

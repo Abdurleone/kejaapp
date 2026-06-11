@@ -1,10 +1,12 @@
 import express from "express";
 import {
+  addPropertyImage,
   calculatePropertyCost,
   createProperty,
   deleteProperty,
   getProperty,
   listProperties,
+  removePropertyImage,
   updateProperty,
 } from "../controllers/propertyController.js";
 import { authorize, protect } from "../middlewares/authMiddleware.js";
@@ -12,10 +14,12 @@ import validateRequest from "../middlewares/validateRequest.js";
 import {
   costCalculationSchema,
   createPropertySchema,
+  propertyImageSchema,
   updatePropertySchema,
 } from "../validators/propertyValidators.js";
 import { listPropertyReviews } from "../controllers/reviewController.js";
 import { listPropertyViewingRequests } from "../controllers/viewingController.js";
+import { listPropertyInquiries } from "../controllers/inquiryController.js";
 
 const router = express.Router();
 
@@ -31,8 +35,22 @@ router
 
 router.post("/costs/calculate", validateRequest(costCalculationSchema), calculatePropertyCost);
 
+router.get("/:id/inquiries", protect, authorize("landlord", "agency", "admin"), listPropertyInquiries);
 router.get("/:id/reviews", listPropertyReviews);
 router.get("/:id/viewings", protect, authorize("landlord", "agency", "admin"), listPropertyViewingRequests);
+router.post(
+  "/:id/images",
+  protect,
+  authorize("landlord", "agency", "admin"),
+  validateRequest(propertyImageSchema),
+  addPropertyImage
+);
+router.delete(
+  "/:id/images/:imageId",
+  protect,
+  authorize("landlord", "agency", "admin"),
+  removePropertyImage
+);
 
 router
   .route("/:id")

@@ -34,4 +34,25 @@ describe("Property model", () => {
 
     assert.equal(property.viewingType, "scheduled");
   });
+
+  it("stores image subdocuments with alt text", () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: {
+        rent: 65000,
+      },
+      images: [
+        {
+          url: "https://example.com/property.jpg",
+          alt: "Living room",
+        },
+      ],
+    });
+
+    assert.equal(property.images.length, 1);
+    assert.equal(property.images[0].url, "https://example.com/property.jpg");
+    assert.equal(property.images[0].alt, "Living room");
+    assert.ok(property.images[0]._id);
+  });
 });

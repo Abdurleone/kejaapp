@@ -235,6 +235,42 @@
       }
     },
     {
+      "_id": "req_properties_add_image",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Add Property Image",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/properties/:property_id/images",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"url\": \"https://example.com/property-living-room.jpg\",\n  \"alt\": \"Bright living room with balcony\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_properties_remove_image",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "Remove Property Image",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/properties/:property_id/images/:image_id",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
       "_id": "req_properties_reviews",
       "_type": "request",
       "parentId": "fld_properties",
@@ -244,6 +280,55 @@
       "headers": [],
       "body": {},
       "authentication": {}
+    },
+    {
+      "_id": "fld_favorites",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Favorites",
+      "description": ""
+    },
+    {
+      "_id": "req_favorites_list",
+      "_type": "request",
+      "parentId": "fld_favorites",
+      "name": "List Favorites",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/favorites",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_favorites_save",
+      "_type": "request",
+      "parentId": "fld_favorites",
+      "name": "Save Property",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/favorites/:property_id",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_favorites_remove",
+      "_type": "request",
+      "parentId": "fld_favorites",
+      "name": "Remove Saved Property",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/favorites/:property_id",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
     },
     {
       "_id": "fld_reviews",
@@ -268,6 +353,85 @@
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"property\": \":property_id\",\n  \"rating\": 5,\n  \"comment\": \"Great listing and smooth viewing process.\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "fld_inquiries",
+      "_type": "request_group",
+      "parentId": "wrk_kejaapp",
+      "name": "Inquiries",
+      "description": ""
+    },
+    {
+      "_id": "req_inquiries_create",
+      "_type": "request",
+      "parentId": "fld_inquiries",
+      "name": "Create Inquiry",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/inquiries",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"property\": \":property_id\",\n  \"subject\": \"Availability question\",\n  \"message\": \"Is this property still available, and can I get more details?\",\n  \"contactPreference\": \"phone\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_inquiries_mine",
+      "_type": "request",
+      "parentId": "fld_inquiries",
+      "name": "List My Inquiries",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inquiries",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_inquiries_property",
+      "_type": "request",
+      "parentId": "fld_inquiries",
+      "name": "List Property Inquiries",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/properties/:property_id/inquiries",
+      "headers": [],
+      "body": {},
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      }
+    },
+    {
+      "_id": "req_inquiries_update",
+      "_type": "request",
+      "parentId": "fld_inquiries",
+      "name": "Respond To Inquiry",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/inquiries/:inquiry_id",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"responded\",\n  \"response\": \"Yes, it is available. You can call us to arrange next steps.\"\n}"
       },
       "authentication": {
         "type": "bearer",

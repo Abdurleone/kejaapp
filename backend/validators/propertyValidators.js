@@ -1,6 +1,15 @@
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const listedByTypes = ["owner", "agency"];
 const viewingTypes = ["scheduled", "open"];
+const imageUrlPattern = /^https?:\/\/\S+$/i;
+
+const validateImageAlt = (value) => {
+  if (value.length > 200) {
+    return "alt must be 200 characters or fewer";
+  }
+
+  return null;
+};
 
 const validatePrice = (value) => {
   if (typeof value.rent !== "number") {
@@ -144,4 +153,23 @@ const costCalculationSchema = {
   },
 };
 
-export { costCalculationSchema, createPropertySchema, updatePropertySchema, viewingTypes };
+const propertyImageSchema = {
+  url: {
+    required: true,
+    type: "string",
+    pattern: imageUrlPattern,
+    message: "url must be a valid HTTP or HTTPS URL",
+  },
+  alt: {
+    type: "string",
+    validate: validateImageAlt,
+  },
+};
+
+export {
+  costCalculationSchema,
+  createPropertySchema,
+  propertyImageSchema,
+  updatePropertySchema,
+  viewingTypes,
+};

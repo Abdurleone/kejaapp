@@ -84,6 +84,29 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("requires authentication for adding property images", async () => {
+    const response = await request("/api/properties/000000000000000000000000/images", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for removing property images", async () => {
+    const response = await request(
+      "/api/properties/000000000000000000000000/images/000000000000000000000001",
+      {
+        method: "DELETE",
+        body: JSON.stringify({}),
+      }
+    );
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
   it("rejects invalid property filters", async () => {
     const response = await request("/api/properties?minRent=abc");
 
@@ -160,9 +183,70 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("requires authentication for creating inquiries", async () => {
+    const response = await request("/api/inquiries", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for listing my inquiries", async () => {
+    const response = await request("/api/inquiries");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for updating inquiries", async () => {
+    const response = await request("/api/inquiries/000000000000000000000000", {
+      method: "PUT",
+      body: JSON.stringify({ status: "responded" }),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for listing property inquiries", async () => {
+    const response = await request("/api/properties/000000000000000000000000/inquiries");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
   it("requires authentication for creating viewing requests", async () => {
     const response = await request("/api/viewings", {
       method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for listing favorites", async () => {
+    const response = await request("/api/favorites");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for saving favorites", async () => {
+    const response = await request("/api/favorites/000000000000000000000000", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for removing favorites", async () => {
+    const response = await request("/api/favorites/000000000000000000000000", {
+      method: "DELETE",
       body: JSON.stringify({}),
     });
 
