@@ -1,0 +1,12 @@
+{
+  "name": "kejaapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KejaApp workspace",
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "seed": "npm --prefix backend run seed",
+    "start": "npm --prefix backend run start",
+    "test": "npm --prefix backend run test"
+  }
+}

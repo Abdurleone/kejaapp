@@ -41,6 +41,17 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("clears auth cookies on logout", async () => {
+    const response = await request("/api/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.message, "Logged out");
+    assert.match(response.headers["set-cookie"], /keja_token=/);
+  });
+
   it("requires authentication for creating properties", async () => {
     const response = await request("/api/properties", {
       method: "POST",

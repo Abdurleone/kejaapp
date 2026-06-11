@@ -20,18 +20,42 @@ mongoose.connection.on("reconnected", () => {
   console.log("MongoDB reconnected");
 });
 
-const connectDB = async () => {
-  const connection = await mongoose.connect(env.mongoUri, {
-    family: 4,
-    maxPoolSize: 10,
-    minPoolSize: 0,
-    retryReads: true,
-    retryWrites: true,
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
+const mongoOptions = {
+  family: 4,
+  maxPoolSize: 10,
+  minPoolSize: 0,
+  retryReads: true,
+  retryWrites: true,
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+};
+
+const wait = (ms) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
 
-  console.log(`MongoDB connected: ${connection.connection.host}`);
+const connectDB = async () => {
+  let lastError;
+
+  for (let attempt = 1; attempt <= env.mongoConnectRetries; attempt += 1) {
+    try {
+      const connection = await mongoose.connect(env.mongoUri, mongoOptions);
+      console.log(`MongoDB connected: ${connection.connection.host}`);
+      return connection;
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `MongoDB connection attempt ${attempt}/${env.mongoConnectRetries} failed: ${error.message}`
+      );
+
+      if (attempt < env.mongoConnectRetries) {
+        await wait(env.mongoConnectRetryDelayMs);
+      }
+    }
+  }
+
+  throw lastError;
 };
 
 const disconnectDB = async () => {

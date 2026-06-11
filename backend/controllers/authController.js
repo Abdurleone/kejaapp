@@ -5,8 +5,18 @@ import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import generateToken from "../utils/generateToken.js";
 
+const getCookieOptions = () => ({
+  httpOnly: true,
+  maxAge: env.authCookieMaxAge,
+  sameSite: env.authCookieSecure ? "none" : "lax",
+  secure: env.authCookieSecure,
+});
+
 const sendAuthResponse = (res, statusCode, user) => {
   const userId = user._id.toString();
+  const token = generateToken({ id: userId, role: user.role });
+
+  res.cookie(env.authCookieName, token, getCookieOptions());
 
   res.status(statusCode).json({
     user: {
@@ -16,7 +26,7 @@ const sendAuthResponse = (res, statusCode, user) => {
       role: user.role,
       phone: user.phone,
     },
-    token: generateToken({ id: userId, role: user.role }),
+    token,
     tokenType: "Bearer",
     expiresIn: env.jwtExpiresIn,
   });
@@ -65,4 +75,16 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   });
 });
 
-export { getCurrentUser, loginUser, registerUser };
+const logoutUser = asyncHandler(async (req, res) => {
+  res.clearCookie(env.authCookieName, {
+    httpOnly: true,
+    sameSite: env.authCookieSecure ? "none" : "lax",
+    secure: env.authCookieSecure,
+  });
+
+  res.status(httpStatus.OK).json({
+    message: "Logged out",
+  });
+});
+
+export { getCurrentUser, loginUser, logoutUser, registerUser };

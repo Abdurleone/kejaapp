@@ -31,6 +31,26 @@ const parseCorsOrigins = (value) => {
     .filter(Boolean);
 };
 
+const parseCookieMaxAge = (value) => {
+  const days = Number(value || 7);
+
+  if (!Number.isFinite(days) || days <= 0) {
+    throw new Error("AUTH_COOKIE_MAX_AGE_DAYS must be a positive number");
+  }
+
+  return days * 24 * 60 * 60 * 1000;
+};
+
+const parsePositiveInteger = (value, fallback, key) => {
+  const number = Number(value || fallback);
+
+  if (!Number.isInteger(number) || number <= 0) {
+    throw new Error(`${key} must be a positive integer`);
+  }
+
+  return number;
+};
+
 const normalizeMongoUri = (value, databaseName) => {
   const uri = new URL(value);
 
@@ -48,8 +68,21 @@ const env = {
   port: parsePort(process.env.PORT),
   mongoDbName,
   mongoUri: normalizeMongoUri(process.env.MONGODB_URI, mongoDbName),
+  mongoConnectRetries: parsePositiveInteger(
+    process.env.MONGODB_CONNECT_RETRIES,
+    5,
+    "MONGODB_CONNECT_RETRIES"
+  ),
+  mongoConnectRetryDelayMs: parsePositiveInteger(
+    process.env.MONGODB_CONNECT_RETRY_DELAY_MS,
+    3000,
+    "MONGODB_CONNECT_RETRY_DELAY_MS"
+  ),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   jwtSecret: process.env.JWT_SECRET,
+  authCookieName: process.env.AUTH_COOKIE_NAME || "keja_token",
+  authCookieMaxAge: parseCookieMaxAge(process.env.AUTH_COOKIE_MAX_AGE_DAYS),
+  authCookieSecure: process.env.AUTH_COOKIE_SECURE === "true",
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGIN),
 };
 

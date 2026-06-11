@@ -4,15 +4,26 @@ import httpStatus from "../constants/httpStatus.js";
 import User from "../models/User.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import parseCookies from "../utils/cookies.js";
 
-const protect = asyncHandler(async (req, res, next) => {
+const getTokenFromRequest = (req) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.split(" ")[1];
+  }
+
+  const cookies = parseCookies(req.headers.cookie);
+  return cookies[env.authCookieName];
+};
+
+const protect = asyncHandler(async (req, res, next) => {
+  const token = getTokenFromRequest(req);
+
+  if (!token) {
     throw new ApiError(httpStatus.UNAUTHORIZED, "Not authorized, token missing");
   }
 
-  const token = authHeader.split(" ")[1];
   let decoded;
 
   try {
