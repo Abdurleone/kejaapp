@@ -12,6 +12,10 @@ describe("env config", () => {
     assert.equal(env.jwtExpiresIn, "7d");
   });
 
+  it("uses the default bcrypt salt rounds", () => {
+    assert.equal(env.bcryptSaltRounds, 12);
+  });
+
   it("uses default Mongo connection retry settings", () => {
     assert.equal(env.mongoConnectRetries, 5);
     assert.equal(env.mongoConnectRetryDelayMs, 3000);

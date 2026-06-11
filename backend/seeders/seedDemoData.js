@@ -73,6 +73,8 @@ const properties = [
     bathrooms: 2,
     amenities: ["parking", "wifi", "security"],
     listedBy: "agency",
+    viewingType: "scheduled",
+    viewingInstructions: "Viewing available by appointment after agency confirmation.",
   },
   {
     title: "Cozy Westlands Studio",
@@ -92,6 +94,8 @@ const properties = [
     bathrooms: 1,
     amenities: ["security", "water", "backup power"],
     listedBy: "agency",
+    viewingType: "open",
+    viewingInstructions: "Open viewing on weekdays from 10 AM to 4 PM. Call the agency on arrival.",
   },
   {
     title: "Spacious Nakuru Maisonette",
@@ -111,6 +115,8 @@ const properties = [
     bathrooms: 3,
     amenities: ["garden", "parking", "water storage"],
     listedBy: "owner",
+    viewingType: "scheduled",
+    viewingInstructions: "Weekend viewings only after landlord confirmation.",
   },
 ];
 

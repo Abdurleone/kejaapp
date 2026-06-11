@@ -6,12 +6,14 @@ import corsOptions from "./config/cors.js";
 import env from "./config/env.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import moverRoutes from "./routes/moverRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import viewingRoutes from "./routes/viewingRoutes.js";
 
 const app = express();
 
@@ -32,12 +34,14 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/agencies", agencyRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/movers", moverRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/viewings", viewingRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

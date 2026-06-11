@@ -89,6 +89,17 @@ const propertySchema = new mongoose.Schema(
       enum: ["owner", "agency"],
       default: "owner",
     },
+    viewingType: {
+      type: String,
+      enum: ["scheduled", "open"],
+      default: "scheduled",
+      index: true,
+    },
+    viewingInstructions: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
     isAvailable: {
       type: Boolean,
       default: true,

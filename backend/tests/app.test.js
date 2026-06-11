@@ -41,6 +41,28 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("rejects malformed bearer tokens for current user", async () => {
+    const response = await request("/api/auth/me", {
+      headers: {
+        Authorization: "Bearer not-a-token",
+      },
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token invalid");
+  });
+
+  it("rejects malformed auth cookies for current user", async () => {
+    const response = await request("/api/auth/me", {
+      headers: {
+        Cookie: "keja_token=not-a-token",
+      },
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token invalid");
+  });
+
   it("clears auth cookies on logout", async () => {
     const response = await request("/api/auth/logout", {
       method: "POST",
@@ -69,6 +91,44 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "minRent must be a number");
   });
 
+  it("calculates property costs without authentication", async () => {
+    const response = await request("/api/properties/costs/calculate", {
+      method: "POST",
+      body: JSON.stringify({
+        price: {
+          rent: 65000,
+          deposit: 65000,
+          agencyFee: 5000,
+        },
+      }),
+    });
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.body.data.costSummary, {
+      rent: 65000,
+      deposit: 65000,
+      agencyFee: 5000,
+      firstMonthTotal: 70000,
+      upfrontTotal: 135000,
+      recurringMonthlyTotal: 65000,
+    });
+  });
+
+  it("validates property cost calculation payloads", async () => {
+    const response = await request("/api/properties/costs/calculate", {
+      method: "POST",
+      body: JSON.stringify({
+        price: {
+          deposit: 65000,
+        },
+      }),
+    });
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, "Validation failed");
+    assert.deepEqual(response.body.errors, ["price.rent is required and must be a number"]);
+  });
+
   it("rejects invalid mover filters", async () => {
     const response = await request("/api/movers?minRating=great");
 
@@ -76,11 +136,59 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "minRating must be a number");
   });
 
+  it("rejects unsupported mover service types", async () => {
+    const response = await request("/api/movers?serviceType=teleport");
+
+    assert.equal(response.status, 400);
+    assert.match(response.body.message, /serviceType must be one of/);
+  });
+
+  it("rejects invalid mover max base price filters", async () => {
+    const response = await request("/api/movers?maxBasePrice=cheap");
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, "maxBasePrice must be a number");
+  });
+
   it("requires authentication for creating reviews", async () => {
     const response = await request("/api/reviews", {
       method: "POST",
       body: JSON.stringify({}),
     });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for creating viewing requests", async () => {
+    const response = await request("/api/viewings", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for listing my viewing requests", async () => {
+    const response = await request("/api/viewings");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for updating viewing request status", async () => {
+    const response = await request("/api/viewings/000000000000000000000000/status", {
+      method: "PUT",
+      body: JSON.stringify({ status: "approved" }),
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for listing property viewing requests", async () => {
+    const response = await request("/api/properties/000000000000000000000000/viewings");
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token missing");
@@ -115,6 +223,23 @@ describe("KejaApp API", () => {
 
   it("requires authentication for agency status", async () => {
     const response = await request("/api/agencies/status");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin agency verification list", async () => {
+    const response = await request("/api/admin/agencies/verifications");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
+  it("requires authentication for admin agency approval", async () => {
+    const response = await request("/api/admin/agencies/verifications/000000000000000000000000/approve", {
+      method: "PUT",
+      body: JSON.stringify({}),
+    });
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token missing");

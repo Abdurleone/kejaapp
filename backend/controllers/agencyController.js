@@ -19,7 +19,7 @@ const submitAgencyVerification = asyncHandler(async (req, res) => {
       rejectionReason: undefined,
     },
     {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
       setDefaultsOnInsert: true,
       upsert: true,

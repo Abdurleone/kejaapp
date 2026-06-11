@@ -80,6 +80,7 @@ const env = {
   ),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   jwtSecret: process.env.JWT_SECRET,
+  bcryptSaltRounds: parsePositiveInteger(process.env.BCRYPT_SALT_ROUNDS, 12, "BCRYPT_SALT_ROUNDS"),
   authCookieName: process.env.AUTH_COOKIE_NAME || "keja_token",
   authCookieMaxAge: parseCookieMaxAge(process.env.AUTH_COOKIE_MAX_AGE_DAYS),
   authCookieSecure: process.env.AUTH_COOKIE_SECURE === "true",
