@@ -376,6 +376,13 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("requires authentication for admin violation list", async () => {
+    const response = await request("/api/admin/violations");
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
   it("requires authentication for admin agency approval", async () => {
     const response = await request("/api/admin/agencies/verifications/000000000000000000000000/approve", {
       method: "PUT",

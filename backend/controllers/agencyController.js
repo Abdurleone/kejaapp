@@ -8,6 +8,12 @@ const submitAgencyVerification = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.FORBIDDEN, "Only agency accounts can request agency verification");
   }
 
+  const existingVerification = await AgencyVerification.findOne({ user: req.user._id });
+
+  if (existingVerification && ["pending", "approved"].includes(existingVerification.status)) {
+    throw new ApiError(httpStatus.CONFLICT, "Agency verification request is already active");
+  }
+
   const verification = await AgencyVerification.findOneAndUpdate(
     { user: req.user._id },
     {

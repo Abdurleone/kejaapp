@@ -6,6 +6,10 @@ import {
   attachCostSummary,
   calculatePropertyCosts,
 } from "../services/costService.js";
+import {
+  fingerprintPropertyImage,
+  removePropertyImageFingerprint,
+} from "../services/imageFingerprintService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -284,12 +288,22 @@ const addPropertyImage = asyncHandler(async (req, res) => {
     url: req.body.url,
     alt: req.body.alt,
   });
+  const image = property.images[property.images.length - 1];
 
   await property.save();
+  const imageReview = await fingerprintPropertyImage({
+    image,
+    property,
+    uploadedBy: req.user._id,
+  });
   await property.populate("owner", "name email role phone");
 
   res.status(httpStatus.CREATED).json({
     data: attachCostSummary(property),
+    imageReview: {
+      status: imageReview.fingerprint.status,
+      violation: imageReview.violation?._id || null,
+    },
   });
 });
 
@@ -309,6 +323,10 @@ const removePropertyImage = asyncHandler(async (req, res) => {
   }
 
   image.deleteOne();
+  await removePropertyImageFingerprint({
+    imageId: req.params.imageId,
+    propertyId: property._id,
+  });
   await property.save();
   await property.populate("owner", "name email role phone");
 

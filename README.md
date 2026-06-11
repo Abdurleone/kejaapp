@@ -77,6 +77,8 @@ Properties and pricing:
 - Rent, deposit, and agency fee fields.
 - Cost summary enrichment on property responses.
 - Protected image URL and alt text management for property galleries.
+- Property image fingerprinting for duplicate image detection.
+- Admin violation review for suspicious duplicate property images.
 - Listing-specific contact method, contact hours, and contact notes for landlords and agencies.
 - Public read-only cost calculator endpoint.
 - Filters for rent range, location text, listing type, viewing type, availability, text search, and radius search.
@@ -130,6 +132,11 @@ Notifications:
 - Protected notification listing.
 - Mark notification as read endpoint.
 - Event-triggered notifications for inquiries, reviews, viewings, and agency verification decisions.
+
+Trust and safety:
+- Property image fingerprint records for uploaded listing images.
+- Duplicate property image violation records when different owners reuse the same listing image.
+- Admin violation listing and review status updates.
 
 Movers:
 - Mover model.
@@ -392,6 +399,8 @@ Admin:
 GET    /api/admin/agencies/verifications
 PUT    /api/admin/agencies/verifications/:id/approve
 PUT    /api/admin/agencies/verifications/:id/reject
+GET    /api/admin/violations
+PUT    /api/admin/violations/:id/status
 ```
 
 Movers:
@@ -408,6 +417,7 @@ GET    /api/movers
 - Property lifecycle status and compatibility syncing with legacy availability flags.
 - GeoJSON coordinate validation and radius-based property filtering.
 - Property image URL and alt text management.
+- Property image fingerprinting and duplicate image violation creation.
 - Listing-specific owner and agency contact preferences.
 - Saved property list enrichment with property cost summaries.
 - Property inquiry and owner response workflow.
@@ -529,7 +539,29 @@ landlord@example.com
 mary.landlord@example.com
 agency@example.com
 urban.agency@example.com
+rejected.agency@example.com
 admin@example.com
+```
+
+Seeded agency verification records:
+
+```text
+agency@example.com -> pending
+urban.agency@example.com -> approved
+rejected.agency@example.com -> rejected
+```
+
+Seeded tenant workflow records:
+
+```text
+tenant@example.com -> open inquiry and pending scheduled viewing for Modern Kilimani Apartment
+grace.tenant@example.com -> responded inquiry for Spacious Nakuru Maisonette and approved open viewing for Cozy Westlands Studio
+```
+
+Seeded violation review fixture:
+
+```text
+Modern Kilimani Apartment and Draft Kileleshwa Duplex intentionally share one image URL, which creates an open duplicate-property-image violation for admin review.
 ```
 
 ## API Testing With Insomnia
