@@ -16,6 +16,7 @@ Frontend clients are planned for React Web and React Native.
 - Property image galleries.
 - Saved properties for tenants.
 - Advanced property search and filters.
+- Radius-based nearby property search.
 - Transparent rent, deposit, and agency fee calculations.
 - Property inquiries between tenants and property owners.
 - Viewing request flow between tenants and property owners.
@@ -75,7 +76,8 @@ Properties and pricing:
 - Cost summary enrichment on property responses.
 - Protected image URL and alt text management for property galleries.
 - Public read-only cost calculator endpoint.
-- Filters for rent range, location, listing type, availability, and text search.
+- Filters for rent range, location text, listing type, viewing type, availability, text search, and radius search.
+- GeoJSON coordinate support using `[longitude, latitude]` order.
 
 Saved properties:
 - Favorite model linked to users and properties.
@@ -156,6 +158,7 @@ As a tenant, I want to browse and filter available rental properties by location
 
 Acceptance criteria:
 - Given I am on the property list, when I filter by rent, location, type, or availability, then I only see matching properties.
+- Given I search near a latitude and longitude with a radius, then I only see properties with coordinates inside that area.
 - Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, reviews, and pricing.
 - Given a property has rent, deposit, or agency fees, when I view it, then I can see the total upfront cost and recurring monthly cost.
 
@@ -292,6 +295,7 @@ Properties:
 
 ```text
 GET    /api/properties
+GET    /api/properties?lat=-1.2921&lng=36.782&radiusKm=5
 POST   /api/properties
 GET    /api/properties/:id
 PUT    /api/properties/:id
@@ -367,6 +371,7 @@ GET    /api/movers
 - Cost calculation for rent, deposit, and agency fees.
 - Account profile update and password change workflow.
 - Property response enrichment with first-month, upfront, and recurring monthly totals.
+- GeoJSON coordinate validation and radius-based property filtering.
 - Property image URL and alt text management.
 - Saved property list enrichment with property cost summaries.
 - Property inquiry and owner response workflow.
