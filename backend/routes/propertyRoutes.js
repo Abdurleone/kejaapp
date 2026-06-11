@@ -1,35 +1,39 @@
 import express from "express";
+import {
+  createProperty,
+  deleteProperty,
+  getProperty,
+  listProperties,
+  updateProperty,
+} from "../controllers/propertyController.js";
+import { authorize, protect } from "../middlewares/authMiddleware.js";
+import validateRequest from "../middlewares/validateRequest.js";
+import { createPropertySchema, updatePropertySchema } from "../validators/propertyValidators.js";
+import { listPropertyReviews } from "../controllers/reviewController.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.status(501).json({
-    message: "List properties endpoint is not implemented yet",
-  });
-});
+router
+  .route("/")
+  .get(listProperties)
+  .post(
+    protect,
+    authorize("landlord", "agency", "admin"),
+    validateRequest(createPropertySchema),
+    createProperty
+  );
 
-router.post("/", (req, res) => {
-  res.status(501).json({
-    message: "Create property endpoint is not implemented yet",
-  });
-});
+router.get("/:id/reviews", listPropertyReviews);
 
-router.get("/:id", (req, res) => {
-  res.status(501).json({
-    message: "Get property endpoint is not implemented yet",
-  });
-});
-
-router.put("/:id", (req, res) => {
-  res.status(501).json({
-    message: "Update property endpoint is not implemented yet",
-  });
-});
-
-router.delete("/:id", (req, res) => {
-  res.status(501).json({
-    message: "Delete property endpoint is not implemented yet",
-  });
-});
+router
+  .route("/:id")
+  .get(getProperty)
+  .put(
+    protect,
+    authorize("landlord", "agency", "admin"),
+    validateRequest(updatePropertySchema),
+    updateProperty
+  )
+  .delete(protect, authorize("landlord", "agency", "admin"), deleteProperty);
 
 export default router;
