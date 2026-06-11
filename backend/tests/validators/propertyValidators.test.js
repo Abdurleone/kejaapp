@@ -62,4 +62,37 @@ describe("propertyValidators", () => {
 
     assert.equal(message, "alt must be 200 characters or fewer");
   });
+
+  it("accepts valid GeoJSON property coordinates", () => {
+    const message = createPropertySchema.location.validate({
+      coordinates: {
+        type: "Point",
+        coordinates: [36.782, -1.2921],
+      },
+    });
+
+    assert.equal(message, null);
+  });
+
+  it("rejects invalid GeoJSON coordinate types", () => {
+    const message = createPropertySchema.location.validate({
+      coordinates: {
+        type: "LineString",
+        coordinates: [36.782, -1.2921],
+      },
+    });
+
+    assert.equal(message, "location.coordinates.type must be Point");
+  });
+
+  it("rejects invalid GeoJSON coordinate ranges", () => {
+    const message = createPropertySchema.location.validate({
+      coordinates: {
+        type: "Point",
+        coordinates: [200, -1.2921],
+      },
+    });
+
+    assert.equal(message, "location.coordinates.coordinates[0] must be a longitude between -180 and 180");
+  });
 });

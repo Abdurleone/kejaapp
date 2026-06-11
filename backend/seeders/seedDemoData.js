@@ -68,6 +68,10 @@ const properties = [
       county: "Nairobi",
       town: "Nairobi",
       area: "Kilimani",
+      coordinates: {
+        type: "Point",
+        coordinates: [36.782, -1.2921],
+      },
     },
     bedrooms: 2,
     bathrooms: 2,
@@ -89,6 +93,10 @@ const properties = [
       county: "Nairobi",
       town: "Nairobi",
       area: "Westlands",
+      coordinates: {
+        type: "Point",
+        coordinates: [36.8085, -1.2676],
+      },
     },
     bedrooms: 0,
     bathrooms: 1,
@@ -110,6 +118,10 @@ const properties = [
       county: "Nakuru",
       town: "Nakuru",
       area: "Milimani",
+      coordinates: {
+        type: "Point",
+        coordinates: [36.08, -0.3031],
+      },
     },
     bedrooms: 4,
     bathrooms: 3,

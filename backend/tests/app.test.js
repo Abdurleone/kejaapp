@@ -134,6 +134,27 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "minRent must be a number");
   });
 
+  it("requires both lat and lng for property radius searches", async () => {
+    const response = await request("/api/properties?lat=-1.2921");
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, "lat and lng are required for radius search");
+  });
+
+  it("rejects invalid property latitude filters", async () => {
+    const response = await request("/api/properties?lat=100&lng=36.782");
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, "lat must be between -90 and 90");
+  });
+
+  it("rejects invalid property radius filters", async () => {
+    const response = await request("/api/properties?lat=-1.2921&lng=36.782&radiusKm=0");
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.message, "radiusKm must be greater than 0 and less than or equal to 100");
+  });
+
   it("calculates property costs without authentication", async () => {
     const response = await request("/api/properties/costs/calculate", {
       method: "POST",

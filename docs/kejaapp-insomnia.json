@@ -191,6 +191,17 @@
       "authentication": {}
     },
     {
+      "_id": "req_properties_nearby",
+      "_type": "request",
+      "parentId": "fld_properties",
+      "name": "List Nearby Properties",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/properties?lat=-1.2921&lng=36.782&radiusKm=5&page=1&limit=20",
+      "headers": [],
+      "body": {},
+      "authentication": {}
+    },
+    {
       "_id": "req_properties_calculate_costs",
       "_type": "request",
       "parentId": "fld_properties",
@@ -224,7 +235,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"title\": \"Modern Kilimani Apartment\",\n  \"description\": \"Bright apartment near shops and transit.\",\n  \"type\": \"apartment\",\n  \"price\": {\n    \"rent\": 65000,\n    \"deposit\": 65000,\n    \"agencyFee\": 5000\n  },\n  \"location\": {\n    \"county\": \"Nairobi\",\n    \"town\": \"Nairobi\",\n    \"area\": \"Kilimani\"\n  },\n  \"bedrooms\": 2,\n  \"bathrooms\": 2,\n  \"amenities\": [\"parking\", \"wifi\", \"security\"],\n  \"listedBy\": \"agency\",\n  \"viewingType\": \"scheduled\",\n  \"viewingInstructions\": \"Viewing available by appointment after agency confirmation.\"\n}"
+        "text": "{\n  \"title\": \"Modern Kilimani Apartment\",\n  \"description\": \"Bright apartment near shops and transit.\",\n  \"type\": \"apartment\",\n  \"price\": {\n    \"rent\": 65000,\n    \"deposit\": 65000,\n    \"agencyFee\": 5000\n  },\n  \"location\": {\n    \"county\": \"Nairobi\",\n    \"town\": \"Nairobi\",\n    \"area\": \"Kilimani\",\n    \"coordinates\": {\n      \"type\": \"Point\",\n      \"coordinates\": [36.782, -1.2921]\n    }\n  },\n  \"bedrooms\": 2,\n  \"bathrooms\": 2,\n  \"amenities\": [\"parking\", \"wifi\", \"security\"],\n  \"listedBy\": \"agency\",\n  \"viewingType\": \"scheduled\",\n  \"viewingInstructions\": \"Viewing available by appointment after agency confirmation.\"\n}"
       },
       "authentication": {
         "type": "bearer",

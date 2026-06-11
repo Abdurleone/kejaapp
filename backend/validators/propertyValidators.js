@@ -2,6 +2,10 @@ const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio",
 const listedByTypes = ["owner", "agency"];
 const viewingTypes = ["scheduled", "open"];
 const imageUrlPattern = /^https?:\/\/\S+$/i;
+const coordinateType = "Point";
+
+const isValidLongitude = (value) => typeof value === "number" && value >= -180 && value <= 180;
+const isValidLatitude = (value) => typeof value === "number" && value >= -90 && value <= 90;
 
 const validateImageAlt = (value) => {
   if (value.length > 200) {
@@ -47,6 +51,32 @@ const validatePartialPrice = (value) => {
   return null;
 };
 
+const validateLocation = (value) => {
+  if (!value.coordinates) {
+    return null;
+  }
+
+  if (value.coordinates.type !== coordinateType) {
+    return "location.coordinates.type must be Point";
+  }
+
+  if (!Array.isArray(value.coordinates.coordinates) || value.coordinates.coordinates.length !== 2) {
+    return "location.coordinates.coordinates must be [longitude, latitude]";
+  }
+
+  const [longitude, latitude] = value.coordinates.coordinates;
+
+  if (!isValidLongitude(longitude)) {
+    return "location.coordinates.coordinates[0] must be a longitude between -180 and 180";
+  }
+
+  if (!isValidLatitude(latitude)) {
+    return "location.coordinates.coordinates[1] must be a latitude between -90 and 90";
+  }
+
+  return null;
+};
+
 const createPropertySchema = {
   title: {
     required: true,
@@ -67,6 +97,7 @@ const createPropertySchema = {
   },
   location: {
     type: "object",
+    validate: validateLocation,
   },
   bedrooms: {
     type: "number",
@@ -115,6 +146,7 @@ const updatePropertySchema = {
   },
   location: {
     type: "object",
+    validate: validateLocation,
   },
   bedrooms: {
     type: "number",

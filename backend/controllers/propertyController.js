@@ -8,6 +8,18 @@ import {
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
+const earthRadiusKm = 6378.1;
+
+const parseGeoQueryNumber = (value, field) => {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `${field} must be a number`);
+  }
+
+  return number;
+};
+
 const buildPropertyFilters = (query) => {
   const filters = {};
 
@@ -37,6 +49,34 @@ const buildPropertyFilters = (query) => {
 
   if (query.area) {
     filters["location.area"] = new RegExp(query.area, "i");
+  }
+
+  if (query.lat !== undefined || query.lng !== undefined || query.radiusKm !== undefined) {
+    if (query.lat === undefined || query.lng === undefined) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "lat and lng are required for radius search");
+    }
+
+    const latitude = parseGeoQueryNumber(query.lat, "lat");
+    const longitude = parseGeoQueryNumber(query.lng, "lng");
+    const radiusKm = query.radiusKm === undefined ? 5 : parseGeoQueryNumber(query.radiusKm, "radiusKm");
+
+    if (latitude < -90 || latitude > 90) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "lat must be between -90 and 90");
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "lng must be between -180 and 180");
+    }
+
+    if (radiusKm <= 0 || radiusKm > 100) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "radiusKm must be greater than 0 and less than or equal to 100");
+    }
+
+    filters["location.coordinates"] = {
+      $geoWithin: {
+        $centerSphere: [[longitude, latitude], radiusKm / earthRadiusKm],
+      },
+    };
   }
 
   if (query.minRent || query.maxRent) {
