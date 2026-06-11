@@ -39,4 +39,31 @@ const loginUserSchema = {
   },
 };
 
-export { loginUserSchema, registerUserSchema };
+const updateProfileSchema = {
+  name: {
+    type: "string",
+    minLength: 2,
+  },
+  phone: {
+    type: "string",
+  },
+};
+
+const changePasswordSchema = {
+  currentPassword: {
+    required: true,
+    type: "string",
+  },
+  newPassword: {
+    required: true,
+    type: "string",
+    minLength: 8,
+  },
+};
+
+export {
+  changePasswordSchema,
+  loginUserSchema,
+  registerUserSchema,
+  updateProfileSchema,
+};

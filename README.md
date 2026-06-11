@@ -4,13 +4,14 @@ KejaApp is a location-first rental platform for tenants, landlords, agencies, ad
 
 ## Current Status
 
-The backend API is under active MVP development. It currently includes authentication, property management, property image management, saved properties, transparent pricing, property inquiries, viewing requests, reviews, agency verification, admin moderation, notifications, mover discovery, seed data, tests, and an Insomnia collection for manual API testing.
+The backend API is under active MVP development. It currently includes authentication, account management, property management, property image management, saved properties, transparent pricing, property inquiries, viewing requests, reviews, agency verification, admin moderation, notifications, mover discovery, seed data, tests, and an Insomnia collection for manual API testing.
 
 Frontend clients are planned for React Web and React Native.
 
 ## Core Features
 
 - Map-based and location-first property discovery.
+- Account profile and password management.
 - Property listings for landlords and agencies.
 - Property image galleries.
 - Saved properties for tenants.
@@ -61,6 +62,8 @@ Authentication and authorization:
 - Bearer token support for API clients.
 - HTTP-only auth cookie support.
 - Logout endpoint that clears the auth cookie.
+- Current-user lookup and profile update endpoints.
+- Password change endpoint with current-password verification.
 - Password hashing and comparison utilities.
 - Role-based authorization for tenant/user, landlord, agency, and admin workflows.
 
@@ -136,6 +139,16 @@ Developer workflow:
 - Test coverage for app routes, validators, middleware, models, services, password hashing, cookies, and admin workflows.
 
 ## User Stories
+
+### Account Management
+
+As a user, I want to manage my profile and password, so that my account information stays current and secure.
+
+Acceptance criteria:
+- Given I am logged in, when I update my name or phone number, then my profile is saved.
+- Given I try to update protected fields like email or role through the profile endpoint, then those fields are ignored.
+- Given I change my password with the correct current password, then the new password is saved securely.
+- Given I change my password with the wrong current password, then the API rejects the request.
 
 ### Tenant Property Discovery
 
@@ -271,6 +284,8 @@ POST   /api/auth/register
 POST   /api/auth/login
 POST   /api/auth/logout
 GET    /api/auth/me
+PUT    /api/auth/me
+PUT    /api/auth/password
 ```
 
 Properties:
@@ -350,6 +365,7 @@ GET    /api/movers
 ## Business Logic
 
 - Cost calculation for rent, deposit, and agency fees.
+- Account profile update and password change workflow.
 - Property response enrichment with first-month, upfront, and recurring monthly totals.
 - Property image URL and alt text management.
 - Saved property list enrichment with property cost summaries.
@@ -461,7 +477,7 @@ npm run seed
 
 Completed:
 - Backend POC.
-- Auth, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, tests, seeding, and Insomnia collection.
+- Auth, account management, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, tests, seeding, and Insomnia collection.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
