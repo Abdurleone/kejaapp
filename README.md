@@ -173,12 +173,12 @@ The first web frontend is in `frontend/` and runs without a build step.
 
 Included flows:
 - Sign-in landing section plus anonymous listing search before authentication.
-- Anonymous property discovery with filters.
+- Anonymous property discovery with filters and gated listing-detail actions.
 - Adaptive property cards, insights, sorting, and loading states.
 - Login with demo account shortcuts.
 - Role-aware dashboard summary.
 - Role-aware navigation and actions so tenants, owners, agencies, and admins only see the tools they can use.
-- Polished responsive web UI with a standalone image-led splash landing page, anonymous search entry, top taskbar sign-in and sign-up by user category, richer listing cards, owner review responses, admin review visibility, and light/dark plus Kenyan flag theme toggles.
+- Polished responsive web UI with a standalone image-led splash landing page, anonymous search entry, top taskbar sign-in and sign-up by user category, richer listing cards, tenant listing details, owner review responses, admin review visibility, and light/dark plus Kenyan flag theme toggles.
 - Saved property actions.
 - Inquiry and viewing request actions.
 - Owner property creation and listing management.
@@ -187,18 +187,18 @@ Included flows:
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
-- Anonymous visitors can search and view available listings.
-- Tenants can search homes, save listings, send inquiries, and request viewings after signing in.
+- Anonymous visitors can search and compare available listings without leaving the search page.
+- Tenants can search homes, open listing details, view signed-in contact context, save listings, send inquiries, and request viewings after signing in.
 - Landlords and agencies can upload, create, and manage only their own listings.
 - Admins can manage all property listings and access admin moderation.
-- Visitors must sign in or sign up before contacting landlords or agencies.
+- Visitors must sign in or sign up before opening listing details, contacting landlords or agencies, saving homes, or requesting viewings.
 - Tenants do not see or submit the property creation form.
 - Non-admin users do not see admin moderation.
 
 Responsive behavior:
 - The landing page adapts from desktop split layout to a single-column phone layout.
 - Header, connection controls, filters, dashboard panels, and workspace tabs reflow across desktop, tablet, and phone widths.
-- Property grids use container-safe card sizing so listings do not overflow narrow screens.
+- Property grids, listing actions, and detail dialogs use container-safe sizing so listings do not overflow narrow screens.
 - Owner tools and admin moderation tables adapt for smaller screens.
 - Dialogs, toast messages, form controls, and action buttons include narrow-screen overflow protection.
 

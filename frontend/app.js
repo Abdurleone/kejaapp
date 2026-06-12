@@ -196,6 +196,8 @@ export const canManageListings = (role) => ["landlord", "agency", "admin"].inclu
 
 export const canSearchListings = (role) => !role || role === "tenant";
 
+export const canOpenPropertyDetails = (role) => role === "tenant";
+
 export const shouldShowSplash = ({ isSignedIn, path = "/" }) => !isSignedIn && String(path || "/").replace(/\/$/, "") === "";
 
 const viewPaths = {
@@ -217,6 +219,9 @@ export const resolveViewFromPath = (path) => {
 };
 
 export const getViewPath = (view) => viewPaths[view] || viewPaths.discover;
+
+export const findPropertyById = (collections, propertyId) =>
+  collections.flat().find((property) => String(property?._id || property?.id) === String(propertyId));
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
@@ -440,12 +445,14 @@ const renderPropertyCard = (property, options = {}) => {
     ? `<button class="secondary-button" data-status="${id}" data-next-status="taken">Mark taken</button>`
     : canUseTenantPropertyActions(role)
       ? `
+      <button class="secondary-button" data-detail="${id}">Details</button>
       <button class="secondary-button" data-save="${id}">Save</button>
       <button class="secondary-button" data-inquire="${id}">Inquire</button>
       <button class="secondary-button" data-viewing="${id}">Viewing</button>
     `
       : !role
         ? `
+      <button class="secondary-button" data-auth-required="details">Details</button>
       <button class="secondary-button" data-auth-required="save">Save</button>
       <button class="secondary-button" data-auth-required="inquire">Inquire</button>
       <button class="secondary-button" data-auth-required="viewing">Viewing</button>
@@ -637,6 +644,89 @@ const openActionDialog = (title, html) => {
   qs("#actionDialog").showModal();
 };
 
+const renderPropertyDetail = (property, reviews = []) => {
+  const location = [property.location?.area, property.location?.town, property.location?.county]
+    .filter(Boolean)
+    .join(", ");
+  const imageUrl = getPropertyImage(property, storage.baseUrl);
+  const amenities = property.amenities || [];
+  const contact = property.contact || {};
+  const contactRows = [
+    contact.phone ? ["Phone", contact.phone] : null,
+    contact.whatsapp ? ["WhatsApp", contact.whatsapp] : null,
+    contact.email ? ["Email", contact.email] : null,
+    contact.availableHours ? ["Hours", contact.availableHours] : null,
+    contact.notes ? ["Notes", contact.notes] : null,
+  ].filter(Boolean);
+
+  return `
+    <div class="property-detail">
+      <img src="${imageUrl}" alt="${property.images?.[0]?.alt || property.title}" />
+      <div class="property-detail-body">
+        <div class="stack">
+          <span class="pill">${formatStatusLabel(property.viewingType || "scheduled")} viewing</span>
+          <h3>${property.title}</h3>
+          <p class="muted-copy">${location || "Location pending"}</p>
+        </div>
+        <div class="detail-grid">
+          <span><strong>${formatKes(property.price?.rent)}</strong> rent</span>
+          <span><strong>${formatKes(property.price?.deposit)}</strong> deposit</span>
+          <span><strong>${property.bedrooms || 0}</strong> bedrooms</span>
+          <span><strong>${property.bathrooms || 0}</strong> bathrooms</span>
+        </div>
+        ${propertyCostText(property)}
+        <p>${property.description || "No description provided yet."}</p>
+        ${
+          amenities.length
+            ? `<div class="amenity-row">${amenities.map((amenity) => `<span>${formatStatusLabel(amenity)}</span>`).join("")}</div>`
+            : ""
+        }
+        <section class="detail-section">
+          <h4>Contact after sign-in</h4>
+          ${
+            contactRows.length
+              ? contactRows.map(([label, value]) => `<p><strong>${label}:</strong> ${value}</p>`).join("")
+              : `<p class="muted-copy">Use an inquiry or viewing request so the owner can respond from the app.</p>`
+          }
+        </section>
+        <section class="detail-section">
+          <h4>Reviews</h4>
+          ${
+            reviews.length
+              ? reviews
+                  .slice(0, 3)
+                  .map(
+                    (review) => `
+                      <p><strong>${Number(review.rating || 0)}/5</strong> ${review.comment || "No comment provided."}</p>
+                    `
+                  )
+                  .join("")
+              : `<p class="muted-copy">No reviews yet.</p>`
+          }
+        </section>
+      </div>
+    </div>
+  `;
+};
+
+const openPropertyDetails = async (propertyId) => {
+  let property = findPropertyById(
+    [
+      state.properties,
+      state.favorites.map((favorite) => favorite.property).filter(Boolean),
+    ],
+    propertyId
+  );
+
+  if (!property) {
+    const body = await apiRequest(`/api/properties/${propertyId}`);
+    property = body.data;
+  }
+
+  const reviewsBody = await apiRequest(`/api/properties/${propertyId}/reviews`).catch(() => ({ data: [] }));
+  openActionDialog(property.title || "Property details", renderPropertyDetail(property, reviewsBody.data || []));
+};
+
 const respondToReview = async (reviewId) => {
   const message = qs("#reviewResponseMessage").value;
   await apiRequest(`/api/reviews/${reviewId}/response`, {
@@ -759,6 +849,7 @@ const createViewing = async (propertyId) => {
 
 const bindPropertyActions = (event) => {
   const authAction = event.target.closest("[data-auth-required]")?.dataset.authRequired;
+  const detailId = event.target.closest("[data-detail]")?.dataset.detail;
   const saveId = event.target.closest("[data-save]")?.dataset.save;
   const inquiryId = event.target.closest("[data-inquire]")?.dataset.inquire;
   const viewingId = event.target.closest("[data-viewing]")?.dataset.viewing;
@@ -768,6 +859,16 @@ const bindPropertyActions = (event) => {
     showToast("Sign in or sign up to contact this property owner");
     promptTaskbarAuth();
     return;
+  }
+
+  if (detailId) {
+    if (!canOpenPropertyDetails(storage.user?.role)) {
+      showToast("Sign in as a tenant to open listing details");
+      promptTaskbarAuth();
+      return;
+    }
+
+    openPropertyDetails(detailId).catch((error) => showToast(error.message));
   }
 
   if (saveId) {
