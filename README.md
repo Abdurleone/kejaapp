@@ -169,17 +169,45 @@ Developer workflow:
 
 ## Implemented Frontend
 
-The first web frontend is in `frontend/` and runs without a build step.
+The web frontend in `frontend/` is a React 18 + Vite single-page app (SPA) with manual routing and real backend API integration.
+
+Frontend architecture:
+- React components in `src/pages/` (LandingPage, DiscoverPage, SavedPage, WorkspacePage, AdminPage).
+- Manual `window.history.pushState` routing without react-router.
+- Page-based layout with tabbed navigation for role-aware view access.
+- Global `app-utils.js` for API helpers, formatting, and view logic.
+- Theme persistence (Kenya flag vs. default) and light/dark mode toggle.
+
+Authentication and session:
+- Sign-in/sign-up modal overlay in the header with login and register tabs.
+- Role selection (tenant, landlord, agency) during registration.
+- Backend JWT bearer token stored in localStorage and sent with all API requests.
+- Backend cookie-based refresh tokens for session management.
+- Sign-out clears token and redirects to discover page.
+- Current user fetched on app initialization and after login.
+- Protected routes check user role and display access-denied messages for unauthorized views.
+
+Frontend API helpers in `app-utils.js`:
+- `fetchProperties({ page, limit, ...filters })` → `GET /api/properties`
+- `fetchCurrentUser()` → `GET /api/auth/me`
+- `fetchFavorites()` → `GET /api/favorites`
+- `saveFavorite(propertyId)` → `POST /api/favorites/:propertyId`
+- `removeFavorite(propertyId)` → `DELETE /api/favorites/:propertyId`
+- `loginUser({ email, password })` → `POST /api/auth/login`
+- `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
+- `logoutUser()` → `POST /api/auth/logout`
+- All requests include Authorization bearer token if signed in.
 
 Included flows:
 - Sign-in landing section plus anonymous listing search before authentication.
 - Anonymous property discovery with filters and gated listing-detail actions.
 - Adaptive property cards, insights, sorting, and loading states.
-- Login with demo account shortcuts.
+- Login and registration with form validation.
 - Role-aware dashboard summary.
 - Role-aware navigation and actions so tenants, owners, agencies, and admins only see the tools they can use.
 - Polished responsive web UI with a standalone image-led splash landing page, anonymous search entry, top taskbar sign-in and sign-up by user category, richer listing cards, tenant listing details, owner review responses, admin review visibility, and light/dark plus Kenyan flag theme toggles.
-- Saved property actions.
+- Saved property actions with favorite/unfavorite buttons.
+- Saved properties list loading from real `/api/favorites` endpoint.
 - Inquiry and viewing request actions.
 - Owner property creation and listing management.
 - Admin user list and account status moderation.
@@ -191,7 +219,7 @@ Frontend access model:
 - Tenants can search homes, open listing details, view signed-in contact context, save listings, send inquiries, and request viewings after signing in.
 - Landlords and agencies can upload, create, and manage only their own listings.
 - Admins can manage all property listings and access admin moderation.
-- Visitors must sign in or sign up before opening listing details, contacting landlords or agencies, saving homes, or requesting viewings.
+- Visitors must sign in or sign up before accessing saved listings, saving homes, or requesting viewings.
 - Tenants do not see or submit the property creation form.
 - Non-admin users do not see admin moderation.
 
@@ -208,6 +236,7 @@ Backend connection:
 - Developers can still override the API base URL through the existing `keja_base_url` localStorage key if needed.
 - Browser requests include bearer tokens and cookies, so the app works with API tokens and HTTP-only auth cookies.
 - In development, the backend accepts local frontend origins such as `http://localhost:5173` and fallback ports like `http://localhost:5174`.
+- All API requests are made via `apiFetch()` helper which handles token injection and error responses.
 
 Run the frontend:
 
@@ -221,28 +250,10 @@ Or from inside `frontend/`:
 npm run dev
 ```
 
-If port `5173` is busy, the frontend dev server automatically uses the next open port and prints the URL.
-
-Then open:
-
-```text
-http://localhost:5173
-```
-
-Direct frontend paths:
-
-```text
-/          -> Splash landing page
-/search    -> Anonymous Discover search
-/saved     -> Saved properties
-/owner     -> Owner tools
-/admin     -> Admin moderation
-```
-
-Keep the backend running separately:
+Build the frontend for production:
 
 ```bash
-npm run dev
+cd frontend && npm run build
 ```
 
 Run frontend tests:
@@ -251,7 +262,78 @@ Run frontend tests:
 npm run test:frontend
 ```
 
+## Testing
+
+### Frontend tests
+
+Frontend tests cover:
+- API helper utilities (apiFetch, token management, URL building)
+- Frontend utilities (formatting, role checks, view routing, property filters)
+- Page component integration (DiscoverPage, SavedPage, App auth flow)
+- Responsive CSS guardrails
+- **End-to-end auth flow**: register, login, save/remove favorites, error handling
+
+Run frontend tests:
+
+```bash
+npm run test:frontend
+```
+
+### Backend tests
+
+Backend tests cover:
+- Route handlers and middleware
+- Controllers (auth, properties, favorites, inquiries, viewing requests, reviews)
+- Models and data validation
+- Services (notifications, cost calculations, image fingerprints)
+- Password hashing and token utilities
+- Admin moderation workflows
+- Agency verification workflows
+
+Run backend tests:
+
+```bash
+npm run test:backend
+```
+
+### All tests
+
+Run all frontend and backend tests:
+
+```bash
+npm test
+```
+
+### Integration testing
+
+For integration tests with a real MongoDB instance, set the `TEST_MONGODB_URI` environment variable:
+
+```bash
+TEST_MONGODB_URI="mongodb+srv://..." npm run test:backend
+```
+
+## Authentication
+
+The app implements complete JWT-based authentication with role-based access control.
+
+**See [AUTHENTICATION_GUIDE.md](./AUTHENTICATION_GUIDE.md) for detailed auth documentation including:**
+- Frontend auth modal and form submission flow
+- API helper functions (register, login, logout, fetchCurrentUser)
+- Token management and bearer token injection
+- Backend auth endpoints and role validation
+- Protected routes and access guards
+- Integration test examples
+- Security considerations
+
+**Quick Reference:**
+- Register: Collect name, email, password, phone, and role (tenant/landlord/agency)
+- Login: Enter email and password
+- Protected API calls: Automatically inject `Authorization: Bearer <token>` header
+- Role-based views: Navigation filters and page guards based on user role
+- Logout: Clear token from localStorage and reset auth state
+
 ## User Stories
+
 
 ### Account Management
 
@@ -598,8 +680,6 @@ backend/
 
 frontend/
 ├── tests/
-├── app.js
-├── dev-server.js
 ├── index.html
 ├── package.json
 └── styles.css
