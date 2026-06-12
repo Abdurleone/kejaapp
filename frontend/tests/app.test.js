@@ -27,7 +27,7 @@ import {
   statusTone,
   summarizeReview,
   summarizeProperties,
-} from "../app.js";
+} from "../app-utils.js";
 
 describe("frontend app utilities", () => {
   it("formats Kenyan shilling amounts", () => {
