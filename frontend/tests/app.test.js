@@ -4,6 +4,7 @@ import {
   buildQueryString,
   canAccessView,
   canManageListings,
+  canOpenPropertyDetails,
   canRegisterRole,
   canSearchListings,
   canUseTenantPropertyActions,
@@ -12,6 +13,7 @@ import {
   formatStatusLabel,
   formatKes,
   formatRatingSummary,
+  findPropertyById,
   getPropertyImage,
   getViewPath,
   getDefaultViewForRole,
@@ -140,8 +142,21 @@ describe("frontend app utilities", () => {
     assert.equal(canSearchListings("agency"), false);
     assert.equal(canUseTenantPropertyActions("tenant"), true);
     assert.equal(canUseTenantPropertyActions("landlord"), false);
+    assert.equal(canOpenPropertyDetails(undefined), false);
+    assert.equal(canOpenPropertyDetails("tenant"), true);
+    assert.equal(canOpenPropertyDetails("landlord"), false);
     assert.equal(canManageListings("tenant"), false);
     assert.equal(canManageListings("agency"), true);
+  });
+
+  it("finds properties across cached frontend collections", () => {
+    const property = { _id: "p2", title: "Found home" };
+
+    assert.equal(
+      findPropertyById([[{ _id: "p1" }], [property]], "p2"),
+      property
+    );
+    assert.equal(findPropertyById([[{ _id: "p1" }]], "missing"), undefined);
   });
 
   it("summarizes property collections", () => {
