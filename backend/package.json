@@ -2,7 +2,10 @@
   "name": "kejaapp-backend",
   "version": "1.0.0",
   "description": "Keja App",
-  "keywords": ["Keja", "App"],
+  "keywords": [
+    "Keja",
+    "App"
+  ],
   "homepage": "https://github.com/abdurleone/kejaapp#readme",
   "bugs": {
     "url": "https://github.com/abdurleone/kejaapp/issues"
