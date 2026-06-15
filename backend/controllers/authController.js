@@ -8,6 +8,7 @@ import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
 
+// --- EXISTING UTILITIES ---
 const getCookieOptions = () => ({
   httpOnly: true,
   maxAge: env.authCookieMaxAge,
@@ -67,6 +68,53 @@ const sendAuthResponse = async (req, res, statusCode, user) => {
     expiresIn: env.jwtExpiresIn,
   });
 };
+
+// --- NEW FCM TOKEN REGISTRATION ---
+/**
+ * @desc    Register or update an FCM token for push notifications (React Native)
+ * @route   POST /api/auth/fcm-token
+ * @access  Private
+ */
+const registerFcmToken = asyncHandler(async (req, res) => {
+  const { token, platform } = req.body;
+
+  if (!token) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "FCM Token is required");
+  }
+
+  const devicePlatform = platform || "android";
+
+  // Atomically add token if it doesn't exist, otherwise update lastSeen
+  const user = await User.findOneAndUpdate(
+    { 
+      _id: req.user._id,
+      "fcmTokens.token": { $ne: token } 
+    },
+    {
+      $addToSet: { 
+        fcmTokens: { 
+          token, 
+          platform: devicePlatform, 
+          lastSeen: new Date() 
+        } 
+      }
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    await User.updateOne(
+      { _id: req.user._id, "fcmTokens.token": token },
+      { $set: { "fcmTokens.$.lastSeen": new Date() } }
+    );
+  }
+
+  res.status(httpStatus.OK).json({
+    message: "Device token registered successfully",
+  });
+});
+
+// --- EXISTING AUTH FLOWS ---
 
 const registerUser = asyncHandler(async (req, res) => {
   const { email, name, password, phone, role } = req.body;
@@ -225,4 +273,5 @@ export {
   refreshAccessToken,
   registerUser,
   updateCurrentUser,
+  registerFcmToken, // Exported for use in authRoutes.js
 };
