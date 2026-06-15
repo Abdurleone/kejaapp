@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { describe, it, mock } from "node:test";
+import { describe, it, mock } from "../helpers/nodeTestCompat.js";
 import Notification from "../../models/Notification.js";
 import {
   notifyAgencyVerificationDecision,

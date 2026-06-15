@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it, before, after } from "node:test";
+import { describe, it, before, after } from "./helpers/nodeTestCompat.js";
 
 /**
  * End-to-end auth flow integration test
@@ -58,7 +58,9 @@ const apiFetch = async (path, options = {}) => {
   return payload;
 };
 
-describe("Authentication flow end-to-end", () => {
+const shouldRunAuthE2E = process.env.RUN_AUTH_E2E === "true";
+
+describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
   it("registers a new user with tenant role", async () => {
     const response = await apiFetch("/api/auth/register", {
       method: "POST",

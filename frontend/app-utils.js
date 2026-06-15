@@ -99,6 +99,12 @@ export const logoutUser = async () => {
   setAuthToken("");
 };
 
+export const deleteCurrentAccount = async () => {
+  const response = await apiFetch("/api/auth/me", { method: "DELETE" });
+  setAuthToken("");
+  return response;
+};
+
 export const registerUser = async (userData) => {
   const response = await apiFetch("/api/auth/register", {
     method: "POST",
@@ -228,13 +234,17 @@ export const getDemoEmailForRole = (role) => demoAccounts[role] || demoAccounts.
 export const canRegisterRole = (role) => ["tenant", "landlord", "agency"].includes(role);
 
 const roleViewAccess = {
-  tenant: ["discover", "saved"],
-  landlord: ["owner"],
-  agency: ["owner"],
-  admin: ["admin", "owner"],
+  tenant: ["discover", "saved", "account"],
+  landlord: ["owner", "account"],
+  agency: ["owner", "account"],
+  admin: ["admin", "owner", "account"],
 };
 
 export const canAccessView = (role, view) => {
+  if (["privacy", "deleteAccount"].includes(view)) {
+    return true;
+  }
+
   if (!role) {
     return view === "discover";
   }
@@ -262,6 +272,9 @@ const viewPaths = {
   saved: "/saved",
   owner: "/owner",
   admin: "/admin",
+  account: "/account",
+  privacy: "/privacy",
+  deleteAccount: "/delete-account",
 };
 
 export const resolveViewFromPath = (path) => {

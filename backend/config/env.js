@@ -3,10 +3,18 @@ import path from "node:path";
 
 dotenv.config({ quiet: true });
 
+const nodeEnv = process.env.NODE_ENV || (process.env.npm_lifecycle_event === "test" ? "test" : "development");
+const mongoDbName = process.env.MONGODB_DB_NAME || "kejaapp";
+const mongoUri = process.env.MONGODB_URI || (nodeEnv === "test" ? "mongodb://127.0.0.1:27017" : "");
+const jwtSecret = process.env.JWT_SECRET || (nodeEnv === "test" ? "test-secret-with-enough-length" : "");
 const requiredEnv = ["MONGODB_URI", "JWT_SECRET"];
+const envValues = {
+  MONGODB_URI: mongoUri,
+  JWT_SECRET: jwtSecret,
+};
 
 for (const key of requiredEnv) {
-  if (!process.env[key]) {
+  if (!envValues[key]) {
     throw new Error(`${key} is not defined`);
   }
 }
@@ -100,15 +108,12 @@ const normalizeMongoUri = (value, databaseName) => {
   return uri.toString();
 };
 
-const mongoDbName = process.env.MONGODB_DB_NAME || "kejaapp";
-const nodeEnv = process.env.NODE_ENV || "development";
-
 const env = {
   nodeEnv,
   port: parsePort(process.env.PORT),
   trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   mongoDbName,
-  mongoUri: normalizeMongoUri(process.env.MONGODB_URI, mongoDbName),
+  mongoUri: normalizeMongoUri(mongoUri, mongoDbName),
   dbRequired: parseBoolean(process.env.DB_REQUIRED, nodeEnv === "production", "DB_REQUIRED"),
   mongoConnectRetries: parsePositiveInteger(
     process.env.MONGODB_CONNECT_RETRIES,
@@ -121,7 +126,7 @@ const env = {
     "MONGODB_CONNECT_RETRY_DELAY_MS"
   ),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret,
   refreshTokenMaxAge: parseCookieMaxAge(process.env.REFRESH_TOKEN_MAX_AGE_DAYS || 30),
   bcryptSaltRounds: parsePositiveInteger(process.env.BCRYPT_SALT_ROUNDS, 12, "BCRYPT_SALT_ROUNDS"),
   authCookieName: process.env.AUTH_COOKIE_NAME || "keja_token",

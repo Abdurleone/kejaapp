@@ -1,6 +1,7 @@
 import express from "express";
 import {
   changePassword,
+  deleteCurrentUser,
   getCurrentUser,
   loginUser,
   logoutUser,
@@ -32,6 +33,7 @@ router.post("/fcm-token", protect, registerFcmToken);
 
 router.get("/me", protect, getCurrentUser);
 router.put("/me", protect, validateRequest(updateProfileSchema), updateCurrentUser);
+router.delete("/me", protect, deleteCurrentUser);
 router.put("/password", protect, validateRequest(changePasswordSchema), changePassword);
 
 export default router;

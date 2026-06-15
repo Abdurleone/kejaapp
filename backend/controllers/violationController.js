@@ -1,44 +1,55 @@
-import User from "../models/User.js";
-import UserStatusLog from "../models/UserStatusLog.js";
-import { notifyUserStatusChanged } from "../services/notificationService.js";
+import httpStatus from "../constants/httpStatus.js";
+import UserViolation from "../models/UserViolation.js";
+import { enforceViolationThreshold } from "../services/accountModerationService.js";
+import ApiError from "../utils/apiError.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
-// ... inside updateViolationStatus controller after violation.save()
+const violationFilterFields = ["status", "type", "severity", "user"];
 
-if (violation.status === "reviewed") {
-  // Count how many 'reviewed' (confirmed) violations this user has
-  const confirmedCount = await UserViolation.countDocuments({
-    user: violation.user,
-    status: "reviewed"
-  });
-
-  const VIOLATION_THRESHOLD = 4;
-
-  if (confirmedCount >= VIOLATION_THRESHOLD) {
-    const userToBan = await User.findById(violation.user);
-    
-    if (userToBan && userToBan.accountStatus !== "banned") {
-      const reason = `Automatic ban: reached ${VIOLATION_THRESHOLD} confirmed violations.`;
-      
-      userToBan.accountStatus = "banned";
-      userToBan.accountStatusReason = reason;
-      userToBan.accountStatusUpdatedAt = new Date();
-      await userToBan.save();
-
-      // Create an audit log for the automatic ban
-      await UserStatusLog.create({
-        user: userToBan._id,
-        changedBy: req.user._id, // The admin who reviewed the 4th violation
-        previousStatus: "active",
-        newStatus: "banned",
-        reason: reason
-      });
-
-      // Send the Push Notification we prepared
-      await notifyUserStatusChanged({
-        user: userToBan,
-        status: "banned",
-        reason: reason
-      });
+const buildViolationFilters = (query) =>
+  violationFilterFields.reduce((filters, field) => {
+    if (query[field]) {
+      filters[field] = query[field];
     }
+
+    return filters;
+  }, {});
+
+const listViolations = asyncHandler(async (req, res) => {
+  const violations = await UserViolation.find(buildViolationFilters(req.query))
+    .populate("user", "name email role accountStatus")
+    .populate("evidence.property", "title")
+    .populate("evidence.matchedProperty", "title")
+    .populate("reviewedBy", "name email")
+    .sort(req.query.sort || "-createdAt");
+
+  res.status(httpStatus.OK).json({
+    data: violations,
+  });
+});
+
+const updateViolationStatus = asyncHandler(async (req, res) => {
+  const violation = await UserViolation.findById(req.params.id);
+
+  if (!violation) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Violation not found");
   }
-}
+
+  violation.status = req.body.status;
+  violation.notes = req.body.notes;
+  violation.reviewedBy = req.user._id;
+  violation.reviewedAt = new Date();
+
+  await violation.save();
+
+  const moderation = req.body.status === "reviewed"
+    ? await enforceViolationThreshold(violation.user)
+    : { banned: false };
+
+  res.status(httpStatus.OK).json({
+    data: violation,
+    moderation,
+  });
+});
+
+export { listViolations, updateViolationStatus };

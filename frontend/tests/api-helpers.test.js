@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it, before, after } from "node:test";
+import { describe, it, before, after } from "./helpers/nodeTestCompat.js";
 import {
   apiFetch,
   createApiUrl,
