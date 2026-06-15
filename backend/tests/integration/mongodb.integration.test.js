@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { after, before, describe, it } from "node:test";
+import { after, before, describe, it } from "../helpers/nodeTestCompat.js";
 import User from "../../models/User.js";
 
 const testMongoUri = process.env.TEST_MONGODB_URI;

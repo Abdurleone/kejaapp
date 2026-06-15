@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import { removeFavorite, saveFavorite } from "../../controllers/favoriteController.js";
 import Favorite from "../../models/Favorite.js";
 import Property from "../../models/Property.js";

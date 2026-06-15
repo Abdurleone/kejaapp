@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it } from "node:test";
+import { afterEach, describe, it } from "../helpers/nodeTestCompat.js";
 import { createRateLimiter, resetRateLimiters } from "../../middlewares/rateLimiter.js";
 
 const createResponse = () => ({

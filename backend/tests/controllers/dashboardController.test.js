@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import { getDashboardSummary } from "../../controllers/dashboardController.js";
 import AgencyVerification from "../../models/AgencyVerification.js";
 import Favorite from "../../models/Favorite.js";

@@ -680,6 +680,21 @@ textarea {
   padding-inline: 4px;
 }
 
+.danger-button {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(166, 60, 53, 0.42);
+  padding: 8px 12px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 800;
+}
+
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .icon-button {
   flex: 0 0 38px;
   width: 38px;
@@ -817,6 +832,33 @@ textarea {
   border-radius: 10px;
   background: rgba(245, 246, 243, 0.86);
   backdrop-filter: blur(10px);
+}
+
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding: 12px 4px;
+}
+
+.legal-page {
+  max-width: 920px;
+}
+
+.legal-page .panel + .panel {
+  margin-top: 12px;
+}
+
+.legal-action {
+  width: fit-content;
+  text-decoration: none;
+}
+
+.danger-zone {
+  margin-top: 14px;
+  border-color: rgba(166, 60, 53, 0.34);
 }
 
 .market-banner {

@@ -1,7 +1,17 @@
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
+import AgencyVerification from "../models/AgencyVerification.js";
 import AuthSession from "../models/AuthSession.js";
+import Favorite from "../models/Favorite.js";
+import Inquiry from "../models/Inquiry.js";
+import Notification from "../models/Notification.js";
+import Property from "../models/Property.js";
+import PropertyImageFingerprint from "../models/PropertyImageFingerprint.js";
+import Review from "../models/Review.js";
 import User from "../models/User.js";
+import UserStatusLog from "../models/UserStatusLog.js";
+import UserViolation from "../models/UserViolation.js";
+import ViewingRequest from "../models/ViewingRequest.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
@@ -234,6 +244,90 @@ const changePassword = asyncHandler(async (req, res) => {
   });
 });
 
+const deleteCurrentUser = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const ownedProperties = await Property.find({ owner: userId }).select("_id");
+  const ownedPropertyIds = ownedProperties.map((property) => property._id);
+
+  await Promise.all([
+    AuthSession.deleteMany({ user: userId }),
+    Favorite.deleteMany({
+      $or: [
+        { user: userId },
+        { property: { $in: ownedPropertyIds } },
+      ],
+    }),
+    Inquiry.deleteMany({
+      $or: [
+        { sender: userId },
+        { owner: userId },
+        { property: { $in: ownedPropertyIds } },
+        { respondedBy: userId },
+      ],
+    }),
+    ViewingRequest.deleteMany({
+      $or: [
+        { requester: userId },
+        { owner: userId },
+        { property: { $in: ownedPropertyIds } },
+        { reviewedBy: userId },
+      ],
+    }),
+    Review.deleteMany({
+      $or: [
+        { user: userId },
+        { property: { $in: ownedPropertyIds } },
+        { "ownerResponse.respondedBy": userId },
+      ],
+    }),
+    Notification.deleteMany({ user: userId }),
+    AgencyVerification.deleteMany({
+      $or: [
+        { user: userId },
+        { reviewedBy: userId },
+      ],
+    }),
+    PropertyImageFingerprint.deleteMany({
+      $or: [
+        { property: { $in: ownedPropertyIds } },
+        { uploadedBy: userId },
+        { matchedUploadedBy: userId },
+      ],
+    }),
+    UserViolation.deleteMany({ user: userId }),
+    UserStatusLog.deleteMany({
+      $or: [
+        { user: userId },
+        { changedBy: userId },
+      ],
+    }),
+    Property.deleteMany({ owner: userId }),
+  ]);
+
+  await user.deleteOne();
+
+  res.clearCookie(env.authCookieName, {
+    httpOnly: true,
+    sameSite: env.authCookieSecure ? "none" : "lax",
+    secure: env.authCookieSecure,
+  });
+  res.clearCookie(env.refreshCookieName, {
+    httpOnly: true,
+    sameSite: env.authCookieSecure ? "none" : "lax",
+    secure: env.authCookieSecure,
+  });
+
+  res.status(httpStatus.OK).json({
+    message: "Account and associated data deleted",
+  });
+});
+
 const logoutUser = asyncHandler(async (req, res) => {
   const refreshToken = getRefreshTokenFromRequest(req);
 
@@ -267,6 +361,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 export {
   changePassword,
+  deleteCurrentUser,
   getCurrentUser,
   loginUser,
   logoutUser,

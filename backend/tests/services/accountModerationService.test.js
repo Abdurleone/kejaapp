@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import Notification from "../../models/Notification.js";
 import User from "../../models/User.js";
 import UserStatusLog from "../../models/UserStatusLog.js";

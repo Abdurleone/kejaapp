@@ -4,6 +4,9 @@ import DiscoverPage from "./pages/DiscoverPage.jsx";
 import SavedPage from "./pages/SavedPage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import AccountPage from "./pages/AccountPage.jsx";
+import PrivacyPage from "./pages/PrivacyPage.jsx";
+import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import {
   normalizeApiBaseUrl,
   resolveViewFromPath,
@@ -27,6 +30,7 @@ const navItems = [
   { view: "saved", label: "Saved", path: getViewPath("saved") },
   { view: "owner", label: "Workspace", path: getViewPath("owner") },
   { view: "admin", label: "Admin", path: getViewPath("admin") },
+  { view: "account", label: "Account", path: getViewPath("account") },
 ];
 
 function App() {
@@ -147,6 +151,13 @@ function App() {
     navigate(getViewPath("discover"));
   };
 
+  const handleAccountDeleted = () => {
+    setSignedIn(false);
+    setCurrentUser(null);
+    setAuthPanelOpen(false);
+    navigate(getViewPath("deleteAccount"));
+  };
+
   const navigationItems = navItems.filter((item) => canAccessView(currentUser?.role, item.view));
 
   const renderCurrentPage = () => {
@@ -183,6 +194,20 @@ function App() {
         }
 
         return <AdminPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+      case "account":
+        if (!signedIn) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in to manage or delete your account.</p>
+            </div>
+          );
+        }
+
+        return <AccountPage currentUser={currentUser} onAccountDeleted={handleAccountDeleted} />;
+      case "privacy":
+        return <PrivacyPage />;
+      case "deleteAccount":
+        return <DeleteAccountPage />;
       default:
         return <DiscoverPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
     }
@@ -242,6 +267,14 @@ function App() {
                 ))}
               </div>
               <div className="view-content">{renderCurrentPage()}</div>
+              <footer className="legal-footer">
+                <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
+                  Privacy
+                </button>
+                <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
+                  Delete account
+                </button>
+              </footer>
             </div>
             {authPanelOpen && (
               <div className="auth-panel-overlay">

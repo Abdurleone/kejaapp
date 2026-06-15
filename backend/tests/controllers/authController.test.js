@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   changePassword,
   refreshAccessToken,
