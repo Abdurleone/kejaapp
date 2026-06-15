@@ -42,6 +42,13 @@ const userSchema = new mongoose.Schema(
     accountStatusUpdatedAt: {
       type: Date,
     },
+    /* --- RECOMMENDED ADDITION FOR REACT NATIVE PUSH --- */
+    fcmTokens: [{
+      token: { type: String, required: true },
+      platform: { type: String, enum: ['android', 'ios', 'web'], default: 'android' },
+      lastSeen: { type: Date, default: Date.now }
+    }]
+    /* -------------------------------------------------- */
   },
   {
     timestamps: true,
@@ -63,3 +70,4 @@ userSchema.methods.matchPassword = function matchPassword(password) {
 const User = mongoose.model("User", userSchema);
 
 export default User;
+
