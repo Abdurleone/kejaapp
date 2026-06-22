@@ -4,7 +4,8 @@ import {
   listMyViewingRequests,
   updateViewingRequestStatus,
 } from "../controllers/viewingController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { roleGroups } from "../constants/rbac.js";
+import { authorizeGroup, protect } from "../middlewares/authMiddleware.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import {
   createViewingRequestSchema,
@@ -17,8 +18,8 @@ router.use(protect);
 
 router
   .route("/")
-  .get(listMyViewingRequests)
-  .post(validateRequest(createViewingRequestSchema), createViewingRequest);
+  .get(authorizeGroup(roleGroups.tenantOnly), listMyViewingRequests)
+  .post(authorizeGroup(roleGroups.tenantOnly), validateRequest(createViewingRequestSchema), createViewingRequest);
 
 router.put("/:id/status", validateRequest(updateViewingStatusSchema), updateViewingRequestStatus);
 

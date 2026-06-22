@@ -1,106 +1,75 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 
-/**
- * Frontend component integration tests
- * 
- * These tests verify that React components properly integrate with backend APIs:
- * - DiscoverPage loads properties and handles favorites
- * - SavedPage lists and manages saved favorites  
- * - App.jsx manages auth state and role-based navigation
- * - Auth panel handles login/register/logout flows
- */
+const readSource = (relativePath) => readFile(new URL(`../src/${relativePath}`, import.meta.url), "utf8");
 
-describe("frontend page components", () => {
-  it("should verify DiscoverPage exists and exports correctly", () => {
-    // DiscoverPage.jsx should be a valid React component
-    // Tests would verify in an actual React testing environment:
-    // - Component renders list of properties
-    // - Save button calls saveFavorite() API
-    // - Error handling for failed saves
-    // - Loading states while fetching properties
-    // - Display of property cards with images, pricing, and details
-    assert.ok(true, "DiscoverPage component structure verified in app build");
+const appSource = await readSource("App.jsx");
+const discoverSource = await readSource("pages/DiscoverPage.jsx");
+const savedSource = await readSource("pages/SavedPage.jsx");
+const accountSource = await readSource("pages/AccountPage.jsx");
+const landingSource = await readSource("pages/LandingPage.jsx");
+
+describe("frontend page component contracts", () => {
+  it("renders discover listings with API data, cards, and save actions", () => {
+    assert.match(discoverSource, /fetchProperties\(params\)/);
+    assert.match(discoverSource, /fetchFavorites\(\)/);
+    assert.match(discoverSource, /saveFavorite\(propertyId\)/);
+    assert.match(discoverSource, /getPropertyImage\(property\)/);
+    assert.match(discoverSource, /className="property-grid"/);
+    assert.match(discoverSource, /className="property-card"/);
+    assert.match(discoverSource, /className="property-photo"/);
+    assert.match(discoverSource, /className="card-actions"/);
   });
 
-  it("should verify SavedPage integrates with favorites API", () => {
-    // SavedPage.jsx should fetch from /api/favorites endpoint
-    // Tests would verify:
-    // - Component fetches favorites on mount with fetchFavorites()
-    // - Displays list of saved properties with populated property details
-    // - Remove button calls removeFavorite() API with propertyId
-    // - Handles empty state when no favorites exist
-    // - Error states when API fails
-    // - Loading states while fetching favorites
-    assert.ok(true, "SavedPage favorites integration verified in app build");
+  it("keeps discover location search and empty/error states wired", () => {
+    assert.match(discoverSource, /navigator\.geolocation\.getCurrentPosition/);
+    assert.match(discoverSource, /params\.radiusKm\s*=\s*radiusKm/);
+    assert.match(discoverSource, /Radius/);
+    assert.match(discoverSource, /Near me/);
+    assert.match(discoverSource, /Clear location/);
+    assert.match(discoverSource, /Loading rentals/);
+    assert.match(discoverSource, /No rentals found/);
   });
 
-  it("should verify App.jsx manages authentication state", () => {
-    // App.jsx should handle:
-    // - Initial user fetch on mount if token exists
-    // - Auth panel for login/register
-    // - Header displays current user name and sign-out button
-    // - Navigation filters based on user role
-    // - Protected page access with role checks
-    // - Logout clears state and token
-    // - Different UI for signed-in vs anonymous users
-    assert.ok(true, "App.jsx authentication state management verified in app build");
+  it("gates saving behind authentication and reflects saved state", () => {
+    assert.match(discoverSource, /if \(!signedIn\)\s*{\s*onRequireAuth\(\);/s);
+    assert.match(discoverSource, /savingPropertyId === propertyId \? "Saving\.\.\."/);
+    assert.match(discoverSource, /isSaved \? "Saved"/);
+    assert.match(discoverSource, /"Sign in to save"/);
+    assert.match(discoverSource, /disabled=\{isSaved \|\| savingPropertyId === propertyId\}/);
   });
 
-  it("should verify auth header actions for sign-in/sign-out", () => {
-    // Header in App.jsx should show:
-    // - Sign in button for anonymous users
-    // - User name pill and sign out button for authenticated users
-    // - Open auth panel when clicking sign in
-    // - Clear all auth state when signing out
-    // - Theme and color mode toggles available always
-    assert.ok(true, "Auth header actions verified in app build");
+  it("keeps saved listings connected to the favorites API", () => {
+    assert.match(savedSource, /fetchFavorites\(\)/);
+    assert.match(savedSource, /removeFavorite\(propertyId\)/);
+    assert.match(savedSource, /className="property-grid compact-grid"/);
+    assert.match(savedSource, /No saved listings yet/);
+    assert.match(savedSource, /Loading saved listings/);
   });
 
-  it("should verify role-based navigation access", () => {
-    // Role-based view filtering:
-    // - Tenant role: can access discover, saved
-    // - Landlord role: can access owner workspace
-    // - Agency role: can access owner workspace  
-    // - Admin role: can access admin console, owner workspace
-    // - Anonymous user: can only access discover
-    // - Non-matching roles show access denied message
-    assert.ok(true, "Role-based navigation verified in app build");
+  it("keeps app navigation, auth modal, and protected views in sync", () => {
+    assert.match(appSource, /const navItems = \[/);
+    assert.match(appSource, /canAccessView\(currentUser\?\.role, item\.view\)/);
+    assert.match(appSource, /authPanelOpen &&/);
+    assert.match(appSource, /authMode === "login" \? "Sign in" : "Create account"/);
+    assert.match(appSource, /loginUser\(\{ email: authForm\.email, password: authForm\.password \}\)/);
+    assert.match(appSource, /registerUser\(authForm\)/);
+    assert.match(appSource, /You need an owner or agency account/);
+    assert.match(appSource, /Admin access is required/);
   });
 
-  it("should verify auth panel form submission", () => {
-    // Auth panel should handle:
-    // - Login form with email and password
-    // - Register form with name, email, password, phone, role
-    // - Role selection dropdown (tenant, landlord, agency)
-    // - Form validation before submission
-    // - API error display in auth panel
-    // - Loading state while submitting
-    // - Modal close after successful auth
-    assert.ok(true, "Auth panel form handling verified in app build");
+  it("keeps account deletion and landing entry points available", () => {
+    assert.match(accountSource, /deleteCurrentAccount\(\)/);
+    assert.match(accountSource, /confirmation === "DELETE"/);
+    assert.match(accountSource, /Delete my account/);
+    assert.match(landingSource, /className="landing-page"/);
+    assert.match(landingSource, /Start searching/);
+    assert.match(landingSource, /onStart/);
   });
 
-  it("should verify page access guards for signed-out users", () => {
-    // Protected pages should show message:
-    // - SavedPage: "Sign in to see your saved rentals and manage favorites."
-    // - WorkspacePage (for non-owners): "You need an owner or agency account..."
-    // - AdminPage (for non-admins): "Admin access is required..."
-    // - Link to auth panel or sign-in button
-    assert.ok(true, "Page access guards verified in app build");
-  });
-
-  it("should verify favorites save/remove integration", () => {
-    // Property save action flow:
-    // - Save button is disabled while saving
-    // - On success: button text changes to "Saved"
-    // - On error: error message displays in panel
-    // - Property ID added to savedPropertyIds state
-    // 
-    // Property remove action flow:
-    // - Remove button disabled while deleting
-    // - On success: property removed from list
-    // - On error: error message displays
-    // - Property filtered from saved state
-    assert.ok(true, "Favorites save/remove integration verified in app build");
+  it("does not keep placeholder component tests around", () => {
+    assert.doesNotMatch(discoverSource, new RegExp(["Rest", "of", "your", "rendering", "logic"].join("\\s+")));
+    assert.doesNotMatch(discoverSource, new RegExp(["Ensure", "this", "is", "imported"].join("\\s+")));
   });
 });

@@ -57,4 +57,6 @@ const authorize = (...roles) => (req, res, next) => {
   next();
 };
 
-export { authorize, protect };
+const authorizeGroup = (roles) => authorize(...roles);
+
+export { authorize, authorizeGroup, protect };

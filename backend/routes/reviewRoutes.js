@@ -4,7 +4,8 @@ import {
   listMyPropertyReviews,
   respondToReview,
 } from "../controllers/reviewController.js";
-import { authorize, protect } from "../middlewares/authMiddleware.js";
+import { roleGroups } from "../constants/rbac.js";
+import { authorizeGroup, protect } from "../middlewares/authMiddleware.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import {
   createReviewSchema,
@@ -13,12 +14,12 @@ import {
 
 const router = express.Router();
 
-router.post("/", protect, validateRequest(createReviewSchema), createReview);
-router.get("/mine", protect, authorize("landlord", "agency", "admin"), listMyPropertyReviews);
+router.post("/", protect, authorizeGroup(roleGroups.tenantOnly), validateRequest(createReviewSchema), createReview);
+router.get("/mine", protect, authorizeGroup(roleGroups.listingManagers), listMyPropertyReviews);
 router.put(
   "/:id/response",
   protect,
-  authorize("landlord", "agency"),
+  authorizeGroup(roleGroups.propertyOwners),
   validateRequest(updateReviewResponseSchema),
   respondToReview
 );

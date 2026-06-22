@@ -1,5 +1,3 @@
-Place the KejaApp logo image at:
+Logo assets for the frontend live here.
 
-keja-logo.png
-
-The frontend uses this local image for the header logo and low-opacity page background watermark. The repo also includes a fallback placeholder `keja-logo.svg` in this folder.
+The repo currently includes `keja-logo.svg` as the local placeholder asset. The React header renders a compact text brand mark, while the landing page uses a remote property photo background defined in `frontend/styles.css`.

@@ -17,10 +17,10 @@ describe("responsive stylesheet", () => {
     assert.match(styles, /@media\s*\(max-width:\s*480px\)/);
   });
 
-  it("lets taskbar authentication controls wrap instead of overflowing", () => {
-    assert.match(styles, /\.connection-bar\s*{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;/s);
-    assert.match(styles, /\.taskbar-auth\s*{[^}]*white-space:\s*nowrap;/s);
-    assert.match(styles, /@media\s*\(max-width:\s*620px\)\s*{[\s\S]*?\.connection-bar\s*{[^}]*display:\s*grid;/s);
+  it("lets header actions wrap and stack instead of overflowing", () => {
+    assert.match(styles, /\.app-header\s*{[^}]*position:\s*sticky;/s);
+    assert.match(styles, /\.header-actions\s*,[\s\S]*?\.auth-panel-tabs\s*{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;/s);
+    assert.match(styles, /@media\s*\(max-width:\s*480px\)\s*{[\s\S]*?\.header-actions\s*,[\s\S]*?\.card-actions\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*1fr;/s);
   });
 
   it("keeps listing action buttons and detail panels responsive", () => {

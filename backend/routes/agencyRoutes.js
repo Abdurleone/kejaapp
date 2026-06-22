@@ -3,13 +3,16 @@ import {
   getAgencyStatus,
   submitAgencyVerification,
 } from "../controllers/agencyController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { roleGroups } from "../constants/rbac.js";
+import { authorizeGroup, protect } from "../middlewares/authMiddleware.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import { agencyVerificationSchema } from "../validators/agencyValidators.js";
 
 const router = express.Router();
 
-router.post("/verify", protect, validateRequest(agencyVerificationSchema), submitAgencyVerification);
-router.get("/status", protect, getAgencyStatus);
+router.use(protect, authorizeGroup(roleGroups.agencies));
+
+router.post("/verify", validateRequest(agencyVerificationSchema), submitAgencyVerification);
+router.get("/status", getAgencyStatus);
 
 export default router;

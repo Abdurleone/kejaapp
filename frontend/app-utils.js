@@ -231,13 +231,31 @@ export const demoAccounts = {
 
 export const getDemoEmailForRole = (role) => demoAccounts[role] || demoAccounts.tenant;
 
-export const canRegisterRole = (role) => ["tenant", "landlord", "agency"].includes(role);
+export const roles = Object.freeze({
+  tenant: "tenant",
+  landlord: "landlord",
+  agency: "agency",
+  admin: "admin",
+});
+
+export const roleGroups = Object.freeze({
+  publicRegistration: [roles.tenant, roles.landlord, roles.agency],
+  tenantOnly: [roles.tenant],
+  listingManagers: [roles.landlord, roles.agency, roles.admin],
+  propertyOwners: [roles.landlord, roles.agency],
+  agencies: [roles.agency],
+  admins: [roles.admin],
+});
+
+export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
+
+export const canRegisterRole = (role) => hasRole(role, roleGroups.publicRegistration);
 
 const roleViewAccess = {
-  tenant: ["discover", "saved", "account"],
-  landlord: ["owner", "account"],
-  agency: ["owner", "account"],
-  admin: ["admin", "owner", "account"],
+  [roles.tenant]: ["discover", "saved", "account"],
+  [roles.landlord]: ["owner", "account"],
+  [roles.agency]: ["owner", "account"],
+  [roles.admin]: ["admin", "owner", "account"],
 };
 
 export const canAccessView = (role, view) => {
@@ -254,13 +272,21 @@ export const canAccessView = (role, view) => {
 
 export const getDefaultViewForRole = (role) => roleViewAccess[role]?.[0] || "discover";
 
-export const canUseTenantPropertyActions = (role) => role === "tenant";
+export const canUseTenantPropertyActions = (role) => hasRole(role, roleGroups.tenantOnly);
 
-export const canManageListings = (role) => ["landlord", "agency", "admin"].includes(role);
+export const canManageListings = (role) => hasRole(role, roleGroups.listingManagers);
 
-export const canSearchListings = (role) => !role || role === "tenant";
+export const canSearchListings = (role) => !role || hasRole(role, roleGroups.tenantOnly);
 
-export const canOpenPropertyDetails = (role) => role === "tenant";
+export const canOpenPropertyDetails = (role) => hasRole(role, roleGroups.tenantOnly);
+
+export const canUseFavorites = (role) => hasRole(role, roleGroups.tenantOnly);
+
+export const canCreateTenantRequest = (role) => hasRole(role, roleGroups.tenantOnly);
+
+export const canSubmitAgencyVerification = (role) => hasRole(role, roleGroups.agencies);
+
+export const canUseAdminTools = (role) => hasRole(role, roleGroups.admins);
 
 export const shouldShowSplash = ({ isSignedIn, path = "/" }) => {
   const normalizedPath = String(path || "/").replace(/\/$/, "") || "/";

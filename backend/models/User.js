@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { roleList, roles } from "../constants/rbac.js";
 import { comparePassword, hashPassword as hashUserPassword } from "../utils/passwords.js";
 
 const userSchema = new mongoose.Schema(
@@ -23,8 +24,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["tenant", "landlord", "agency", "admin"],
-      default: "tenant",
+      enum: roleList,
+      default: roles.tenant,
     },
     phone: {
       type: String,
@@ -70,4 +71,3 @@ userSchema.methods.matchPassword = function matchPassword(password) {
 const User = mongoose.model("User", userSchema);
 
 export default User;
-

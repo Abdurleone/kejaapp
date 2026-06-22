@@ -1,34 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
-import { 
-  fetchProperties, 
-  formatKes, 
-  summarizeProperties, 
-  saveFavorite, 
-  fetchFavorites // Ensure this is imported
+import {
+  fetchFavorites,
+  fetchProperties,
+  formatKes,
+  formatRatingSummary,
+  getPropertyImage,
+  saveFavorite,
+  summarizeProperties,
 } from "../../app-utils.js";
 
-export default function DiscoverPage({ signedIn, onRequireAuth, currentUser }) {
+export default function DiscoverPage({ signedIn, onRequireAuth }) {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingPropertyId, setSavingPropertyId] = useState(null);
   const [savedPropertyIds, setSavedPropertyIds] = useState([]);
   const [saveError, setSaveError] = useState("");
-  
-  // --- NEW: Location Search State ---
-  const [coords, setCoords] = useState(null); 
+  const [coords, setCoords] = useState(null);
   const [radius, setRadius] = useState(5);
 
-  // 1. Load Properties (with support for Geo-filtering)
-  const loadProperties = async (lat = null, lng = null) => {
+  const loadProperties = async (lat = null, lng = null, radiusKm = radius) => {
     try {
       setLoading(true);
+      setError("");
       const params = { page: 1, limit: 12 };
-      
+
       if (lat && lng) {
         params.lat = lat;
         params.lng = lng;
-        params.radiusKm = radius;
+        params.radiusKm = radiusKm;
       }
 
       const data = await fetchProperties(params);
@@ -40,18 +40,22 @@ export default function DiscoverPage({ signedIn, onRequireAuth, currentUser }) {
     }
   };
 
-  // 2. Load User's saved property IDs to sync the "Save" buttons
   useEffect(() => {
     const loadUserMetadata = async () => {
-      if (signedIn) {
-        try {
-          const favorites = await fetchFavorites();
-          setSavedPropertyIds(favorites.map(f => f.property._id || f.property.id));
-        } catch (err) {
-          console.error("Could not sync favorites", err);
-        }
-      } else {
+      if (!signedIn) {
         setSavedPropertyIds([]);
+        return;
+      }
+
+      try {
+        const favorites = await fetchFavorites();
+        setSavedPropertyIds(
+          favorites
+            .map((favorite) => favorite.property?._id || favorite.property?.id || favorite._id || favorite.id)
+            .filter(Boolean),
+        );
+      } catch (err) {
+        console.error("Could not sync favorites", err);
       }
     };
 
@@ -59,10 +63,9 @@ export default function DiscoverPage({ signedIn, onRequireAuth, currentUser }) {
     loadProperties();
   }, [signedIn]);
 
-  // 3. Handle "Near Me" Location Search
   const handleNearMe = () => {
     if (!navigator.geolocation) {
-      setSaveError("Geolocation is not supported by your browser");
+      setSaveError("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -72,8 +75,36 @@ export default function DiscoverPage({ signedIn, onRequireAuth, currentUser }) {
         setCoords({ lat: latitude, lng: longitude });
         loadProperties(latitude, longitude);
       },
-      () => setSaveError("Unable to retrieve your location")
+      () => setSaveError("Unable to retrieve your location."),
     );
+  };
+
+  const handleRadiusChange = (event) => {
+    const nextRadius = Number(event.target.value);
+    setRadius(nextRadius);
+
+    if (coords) {
+      loadProperties(coords.lat, coords.lng, nextRadius);
+    }
+  };
+
+  const handleSave = async (propertyId) => {
+    if (!signedIn) {
+      onRequireAuth();
+      return;
+    }
+
+    setSaveError("");
+    setSavingPropertyId(propertyId);
+
+    try {
+      await saveFavorite(propertyId);
+      setSavedPropertyIds((current) => [...new Set([...current, propertyId])]);
+    } catch (err) {
+      setSaveError(err.message || "Unable to save this listing.");
+    } finally {
+      setSavingPropertyId(null);
+    }
   };
 
   const summary = useMemo(() => summarizeProperties(properties), [properties]);
@@ -85,16 +116,31 @@ export default function DiscoverPage({ signedIn, onRequireAuth, currentUser }) {
           <h2>Discover rentals</h2>
           <p>Browse available homes in Kenya and save the ones you love.</p>
         </div>
-        {/* --- NEW: Location Search UI --- */}
         <div className="header-actions">
-           <button className="secondary-button" onClick={handleNearMe}>
-             📍 Near me
-           </button>
-           {coords && (
-             <button className="text-button" onClick={() => { setCoords(null); loadProperties(); }}>
-               Clear location
-             </button>
-           )}
+          <label className="radius-control">
+            Radius
+            <select value={radius} onChange={handleRadiusChange}>
+              <option value={3}>3 km</option>
+              <option value={5}>5 km</option>
+              <option value={10}>10 km</option>
+              <option value={20}>20 km</option>
+            </select>
+          </label>
+          <button className="secondary-button" type="button" onClick={handleNearMe}>
+            Near me
+          </button>
+          {coords && (
+            <button
+              className="text-button"
+              type="button"
+              onClick={() => {
+                setCoords(null);
+                loadProperties();
+              }}
+            >
+              Clear location
+            </button>
+          )}
         </div>
       </div>
 
@@ -113,8 +159,80 @@ export default function DiscoverPage({ signedIn, onRequireAuth, currentUser }) {
         </div>
       </div>
 
-      {/* ... Rest of your rendering logic ... */}
-      {/* (Keep your property-grid as is, it now uses the synced savedPropertyIds) */}
+      {saveError && (
+        <div className="panel notice-panel">
+          <p className="muted-copy">{saveError}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="panel">
+          <p>Loading rentals...</p>
+        </div>
+      ) : error ? (
+        <div className="panel">
+          <p className="muted-copy">{error}</p>
+        </div>
+      ) : properties.length === 0 ? (
+        <div className="panel empty-state">
+          <h3>No rentals found</h3>
+          <p className="muted-copy">Try clearing location search or widening the radius.</p>
+        </div>
+      ) : (
+        <div className="property-grid">
+          {properties.map((property) => {
+            const propertyId = property._id || property.id;
+            const isSaved = savedPropertyIds.includes(propertyId);
+            const rent = property.price?.rent ?? property.rent;
+            const area = property.location?.area || property.area || "Nairobi";
+            const county = property.location?.county || property.county || "Kenya";
+            const bedrooms = property.bedrooms ?? property.details?.bedrooms;
+            const bathrooms = property.bathrooms ?? property.details?.bathrooms;
+
+            return (
+              <article className="property-card" key={propertyId}>
+                <div className="property-photo">
+                  <img src={getPropertyImage(property)} alt={property.title || "Rental property"} />
+                  <span className="status-pill">{property.status || "available"}</span>
+                </div>
+                <div className="property-body">
+                  <div>
+                    <h3 className="property-title">{property.title || "Rental property"}</h3>
+                    <p className="muted-copy">
+                      {area}, {county}
+                    </p>
+                  </div>
+                  <div className="cost-row">
+                    <strong>{formatKes(rent)}</strong>
+                    <span>per month</span>
+                  </div>
+                  <div className="property-meta">
+                    <span>{bedrooms || "-"} beds</span>
+                    <span>{bathrooms || "-"} baths</span>
+                    <span>{property.viewingType || "viewing"}</span>
+                  </div>
+                  <p className="muted-copy property-summary">
+                    {property.description || formatRatingSummary(property.ratingAverage, property.ratingCount)}
+                  </p>
+                  <div className="card-actions">
+                    <button
+                      className="primary-button"
+                      type="button"
+                      disabled={isSaved || savingPropertyId === propertyId}
+                      onClick={() => handleSave(propertyId)}
+                    >
+                      {savingPropertyId === propertyId ? "Saving..." : isSaved ? "Saved" : signedIn ? "Save" : "Sign in to save"}
+                    </button>
+                    <button className="secondary-button" type="button">
+                      Details
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
