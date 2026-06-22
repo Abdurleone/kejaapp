@@ -1,3 +1,5 @@
+import { roleGroups } from "../constants/rbac.js";
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const registerUserSchema = {
@@ -19,7 +21,7 @@ const registerUserSchema = {
   },
   role: {
     type: "string",
-    enum: ["tenant", "landlord", "agency"],
+    enum: roleGroups.publicRegistration,
   },
   phone: {
     type: "string",

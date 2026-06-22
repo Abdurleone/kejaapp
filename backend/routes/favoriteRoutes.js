@@ -4,11 +4,12 @@ import {
   removeFavorite,
   saveFavorite,
 } from "../controllers/favoriteController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { roleGroups } from "../constants/rbac.js";
+import { authorizeGroup, protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect, authorizeGroup(roleGroups.tenantOnly));
 
 router.get("/", listFavorites);
 router.post("/:propertyId", saveFavorite);

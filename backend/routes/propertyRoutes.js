@@ -12,6 +12,7 @@ import {
   updateProperty,
 } from "../controllers/propertyController.js";
 import { authorize, protect } from "../middlewares/authMiddleware.js";
+import { roleGroups } from "../constants/rbac.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import {
   costCalculationSchema,
@@ -31,36 +32,36 @@ router
   .get(listProperties)
   .post(
     protect,
-    authorize("landlord", "agency", "admin"),
+    authorize(...roleGroups.listingManagers),
     validateRequest(createPropertySchema),
     createProperty
   );
 
 router.post("/costs/calculate", validateRequest(costCalculationSchema), calculatePropertyCost);
 
-router.get("/mine", protect, authorize("landlord", "agency", "admin"), listMyProperties);
+router.get("/mine", protect, authorize(...roleGroups.listingManagers), listMyProperties);
 
-router.get("/:id/inquiries", protect, authorize("landlord", "agency", "admin"), listPropertyInquiries);
+router.get("/:id/inquiries", protect, authorize(...roleGroups.listingManagers), listPropertyInquiries);
 router.get("/:id/reviews", listPropertyReviews);
-router.get("/:id/viewings", protect, authorize("landlord", "agency", "admin"), listPropertyViewingRequests);
+router.get("/:id/viewings", protect, authorize(...roleGroups.listingManagers), listPropertyViewingRequests);
 router.post(
   "/:id/images",
   protect,
-  authorize("landlord", "agency", "admin"),
+  authorize(...roleGroups.listingManagers),
   validateRequest(propertyImageSchema),
   addPropertyImage
 );
 router.post(
   "/:id/images/upload",
   protect,
-  authorize("landlord", "agency", "admin"),
+  authorize(...roleGroups.listingManagers),
   validateRequest(uploadPropertyImageSchema),
   uploadPropertyImage
 );
 router.delete(
   "/:id/images/:imageId",
   protect,
-  authorize("landlord", "agency", "admin"),
+  authorize(...roleGroups.listingManagers),
   removePropertyImage
 );
 
@@ -69,10 +70,10 @@ router
   .get(getProperty)
   .put(
     protect,
-    authorize("landlord", "agency", "admin"),
+    authorize(...roleGroups.listingManagers),
     validateRequest(updatePropertySchema),
     updateProperty
   )
-  .delete(protect, authorize("landlord", "agency", "admin"), deleteProperty);
+  .delete(protect, authorize(...roleGroups.listingManagers), deleteProperty);
 
 export default router;

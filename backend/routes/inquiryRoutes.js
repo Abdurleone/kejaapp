@@ -4,7 +4,8 @@ import {
   listMyInquiries,
   updateInquiry,
 } from "../controllers/inquiryController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { roleGroups } from "../constants/rbac.js";
+import { authorizeGroup, protect } from "../middlewares/authMiddleware.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import {
   createInquirySchema,
@@ -17,8 +18,8 @@ router.use(protect);
 
 router
   .route("/")
-  .get(listMyInquiries)
-  .post(validateRequest(createInquirySchema), createInquiry);
+  .get(authorizeGroup(roleGroups.tenantOnly), listMyInquiries)
+  .post(authorizeGroup(roleGroups.tenantOnly), validateRequest(createInquirySchema), createInquiry);
 
 router.put("/:id", validateRequest(updateInquirySchema), updateInquiry);
 

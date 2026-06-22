@@ -1,10 +1,11 @@
 import httpStatus from "../constants/httpStatus.js";
+import { roles } from "../constants/rbac.js";
 import AgencyVerification from "../models/AgencyVerification.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 const submitAgencyVerification = asyncHandler(async (req, res) => {
-  if (req.user.role !== "agency" && req.user.role !== "admin") {
+  if (req.user.role !== roles.agency) {
     throw new ApiError(httpStatus.FORBIDDEN, "Only agency accounts can request agency verification");
   }
 

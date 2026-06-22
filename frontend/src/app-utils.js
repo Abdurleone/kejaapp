@@ -115,18 +115,26 @@ export function normalizeApiBaseUrl(url) {
 
 export function getViewPath(view) {
   const paths = {
-    discover: "/",
+    discover: "/search",
     saved: "/saved",
-    owner: "/workspace",
+    owner: "/owner",
     admin: "/admin",
+    account: "/account",
+    privacy: "/privacy",
+    deleteAccount: "/delete-account",
   };
-  return paths[view] || "/";
+  return paths[view] || paths.discover;
 }
 
 export function resolveViewFromPath(path) {
+  if (path === "/") return "discover";
+  if (path === "/search") return "discover";
   if (path === "/saved") return "saved";
-  if (path === "/workspace") return "owner";
+  if (path === "/owner") return "owner";
   if (path === "/admin") return "admin";
+  if (path === "/account") return "account";
+  if (path === "/privacy") return "privacy";
+  if (path === "/delete-account") return "deleteAccount";
   return "discover";
 }
 
@@ -143,12 +151,64 @@ export function nextColorMode(current) {
 }
 
 export function canAccessView(role, view) {
-  if (view === "discover") return true;
-  if (!role) return false;
-  
-  if (view === "saved") return true;
-  if (view === "owner") return ["landlord", "agency", "admin"].includes(role);
-  if (view === "admin") return role === "admin";
-  
-  return false;
+  if (view === "privacy" || view === "deleteAccount") return true;
+  if (!role) return view === "discover";
+
+  const roleViewAccess = {
+    tenant: ["discover", "saved", "account"],
+    landlord: ["owner", "account"],
+    agency: ["owner", "account"],
+    admin: ["admin", "owner", "account"],
+  };
+
+  return Boolean(roleViewAccess[role]?.includes(view));
+}
+
+export function canRegisterRole(role) {
+  return ["tenant", "landlord", "agency"].includes(role);
+}
+
+export function canUseTenantPropertyActions(role) {
+  return role === "tenant";
+}
+
+export function canManageListings(role) {
+  return ["landlord", "agency", "admin"].includes(role);
+}
+
+export function canSearchListings(role) {
+  return !role || role === "tenant";
+}
+
+export function canOpenPropertyDetails(role) {
+  return role === "tenant";
+}
+
+export function canUseFavorites(role) {
+  return role === "tenant";
+}
+
+export function canCreateTenantRequest(role) {
+  return role === "tenant";
+}
+
+export function canSubmitAgencyVerification(role) {
+  return role === "agency";
+}
+
+export function canUseAdminTools(role) {
+  return role === "admin";
+}
+
+export function getDefaultViewForRole(role) {
+  if (!role) return "discover";
+
+  const defaults = {
+    tenant: "discover",
+    landlord: "owner",
+    agency: "owner",
+    admin: "admin",
+  };
+
+  return defaults[role] || "discover";
 }

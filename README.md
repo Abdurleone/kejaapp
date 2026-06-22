@@ -199,36 +199,34 @@ Frontend API helpers in `app-utils.js`:
 - All requests include Authorization bearer token if signed in.
 
 Included flows:
-- Sign-in landing section plus anonymous listing search before authentication.
-- Anonymous property discovery with filters and gated listing-detail actions.
-- Adaptive property cards, insights, sorting, and loading states.
+- Image-led landing section plus anonymous listing search before authentication.
+- Anonymous property discovery with radius search and gated save actions.
+- Adaptive property cards, listing insights, loading states, error states, and empty states.
 - Login and registration with form validation.
-- Role-aware dashboard summary.
-- Role-aware navigation and actions so tenants, owners, agencies, and admins only see the tools they can use.
-- Polished responsive web UI with a standalone image-led splash landing page, anonymous search entry, top taskbar sign-in and sign-up by user category, richer listing cards, tenant listing details, owner review responses, admin review visibility, and light/dark plus Kenyan flag theme toggles.
+- Role-aware navigation so tenants, owners, agencies, and admins only see the views they can access.
+- Polished responsive web UI with a splash landing page, centered workspace, sticky header actions, richer listing cards, account deletion flow, and light/dark plus Kenyan flag theme toggles.
 - Saved property actions with favorite/unfavorite buttons.
 - Saved properties list loading from real `/api/favorites` endpoint.
-- Inquiry and viewing request actions.
-- Owner property creation and listing management.
-- Admin user list and account status moderation.
+- Owner workspace placeholder for upcoming listing management.
+- Admin console placeholder for upcoming moderation tools.
 - Theme toggle between the standard palette and Kenyan flag colors.
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
-- Anonymous visitors can search and compare available listings without leaving the search page.
-- Tenants can search homes, open listing details, view signed-in contact context, save listings, send inquiries, and request viewings after signing in.
-- Landlords and agencies can upload, create, and manage only their own listings.
-- Admins can manage all property listings and access admin moderation.
-- Visitors must sign in or sign up before accessing saved listings, saving homes, or requesting viewings.
-- Tenants do not see or submit the property creation form.
-- Non-admin users do not see admin moderation.
+- Anonymous visitors can search available listings without leaving the search page.
+- Tenants can search homes, save listings after signing in, and manage saved listings.
+- Landlords and agencies can access the owner workspace placeholder.
+- Admins can access the admin console placeholder and owner workspace.
+- Visitors must sign in or sign up before accessing saved listings or saving homes.
+- Tenants do not see owner workspace navigation.
+- Non-admin users do not see admin console navigation.
 
 Responsive behavior:
 - The landing page adapts from desktop split layout to a single-column phone layout.
-- Header, connection controls, filters, dashboard panels, and workspace tabs reflow across desktop, tablet, and phone widths.
-- Property grids, listing actions, and detail dialogs use container-safe sizing so listings do not overflow narrow screens.
-- Owner tools and admin moderation tables adapt for smaller screens.
-- Dialogs, toast messages, form controls, and action buttons include narrow-screen overflow protection.
+- Header actions, location radius controls, stat panels, and workspace tabs reflow across desktop, tablet, and phone widths.
+- Property grids and listing actions use container-safe sizing so listings do not overflow narrow screens.
+- Owner workspace and admin console panels adapt for smaller screens.
+- Auth dialogs, form controls, and action buttons include narrow-screen overflow protection.
 
 Backend connection:
 - The web UI hides backend connection controls from regular users.
@@ -356,7 +354,7 @@ Acceptance criteria:
 - Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, listing contact details, reviews, and pricing.
 - Given a property has rent, deposit, or agency fees, when I view it, then I can see the total upfront cost and recurring monthly cost.
 - Given I am signed in as a tenant, when I use the frontend, then I cannot access the owner listing creation tools.
-- Given I am not signed in, when I try to save, inquire, or request a viewing, then the frontend prompts me to sign in or sign up.
+- Given I am not signed in, when I try to save a listing, then the frontend prompts me to sign in or sign up.
 
 ### Property Lifecycle
 

@@ -92,7 +92,7 @@ describe("frontend app utilities", () => {
     assert.equal(nextColorMode("dark"), "light");
   });
 
-  it("maps taskbar demo roles to login emails", () => {
+  it("maps demo account roles to login emails", () => {
     assert.equal(getDemoEmailForRole("tenant"), "tenant@example.com");
     assert.equal(getDemoEmailForRole("landlord"), "landlord@example.com");
     assert.equal(getDemoEmailForRole("agency"), "agency@example.com");
