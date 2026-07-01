@@ -6,20 +6,21 @@ KejaApp is a location-first rental platform for tenants, landlords, agencies, ad
 
 The backend API and first web frontend are under active MVP development. 
 The backend currently includes:-
- - authentication, account management
- - property management
- - property image management
- - saved properties
- - transparent pricing
- - property inquiries
- - viewing requests
- - reviews
- - agency verification
- - admin moderation
- - notifications
- - mover discovery
- - seed data
- - tests
+ - Authentication
+ - Account management
+ - Property management
+ - Property image management
+ - Saved properties
+ - Transparent pricing
+ - Property inquiries
+ - Viewing requests
+ - Reviews
+ - Agency verification
+ - Admin moderation
+ - Notifications
+ - Mover discovery
+ - Seed data
+ - Tests
  - Insomnia collection for manual API testing.
 
 A static adaptive web app is available in `frontend/`. React Native is planned.
