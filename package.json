@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npm --prefix backend run dev",
     "frontend": "npm --prefix frontend run start",
+    "mobile": "npm --prefix mobile run start",
     "seed": "npm --prefix backend run seed",
     "start": "npm --prefix backend run start",
     "test": "npm --prefix backend run test && npm --prefix frontend run test",
