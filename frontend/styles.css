@@ -101,16 +101,27 @@ button:disabled {
   min-width: 0;
 }
 
+.brand-mark-button {
+  flex: 0 0 auto;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.brand-mark-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--green) 40%, transparent);
+  outline-offset: 2px;
+}
+
 .brand-mark {
   width: 44px;
   height: 44px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
+  display: block;
+  object-fit: cover;
   border-radius: var(--radius);
-  background: var(--green);
-  color: #ffffff;
-  font-weight: 900;
 }
 
 .brand-block h1,

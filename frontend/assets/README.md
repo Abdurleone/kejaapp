@@ -1,3 +1,3 @@
 Logo assets for the frontend live here.
 
-The repo currently includes `keja-logo.svg` as the local placeholder asset. The React header renders a compact text brand mark, while the landing page uses a remote property photo background defined in `frontend/styles.css`.
+`keja-logo.png` is the real KejaApp logo, resized to a 512x512 working copy (the original upload was a 2.2MB 1024x1024 PNG, too heavy to ship). It's imported directly in `frontend/src/App.jsx` for the header brand mark, and a separate 64x64 copy lives at `frontend/public/favicon.png` for the browser favicon (referenced from `frontend/index.html`; `frontend/public/` is Vite's static-file directory, served as-is). The landing page hero itself uses a CSS gradient built from the app's theme colors, defined in `frontend/styles.css`, not a logo image.
