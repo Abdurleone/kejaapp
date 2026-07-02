@@ -5,7 +5,17 @@
       "Bash(node logo-check.js)",
       "Bash(node logo-click.js)",
       "Bash(git reset *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(node body-bg-check.js)",
+      "Bash(node bg-inspect.js)",
+      "Bash(node margin-crop.js)",
+      "Bash(node theme-check.js)",
+      "Bash(node palette-check.js)",
+      "Bash(node theme-verify.js)",
+      "Bash(node -e ' *)",
+      "Bash(node dark-contrast-check.js)",
+      "Bash(git fetch *)",
+      "Bash(git push *)"
     ]
   }
 }
