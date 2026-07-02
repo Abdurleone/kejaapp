@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import kejaLogo from "../assets/keja-logo.png";
 import LandingPage from "./pages/LandingPage.jsx";
 import DiscoverPage from "./pages/DiscoverPage.jsx";
 import SavedPage from "./pages/SavedPage.jsx";
@@ -217,9 +218,9 @@ function App() {
     <div className="app-shell">
       <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
         <div className="brand-block">
-          <span className="brand-mark" aria-label="KejaApp logo">
-            <span>K</span>
-          </span>
+          <button type="button" className="brand-mark-button" onClick={() => navigate("/")} aria-label="Go to homepage">
+            <img className="brand-mark" src={kejaLogo} alt="" />
+          </button>
           <div>
             <h1>KejaApp</h1>
             {!showSplash && <p>Real rental pages powered by React. API base: {apiBaseUrl}</p>}
