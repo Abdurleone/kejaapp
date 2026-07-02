@@ -48,4 +48,33 @@ describe("rateLimiter", () => {
     assert.equal(second.body.message, "Too many requests, please try again later");
     assert.equal(second.headers["Retry-After"], "60");
   });
+
+  it("evicts the oldest client entry once a namespace exceeds its size cap", () => {
+    const limiter = createRateLimiter({
+      name: "eviction-test",
+      windowMs: 60000,
+      max: 1,
+    });
+
+    const firstClientReq = { ip: "10.0.0.1", headers: {} };
+    limiter(firstClientReq, createResponse(), () => {});
+
+    // The cap is 5000 entries; flooding 5000 other clients should push the
+    // very first client's entry out instead of growing the store forever.
+    for (let index = 0; index < 5000; index += 1) {
+      const floodReq = { ip: `flood-client-${index}`, headers: {} };
+      limiter(floodReq, createResponse(), () => {});
+    }
+
+    // If the first client's entry was evicted, this request is treated as a
+    // fresh window (allowed) instead of being blocked as a second request.
+    const res = createResponse();
+    let nextCalled = false;
+    limiter(firstClientReq, res, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, true, "the evicted client's entry should have reset instead of staying blocked");
+    assert.equal(res.statusCode, 200);
+  });
 });

@@ -152,6 +152,17 @@ const env = {
     5 * 1024 * 1024,
     "MAX_UPLOAD_BYTES"
   ),
+  redisUrl: process.env.REDIS_URL || "",
+  propertiesCacheTtlMs: parsePositiveInteger(
+    process.env.PROPERTIES_CACHE_TTL_MS,
+    30 * 1000,
+    "PROPERTIES_CACHE_TTL_MS"
+  ),
+  moversCacheTtlMs: parsePositiveInteger(
+    process.env.MOVERS_CACHE_TTL_MS,
+    60 * 1000,
+    "MOVERS_CACHE_TTL_MS"
+  ),
 };
 
 export default env;
