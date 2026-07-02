@@ -1,18 +1,21 @@
+/* Default palette follows the Kenyan flag: black (ink/borders), red, green,
+   and white (surfaces). The "kenya" data-theme variant amplifies it further
+   with more saturated, more literal flag colors. */
 :root {
   color-scheme: light;
-  --bg: #f6f7f4;
+  --bg: #f7f7f6;
   --surface: #ffffff;
-  --surface-soft: #eef3ed;
-  --ink: #17211b;
-  --muted: #647069;
-  --line: #dce3dc;
-  --green: #256f4a;
-  --green-dark: #17472f;
-  --red: #b42332;
+  --surface-soft: #f1f1ef;
+  --ink: #141414;
+  --muted: #5c5c59;
+  --line: #dcdcda;
+  --green: #046a38;
+  --green-dark: #033f21;
+  --red: #bb0a1e;
   --amber: #a86416;
   --teal: #1f6d72;
-  --shadow: 0 16px 36px rgba(23, 33, 27, 0.08);
-  --shadow-strong: 0 22px 54px rgba(23, 33, 27, 0.14);
+  --shadow: 0 16px 36px rgba(10, 10, 10, 0.08);
+  --shadow-strong: 0 22px 54px rgba(10, 10, 10, 0.14);
   --radius: 8px;
   --radius-sm: 6px;
   --content: 1180px;
@@ -20,20 +23,25 @@
 }
 
 :root[data-theme="kenya"] {
-  --green: #1f7a45;
-  --green-dark: #145332;
-  --red: #bb1e32;
-  --surface-soft: #f2f6ef;
+  --green: #006600;
+  --green-dark: #003d00;
+  --red: #ce1126;
+  --ink: #000000;
+  --surface-soft: #eef0ee;
 }
 
 :root[data-color-mode="dark"] {
   color-scheme: dark;
-  --bg: #121715;
-  --surface: #1a211e;
-  --surface-soft: #202b26;
-  --ink: #eef5ef;
-  --muted: #a8b5ad;
-  --line: #334039;
+  --bg: #121212;
+  --surface: #1c1c1c;
+  --surface-soft: #242424;
+  --ink: #f2f2f2;
+  --muted: #a8a8a5;
+  --line: #3a3a38;
+  /* --green-dark is used as a text color (nav links, stat numbers, prices);
+     the default shade is too close to black to read against dark surfaces
+     (contrast ratio ~1.4:1), so lighten it here to stay legible (~7.4:1). */
+  --green-dark: #4fbf7a;
   --shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.36);
 }
@@ -51,7 +59,9 @@ body {
   margin: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(37, 111, 74, 0.09), transparent 32rem),
+    linear-gradient(color-mix(in srgb, var(--bg) 88%, transparent), color-mix(in srgb, var(--bg) 88%, transparent)),
+    url("assets/keja-logo.png") right bottom/480px no-repeat fixed,
+    radial-gradient(circle at top left, color-mix(in srgb, var(--green) 9%, transparent), transparent 32rem),
     var(--bg);
   color: var(--ink);
 }
@@ -592,6 +602,8 @@ dialog {
   color: #ffffff;
   overflow: hidden;
   background:
+    linear-gradient(135deg, color-mix(in srgb, var(--green-dark) 85%, transparent) 0%, color-mix(in srgb, #0d2318 85%, transparent) 55%, color-mix(in srgb, #060b08 85%, transparent) 100%),
+    url("assets/keja-logo.png") center/50% no-repeat,
     radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--green) 38%, transparent), transparent 55%),
     linear-gradient(135deg, var(--green-dark) 0%, #0d2318 55%, #060b08 100%);
 }
