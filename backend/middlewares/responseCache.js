@@ -1,5 +1,6 @@
 import env from "../config/env.js";
 import getRedisClient from "../config/redisClient.js";
+import { logWarn } from "../utils/logger.js";
 
 // Caches only expire entries lazily (on access), so without a cap a
 // namespace with high key cardinality (e.g. varied property search filters)
@@ -49,7 +50,7 @@ const readRedis = async (namespace, key) => {
     const raw = await client.get(`cache:${namespace}:${key}`);
     return raw === null ? undefined : JSON.parse(raw);
   } catch (error) {
-    console.warn(`Redis cache read failed, falling back to in-memory: ${error.message}`);
+    logWarn(`Redis cache read failed, falling back to in-memory: ${error.message}`);
     return readMemory(namespace, key);
   }
 };
@@ -65,7 +66,7 @@ const writeRedis = async (namespace, key, value, ttlMs) => {
   try {
     await client.set(`cache:${namespace}:${key}`, JSON.stringify(value), "PX", ttlMs);
   } catch (error) {
-    console.warn(`Redis cache write failed, falling back to in-memory: ${error.message}`);
+    logWarn(`Redis cache write failed, falling back to in-memory: ${error.message}`);
     writeMemory(namespace, key, value, ttlMs);
   }
 };
@@ -89,7 +90,7 @@ const invalidateNamespace = async (namespace) => {
       await client.del(...keys);
     }
   } catch (error) {
-    console.warn(`Redis cache invalidation failed: ${error.message}`);
+    logWarn(`Redis cache invalidation failed: ${error.message}`);
   }
 };
 

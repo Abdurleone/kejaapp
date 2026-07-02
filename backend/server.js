@@ -1,12 +1,13 @@
 import app from "./app.js";
 import connectDB, { disconnectDB } from "./config/db.js";
 import env from "./config/env.js";
+import { logError, logInfo, logWarn } from "./utils/logger.js";
 
 // Server
 let server;
 
 const shutdown = async (signal) => {
-  console.log(`${signal} received, shutting down`);
+  logInfo(`${signal} received, shutting down`);
 
   if (server) {
     server.close(async () => {
@@ -29,16 +30,16 @@ const startServer = async () => {
         throw error;
       }
 
-      console.warn(
+      logWarn(
         `MongoDB startup failed but DB_REQUIRED=false; starting API without database connection: ${error.message}`
       );
     }
 
     server = app.listen(env.port, () => {
-      console.log(`Server running on port ${env.port}`);
+      logInfo(`Server running on port ${env.port}`);
     });
   } catch (error) {
-    console.error(`Server startup failed: ${error.message}`);
+    logError(`Server startup failed: ${error.message}`);
     process.exit(1);
   }
 };

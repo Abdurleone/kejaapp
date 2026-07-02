@@ -1,5 +1,6 @@
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
+import { logError } from "../utils/logger.js";
 
 const notFound = (req, res, next) => {
   const error = new Error(`Not found - ${req.originalUrl}`);
@@ -35,6 +36,13 @@ const errorHandler = (err, req, res, next) => {
   ) {
     statusCode = httpStatus.SERVICE_UNAVAILABLE;
     message = "Database temporarily unavailable. Please retry the request.";
+  }
+
+  // Previously unhandled request errors left no trace anywhere once
+  // responded to; log server errors (not routine 4xx client mistakes) so
+  // they show up in the app log.
+  if (statusCode >= 500 && env.nodeEnv !== "test") {
+    logError(`${req.method} ${req.originalUrl} -> ${statusCode}: ${err.stack || err.message}`);
   }
 
   res.status(statusCode).json({

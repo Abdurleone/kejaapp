@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import env from "./env.js";
+import { logError, logInfo, logWarn } from "../utils/logger.js";
 
 const connectionStates = {
   0: "disconnected",
@@ -9,15 +10,15 @@ const connectionStates = {
 };
 
 mongoose.connection.on("error", (error) => {
-  console.error(`MongoDB error: ${error.message}`);
+  logError(`MongoDB error: ${error.message}`);
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.warn("MongoDB disconnected");
+  logWarn("MongoDB disconnected");
 });
 
 mongoose.connection.on("reconnected", () => {
-  console.log("MongoDB reconnected");
+  logInfo("MongoDB reconnected");
 });
 
 const mongoOptions = {
@@ -41,11 +42,11 @@ const connectDB = async () => {
   for (let attempt = 1; attempt <= env.mongoConnectRetries; attempt += 1) {
     try {
       const connection = await mongoose.connect(env.mongoUri, mongoOptions);
-      console.log(`MongoDB connected: ${connection.connection.host}`);
+      logInfo(`MongoDB connected: ${connection.connection.host}`);
       return connection;
     } catch (error) {
       lastError = error;
-      console.error(
+      logError(
         `MongoDB connection attempt ${attempt}/${env.mongoConnectRetries} failed: ${error.message}`
       );
 

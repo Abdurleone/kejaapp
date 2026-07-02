@@ -163,6 +163,7 @@ const env = {
     60 * 1000,
     "MOVERS_CACHE_TTL_MS"
   ),
+  logDir: path.resolve(process.env.LOG_DIR || "logs"),
 };
 
 export default env;

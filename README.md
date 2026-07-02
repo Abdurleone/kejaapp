@@ -75,6 +75,7 @@ Application foundation:
 - Health endpoint with database status and configured database path.
 - Load-balancer liveness and readiness endpoints.
 - CORS, Helmet, Morgan logging, centralized async handling, and error middleware.
+- Daily-rotated log files in `backend/logs/` (`access-YYYY-MM-DD.log` for HTTP requests, `app-YYYY-MM-DD.log` for connection/cache/rate-limit warnings and 5xx errors with stack traces), in addition to console output. Disabled during tests. Configurable via `LOG_DIR`.
 - Nodemon watch configuration for backend auto-refresh.
 - Configurable API and auth rate limiting, backed by Redis when `REDIS_URL` is set (falls back to per-process in-memory limits otherwise).
 - Response caching for public property and mover listings, with immediate invalidation on writes; long-lived immutable `Cache-Control` headers on uploaded property images.

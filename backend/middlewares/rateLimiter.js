@@ -1,6 +1,7 @@
 import httpStatus from "../constants/httpStatus.js";
 import env from "../config/env.js";
 import getRedisClient from "../config/redisClient.js";
+import { logWarn } from "../utils/logger.js";
 
 const stores = new Map();
 
@@ -66,7 +67,7 @@ const redisIncr = async (name, key, windowMs) => {
     const pttl = await client.pttl(redisKey);
     return { count, resetAt: Date.now() + (pttl > 0 ? pttl : windowMs) };
   } catch (error) {
-    console.warn(`Redis rate limit check failed, falling back to in-memory: ${error.message}`);
+    logWarn(`Redis rate limit check failed, falling back to in-memory: ${error.message}`);
     return memoryIncr(name, key, windowMs);
   }
 };
