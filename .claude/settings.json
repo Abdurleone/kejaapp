@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sf http://localhost:5173/favicon.png -o /tmp/claude-0/-root-kejaapp/f2ebc6fd-d3ab-43c8-8bda-3808157b8959/scratchpad/favicon-check.png -w \"favicon status=%{http_code} size=%{size_download}\\\\n\")",
+      "Bash(node logo-check.js)",
+      "Bash(node logo-click.js)",
+      "Bash(git reset *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
