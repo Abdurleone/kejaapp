@@ -216,12 +216,13 @@ Frontend API helpers in `app-utils.js`:
 - All requests include Authorization bearer token if signed in.
 
 Included flows:
-- Image-led landing section plus anonymous listing search before authentication.
+- Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, theme toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
 - Anonymous property discovery with radius search and gated save actions.
 - Adaptive property cards, listing insights, loading states, error states, and empty states.
 - Login and registration with form validation.
 - Role-aware navigation so tenants, owners, agencies, and admins only see the views they can access.
 - Polished responsive web UI with a splash landing page, centered workspace, sticky header actions, richer listing cards, account deletion flow, and light/dark plus Kenyan flag theme toggles.
+- Landing hero background reacts to the Kenya flag / default theme toggle since it is rendered from CSS theme tokens instead of a fixed image.
 - Saved property actions with favorite/unfavorite buttons.
 - Saved properties list loading from real `/api/favorites` endpoint.
 - Owner workspace placeholder for upcoming listing management.
@@ -239,7 +240,7 @@ Frontend access model:
 - Non-admin users do not see admin console navigation.
 
 Responsive behavior:
-- The landing page adapts from desktop split layout to a single-column phone layout.
+- The landing page adapts from desktop split layout to a single-column phone layout, and the overlay header trims down to logo plus sign-in (dropping the theme/mode toggles) on narrow phone widths to avoid crowding the hero.
 - Header actions, location radius controls, stat panels, and workspace tabs reflow across desktop, tablet, and phone widths.
 - Property grids and listing actions use container-safe sizing so listings do not overflow narrow screens.
 - Owner workspace and admin console panels adapt for smaller screens.
