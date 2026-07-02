@@ -98,10 +98,20 @@ mobile/
 
 **`Error fetching your Android emulators! ... ~/Library/Android/sdk/emulator/emulator.exe`**
 
-This means Expo CLI couldn't find an Android SDK/emulator on your machine — the suggested path is a generic macOS-style default and often isn't even right for your OS, so don't follow it literally. Two ways forward:
+This means Expo CLI couldn't find an Android SDK/emulator on your machine — the suggested path is a generic macOS-style default and often isn't even right for your OS, so don't follow it literally.
 
-- **Skip the emulator (recommended for WSL2/Windows):** press `w` for the web preview, or scan the QR code with the **Expo Go** app on your phone (same Wi-Fi network as your PC). No Android SDK required either way.
-- **If you specifically need an emulator:** install Android Studio with its SDK on the **Windows side** (not inside WSL2), then either run `npx expo start` from a Windows terminal instead of WSL2 (so it can see `%LOCALAPPDATA%\Android\Sdk`), or set `ANDROID_HOME`/`ANDROID_SDK_ROOT` inside WSL2 to the Windows SDK path (via `/mnt/c/...`) and add `platform-tools`/`emulator` to `PATH`. The latter works but is more fragile (WSL2↔Windows GUI/ADB bridging) — prefer a physical device via Expo Go if you can.
+A native Android SDK + emulator is now installed directly inside this WSL2 distro (not the Windows side), at `/opt/android-sdk`, with `ANDROID_HOME`/`ANDROID_SDK_ROOT`/`PATH` set in `~/.bashrc`. Open a new terminal (or `source ~/.bashrc`) so the exports take effect, then:
+
+```bash
+emulator -avd kejaapp_avd -no-window -no-audio -gpu swiftshader_indirect &
+```
+
+Wait for `adb devices` to show it as `device` (not `offline`), then run `npx expo start` and press `a` — Expo CLI will find it via `ANDROID_HOME` and load the app into Expo Go automatically. Drop `-no-window` if you want to see the emulator's screen (needs an X server/WSLg on the Windows side); headless is fine for just running/testing the app.
+
+Other options, if you'd rather not run a WSL2-side emulator:
+
+- **Skip the emulator entirely:** press `w` for the web preview, or scan the QR code with the **Expo Go** app on your phone (same Wi-Fi network as your PC).
+- **Use a Windows-side emulator instead:** install Android Studio with its SDK on the **Windows side**, then run `npx expo start` from a Windows terminal (not WSL2) so it can see `%LOCALAPPDATA%\Android\Sdk`. More fragile to bridge into WSL2, so the in-WSL2 SDK above is simpler if you're driving everything from a WSL2 terminal.
 
 **Physical device can't reach the API / requests hang or fail**
 
@@ -109,4 +119,8 @@ See [Pointing the app at your backend](#pointing-the-app-at-your-backend) above 
 
 ## Verification notes
 
-This was developed and verified end-to-end via the Expo web preview (`expo start --web`) driven with Playwright against a real running backend — including sign-in, browsing, saving a favorite, and submitting an inquiry, all confirmed via real network responses from the API, not mocks. It has not been verified on an actual iOS or Android device/simulator — do that before shipping, since native-only behavior (the date picker, platform-specific navigation gestures, safe-area insets on notched devices) can't be exercised through the web preview.
+This was developed and verified end-to-end via the Expo web preview (`expo start --web`) driven with Playwright against a real running backend — including sign-in, browsing, saving a favorite, and submitting an inquiry, all confirmed via real network responses from the API, not mocks.
+
+It has since also been verified on a real Android emulator (API 34, Google APIs x86_64 image) via Expo Go: launched from the Metro bundler already running on the dev machine, loaded the JS bundle, and navigated Discover → property detail, rendering real backend data (pricing, cost summary, contact info) with native navigation (back button, bottom tabs). This confirms the app runs as an actual native Android app, not just in the web preview.
+
+Still not verified on an actual iOS device/simulator — iOS Simulator requires macOS/Xcode, which isn't available in this Linux/WSL2 dev environment. Do that before shipping to the App Store, since iOS-specific behavior (safe-area insets on notched devices, iOS-native navigation gestures) can't be exercised any other way from here.
