@@ -1,6 +1,6 @@
 export default function LandingPage({ onStart }) {
   return (
-    <section className="landing-page" onClick={onStart}>
+    <section className="landing-page">
       <div className="landing-copy">
         <h2>Find the right home in Nairobi and beyond.</h2>
         <p>

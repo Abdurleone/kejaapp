@@ -215,14 +215,14 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="app-header" hidden={showSplash}>
+      <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
         <div className="brand-block">
           <span className="brand-mark" aria-label="KejaApp logo">
             <span>K</span>
           </span>
           <div>
             <h1>KejaApp</h1>
-            <p>Real rental pages powered by React. API base: {apiBaseUrl}</p>
+            {!showSplash && <p>Real rental pages powered by React. API base: {apiBaseUrl}</p>}
           </div>
         </div>
 
