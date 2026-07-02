@@ -23,7 +23,7 @@ The backend currently includes:-
  - Tests
  - Insomnia collection for manual API testing.
 
-A static adaptive web app is available in `frontend/`. React Native is planned.
+A static adaptive web app is available in `frontend/`. A React Native (Expo) mobile app MVP for iOS and Android is available in `mobile/`.
 
 ## Core Features
 
@@ -49,7 +49,10 @@ Frontend:
 - Static web MVP
 - Adaptive responsive UI for desktop, tablet, and phone screens
 - Kenyan flag color theme toggle
-- React Native planned
+
+Mobile:
+- React Native (Expo), targeting iOS and Android from one codebase
+- See `mobile/README.md` for setup, running via Expo Go, and EAS build instructions
 
 Backend:
 - Node.js
@@ -704,6 +707,19 @@ frontend/
 ├── package.json
 └── styles.css
 
+mobile/
+├── src/
+│   ├── api/
+│   ├── components/
+│   ├── context/
+│   ├── navigation/
+│   ├── screens/
+│   ├── theme/
+│   └── utils/
+├── App.js
+├── app.json
+└── README.md
+
 docs/
 └── kejaapp-insomnia.json
 ```
@@ -753,6 +769,14 @@ npm run frontend
 ```
 
 The frontend dev server starts on `http://localhost:5173` when available. If that port is already in use, it automatically tries the next open port and prints the URL. The backend development CORS config allows these local frontend ports.
+
+Run the mobile app from the repo root:
+
+```bash
+npm run mobile
+```
+
+This starts the Expo/Metro bundler. See `mobile/README.md` for how to open it in Expo Go on a phone, a simulator/emulator, or a browser preview, and how to point it at the backend from a physical device.
 
 ## MongoDB Troubleshooting
 
@@ -844,11 +868,13 @@ TEST_MONGODB_URI="mongodb://localhost:27017" TEST_MONGODB_DB_NAME=kejaapp_test n
 Completed:
 - Backend POC.
 - Auth, account management, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, static web frontend, tests, seeding, and Insomnia collection.
+- React Native (Expo) mobile app MVP for iOS and Android covering auth, discover/search, property detail, saved favorites, inquiries, and viewing requests — see `mobile/README.md`.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
 - Expand the web frontend from the static MVP into a richer app experience.
-- React Native mobile app.
+- Mobile: owner workspace, admin console, and reviews UI (still placeholders/missing on web too).
+- Mobile: verify on an actual iOS/Android device or simulator (developed and verified via Expo web preview so far).
 
 ## License
 
