@@ -25,6 +25,47 @@ export const setAuthToken = (token) => {
   }
 };
 
+// Entries only expire lazily (on access), so a long-lived tab doing many
+// distinct searches (e.g. repeated "near me" radius queries) could grow this
+// unbounded. FIFO-evict the oldest entry past this size as a backstop.
+const requestCacheMaxEntries = 200;
+
+const requestCache = new Map();
+
+const getCached = (key) => {
+  const entry = requestCache.get(key);
+
+  if (!entry || entry.expiresAt <= Date.now()) {
+    requestCache.delete(key);
+    return undefined;
+  }
+
+  return entry.value;
+};
+
+const setCached = (key, value, ttlMs) => {
+  requestCache.set(key, { value, expiresAt: Date.now() + ttlMs });
+
+  while (requestCache.size > requestCacheMaxEntries) {
+    requestCache.delete(requestCache.keys().next().value);
+  }
+};
+
+// Clears every cached key when called with no prefix (e.g. on auth
+// transitions), or just the keys under a prefix (e.g. after a mutation).
+export const clearRequestCache = (prefix) => {
+  if (!prefix) {
+    requestCache.clear();
+    return;
+  }
+
+  for (const key of requestCache.keys()) {
+    if (key.startsWith(prefix)) {
+      requestCache.delete(key);
+    }
+  }
+};
+
 export const apiFetch = async (path, options = {}) => {
   const baseUrl = normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
   const url = createApiUrl(path, baseUrl);
@@ -54,12 +95,24 @@ export const apiFetch = async (path, options = {}) => {
   return payload;
 };
 
+const propertiesCacheTtlMs = 15000;
+const favoritesCacheTtlMs = 15000;
+
 export const fetchProperties = async (query = {}) => {
   const queryString = buildQueryString(query);
+  const cacheKey = `properties:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const response = await apiFetch(`/api/properties${queryString}`, {
     method: "GET",
   });
-  return response.data || [];
+  const data = response.data || [];
+  setCached(cacheKey, data, propertiesCacheTtlMs);
+  return data;
 };
 
 export const fetchCurrentUser = async () => {
@@ -68,14 +121,24 @@ export const fetchCurrentUser = async () => {
 };
 
 export const fetchFavorites = async () => {
+  const cacheKey = "favorites";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const response = await apiFetch("/api/favorites", { method: "GET" });
-  return response.data || [];
+  const data = response.data || [];
+  setCached(cacheKey, data, favoritesCacheTtlMs);
+  return data;
 };
 
 export const saveFavorite = async (propertyId) => {
   const response = await apiFetch(`/api/favorites/${propertyId}`, {
     method: "POST",
   });
+  clearRequestCache("favorites");
   return response.data;
 };
 
@@ -83,6 +146,7 @@ export const removeFavorite = async (propertyId) => {
   await apiFetch(`/api/favorites/${propertyId}`, {
     method: "DELETE",
   });
+  clearRequestCache("favorites");
 };
 
 export const loginUser = async (credentials) => {
@@ -91,17 +155,20 @@ export const loginUser = async (credentials) => {
     body: credentials,
   });
   setAuthToken(response.token);
+  clearRequestCache();
   return response;
 };
 
 export const logoutUser = async () => {
   await apiFetch("/api/auth/logout", { method: "POST" });
   setAuthToken("");
+  clearRequestCache();
 };
 
 export const deleteCurrentAccount = async () => {
   const response = await apiFetch("/api/auth/me", { method: "DELETE" });
   setAuthToken("");
+  clearRequestCache();
   return response;
 };
 
@@ -111,6 +178,7 @@ export const registerUser = async (userData) => {
     body: userData,
   });
   setAuthToken(response.token);
+  clearRequestCache();
   return response;
 };
 

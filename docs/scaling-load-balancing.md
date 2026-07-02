@@ -38,9 +38,17 @@ Current local-development defaults are fine for one instance, but production sca
 
 - **MongoDB Atlas**: primary source of truth for users, sessions, properties, inquiries, viewings, notifications, and moderation records.
 - **Refresh sessions**: already stored in MongoDB, so access-token refresh works across instances.
-- **Rate limiting**: currently in memory. For multiple instances, move counters to Redis or another shared low-latency store so limits apply globally.
+- **Rate limiting and response caching**: backed by a shared store abstraction (`backend/config/redisClient.js`) used by both `backend/middlewares/rateLimiter.js` and `backend/middlewares/responseCache.js`. Set `REDIS_URL` to make rate limits and the public property/mover response cache consistent across instances; if `REDIS_URL` is unset, both fall back to a per-process in-memory store (fine for a single instance, not for multiple). If Redis is configured but briefly unreachable, both middlewares fail open to the in-memory store rather than rejecting requests.
 - **Property uploads**: currently local disk under `UPLOAD_DIR`. For multiple instances, move uploaded files to object storage such as S3, Cloudinary, or Azure Blob Storage and store public URLs in MongoDB.
 - **Image fingerprinting**: current byte-derived perceptual hashes work as a no-dependency baseline. For stronger duplicate detection, use a real image-processing worker with a library such as Sharp and store perceptual hashes in MongoDB.
+
+## Caching
+
+- `GET /api/properties` and `GET /api/properties/:id` are cached (namespace `properties`, TTL via `PROPERTIES_CACHE_TTL_MS`, default 30s) and invalidated immediately on any property create/update/delete or image add/remove.
+- `GET /api/movers` is cached (namespace `movers`, TTL via `MOVERS_CACHE_TTL_MS`, default 60s). There is no mover write endpoint, so no invalidation hook is needed.
+- Only fully anonymous, non-personalized GET endpoints are cached — protected/user-scoped endpoints such as `GET /api/properties/mine` are never cached.
+- `/uploads/*` is served with `Cache-Control: public, max-age=31536000, immutable`, since uploaded image filenames embed a unique Mongo ObjectId and are never reused for different content.
+- The frontend (`frontend/app-utils.js`) keeps a short-lived (15s) in-memory cache for `fetchProperties`/`fetchFavorites` to avoid redundant refetches on remount, clearing the favorites cache on save/remove and the entire cache on login/logout/register/account deletion.
 
 ## Load Balancer Strategy
 
@@ -61,6 +69,9 @@ AUTH_COOKIE_SECURE=true
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=500
 AUTH_RATE_LIMIT_MAX=50
+REDIS_URL=redis://user:password@host:6379
+PROPERTIES_CACHE_TTL_MS=30000
+MOVERS_CACHE_TTL_MS=60000
 ```
 
 For container platforms, configure:
@@ -71,9 +82,9 @@ For container platforms, configure:
 
 ## Production Upgrade Checklist
 
-- Replace in-memory rate limiting with Redis-backed counters.
+- Set `REDIS_URL` so rate limiting and response caching are consistent across instances instead of per-process.
 - Replace local upload storage with object storage.
-- Put CDN caching in front of uploaded image assets.
+- Put CDN caching in front of uploaded image assets (in addition to the `Cache-Control` headers already set on `/uploads`).
 - Run at least two API instances across separate availability zones where possible.
 - Add centralized logs and metrics for request latency, status codes, MongoDB connection state, and rate-limit rejections.
 - Add queue-backed workers for expensive image hashing if upload traffic grows.

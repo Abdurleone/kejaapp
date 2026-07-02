@@ -13,6 +13,8 @@ import {
 } from "../controllers/propertyController.js";
 import { authorize, protect } from "../middlewares/authMiddleware.js";
 import { roleGroups } from "../constants/rbac.js";
+import env from "../config/env.js";
+import { cacheResponse } from "../middlewares/responseCache.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import {
   costCalculationSchema,
@@ -27,9 +29,14 @@ import { listPropertyInquiries } from "../controllers/inquiryController.js";
 
 const router = express.Router();
 
+const cachePropertyResponses = cacheResponse({
+  namespace: "properties",
+  ttlMs: env.propertiesCacheTtlMs,
+});
+
 router
   .route("/")
-  .get(listProperties)
+  .get(cachePropertyResponses, listProperties)
   .post(
     protect,
     authorize(...roleGroups.listingManagers),
@@ -67,7 +74,7 @@ router.delete(
 
 router
   .route("/:id")
-  .get(getProperty)
+  .get(cachePropertyResponses, getProperty)
   .put(
     protect,
     authorize(...roleGroups.listingManagers),

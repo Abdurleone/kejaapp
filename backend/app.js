@@ -28,7 +28,13 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.resolve(env.uploadDir)));
+app.use(
+  "/uploads",
+  express.static(path.resolve(env.uploadDir), {
+    maxAge: "1y",
+    immutable: true,
+  })
+);
 
 if (env.nodeEnv !== "test") {
   app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));

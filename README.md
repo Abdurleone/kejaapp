@@ -76,7 +76,8 @@ Application foundation:
 - Load-balancer liveness and readiness endpoints.
 - CORS, Helmet, Morgan logging, centralized async handling, and error middleware.
 - Nodemon watch configuration for backend auto-refresh.
-- Configurable API and auth rate limiting.
+- Configurable API and auth rate limiting, backed by Redis when `REDIS_URL` is set (falls back to per-process in-memory limits otherwise).
+- Response caching for public property and mover listings, with immediate invalidation on writes; long-lived immutable `Cache-Control` headers on uploaded property images.
 - OpenAPI JSON exposed for API tooling.
 - Protected role-aware dashboard summary endpoint.
 - Admin user account status moderation for active, suspended, and banned accounts.
@@ -214,6 +215,7 @@ Frontend API helpers in `app-utils.js`:
 - `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
 - `logoutUser()` → `POST /api/auth/logout`
 - All requests include Authorization bearer token if signed in.
+- `fetchProperties` and `fetchFavorites` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, theme toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
@@ -661,6 +663,7 @@ GET    /api/movers
 - Notification triggers for inquiries, reviews, viewings, and agency verification decisions.
 - Agency verification approval and rejection workflow.
 - MongoDB connection health reporting.
+- TTL response caching for public property and mover listings (in-memory by default, Redis-backed across instances when `REDIS_URL` is set), invalidated on property writes.
 
 ## Payment Boundary
 

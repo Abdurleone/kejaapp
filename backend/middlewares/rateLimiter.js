@@ -1,6 +1,14 @@
 import httpStatus from "../constants/httpStatus.js";
+import env from "../config/env.js";
+import getRedisClient from "../config/redisClient.js";
 
 const stores = new Map();
+
+// cleanupStore only sweeps expired entries when some key's window has
+// already lapsed, so a burst of distinct clients that are all still within
+// their window won't trigger a sweep. Cap store size as a hard backstop so
+// a spike of unique IPs can't grow a namespace's Map unbounded.
+const maxEntriesPerNamespace = 5000;
 
 const getClientKey = (req) =>
   req.ip ||
@@ -16,39 +24,90 @@ const cleanupStore = (store, now) => {
   }
 };
 
-const createRateLimiter = ({ name, windowMs, max }) => {
+const memoryIncr = (name, key, windowMs) => {
   const store = stores.get(name) || new Map();
   stores.set(name, store);
 
-  return (req, res, next) => {
-    const now = Date.now();
-    const key = getClientKey(req);
-    const current = store.get(key);
+  const now = Date.now();
+  const current = store.get(key);
 
-    if (!current || current.resetAt <= now) {
-      cleanupStore(store, now);
-      store.set(key, {
-        count: 1,
-        resetAt: now + windowMs,
-      });
-      return next();
+  if (!current || current.resetAt <= now) {
+    cleanupStore(store, now);
+    const entry = { count: 1, resetAt: now + windowMs };
+    store.set(key, entry);
+
+    while (store.size > maxEntriesPerNamespace) {
+      store.delete(store.keys().next().value);
     }
 
-    current.count += 1;
+    return entry;
+  }
 
-    if (current.count > max) {
-      const retryAfterSeconds = Math.ceil((current.resetAt - now) / 1000);
+  current.count += 1;
+  return current;
+};
 
-      res.setHeader("Retry-After", String(retryAfterSeconds));
-      res.status(httpStatus.TOO_MANY_REQUESTS).json({
-        message: "Too many requests, please try again later",
-        retryAfterSeconds,
-      });
+const redisIncr = async (name, key, windowMs) => {
+  const client = await getRedisClient();
+
+  if (!client) {
+    return memoryIncr(name, key, windowMs);
+  }
+
+  const redisKey = `ratelimit:${name}:${key}`;
+
+  try {
+    const count = await client.incr(redisKey);
+
+    if (count === 1) {
+      await client.pexpire(redisKey, windowMs);
+    }
+
+    const pttl = await client.pttl(redisKey);
+    return { count, resetAt: Date.now() + (pttl > 0 ? pttl : windowMs) };
+  } catch (error) {
+    console.warn(`Redis rate limit check failed, falling back to in-memory: ${error.message}`);
+    return memoryIncr(name, key, windowMs);
+  }
+};
+
+const respondTooManyRequests = (res, resetAt) => {
+  const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
+
+  res.setHeader("Retry-After", String(retryAfterSeconds));
+  res.status(httpStatus.TOO_MANY_REQUESTS).json({
+    message: "Too many requests, please try again later",
+    retryAfterSeconds,
+  });
+};
+
+// Stays fully synchronous (same behavior/tests as before) when Redis isn't
+// configured; only goes async when REDIS_URL enables cross-instance limits.
+const createRateLimiter = ({ name, windowMs, max }) => (req, res, next) => {
+  const key = getClientKey(req);
+
+  if (!env.redisUrl) {
+    const { count, resetAt } = memoryIncr(name, key, windowMs);
+
+    if (count > max) {
+      respondTooManyRequests(res, resetAt);
       return;
     }
 
     next();
-  };
+    return;
+  }
+
+  redisIncr(name, key, windowMs)
+    .then(({ count, resetAt }) => {
+      if (count > max) {
+        respondTooManyRequests(res, resetAt);
+        return;
+      }
+
+      next();
+    })
+    .catch(() => next());
 };
 
 const resetRateLimiters = () => {

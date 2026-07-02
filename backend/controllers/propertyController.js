@@ -11,6 +11,7 @@ import {
   fingerprintPropertyImage,
   removePropertyImageFingerprint,
 } from "../services/imageFingerprintService.js";
+import { invalidateNamespace } from "../middlewares/responseCache.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -238,6 +239,7 @@ const createProperty = asyncHandler(async (req, res) => {
   });
 
   const populatedProperty = await property.populate("owner", "name email role phone");
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
     data: attachCostSummary(populatedProperty),
@@ -268,6 +270,7 @@ const updateProperty = asyncHandler(async (req, res) => {
   Object.assign(property, pickPropertyPayload(req.body));
   await property.save();
   await property.populate("owner", "name email role phone");
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
     data: attachCostSummary(property),
@@ -296,6 +299,7 @@ const addPropertyImage = asyncHandler(async (req, res) => {
     uploadedBy: req.user._id,
   });
   await property.populate("owner", "name email role phone");
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
     data: attachCostSummary(property),
@@ -337,6 +341,7 @@ const uploadPropertyImage = asyncHandler(async (req, res) => {
     uploadedBy: req.user._id,
   });
   await property.populate("owner", "name email role phone");
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
     data: attachCostSummary(property),
@@ -369,6 +374,7 @@ const removePropertyImage = asyncHandler(async (req, res) => {
   });
   await property.save();
   await property.populate("owner", "name email role phone");
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
     data: attachCostSummary(property),
@@ -385,6 +391,7 @@ const deleteProperty = asyncHandler(async (req, res) => {
   ensurePropertyOwner(property, req.user);
 
   await property.deleteOne();
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
     message: "Property deleted",
