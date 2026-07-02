@@ -42,7 +42,12 @@
       "Bash(timeout 50 node mobile-full-flow.js)",
       "Bash(timeout 50 node mobile-full-flow2.js)",
       "Bash(timeout 50 node mobile-save-wait.js)",
-      "Bash(timeout 50 node mobile-inquiry-submit.js)"
+      "Bash(timeout 50 node mobile-inquiry-submit.js)",
+      "Bash(mkdir -p /opt/android-sdk/cmdline-tools)",
+      "Bash(curl -sSL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip)",
+      "Bash(unzip -q cmdline-tools.zip -d /opt/android-sdk/cmdline-tools)",
+      "Bash(mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest)",
+      "Read(//opt/android-sdk/cmdline-tools/latest/**)"
     ]
   }
 }

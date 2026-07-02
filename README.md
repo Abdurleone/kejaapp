@@ -65,9 +65,10 @@ Development and testing:
 - Node test runner
 - Insomnia
 
-Deployment targets:
-- Backend: Render or Railway
-- Frontend: Vercel
+DevOps:
+- GitHub Actions CI (backend + frontend tests, Docker build) — `.github/workflows/ci.yml`
+- Docker + docker-compose for a local/staging stack (backend, frontend, MongoDB, Redis)
+- Not deployed to a live host yet — see `docs/devops.md`
 
 ## Implemented Backend
 
@@ -686,6 +687,10 @@ KejaApp does not process, track, or mediate payments in the current product scop
 ## Project Structure
 
 ```text
+.github/
+└── workflows/
+    └── ci.yml
+
 backend/
 ├── config/
 ├── constants/
@@ -699,10 +704,13 @@ backend/
 ├── utils/
 ├── validators/
 ├── app.js
+├── Dockerfile
 └── server.js
 
 frontend/
 ├── tests/
+├── Dockerfile
+├── nginx.conf
 ├── index.html
 ├── package.json
 └── styles.css
@@ -721,7 +729,10 @@ mobile/
 └── README.md
 
 docs/
+├── devops.md
 └── kejaapp-insomnia.json
+
+docker-compose.yml
 ```
 
 ## Getting Started
@@ -777,6 +788,17 @@ npm run mobile
 ```
 
 This starts the Expo/Metro bundler. See `mobile/README.md` for how to open it in Expo Go on a phone, a simulator/emulator, or a browser preview, and how to point it at the backend from a physical device.
+
+### Running with Docker
+
+Alternatively, run the whole stack (backend, frontend, MongoDB, Redis) in containers:
+
+```bash
+cp .env.example .env   # set JWT_SECRET
+docker compose up --build
+```
+
+Frontend at `http://localhost:8080`, backend at `http://localhost:5000`. See `docs/devops.md` for details on the CI pipeline, container images, and health checks.
 
 ## MongoDB Troubleshooting
 
@@ -868,13 +890,15 @@ TEST_MONGODB_URI="mongodb://localhost:27017" TEST_MONGODB_DB_NAME=kejaapp_test n
 Completed:
 - Backend POC.
 - Auth, account management, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, static web frontend, tests, seeding, and Insomnia collection.
-- React Native (Expo) mobile app MVP for iOS and Android covering auth, discover/search, property detail, saved favorites, inquiries, and viewing requests — see `mobile/README.md`.
+- React Native (Expo) mobile app MVP for iOS and Android covering auth, discover/search, property detail, saved favorites, inquiries, and viewing requests — see `mobile/README.md`. Verified end-to-end on a real Android emulator, not just the Expo web preview.
+- CI (GitHub Actions), Docker images for backend/frontend, docker-compose for local/staging, and health check endpoints — see `docs/devops.md`.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
 - Expand the web frontend from the static MVP into a richer app experience.
 - Mobile: owner workspace, admin console, and reviews UI (still placeholders/missing on web too).
-- Mobile: verify on an actual iOS/Android device or simulator (developed and verified via Expo web preview so far).
+- Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
+- DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
 
 ## License
 

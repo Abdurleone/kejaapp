@@ -23,7 +23,9 @@ import {
 } from "../app-utils.js";
 
 const apiBaseUrl = normalizeApiBaseUrl(
-  localStorage.getItem("keja_base_url") || "http://localhost:5000",
+  localStorage.getItem("keja_base_url") ||
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://localhost:5000",
 );
 
 const navItems = [
