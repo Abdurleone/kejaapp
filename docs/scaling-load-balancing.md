@@ -50,6 +50,12 @@ Current local-development defaults are fine for one instance, but production sca
 - `/uploads/*` is served with `Cache-Control: public, max-age=31536000, immutable`, since uploaded image filenames embed a unique Mongo ObjectId and are never reused for different content.
 - The frontend (`frontend/app-utils.js`) keeps a short-lived (15s) in-memory cache for `fetchProperties`/`fetchFavorites` to avoid redundant refetches on remount, clearing the favorites cache on save/remove and the entire cache on login/logout/register/account deletion.
 
+## Logging
+
+- `backend/utils/logger.js` writes daily-rotated files under `LOG_DIR` (default `backend/logs/`): `access-YYYY-MM-DD.log` (Morgan combined format, one line per request) and `app-YYYY-MM-DD.log` (connection/cache/rate-limit warnings and 5xx errors with stack traces). Console output is unchanged; the file writes are additive.
+- Log files are local disk, per-instance, and not centralized. On a container platform, either mount `LOG_DIR` to persistent/shared storage or, preferably, ship stdout/stderr (which still receive everything) to your platform's log aggregator instead of relying on the local files across multiple instances.
+- File logging is disabled entirely when `NODE_ENV=test` so the test suite stays hermetic.
+
 ## Load Balancer Strategy
 
 - No sticky sessions are required for JWT access tokens.
@@ -72,6 +78,7 @@ AUTH_RATE_LIMIT_MAX=50
 REDIS_URL=redis://user:password@host:6379
 PROPERTIES_CACHE_TTL_MS=30000
 MOVERS_CACHE_TTL_MS=60000
+LOG_DIR=/var/log/kejaapp
 ```
 
 For container platforms, configure:
@@ -86,5 +93,5 @@ For container platforms, configure:
 - Replace local upload storage with object storage.
 - Put CDN caching in front of uploaded image assets (in addition to the `Cache-Control` headers already set on `/uploads`).
 - Run at least two API instances across separate availability zones where possible.
-- Add centralized logs and metrics for request latency, status codes, MongoDB connection state, and rate-limit rejections.
+- Ship the local log files (or stdout/stderr) to a centralized log aggregator, and add metrics for request latency, status codes, MongoDB connection state, and rate-limit rejections.
 - Add queue-backed workers for expensive image hashing if upload traffic grows.

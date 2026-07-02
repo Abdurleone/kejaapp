@@ -8,6 +8,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import env from "./config/env.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import { createRateLimiter } from "./middlewares/rateLimiter.js";
+import { accessLogStream } from "./utils/logger.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -38,6 +39,7 @@ app.use(
 
 if (env.nodeEnv !== "test") {
   app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
+  app.use(morgan("combined", { stream: accessLogStream }));
 }
 
 app.use("/api", createRateLimiter({

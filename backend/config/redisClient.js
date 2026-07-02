@@ -1,4 +1,5 @@
 import env from "./env.js";
+import { logWarn } from "../utils/logger.js";
 
 let clientPromise = null;
 
@@ -19,13 +20,13 @@ const getRedisClient = () => {
         });
 
         client.on("error", (error) => {
-          console.warn(`Redis error: ${error.message}`);
+          logWarn(`Redis error: ${error.message}`);
         });
 
         return client.connect().then(() => client);
       })
       .catch((error) => {
-        console.warn(`Redis connection failed, falling back to in-memory store: ${error.message}`);
+        logWarn(`Redis connection failed, falling back to in-memory store: ${error.message}`);
         return null;
       });
   }
