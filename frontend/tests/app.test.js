@@ -22,7 +22,6 @@ import {
   getPropertyImage,
   getViewPath,
   getDefaultViewForRole,
-  nextColorMode,
   normalizeApiBaseUrl,
   resolveAssetUrl,
   resolveViewFromPath,
@@ -84,11 +83,6 @@ describe("frontend app utilities", () => {
   it("formats listing rating summaries", () => {
     assert.equal(formatRatingSummary(4.25, 3), "4.3 rating (3)");
     assert.equal(formatRatingSummary(0, 0), "No ratings");
-  });
-
-  it("toggles between light and dark color modes", () => {
-    assert.equal(nextColorMode("light"), "dark");
-    assert.equal(nextColorMode("dark"), "light");
   });
 
   it("maps demo account roles to login emails", () => {

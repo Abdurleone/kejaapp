@@ -21,7 +21,6 @@ import {
   getPropertyEditIdFromPath,
   getPropertyCreatePath,
   shouldShowSplash,
-  nextColorMode,
   getViewPath,
   getDefaultViewForRole,
   fetchCurrentUser,
@@ -318,9 +317,20 @@ function App() {
         </div>
 
         <div className="header-actions">
-          <button className="text-button" type="button" onClick={() => setColorMode(nextColorMode(colorMode))}>
-            Mode
-          </button>
+          <div className="mode-toggle" role="radiogroup" aria-label="Color mode">
+            {["light", "dark"].map((mode) => (
+              <label key={mode} className={`mode-option${colorMode === mode ? " active" : ""}`}>
+                <input
+                  type="radio"
+                  name="colorMode"
+                  value={mode}
+                  checked={colorMode === mode}
+                  onChange={() => setColorMode(mode)}
+                />
+                {mode === "light" ? "Light" : "Dark"}
+              </label>
+            ))}
+          </div>
           {signedIn ? (
             <>
               <span className="user-pill">{currentUser?.name || currentUser?.email || "Signed in"}</span>

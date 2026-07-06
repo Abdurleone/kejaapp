@@ -48,7 +48,7 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 Frontend:
 - Static web MVP
 - Adaptive responsive UI for desktop, tablet, and phone screens
-- Kenyan flag color palette (single, fixed theme) with a separate light/dark mode toggle
+- Kenyan flag color palette (single, fixed theme) with a light/dark mode radio toggle in the header, present on every page including the landing page
 
 Mobile:
 - React Native (Expo), targeting iOS and Android from one codebase
@@ -259,7 +259,7 @@ Frontend access model:
 - Non-admin users do not see admin console navigation.
 
 Responsive behavior:
-- The landing page adapts from desktop split layout to a single-column phone layout, and the overlay header trims down to logo plus sign-in (dropping the mode toggle) on narrow phone widths to avoid crowding the hero.
+- The landing page adapts from desktop split layout to a single-column phone layout; the light/dark mode toggle stays visible (wrapping alongside Sign in) at every width, on the landing page and every other page.
 - Header actions, location radius controls, stat panels, and workspace tabs reflow across desktop, tablet, and phone widths.
 - Property grids and listing actions use container-safe sizing so listings do not overflow narrow screens.
 - Owner workspace and admin console panels adapt for smaller screens.
@@ -978,6 +978,7 @@ Completed:
 - Added a "New listing" creation flow for landlords/agencies on both web and mobile, backed by the existing `POST /api/properties` endpoint (previously only reachable via seeding/direct API calls — neither app had any UI to create a listing at all). Web: a `PropertyCreatePage` sharing its form fields with `PropertyEditPage` via a new `PropertyForm` component, reached from a "New listing" button in the workspace header, gated by `canManageListings`. Mobile: a first-ever Workspace tab (role-gated: sign-in and landlord/agency/admin required, shown as a message otherwise) listing the signed-in owner's properties via the newly added `fetchMyProperties`, with a "New listing" header action opening a create form (`WorkspaceStack` → `PropertyCreateScreen`). Tenants retain read-only access everywhere (Discover/Saved/property detail) and cannot reach either creation path.
 - Consolidated the app's two-shade green palette (web's `--green`/`--green-dark` CSS variables, mobile's `colors.green`/`colors.greenDark`) down to a single dark shade everywhere, at the user's request. Previously `--green-dark` was deliberately re-lightened in dark mode (to `#4fbf7a`) to fix a text-contrast bug against the dark background (~1.4:1 contrast otherwise); collapsing to one literal color per the request reintroduces that low-contrast text in dark mode for elements that use the shared green (nav links, prices, stat numbers) — a known, explicitly-accepted tradeoff, not an oversight.
 - Removed the web frontend's default-vs-Kenya-flag theme toggle, at the user's request — the Kenyan flag palette (previously the `data-theme="kenya"` variant) is now the only look, merged directly into `:root`. The separate light/dark mode toggle is untouched (mobile never had a theme toggle to begin with, only the one fixed palette).
+- Replaced the web frontend's single cycling "Mode" button with an explicit two-option Light/Dark radio toggle (`role="radiogroup"`, native radio inputs under the hood) in the header's top-right corner, at the user's request. It's the same shared header on every page, including the landing page, and — unlike the old button — is no longer hidden on narrow phone widths.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.

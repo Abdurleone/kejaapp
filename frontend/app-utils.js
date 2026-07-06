@@ -393,8 +393,6 @@ export const sortProperties = (properties, sortMode) => {
   return sorted;
 };
 
-export const nextColorMode = (mode) => (mode === "dark" ? "light" : "dark");
-
 export const demoAccounts = {
   tenant: "tenant@example.com",
   landlord: "landlord@example.com",
