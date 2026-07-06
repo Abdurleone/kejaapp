@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
-import { fetchFavorites, removeFavorite, formatKes } from "../../app-utils.js";
+import { fetchFavorites, removeFavorite, formatKes, formatRatingSummary } from "../../app-utils.js";
 
 export default function SavedPage({ onOpenProperty }) {
   const [saved, setSaved] = useState([]);
@@ -53,6 +53,7 @@ export default function SavedPage({ onOpenProperty }) {
               <article className="property-card" key={propertyId}>
                 <div className="property-body">
                   <h3 className="property-title">{property.title || "Rental property"}</h3>
+                  <p className="property-rating">{formatRatingSummary(property.ratingAverage, property.ratingCount)}</p>
                   <div className="cost-row">
                     <strong>{formatKes(property.price?.rent)}</strong>
                     <span>{property.location?.area || "Nairobi"}</span>
