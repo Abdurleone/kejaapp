@@ -198,7 +198,7 @@ Developer workflow:
 The web frontend in `frontend/` is a React 19 + Vite single-page app (SPA) with manual routing and real backend API integration.
 
 Frontend architecture:
-- React components in `src/pages/` (LandingPage, DiscoverPage, SavedPage, WorkspacePage, AdminPage).
+- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, AdminPage).
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
 - Global `app-utils.js` for API helpers, formatting, and view logic.
@@ -214,6 +214,7 @@ Authentication and session:
 - Protected routes check user role and display access-denied messages for unauthorized views.
 
 Frontend API helpers in `app-utils.js`:
+- `fetchDashboardSummary()` → `GET /api/dashboard/summary`
 - `fetchProperties({ page, limit, ...filters })` → `GET /api/properties`
 - `fetchPropertyById(propertyId)` → `GET /api/properties/:id`
 - `fetchCurrentUser()` → `GET /api/auth/me`
@@ -232,9 +233,10 @@ Frontend API helpers in `app-utils.js`:
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, theme toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
+- Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency/admin; agency verification status; admin platform-moderation counts), backed by `GET /api/dashboard/summary`.
 - Anonymous property discovery with radius search and gated save actions.
 - Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, and inline forms to send an inquiry or request a viewing (matching the mobile app's flow).
-- Adaptive property cards, listing insights, skeleton loading states (shape-matching placeholders for Discover/Saved/Workspace/property detail, not spinners or "Loading..." text; respects `prefers-reduced-motion`), error states, and empty states.
+- Adaptive property cards, listing insights, skeleton loading states (shape-matching placeholders for Discover/Saved/Workspace/Dashboard/property detail, not spinners or "Loading..." text; respects `prefers-reduced-motion`), error states, and empty states.
 - Login and registration with form validation.
 - Role-aware navigation so tenants, owners, agencies, and admins only see the views they can access.
 - Polished responsive web UI with a splash landing page, centered workspace, sticky header actions, richer listing cards, account deletion flow, and light/dark plus Kenyan flag theme toggles.
@@ -970,6 +972,7 @@ Completed:
 - Fixed a bug in the landing page's header "Sign in" button: the auth modal was nested inside the non-splash branch of a ternary, so it never rendered while the landing page itself was showing.
 - Added Calibri as the primary body font (falls back to the existing Inter/system stack on platforms without it, since Calibri can't be legally bundled as a web font).
 - Automated API testing: migrated `tests/app.test.js` from a homemade in-process request helper to [supertest](https://github.com/ladjs/supertest), and added a real-database end-to-end API flow test (`tests/integration/apiFlows.integration.test.js`) covering register/login, property CRUD, inquiries, viewing requests, reviews, and favorites — opt-in via `TEST_MONGODB_URI`, same as the existing MongoDB integration test. Building it surfaced three real bugs, now fixed: (1) `tests/helpers/nodeTestCompat.js`'s `after()` ran its callbacks after the *first* test in a suite instead of the last, masked until now because the only prior multi-`before`/`after` consumer had just one test; (2) `Review.updatePropertyRating` matched on a raw (non-auto-cast) aggregation `$match`, so `respondToReview`'s populated `review.property` (instead of a plain ObjectId) silently zeroed out a property's rating whenever an owner responded to a review; (3) `reviewController.js` never invalidated the `properties` response cache on review create/response, so a property's rating could appear stale for up to the cache TTL after a review was submitted.
+- Built a Dashboard on both web and mobile that actually consumes the previously backend-only, role-aware `GET /api/dashboard/summary` endpoint — the User Stories documented what each role sees, but nothing in either app ever called it. Now it's the default landing view for every signed-in role right after sign-in (a new nav tab on web at `/dashboard`, a new first bottom tab on mobile), showing unread notifications plus role-specific sections. This is also the first landlord/agency/admin-facing screen on mobile, which previously had none.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.

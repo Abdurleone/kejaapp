@@ -29,6 +29,13 @@ export const fetchCurrentUser = async () => {
   return response.user;
 };
 
+// --- Dashboard ---
+
+export const fetchDashboardSummary = async () => {
+  const response = await apiFetch("/api/dashboard/summary", { method: "GET" });
+  return response.data;
+};
+
 // --- Properties ---
 
 export const fetchProperties = async (query = {}) => {

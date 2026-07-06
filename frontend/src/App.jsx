@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import kejaLogo from "../assets/keja-logo.png";
 import LandingPage from "./pages/LandingPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
 import DiscoverPage from "./pages/DiscoverPage.jsx";
 import SavedPage from "./pages/SavedPage.jsx";
 import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
@@ -18,6 +19,7 @@ import {
   nextColorMode,
   nextTheme,
   getViewPath,
+  getDefaultViewForRole,
   fetchCurrentUser,
   loginUser,
   logoutUser,
@@ -32,6 +34,7 @@ const apiBaseUrl = normalizeApiBaseUrl(
 );
 
 const navItems = [
+  { view: "dashboard", label: "Dashboard", path: getViewPath("dashboard") },
   { view: "discover", label: "Discover", path: getViewPath("discover") },
   { view: "saved", label: "Saved", path: getViewPath("saved") },
   { view: "owner", label: "Workspace", path: getViewPath("owner") },
@@ -64,6 +67,12 @@ function App() {
     localStorage.setItem("keja_color_mode", colorMode);
   }, [theme, colorMode]);
 
+  const navigate = (nextPath) => {
+    if (nextPath === path) return;
+    window.history.pushState({}, "", nextPath);
+    setPath(nextPath);
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -77,6 +86,13 @@ function App() {
         const user = await fetchCurrentUser();
         if (active) {
           setCurrentUser(user);
+
+          // A restored session landing on the bare root has no meaningful
+          // default (resolveViewFromPath always maps "/" to "discover"),
+          // so send non-tenant roles to their own default view instead.
+          if (path === "/") {
+            navigate(getViewPath(getDefaultViewForRole(user.role)));
+          }
         }
       } catch {
         setSignedIn(false);
@@ -90,6 +106,7 @@ function App() {
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on sign-in state changes, not on every path/navigate change
   }, [signedIn]);
 
   useEffect(() => {
@@ -100,12 +117,6 @@ function App() {
 
   const view = useMemo(() => resolveViewFromPath(path), [path]);
   const showSplash = shouldShowSplash({ isSignedIn: signedIn, path });
-
-  const navigate = (nextPath) => {
-    if (nextPath === path) return;
-    window.history.pushState({}, "", nextPath);
-    setPath(nextPath);
-  };
 
   const openAuthPanel = () => {
     setAuthMode("login");
@@ -137,6 +148,7 @@ function App() {
       setSignedIn(true);
       setAuthPanelOpen(false);
       setAuthForm({ name: "", email: "", password: "", phone: "", role: "tenant" });
+      navigate(getViewPath(getDefaultViewForRole(payload.user.role)));
     } catch (err) {
       setAuthError(err.message || "Authentication failed");
     } finally {
@@ -168,6 +180,16 @@ function App() {
 
   const renderCurrentPage = () => {
     switch (view) {
+      case "dashboard":
+        if (!signedIn) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in to see your dashboard.</p>
+            </div>
+          );
+        }
+
+        return <DashboardPage currentUser={currentUser} />;
       case "discover":
         return (
           <DiscoverPage
