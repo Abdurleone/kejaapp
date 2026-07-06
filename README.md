@@ -406,6 +406,17 @@ Acceptance criteria:
 - Given I change my password with the correct current password, then the new password is saved securely.
 - Given I change my password with the wrong current password, then the API rejects the request.
 
+### Role-Aware Dashboard
+
+As a signed-in user of any role, I want a dashboard summary tailored to what I actually do on KejaApp, so that I see relevant counts instead of a generic, one-size-fits-all view.
+
+Acceptance criteria:
+- Given I am signed in as any role, when I load my dashboard summary, then I see my unread notification count.
+- Given I am signed in as a tenant, when I load my dashboard summary, then I additionally see my saved-properties count, my inquiries grouped by status (open, responded, closed), and my viewing requests grouped by status (pending, approved, rejected, cancelled, completed) — I do not see owner, agency, or admin data.
+- Given I am signed in as a landlord, agency, or admin, when I load my dashboard summary, then I additionally see my own properties grouped by lifecycle status (draft, available, taken, archived), plus incoming inquiries and incoming viewing requests for my properties, each grouped by status.
+- Given I am signed in as an agency, when I load my dashboard summary, then I additionally see my agency verification status and rejection reason (if rejected) — landlords and tenants never see agency verification data.
+- Given I am signed in as an admin, when I load my dashboard summary, then I additionally see platform-wide agency verification counts by status and user violation counts by status, on top of my own owner summary — no other role sees platform-wide moderation counts.
+
 ### Tenant Property Discovery
 
 As a visitor or tenant, I want to browse and filter available rental properties by location, price, and property type, so that I can quickly find homes that match my needs and budget.
