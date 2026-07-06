@@ -69,6 +69,20 @@ const listMyInquiries = asyncHandler(async (req, res) => {
   });
 });
 
+const listReceivedInquiries = asyncHandler(async (req, res) => {
+  const filters = req.user.role === "admin" ? {} : { owner: req.user._id };
+
+  if (req.query.status) {
+    filters.status = req.query.status;
+  }
+
+  const inquiries = await populateInquiry(Inquiry.find(filters).sort("-createdAt"));
+
+  res.status(httpStatus.OK).json({
+    data: inquiries,
+  });
+});
+
 const listPropertyInquiries = asyncHandler(async (req, res) => {
   const property = await Property.findById(req.params.id);
 
@@ -128,5 +142,6 @@ export {
   createInquiry,
   listMyInquiries,
   listPropertyInquiries,
+  listReceivedInquiries,
   updateInquiry,
 };

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import { fetchFavorites, removeFavorite, formatKes } from "../../app-utils.js";
 
-export default function SavedPage() {
+export default function SavedPage({ onOpenProperty }) {
   const [saved, setSaved] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,9 +34,7 @@ export default function SavedPage() {
       </div>
 
       {loading ? (
-        <div className="panel">
-          <p>Loading saved listings…</p>
-        </div>
+        <PropertyCardSkeletonGrid compact />
       ) : error ? (
         <div className="panel">
           <p className="muted-copy">{error}</p>
@@ -58,26 +57,31 @@ export default function SavedPage() {
                     <strong>{formatKes(property.price?.rent)}</strong>
                     <span>{property.location?.area || "Nairobi"}</span>
                   </div>
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    disabled={removingPropertyId === propertyId}
-                    onClick={async () => {
-                      setError("");
-                      setRemovingPropertyId(propertyId);
+                  <div className="card-actions">
+                    <button className="secondary-button" type="button" onClick={() => onOpenProperty(propertyId)}>
+                      Details
+                    </button>
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      disabled={removingPropertyId === propertyId}
+                      onClick={async () => {
+                        setError("");
+                        setRemovingPropertyId(propertyId);
 
-                      try {
-                        await removeFavorite(propertyId);
-                        setSaved((current) => current.filter((favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId));
-                      } catch (err) {
-                        setError(err.message || "Unable to remove favorite.");
-                      } finally {
-                        setRemovingPropertyId(null);
-                      }
-                    }}
-                  >
-                    Remove
-                  </button>
+                        try {
+                          await removeFavorite(propertyId);
+                          setSaved((current) => current.filter((favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId));
+                        } catch (err) {
+                          setError(err.message || "Unable to remove favorite.");
+                        } finally {
+                          setRemovingPropertyId(null);
+                        }
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </article>
             );

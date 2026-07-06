@@ -86,7 +86,7 @@ mobile/
 ├── assets/                  # App icons/splash, generated from frontend/assets/keja-logo.png
 └── src/
     ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings)
-    ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView)
+    ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists)
     ├── context/             # AuthContext (session), SettingsContext (API base URL)
     ├── navigation/           # Root stack, bottom tabs, Discover stack
     ├── screens/              # auth/, discover/, saved/, requests/, account/

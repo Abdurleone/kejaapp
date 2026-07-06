@@ -28,7 +28,7 @@ describe("frontend page component contracts", () => {
     assert.match(discoverSource, /Radius/);
     assert.match(discoverSource, /Near me/);
     assert.match(discoverSource, /Clear location/);
-    assert.match(discoverSource, /Loading rentals/);
+    assert.match(discoverSource, /<PropertyCardSkeletonGrid/);
     assert.match(discoverSource, /No rentals found/);
   });
 
@@ -45,7 +45,7 @@ describe("frontend page component contracts", () => {
     assert.match(savedSource, /removeFavorite\(propertyId\)/);
     assert.match(savedSource, /className="property-grid compact-grid"/);
     assert.match(savedSource, /No saved listings yet/);
-    assert.match(savedSource, /Loading saved listings/);
+    assert.match(savedSource, /<PropertyCardSkeletonGrid/);
   });
 
   it("keeps app navigation, auth modal, and protected views in sync", () => {
