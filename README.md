@@ -195,7 +195,7 @@ Developer workflow:
 
 ## Implemented Frontend
 
-The web frontend in `frontend/` is a React 18 + Vite single-page app (SPA) with manual routing and real backend API integration.
+The web frontend in `frontend/` is a React 19 + Vite single-page app (SPA) with manual routing and real backend API integration.
 
 Frontend architecture:
 - React components in `src/pages/` (LandingPage, DiscoverPage, SavedPage, WorkspacePage, AdminPage).
@@ -947,6 +947,9 @@ Completed:
 - ESLint across backend/frontend/mobile (each with its own flat config) wired into CI, Dependabot for weekly dependency updates, a Jest + React Native Testing Library test setup for mobile, and a fix for 11 moderate mobile dependency vulnerabilities.
 - Seeded demo data expanded from 2 to 9 counties (11 available properties) with matching mover coverage, and a property detail page + inquiry/viewing-request forms added to the web frontend (previously mobile-only), closing the gap where the Discover page's "Details" button had no handler at all.
 - Web owner workspace replaced its hardcoded placeholder numbers with real, server-scoped data — a new `GET /api/inquiries/received` endpoint plus the existing `GET /api/properties/mine` now drive a real "your listings + inquiries about them" view, verified against two different landlord/agency accounts to confirm correct per-owner scoping.
+- Skeleton loading UI (pulse animation) on all card/list-shaped loading states on both web and mobile, replacing plain "Loading..." text.
+- Backend/HTTP log timestamps now use Nairobi (`Africa/Nairobi`, UTC+3) time instead of UTC, including the app log file's day-rollover boundary.
+- Dependency upgrades via Dependabot: frontend to React 19 + Vite 8 (resolving the `vite@5` dev-server CVEs) and mobile to Expo 57.0.2/React Native 0.86, `@react-native-async-storage/async-storage` 3.x, and other patch bumps — `eslint`/`jest` were deliberately held back on frontend/mobile because `eslint-plugin-react`/`eslint-config-expo`/`jest-expo` don't yet support `eslint@10`/`jest@30` (verified via a broken `npm ci`/crashing lint run before pinning back).
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
@@ -954,7 +957,7 @@ Next:
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
 - Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
-- Frontend: `vite@5.4.21`'s dev server has known moderate/high CVEs (dev-server-only exposure); fixing cleanly needs a breaking upgrade to `vite@8`.
+- Revisit the `eslint`/`jest` version holds above once `eslint-config-expo`/`eslint-plugin-react`/`jest-expo` publish compatible releases.
 - Clarify whether `README_CLOUD.md`'s GCP Cloud Run/Cloud Storage setup is live or aspirational, and whether the incomplete FCM push-notification endpoint (`POST /api/auth/fcm-token`, no `firebase-admin` wired up) should be finished.
 
 ## License
