@@ -1,4 +1,5 @@
 import httpStatus from "../constants/httpStatus.js";
+import { invalidateNamespace } from "../middlewares/responseCache.js";
 import Property from "../models/Property.js";
 import Review from "../models/Review.js";
 import { notifyPropertyReviewCreated } from "../services/notificationService.js";
@@ -71,6 +72,7 @@ const createReview = asyncHandler(async (req, res) => {
   await review.populate("user", "name role");
   await review.populate("ownerResponse.respondedBy", "name role");
   await notifyPropertyReviewCreated({ property, review });
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
     data: review,
@@ -98,6 +100,7 @@ const respondToReview = asyncHandler(async (req, res) => {
   await review.populate("property", "title owner ratingAverage ratingCount");
   await review.populate("user", "name role");
   await review.populate("ownerResponse.respondedBy", "name role");
+  await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
     data: review,
