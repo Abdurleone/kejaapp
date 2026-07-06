@@ -158,7 +158,7 @@ describe("frontend app utilities", () => {
     assert.equal(canAccessView("agency", "admin"), false);
     assert.equal(canAccessView("admin", "discover"), false);
     assert.equal(canAccessView("admin", "admin"), true);
-    assert.equal(canAccessView("admin", "owner"), true);
+    assert.equal(canAccessView("admin", "owner"), false);
     assert.equal(canAccessView("admin", "dashboard"), true);
     assert.equal(getDefaultViewForRole("tenant"), "dashboard");
     assert.equal(getDefaultViewForRole("landlord"), "dashboard");
@@ -173,6 +173,7 @@ describe("frontend app utilities", () => {
     assert.equal(canOpenPropertyDetails("landlord"), false);
     assert.equal(canManageListings("tenant"), false);
     assert.equal(canManageListings("agency"), true);
+    assert.equal(canManageListings("admin"), false);
   });
 
   it("finds properties across cached frontend collections", () => {

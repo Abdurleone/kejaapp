@@ -20,7 +20,7 @@ const ensureInquiryManager = (inquiry, user) => {
     ? inquiry.owner._id.equals(user._id)
     : inquiry.owner.equals(user._id);
 
-  if (!isOwner && user.role !== "admin") {
+  if (!isOwner) {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to manage this inquiry");
   }
 };
@@ -70,7 +70,7 @@ const listMyInquiries = asyncHandler(async (req, res) => {
 });
 
 const listReceivedInquiries = asyncHandler(async (req, res) => {
-  const filters = req.user.role === "admin" ? {} : { owner: req.user._id };
+  const filters = { owner: req.user._id };
 
   if (req.query.status) {
     filters.status = req.query.status;
@@ -92,7 +92,7 @@ const listPropertyInquiries = asyncHandler(async (req, res) => {
 
   const isOwner = property.owner.equals(req.user._id);
 
-  if (!isOwner && req.user.role !== "admin") {
+  if (!isOwner) {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to view inquiries for this property");
   }
 

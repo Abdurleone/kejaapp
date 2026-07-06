@@ -677,6 +677,36 @@ textarea:focus {
   overflow-x: auto;
 }
 
+.table-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-panel th,
+.table-panel td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.table-panel tbody tr {
+  cursor: pointer;
+}
+
+.table-panel tbody tr:hover,
+.table-panel tbody tr.selected {
+  background: var(--surface-soft);
+}
+
+.status-pill.status-suspended {
+  color: var(--amber);
+}
+
+.status-pill.status-banned {
+  color: var(--red);
+}
+
 .property-detail {
   display: grid;
   grid-template-columns: minmax(220px, 0.86fr) minmax(0, 1.14fr);

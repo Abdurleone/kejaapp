@@ -206,6 +206,48 @@ export const fetchDashboardSummary = async () => {
   return response.data;
 };
 
+const adminUsersCacheTtlMs = 15000;
+
+export const fetchAdminUsers = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `adminUsers:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/admin/users${queryString}`, {
+    method: "GET",
+  });
+  const data = { users: response.data || [], pagination: response.pagination };
+  setCached(cacheKey, data, adminUsersCacheTtlMs);
+  return data;
+};
+
+export const fetchAdminUserSummary = async (userId) => {
+  const response = await apiFetch(`/api/admin/users/${userId}/summary`, {
+    method: "GET",
+  });
+  return response.data;
+};
+
+export const fetchAdminUserStatusHistory = async (userId) => {
+  const response = await apiFetch(`/api/admin/users/${userId}/status-history`, {
+    method: "GET",
+  });
+  return response.data || [];
+};
+
+export const updateAdminUserStatus = async (userId, payload) => {
+  const response = await apiFetch(`/api/admin/users/${userId}/status`, {
+    method: "PUT",
+    body: payload,
+  });
+  clearRequestCache("adminUsers");
+  return response.data;
+};
+
 export const createInquiry = async ({ property, subject, message, contactPreference }) => {
   const response = await apiFetch("/api/inquiries", {
     method: "POST",
@@ -412,7 +454,7 @@ export const roles = Object.freeze({
 export const roleGroups = Object.freeze({
   publicRegistration: [roles.tenant, roles.landlord, roles.agency],
   tenantOnly: [roles.tenant],
-  listingManagers: [roles.landlord, roles.agency, roles.admin],
+  listingManagers: [roles.landlord, roles.agency],
   propertyOwners: [roles.landlord, roles.agency],
   agencies: [roles.agency],
   admins: [roles.admin],
@@ -426,7 +468,7 @@ const roleViewAccess = {
   [roles.tenant]: ["dashboard", "discover", "saved", "account"],
   [roles.landlord]: ["dashboard", "owner", "account"],
   [roles.agency]: ["dashboard", "owner", "account"],
-  [roles.admin]: ["dashboard", "admin", "owner", "account"],
+  [roles.admin]: ["dashboard", "admin", "account"],
 };
 
 export const canAccessView = (role, view) => {

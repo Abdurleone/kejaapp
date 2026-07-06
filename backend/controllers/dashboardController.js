@@ -39,7 +39,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     };
   }
 
-  if (["landlord", "agency", "admin"].includes(req.user.role)) {
+  if (["landlord", "agency"].includes(req.user.role)) {
     summary.owner = {
       properties: await countByStatus(Property, { owner: userId }, [
         "draft",
