@@ -53,7 +53,7 @@ export const apiFetch = async (path, options = {}) => {
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
-  } catch (error) {
+  } catch {
     throw new Error(
       `Could not reach the API at ${baseUrl}. Check the API server address in Settings and that the server is running.`
     );

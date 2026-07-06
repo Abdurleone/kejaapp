@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
       try {
         const me = await fetchCurrentUser();
         if (active) setUser(me);
-      } catch (error) {
+      } catch {
         // Stored token is stale/invalid; fall through to signed-out state.
       } finally {
         if (active) setLoading(false);

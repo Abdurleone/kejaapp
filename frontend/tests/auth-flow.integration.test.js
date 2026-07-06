@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it, before, after } from "./helpers/nodeTestCompat.js";
+import { describe, it } from "./helpers/nodeTestCompat.js";
 
 /**
  * End-to-end auth flow integration test
@@ -22,7 +22,6 @@ const testUser = {
 };
 
 let authToken = null;
-let userId = null;
 
 const apiFetch = async (path, options = {}) => {
   const url = `${TEST_API_BASE}${path}`;
@@ -46,7 +45,7 @@ const apiFetch = async (path, options = {}) => {
   let payload;
   try {
     payload = await response.json();
-  } catch (err) {
+  } catch {
     payload = {};
   }
 
@@ -73,7 +72,6 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
     assert.equal(response.user.role, testUser.role, "User role should match");
 
     authToken = response.token;
-    userId = response.user._id || response.user.id;
   });
 
   it("fetches current user with bearer token", async () => {

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
-import { describe, it, before, after } from "./helpers/nodeTestCompat.js";
+import { describe, it, before } from "./helpers/nodeTestCompat.js";
 import {
-  apiFetch,
   createApiUrl,
   fetchCurrentUser,
   fetchProperties,
@@ -14,25 +13,14 @@ import {
 } from "../app-utils.js";
 
 describe("frontend API helpers", () => {
-  const mockFetch = async (url, options = {}) => {
-    const response = new Response(JSON.stringify({ data: [] }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-    return response;
-  };
-
   before(() => {
-    // Mock localStorage for tests
+    // Real in-memory localStorage so setAuthToken/getAuthToken round-trip correctly.
+    const store = new Map([["keja_base_url", "http://localhost:5000"]]);
     global.localStorage = {
-      getItem: (key) => {
-        if (key === "keja_base_url") return "http://localhost:5000";
-        if (key === "keja_token") return "mock-token-123";
-        return null;
-      },
-      setItem: () => {},
-      removeItem: () => {},
-      clear: () => {},
+      getItem: (key) => (store.has(key) ? store.get(key) : null),
+      setItem: (key, value) => store.set(key, value),
+      removeItem: (key) => store.delete(key),
+      clear: () => store.clear(),
     };
   });
 
@@ -57,9 +45,9 @@ describe("frontend API helpers", () => {
 
   it("retrieves and sets auth tokens in localStorage", () => {
     setAuthToken("test-token");
-    assert.equal(getAuthToken() === "test-token" || getAuthToken() === "mock-token-123", true);
+    assert.equal(getAuthToken(), "test-token");
     setAuthToken("");
-    assert.equal(getAuthToken(), "" || "mock-token-123");
+    assert.equal(getAuthToken(), "");
   });
 
   it("builds fetch requests with auth headers", () => {

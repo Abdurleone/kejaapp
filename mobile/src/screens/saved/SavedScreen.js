@@ -32,10 +32,11 @@ export default function SavedScreen() {
 
   useEffect(() => {
     if (!signedIn) {
-      setLoading(false);
       return;
     }
 
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     load().finally(() => setLoading(false));
   }, [signedIn, load]);
@@ -54,7 +55,7 @@ export default function SavedScreen() {
       setFavorites((current) =>
         current.filter((favorite) => (favorite.property?._id || favorite._id) !== propertyId)
       );
-    } catch (err) {
+    } catch {
       // Leave it in the list; user can retry.
     } finally {
       setRemovingId(null);

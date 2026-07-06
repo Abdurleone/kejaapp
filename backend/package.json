@@ -22,7 +22,8 @@
     "dev": "nodemon server.js",
     "seed": "node seeders/seedDemoData.js",
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "lint": "eslint ."
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -36,6 +37,9 @@
     "morgan": "^1.11.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
     "nodemon": "^3.1.14"
   }
 }

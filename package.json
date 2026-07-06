@@ -9,9 +9,14 @@
     "mobile": "npm --prefix mobile run start",
     "seed": "npm --prefix backend run seed",
     "start": "npm --prefix backend run start",
-    "test": "npm --prefix backend run test && npm --prefix frontend run test",
+    "test": "npm --prefix backend run test && npm --prefix frontend run test && npm --prefix mobile run test",
     "test:backend": "npm --prefix backend run test",
-    "test:frontend": "npm --prefix frontend run test"
+    "test:frontend": "npm --prefix frontend run test",
+    "test:mobile": "npm --prefix mobile run test",
+    "lint": "npm --prefix backend run lint && npm --prefix frontend run lint && npm --prefix mobile run lint",
+    "lint:backend": "npm --prefix backend run lint",
+    "lint:frontend": "npm --prefix frontend run lint",
+    "lint:mobile": "npm --prefix mobile run lint"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

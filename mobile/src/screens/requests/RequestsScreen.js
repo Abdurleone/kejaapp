@@ -37,10 +37,11 @@ export default function RequestsScreen() {
 
   useEffect(() => {
     if (!signedIn) {
-      setLoading(false);
       return;
     }
 
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     load().finally(() => setLoading(false));
   }, [signedIn, load]);
