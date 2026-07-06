@@ -29,6 +29,8 @@ const createSuite = () => ({
   afterCallbacks: [],
   beforeCallbacks: [],
   beforeRan: false,
+  testCount: 0,
+  completedCount: 0,
 });
 
 const describe = (...args) => {
@@ -47,6 +49,10 @@ const it = (...args) => {
   const { name, options, fn } = normalizeArgs(args);
   const suite = currentSuite;
 
+  if (suite) {
+    suite.testCount += 1;
+  }
+
   return nodeIt(name, options, async () => {
     if (suite && !suite.beforeRan) {
       suite.beforeRan = true;
@@ -58,8 +64,12 @@ const it = (...args) => {
     } finally {
       if (suite) {
         await runAll(suite.afterEachCallbacks);
-        await runAll(suite.afterCallbacks);
-        suite.afterCallbacks = [];
+        suite.completedCount += 1;
+
+        if (suite.completedCount === suite.testCount) {
+          await runAll(suite.afterCallbacks);
+          suite.afterCallbacks = [];
+        }
       }
     }
   });
