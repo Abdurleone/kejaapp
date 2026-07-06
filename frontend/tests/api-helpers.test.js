@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it, before } from "./helpers/nodeTestCompat.js";
 import {
   createApiUrl,
+  createInquiry,
+  createViewingRequest,
   fetchCurrentUser,
   fetchProperties,
   fetchFavorites,
@@ -11,6 +13,12 @@ import {
   getAuthToken,
   setAuthToken,
 } from "../app-utils.js";
+
+const jsonResponse = (body) =>
+  new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 
 describe("frontend API helpers", () => {
   before(() => {
@@ -72,5 +80,57 @@ describe("frontend API helpers", () => {
   it("exports logout and register API helpers", () => {
     assert.equal(typeof logoutUser, "function");
     assert.equal(typeof registerUser, "function");
+  });
+
+  it("sends an inquiry with the property, subject, message, and contact preference", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "i1", status: "open" } });
+    };
+
+    const result = await createInquiry({
+      property: "p1",
+      subject: "Viewing question",
+      message: "Is parking included?",
+      contactPreference: "in_app",
+    });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/inquiries");
+    assert.equal(capturedOptions.method, "POST");
+    assert.deepEqual(JSON.parse(capturedOptions.body), {
+      property: "p1",
+      subject: "Viewing question",
+      message: "Is parking included?",
+      contactPreference: "in_app",
+    });
+    assert.deepEqual(result, { _id: "i1", status: "open" });
+  });
+
+  it("sends a viewing request with the property, requested date, and message", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "v1", status: "pending" } });
+    };
+
+    const result = await createViewingRequest({
+      property: "p1",
+      requestedDate: "2026-08-01T10:00:00.000Z",
+      message: "Looking forward to it.",
+    });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/viewings");
+    assert.equal(capturedOptions.method, "POST");
+    assert.deepEqual(JSON.parse(capturedOptions.body), {
+      property: "p1",
+      requestedDate: "2026-08-01T10:00:00.000Z",
+      message: "Looking forward to it.",
+    });
+    assert.deepEqual(result, { _id: "v1", status: "pending" });
   });
 });

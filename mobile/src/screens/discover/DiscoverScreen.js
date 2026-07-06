@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
 import { fetchFavorites, fetchProperties, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import PropertyCard from "../../components/PropertyCard.js";
-import LoadingView from "../../components/LoadingView.js";
+import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import colors from "../../theme/colors.js";
 
@@ -31,7 +31,7 @@ export default function DiscoverScreen({ navigation }) {
     try {
       const params = { page: 1, limit: 20 };
 
-      if (lat && lng) {
+      if (lat != null && lng != null) {
         params.lat = lat;
         params.lng = lng;
         params.radiusKm = radiusKm || radius;
@@ -134,7 +134,11 @@ export default function DiscoverScreen({ navigation }) {
   };
 
   if (loading) {
-    return <LoadingView label="Loading rentals..." />;
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.list}>
+        <PropertyCardSkeletonList />
+      </ScrollView>
+    );
   }
 
   return (

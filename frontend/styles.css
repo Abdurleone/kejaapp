@@ -328,6 +328,74 @@ button:disabled {
   border-color: color-mix(in srgb, var(--amber) 45%, var(--line));
 }
 
+.detail-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-panel h3 {
+  margin-top: 6px;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line--title {
+  height: 18px;
+  width: 70%;
+}
+
+.skeleton-line--sm {
+  width: 35%;
+}
+
+.skeleton-line--md {
+  width: 55%;
+}
+
+.skeleton-line--lg {
+  width: 85%;
+}
+
+.skeleton-line--full {
+  width: 100%;
+}
+
+.skeleton-card-body {
+  display: grid;
+  gap: 10px;
+}
+
+.skeleton-chip {
+  height: 26px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
 .empty-state {
   min-height: 180px;
   align-content: center;

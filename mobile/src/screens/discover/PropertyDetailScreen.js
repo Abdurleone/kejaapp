@@ -3,7 +3,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { fetchFavorites, fetchProperty, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { resolveAssetUrl, useSettings } from "../../context/SettingsContext.js";
-import LoadingView from "../../components/LoadingView.js";
+import PropertyDetailSkeleton from "../../components/PropertyDetailSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatKes, formatRatingSummary } from "../../utils/format.js";
 import colors from "../../theme/colors.js";
@@ -82,7 +82,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
   };
 
   if (loading) {
-    return <LoadingView label="Loading property..." />;
+    return <PropertyDetailSkeleton />;
   }
 
   if (error || !property) {

@@ -8,7 +8,15 @@ const fileLoggingEnabled = env.nodeEnv !== "test";
 
 const streams = {};
 
-const todayStamp = () => new Date().toISOString().slice(0, 10);
+const logTimeZone = "Africa/Nairobi";
+
+// Kenya (EAT) has no daylight saving, so this is always a stable +03:00 offset.
+const nairobiTimestamp = () =>
+  `${new Date().toLocaleString("sv-SE", { timeZone: logTimeZone }).replace(" ", "T")}+03:00`;
+
+// Day boundary follows Nairobi time too, so files roll over at local midnight
+// rather than UTC midnight.
+const todayStamp = () => new Date().toLocaleDateString("sv-SE", { timeZone: logTimeZone });
 
 // One file per calendar day per log kind, reopened lazily when the date
 // rolls over. No rotation dependency; old files just accumulate until
@@ -50,7 +58,7 @@ const writeAppLog = (level, message) => {
     return;
   }
 
-  getFileStream("app").write(`${new Date().toISOString()} [${level}] ${message}\n`);
+  getFileStream("app").write(`${nairobiTimestamp()} [${level}] ${message}\n`);
 };
 
 const logInfo = (message) => {
@@ -68,4 +76,4 @@ const logError = (message) => {
   writeAppLog("ERROR", message);
 };
 
-export { accessLogStream, logError, logInfo, logWarn };
+export { accessLogStream, logError, logInfo, logWarn, nairobiTimestamp };

@@ -3,6 +3,7 @@ import kejaLogo from "../assets/keja-logo.png";
 import LandingPage from "./pages/LandingPage.jsx";
 import DiscoverPage from "./pages/DiscoverPage.jsx";
 import SavedPage from "./pages/SavedPage.jsx";
+import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
@@ -11,6 +12,8 @@ import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import {
   normalizeApiBaseUrl,
   resolveViewFromPath,
+  getPropertyIdFromPath,
+  getPropertyDetailPath,
   shouldShowSplash,
   nextColorMode,
   nextTheme,
@@ -166,7 +169,14 @@ function App() {
   const renderCurrentPage = () => {
     switch (view) {
       case "discover":
-        return <DiscoverPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+        return (
+          <DiscoverPage
+            signedIn={signedIn}
+            onRequireAuth={openAuthPanel}
+            currentUser={currentUser}
+            onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))}
+          />
+        );
       case "saved":
         if (!signedIn) {
           return (
@@ -176,7 +186,23 @@ function App() {
           );
         }
 
-        return <SavedPage signedIn={signedIn} onRequireAuth={openAuthPanel} />;
+        return (
+          <SavedPage
+            signedIn={signedIn}
+            onRequireAuth={openAuthPanel}
+            onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))}
+          />
+        );
+      case "propertyDetail":
+        return (
+          <PropertyDetailPage
+            propertyId={getPropertyIdFromPath(path)}
+            signedIn={signedIn}
+            onRequireAuth={openAuthPanel}
+            apiBaseUrl={apiBaseUrl}
+            onBack={() => navigate(getViewPath("discover"))}
+          />
+        );
       case "owner":
         if (!signedIn || !canAccessView(currentUser?.role, "owner")) {
           return (

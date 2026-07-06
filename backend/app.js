@@ -8,7 +8,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import env from "./config/env.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import { createRateLimiter } from "./middlewares/rateLimiter.js";
-import { accessLogStream } from "./utils/logger.js";
+import { accessLogStream, nairobiTimestamp } from "./utils/logger.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -36,6 +36,11 @@ app.use(
     immutable: true,
   })
 );
+
+// Morgan's built-in :date token always renders UTC (clf format hardcodes
+// "+0000"); override it so access logs read in Nairobi time like the rest
+// of the app's logging.
+morgan.token("date", () => nairobiTimestamp());
 
 if (env.nodeEnv !== "test") {
   app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));

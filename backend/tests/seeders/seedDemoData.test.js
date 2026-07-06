@@ -41,7 +41,12 @@ describe("seedDemoData", () => {
     const imageUrls = properties.flatMap((property) => property.images?.map((image) => image.url) || []);
     const duplicateImageUrls = imageUrls.filter((url, index) => imageUrls.indexOf(url) !== index);
 
-    assert.equal(duplicateImageUrls.includes("https://example.com/shared-living-room.jpg"), true);
+    assert.equal(
+      duplicateImageUrls.includes(
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=70"
+      ),
+      true
+    );
   });
 
   it("includes agency verification records for admin testing", () => {

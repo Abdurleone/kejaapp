@@ -3,7 +3,10 @@ import { describe, it } from "./helpers/nodeTestCompat.js";
 import {
   clearRequestCache,
   fetchFavorites,
+  fetchMyProperties,
   fetchProperties,
+  fetchPropertyById,
+  fetchReceivedInquiries,
   loginUser,
   removeFavorite,
   saveFavorite,
@@ -45,6 +48,60 @@ describe("frontend request cache", () => {
     const second = await fetchProperties({ page: 1 });
 
     assert.equal(calls, 1);
+    assert.deepEqual(first, second);
+  });
+
+  it("reuses a cached single-property response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    global.fetch = async () => {
+      calls += 1;
+      return jsonResponse({ data: { _id: "p1", title: "Test Property" } });
+    };
+
+    const first = await fetchPropertyById("p1");
+    const second = await fetchPropertyById("p1");
+
+    assert.equal(calls, 1);
+    assert.deepEqual(first, second);
+  });
+
+  it("reuses a cached my-properties response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedUrl;
+    global.fetch = async (url) => {
+      calls += 1;
+      capturedUrl = url;
+      return jsonResponse({ data: [{ _id: "p1", title: "My Property" }] });
+    };
+
+    const first = await fetchMyProperties();
+    const second = await fetchMyProperties();
+
+    assert.equal(calls, 1);
+    assert.equal(capturedUrl, "http://localhost:5000/api/properties/mine");
+    assert.deepEqual(first, second);
+  });
+
+  it("reuses a cached received-inquiries response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedUrl;
+    global.fetch = async (url) => {
+      calls += 1;
+      capturedUrl = url;
+      return jsonResponse({ data: [{ _id: "i1", subject: "Question" }] });
+    };
+
+    const first = await fetchReceivedInquiries();
+    const second = await fetchReceivedInquiries();
+
+    assert.equal(calls, 1);
+    assert.equal(capturedUrl, "http://localhost:5000/api/inquiries/received");
     assert.deepEqual(first, second);
   });
 

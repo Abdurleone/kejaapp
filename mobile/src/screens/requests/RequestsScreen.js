@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fetchInquiries, fetchViewingRequests } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
-import LoadingView from "../../components/LoadingView.js";
+import { RequestCardSkeletonList } from "../../components/RequestCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatStatusLabel } from "../../utils/format.js";
 import colors from "../../theme/colors.js";
@@ -64,7 +64,11 @@ export default function RequestsScreen() {
   }
 
   if (loading) {
-    return <LoadingView label="Loading your requests..." />;
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.list}>
+        <RequestCardSkeletonList />
+      </ScrollView>
+    );
   }
 
   if (error) {
