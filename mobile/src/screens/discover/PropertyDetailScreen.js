@@ -65,7 +65,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
     try {
       await saveFavorite(propertyId);
       setIsSaved(true);
-    } catch (err) {
+    } catch {
       // Leave unsaved; user can retry.
     } finally {
       setSaving(false);

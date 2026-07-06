@@ -60,7 +60,13 @@ export default function DiscoverPage({ signedIn, onRequireAuth }) {
     };
 
     loadUserMetadata();
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProperties();
+    // loadProperties is recreated every render (not memoized) and closes over `radius`,
+    // so adding it here would re-run this effect on every render instead of only when
+    // sign-in state changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedIn]);
 
   const handleNearMe = () => {

@@ -57,7 +57,7 @@ export default function DiscoverScreen({ navigation }) {
           .map((favorite) => favorite.property?._id || favorite.property?.id || favorite._id)
           .filter(Boolean)
       );
-    } catch (err) {
+    } catch {
       // Non-fatal: favorites just won't show as saved yet.
     }
   }, [signedIn]);
@@ -68,6 +68,10 @@ export default function DiscoverScreen({ navigation }) {
       await Promise.all([loadProperties(), loadFavorites()]);
       setLoading(false);
     })();
+    // Intentionally only re-runs on sign-in state, not on every loadProperties/loadFavorites
+    // identity change (which happens whenever radius changes) — radius-driven reloads are
+    // already triggered explicitly by handleRadiusChange, so adding them here would double-fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedIn]);
 
   const handleRefresh = async () => {
@@ -96,7 +100,7 @@ export default function DiscoverScreen({ navigation }) {
       const lng = position.coords.longitude;
       setCoords({ lat, lng });
       await loadProperties({ lat, lng, radiusKm: radius });
-    } catch (err) {
+    } catch {
       setLocationError("Unable to retrieve your location.");
     } finally {
       setLocating(false);
@@ -122,7 +126,7 @@ export default function DiscoverScreen({ navigation }) {
     try {
       await saveFavorite(propertyId);
       setSavedIds((current) => [...new Set([...current, propertyId])]);
-    } catch (err) {
+    } catch {
       // Swallow: card just stays unsaved, user can retry.
     } finally {
       setSavingId(null);

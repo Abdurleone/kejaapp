@@ -62,11 +62,14 @@ Backend:
 
 Development and testing:
 - Nodemon
-- Node test runner
+- Node test runner (backend, frontend)
+- Jest + React Native Testing Library (mobile)
+- ESLint (backend, frontend, mobile — each with its own flat config)
 - Insomnia
 
 DevOps:
-- GitHub Actions CI (backend + frontend tests, Docker build) — `.github/workflows/ci.yml`
+- GitHub Actions CI (lint + tests for backend/frontend/mobile, frontend build, Docker build) — `.github/workflows/ci.yml`
+- Dependabot for weekly dependency updates across all three `package.json`s and GitHub Actions — `.github/dependabot.yml`
 - Docker + docker-compose for a local/staging stack (backend, frontend, MongoDB, Redis)
 - Not deployed to a live host yet — see `docs/devops.md`
 
@@ -319,12 +322,36 @@ Run backend tests:
 npm run test:backend
 ```
 
+### Mobile tests
+
+Mobile tests (Jest + `jest-expo` + React Native Testing Library) cover:
+- API client logic (query string building, auth token and base URL storage, `apiFetch` success/error paths)
+- Formatting utilities (currency, rating summary, status labels)
+- A shared component (`MessageView`) — rendering and interaction
+
+Run mobile tests:
+
+```bash
+npm run test:mobile
+```
+
 ### All tests
 
-Run all frontend and backend tests:
+Run all backend, frontend, and mobile tests:
 
 ```bash
 npm test
+```
+
+### Linting
+
+Each package has its own ESLint flat config. Run all three, or one at a time:
+
+```bash
+npm run lint
+npm run lint:backend
+npm run lint:frontend
+npm run lint:mobile
 ```
 
 ### Integration testing
@@ -688,8 +715,9 @@ KejaApp does not process, track, or mediate payments in the current product scop
 
 ```text
 .github/
-└── workflows/
-    └── ci.yml
+├── workflows/
+│   └── ci.yml
+└── dependabot.yml
 
 backend/
 ├── config/
@@ -705,11 +733,14 @@ backend/
 ├── validators/
 ├── app.js
 ├── Dockerfile
+├── eslint.config.js
 └── server.js
 
 frontend/
+├── src/
 ├── tests/
 ├── Dockerfile
+├── eslint.config.js
 ├── nginx.conf
 ├── index.html
 ├── package.json
@@ -717,15 +748,17 @@ frontend/
 
 mobile/
 ├── src/
-│   ├── api/
-│   ├── components/
+│   ├── api/            # + client.test.js
+│   ├── components/     # + MessageView.test.js
 │   ├── context/
 │   ├── navigation/
 │   ├── screens/
 │   ├── theme/
-│   └── utils/
+│   └── utils/          # + format.test.js
 ├── App.js
 ├── app.json
+├── eslint.config.js
+├── jest.setup.js
 └── README.md
 
 docs/
@@ -821,11 +854,18 @@ Run the full test suite from the repo root:
 npm test
 ```
 
-Run backend or frontend tests separately:
+Run backend, frontend, or mobile tests separately:
 
 ```bash
 npm run test:backend
 npm run test:frontend
+npm run test:mobile
+```
+
+Lint everything (or one package at a time):
+
+```bash
+npm run lint
 ```
 
 Seed demo data:
@@ -834,6 +874,10 @@ Seed demo data:
 cd backend
 npm run seed
 ```
+
+Seeded properties span 9 counties — Nairobi (Kilimani, Westlands, Kileleshwa, Lavington), Nakuru (Milimani, Naivasha), Mombasa (Nyali), Kisumu (Milimani), Uasin Gishu (Eldoret), Kiambu (Thika), Nyeri, Machakos, and Kakamega — useful for exercising radius/"near me" search across realistic real-world distances rather than just Nairobi-local ones.
+
+Seeded movers now also cover Mombasa and Kisumu, alongside the existing Nairobi and Nakuru-based movers, matching the wider property coverage.
 
 Demo login accounts all use `password123`:
 
@@ -892,13 +936,17 @@ Completed:
 - Auth, account management, property listings, property image management, saved properties, pricing, property inquiries, viewing requests, reviews, notifications, agency verification, admin moderation, movers, static web frontend, tests, seeding, and Insomnia collection.
 - React Native (Expo) mobile app MVP for iOS and Android covering auth, discover/search, property detail, saved favorites, inquiries, and viewing requests — see `mobile/README.md`. Verified end-to-end on a real Android emulator, not just the Expo web preview.
 - CI (GitHub Actions), Docker images for backend/frontend, docker-compose for local/staging, and health check endpoints — see `docs/devops.md`.
+- ESLint across backend/frontend/mobile (each with its own flat config) wired into CI, Dependabot for weekly dependency updates, a Jest + React Native Testing Library test setup for mobile, and a fix for 11 moderate mobile dependency vulnerabilities.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
 - Expand the web frontend from the static MVP into a richer app experience.
 - Mobile: owner workspace, admin console, and reviews UI (still placeholders/missing on web too).
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
+- Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
+- Frontend: `vite@5.4.21`'s dev server has known moderate/high CVEs (dev-server-only exposure); fixing cleanly needs a breaking upgrade to `vite@8`.
+- Clarify whether `README_CLOUD.md`'s GCP Cloud Run/Cloud Storage setup is live or aspirational, and whether the incomplete FCM push-notification endpoint (`POST /api/auth/fcm-token`, no `firebase-admin` wired up) should be finished.
 
 ## License
 

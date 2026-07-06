@@ -28,7 +28,7 @@ export default function SavedPage() {
       <div className="view-header">
         <div>
           <h2>Saved listings</h2>
-          <p>Review rentals you've bookmarked for easy comparison.</p>
+          <p>Review rentals you&apos;ve bookmarked for easy comparison.</p>
         </div>
       </div>
 

@@ -75,7 +75,7 @@ function App() {
         if (active) {
           setCurrentUser(user);
         }
-      } catch (err) {
+      } catch {
         setSignedIn(false);
         setCurrentUser(null);
         setAuthPanelOpen(false);
@@ -144,7 +144,7 @@ function App() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch (err) {
+    } catch {
       // Ignore failure and clear local auth state anyway.
     }
 

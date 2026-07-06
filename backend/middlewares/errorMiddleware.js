@@ -8,7 +8,9 @@ const notFound = (req, res, next) => {
   next(error);
 };
 
-const errorHandler = (err, req, res, next) => {
+// Express detects error-handling middleware by arity (4 args), so `_next` must stay
+// even though it's unused — dropping it would stop Express from routing errors here.
+const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || (res.statusCode === 200 ? httpStatus.INTERNAL_SERVER_ERROR : res.statusCode);
   let message = err.message;
 
