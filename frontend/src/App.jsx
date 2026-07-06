@@ -281,123 +281,107 @@ function App() {
         {showSplash ? (
           <LandingPage onStart={() => navigate(getViewPath("discover"))} />
         ) : (
-          <>
-            <div className="workspace">
-              <div className="tabs" role="tablist" aria-label="Main navigation">
-                {navigationItems.map((item) => (
-                  <button
-                    key={item.view}
-                    type="button"
-                    className={`tab ${view === item.view ? "active" : ""}`}
-                    onClick={() => navigate(item.path)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              <div className="view-content">{renderCurrentPage()}</div>
-              <footer className="legal-footer">
-                <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
-                  Privacy
+          <div className="workspace">
+            <div className="tabs" role="tablist" aria-label="Main navigation">
+              {navigationItems.map((item) => (
+                <button
+                  key={item.view}
+                  type="button"
+                  className={`tab ${view === item.view ? "active" : ""}`}
+                  onClick={() => navigate(item.path)}
+                >
+                  {item.label}
                 </button>
-                <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
-                  Delete account
-                </button>
-              </footer>
+              ))}
             </div>
-            {authPanelOpen && (
-              <div className="auth-panel-overlay">
-                <div className="auth-panel">
-                  <div className="auth-panel-header">
-                    <h2>{authMode === "login" ? "Sign in" : "Create account"}</h2>
-                    <button className="text-button" type="button" onClick={closeAuthPanel}>
-                      Close
-                    </button>
-                  </div>
-                  <div className="auth-panel-tabs">
-                    <button
-                      type="button"
-                      className={authMode === "login" ? "active" : "secondary-button"}
-                      onClick={() => {
-                        setAuthMode("login");
-                        setAuthError("");
-                      }}
-                    >
-                      Sign in
-                    </button>
-                    <button
-                      type="button"
-                      className={authMode === "register" ? "active" : "secondary-button"}
-                      onClick={() => {
-                        setAuthMode("register");
-                        setAuthError("");
-                      }}
-                    >
-                      Register
-                    </button>
-                  </div>
-                  <form className="auth-panel-form" onSubmit={handleAuthSubmit}>
-                    {authMode === "register" && (
-                      <>
-                        <label>
-                          Name
-                          <input
-                            type="text"
-                            value={authForm.name}
-                            onChange={handleAuthChange("name")}
-                            required
-                          />
-                        </label>
-                        <label>
-                          Phone
-                          <input
-                            type="tel"
-                            value={authForm.phone}
-                            onChange={handleAuthChange("phone")}
-                          />
-                        </label>
-                        <label>
-                          Role
-                          <select value={authForm.role} onChange={handleAuthChange("role")}>
-                            <option value="tenant">Tenant</option>
-                            <option value="landlord">Landlord</option>
-                            <option value="agency">Agency</option>
-                          </select>
-                        </label>
-                      </>
-                    )}
-                    <label>
-                      Email
-                      <input
-                        type="email"
-                        value={authForm.email}
-                        onChange={handleAuthChange("email")}
-                        required
-                      />
-                    </label>
-                    <label>
-                      Password
-                      <input
-                        type="password"
-                        value={authForm.password}
-                        onChange={handleAuthChange("password")}
-                        required
-                      />
-                    </label>
-                    {authError && <p className="muted-copy">{authError}</p>}
-                    <div className="form-actions">
-                      <button className="primary-button" type="submit" disabled={authLoading}>
-                        {authLoading ? "Working..." : authMode === "login" ? "Sign in" : "Register"}
-                      </button>
-                      <button className="secondary-button" type="button" onClick={closeAuthPanel}>
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
+            <div className="view-content">{renderCurrentPage()}</div>
+            <footer className="legal-footer">
+              <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
+                Privacy
+              </button>
+              <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
+                Delete account
+              </button>
+            </footer>
+          </div>
+        )}
+        {authPanelOpen && (
+          <div className="auth-panel-overlay">
+            <div className="auth-panel">
+              <div className="auth-panel-header">
+                <h2>{authMode === "login" ? "Sign in" : "Create account"}</h2>
+                <button className="text-button" type="button" onClick={closeAuthPanel}>
+                  Close
+                </button>
               </div>
-            )}
-          </>
+              <div className="auth-panel-tabs">
+                <button
+                  type="button"
+                  className={authMode === "login" ? "active" : "secondary-button"}
+                  onClick={() => {
+                    setAuthMode("login");
+                    setAuthError("");
+                  }}
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  className={authMode === "register" ? "active" : "secondary-button"}
+                  onClick={() => {
+                    setAuthMode("register");
+                    setAuthError("");
+                  }}
+                >
+                  Register
+                </button>
+              </div>
+              <form className="auth-panel-form" onSubmit={handleAuthSubmit}>
+                {authMode === "register" && (
+                  <>
+                    <label>
+                      Name
+                      <input type="text" value={authForm.name} onChange={handleAuthChange("name")} required />
+                    </label>
+                    <label>
+                      Phone
+                      <input type="tel" value={authForm.phone} onChange={handleAuthChange("phone")} />
+                    </label>
+                    <label>
+                      Role
+                      <select value={authForm.role} onChange={handleAuthChange("role")}>
+                        <option value="tenant">Tenant</option>
+                        <option value="landlord">Landlord</option>
+                        <option value="agency">Agency</option>
+                      </select>
+                    </label>
+                  </>
+                )}
+                <label>
+                  Email
+                  <input type="email" value={authForm.email} onChange={handleAuthChange("email")} required />
+                </label>
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    value={authForm.password}
+                    onChange={handleAuthChange("password")}
+                    required
+                  />
+                </label>
+                {authError && <p className="muted-copy">{authError}</p>}
+                <div className="form-actions">
+                  <button className="primary-button" type="submit" disabled={authLoading}>
+                    {authLoading ? "Working..." : authMode === "login" ? "Sign in" : "Register"}
+                  </button>
+                  <button className="secondary-button" type="button" onClick={closeAuthPanel}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </main>
     </div>
