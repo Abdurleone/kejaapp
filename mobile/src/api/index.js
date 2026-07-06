@@ -53,6 +53,16 @@ export const fetchPropertyReviews = async (propertyId) => {
   return response.data || [];
 };
 
+export const fetchMyProperties = async (query = {}) => {
+  const response = await apiFetch(`/api/properties/mine${buildQueryString(query)}`, { method: "GET" });
+  return response.data || [];
+};
+
+export const createProperty = async (payload) => {
+  const response = await apiFetch("/api/properties", { method: "POST", body: payload });
+  return response.data;
+};
+
 // --- Favorites ---
 
 export const fetchFavorites = async () => {

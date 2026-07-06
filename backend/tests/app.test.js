@@ -115,6 +115,15 @@ describe("KejaApp API", () => {
     assert.match(response.headers["set-cookie"].join(";"), /keja_refresh=/);
   });
 
+  it("logs out even with no request body at all, matching how the frontend actually calls it", async () => {
+    // The frontend's logoutUser() sends no body and no Content-Type header,
+    // so express.json() never populates req.body here - unlike .send({}) above.
+    const response = await request(app).post("/api/auth/logout");
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.message, "Logged out");
+  });
+
   it("requires refresh tokens for auth refresh", async () => {
     const response = await request(app).post("/api/auth/refresh").send({});
 
