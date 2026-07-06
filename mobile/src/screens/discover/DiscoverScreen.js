@@ -219,8 +219,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   radiusChipActive: {
-    backgroundColor: colors.green,
-    borderColor: colors.green,
+    backgroundColor: colors.greenDark,
+    borderColor: colors.greenDark,
   },
   radiusChipText: {
     fontSize: 12,

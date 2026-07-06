@@ -9,8 +9,7 @@
   --ink: #141414;
   --muted: #5c5c59;
   --line: #dcdcda;
-  --green: #046a38;
-  --green-dark: #033f21;
+  --green: #033f21;
   --red: #bb0a1e;
   --amber: #a86416;
   --teal: #1f6d72;
@@ -23,8 +22,7 @@
 }
 
 :root[data-theme="kenya"] {
-  --green: #006600;
-  --green-dark: #003d00;
+  --green: #003d00;
   --red: #ce1126;
   --ink: #000000;
   --surface-soft: #eef0ee;
@@ -38,10 +36,6 @@
   --ink: #f2f2f2;
   --muted: #a8a8a5;
   --line: #3a3a38;
-  /* --green-dark is used as a text color (nav links, stat numbers, prices);
-     the default shade is too close to black to read against dark surfaces
-     (contrast ratio ~1.4:1), so lighten it here to stay legible (~7.4:1). */
-  --green-dark: #4fbf7a;
   --shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.36);
 }
@@ -176,7 +170,7 @@ button:disabled {
   padding: 6px 10px;
   border-radius: 999px;
   background: var(--surface-soft);
-  color: var(--green-dark);
+  color: var(--green);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -231,7 +225,7 @@ button:disabled {
 
 .text-button {
   background: transparent;
-  color: var(--green-dark);
+  color: var(--green);
 }
 
 .primary-button,
@@ -321,7 +315,7 @@ button:disabled {
 .header-stats strong,
 .stat-grid strong {
   font-size: 1.25rem;
-  color: var(--green-dark);
+  color: var(--green);
 }
 
 .header-stats span,
@@ -471,7 +465,7 @@ button:disabled {
 
 .property-rating {
   margin: 4px 0 0;
-  color: var(--green-dark);
+  color: var(--green);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -484,7 +478,7 @@ button:disabled {
 }
 
 .cost-row strong {
-  color: var(--green-dark);
+  color: var(--green);
   font-size: 1.12rem;
 }
 
@@ -687,10 +681,10 @@ dialog {
   color: #ffffff;
   overflow: hidden;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--green-dark) 85%, transparent) 0%, color-mix(in srgb, #0d2318 85%, transparent) 55%, color-mix(in srgb, #060b08 85%, transparent) 100%),
+    linear-gradient(135deg, color-mix(in srgb, var(--green) 85%, transparent) 0%, color-mix(in srgb, #0d2318 85%, transparent) 55%, color-mix(in srgb, #060b08 85%, transparent) 100%),
     url("assets/keja-logo.png") center/50% no-repeat,
     radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--green) 38%, transparent), transparent 55%),
-    linear-gradient(135deg, var(--green-dark) 0%, #0d2318 55%, #060b08 100%);
+    linear-gradient(135deg, var(--green) 0%, #0d2318 55%, #060b08 100%);
 }
 
 .landing-copy {
