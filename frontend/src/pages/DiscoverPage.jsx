@@ -206,6 +206,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
                     <p className="muted-copy">
                       {area}, {county}
                     </p>
+                    <p className="property-rating">{formatRatingSummary(property.ratingAverage, property.ratingCount)}</p>
                   </div>
                   <div className="cost-row">
                     <strong>{formatKes(rent)}</strong>
@@ -216,9 +217,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
                     <span>{bathrooms || "-"} baths</span>
                     <span>{property.viewingType || "viewing"}</span>
                   </div>
-                  <p className="muted-copy property-summary">
-                    {property.description || formatRatingSummary(property.ratingAverage, property.ratingCount)}
-                  </p>
+                  {property.description && <p className="muted-copy property-summary">{property.description}</p>}
                   <div className="card-actions">
                     <button
                       className="primary-button"

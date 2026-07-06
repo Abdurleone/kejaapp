@@ -5,6 +5,7 @@ import AgencyVerification from "../models/AgencyVerification.js";
 import Inquiry from "../models/Inquiry.js";
 import Mover from "../models/Mover.js";
 import Property from "../models/Property.js";
+import Review from "../models/Review.js";
 import User from "../models/User.js";
 import ViewingRequest from "../models/ViewingRequest.js";
 import { fingerprintPropertyImage } from "../services/imageFingerprintService.js";
@@ -23,6 +24,20 @@ const users = [
     password: "password123",
     role: "tenant",
     phone: "+254733000001",
+  },
+  {
+    name: "James Tenant",
+    email: "james.tenant@example.com",
+    password: "password123",
+    role: "tenant",
+    phone: "+254733000002",
+  },
+  {
+    name: "Amina Tenant",
+    email: "amina.tenant@example.com",
+    password: "password123",
+    role: "tenant",
+    phone: "+254733000003",
   },
   {
     name: "Demo Agency",
@@ -670,6 +685,99 @@ const viewingRequests = [
   },
 ];
 
+const reviews = [
+  {
+    propertyTitle: "Modern Kilimani Apartment",
+    reviewerEmail: "tenant@example.com",
+    rating: 5,
+    comment: "Bright, well-located, and the agency was quick to respond.",
+  },
+  {
+    propertyTitle: "Modern Kilimani Apartment",
+    reviewerEmail: "grace.tenant@example.com",
+    rating: 4,
+    comment: "Great spot near shops and transit, a bit noisy at night.",
+  },
+  {
+    propertyTitle: "Modern Kilimani Apartment",
+    reviewerEmail: "james.tenant@example.com",
+    rating: 5,
+    comment: "Clean, secure, and exactly as advertised.",
+  },
+  {
+    propertyTitle: "Cozy Westlands Studio",
+    reviewerEmail: "grace.tenant@example.com",
+    rating: 4,
+    comment: "Compact but comfortable, good value for Westlands.",
+  },
+  {
+    propertyTitle: "Cozy Westlands Studio",
+    reviewerEmail: "james.tenant@example.com",
+    rating: 4,
+    comment: "Landlord was responsive and the studio was move-in ready.",
+  },
+  {
+    propertyTitle: "Spacious Nakuru Maisonette",
+    reviewerEmail: "tenant@example.com",
+    rating: 5,
+    comment: "Plenty of space for the family and a quiet neighborhood.",
+  },
+  {
+    propertyTitle: "Spacious Nakuru Maisonette",
+    reviewerEmail: "amina.tenant@example.com",
+    rating: 4,
+    comment: "Good schools nearby, matched the listing description well.",
+  },
+  {
+    propertyTitle: "Nyali Beach View Apartment",
+    reviewerEmail: "james.tenant@example.com",
+    rating: 5,
+    comment: "Stunning ocean views and a short walk to the beach.",
+  },
+  {
+    propertyTitle: "Nyali Beach View Apartment",
+    reviewerEmail: "amina.tenant@example.com",
+    rating: 5,
+    comment: "Best coastal rental we viewed, would recommend to anyone.",
+  },
+  {
+    propertyTitle: "Milimani Kisumu Family House",
+    reviewerEmail: "tenant@example.com",
+    rating: 4,
+    comment: "Solid family home with a decent-sized compound.",
+  },
+  {
+    propertyTitle: "Elgon View Eldoret Maisonette",
+    reviewerEmail: "grace.tenant@example.com",
+    rating: 4,
+    comment: "Quiet estate with easy access to town.",
+  },
+  {
+    propertyTitle: "Elgon View Eldoret Maisonette",
+    reviewerEmail: "amina.tenant@example.com",
+    rating: 3,
+    comment: "Decent place, but the water pressure could be better.",
+  },
+  {
+    propertyTitle: "Makongeni Thika Bedsitter",
+    reviewerEmail: "james.tenant@example.com",
+    rating: 4,
+    comment: "Affordable and close to the main road, good for commuting.",
+  },
+  {
+    propertyTitle: "Kamakwa Nyeri Bungalow",
+    reviewerEmail: "tenant@example.com",
+    rating: 5,
+    comment: "Peaceful bungalow with a lovely garden, great host.",
+  },
+  {
+    propertyTitle: "Naivasha Lakeside Studio",
+    reviewerEmail: "grace.tenant@example.com",
+    rating: 4,
+    comment: "Short walk to the lake, cozy and well-kept studio.",
+  },
+];
+
 const upsertUsers = async () => {
   const savedUsers = {};
 
@@ -827,6 +935,40 @@ const upsertViewingRequests = async (savedUsers, savedProperties) => {
   }
 };
 
+const upsertReviews = async (savedUsers, savedProperties) => {
+  const reviewedPropertyIds = new Map();
+
+  for (const review of reviews) {
+    const property = savedProperties[review.propertyTitle];
+    const reviewer = savedUsers[review.reviewerEmail];
+    const { propertyTitle, reviewerEmail, ...reviewData } = review;
+
+    await Review.findOneAndUpdate(
+      {
+        property: property._id,
+        user: reviewer._id,
+      },
+      {
+        ...reviewData,
+        property: property._id,
+        user: reviewer._id,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        setDefaultsOnInsert: true,
+        upsert: true,
+      }
+    );
+
+    reviewedPropertyIds.set(property._id.toString(), property._id);
+  }
+
+  for (const propertyId of reviewedPropertyIds.values()) {
+    await Review.updatePropertyRating(propertyId);
+  }
+};
+
 const upsertImageFingerprints = async (savedProperties) => {
   for (const property of Object.values(savedProperties)) {
     for (const image of property.images) {
@@ -849,6 +991,7 @@ const seedDemoData = async () => {
     const savedProperties = await upsertProperties(savedUsers);
     await upsertInquiries(savedUsers, savedProperties);
     await upsertViewingRequests(savedUsers, savedProperties);
+    await upsertReviews(savedUsers, savedProperties);
     await upsertImageFingerprints(savedProperties);
 
     console.log("Demo data seeded successfully");
