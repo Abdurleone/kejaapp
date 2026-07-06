@@ -235,7 +235,7 @@ Frontend API helpers in `app-utils.js`:
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, mode toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
-- Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency/admin; agency verification status; admin platform-moderation counts), backed by `GET /api/dashboard/summary`.
+- Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency; agency verification status; admin platform-moderation counts). Admins do not get an owner listings section, since admins manage users, not listings. Backed by `GET /api/dashboard/summary`.
 - Anonymous property discovery with radius search and gated save actions.
 - Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, and inline forms to send an inquiry or request a viewing (matching the mobile app's flow).
 - Adaptive property cards, listing insights, skeleton loading states (shape-matching placeholders for Discover/Saved/Workspace/Dashboard/property detail, not spinners or "Loading..." text; respects `prefers-reduced-motion`), error states, and empty states.
@@ -245,15 +245,15 @@ Included flows:
 - Landing hero background is rendered from CSS theme tokens (a fixed Kenyan flag palette) instead of a fixed image.
 - Saved property actions with favorite/unfavorite buttons.
 - Saved properties list loading from real `/api/favorites` endpoint, with a Details link into the same property detail page as Discover.
-- Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency, admin).
-- Admin console placeholder for upcoming moderation tools.
+- Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency). Admins cannot create, edit, or view the owner workspace at all — admins moderate accounts, not listings.
+- Admin console (`/admin`) for managing user accounts: search and filter users by role, open a user's account summary (violations, and role-specific activity counts) and status change history, and change an account's status to active, suspended, or banned with a reason, backed by the existing `GET/PUT /api/admin/users*` endpoints.
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
 - Anonymous visitors can search available listings without leaving the search page.
 - Tenants can search homes, save listings after signing in, and manage saved listings.
 - Landlords and agencies can access the owner workspace placeholder.
-- Admins can access the admin console placeholder and owner workspace.
+- Admins can access the admin console to manage user accounts. Admins cannot access the owner workspace and have no listing creation, editing, or viewing capability anywhere in the app or API.
 - Visitors must sign in or sign up before accessing saved listings or saving homes.
 - Tenants do not see owner workspace navigation.
 - Non-admin users do not see admin console navigation.
@@ -416,9 +416,9 @@ As a signed-in user of any role, I want a dashboard summary tailored to what I a
 Acceptance criteria:
 - Given I am signed in as any role, when I load my dashboard summary, then I see my unread notification count.
 - Given I am signed in as a tenant, when I load my dashboard summary, then I additionally see my saved-properties count, my inquiries grouped by status (open, responded, closed), and my viewing requests grouped by status (pending, approved, rejected, cancelled, completed) — I do not see owner, agency, or admin data.
-- Given I am signed in as a landlord, agency, or admin, when I load my dashboard summary, then I additionally see my own properties grouped by lifecycle status (draft, available, taken, archived), plus incoming inquiries and incoming viewing requests for my properties, each grouped by status.
+- Given I am signed in as a landlord or agency, when I load my dashboard summary, then I additionally see my own properties grouped by lifecycle status (draft, available, taken, archived), plus incoming inquiries and incoming viewing requests for my properties, each grouped by status.
 - Given I am signed in as an agency, when I load my dashboard summary, then I additionally see my agency verification status and rejection reason (if rejected) — landlords and tenants never see agency verification data.
-- Given I am signed in as an admin, when I load my dashboard summary, then I additionally see platform-wide agency verification counts by status and user violation counts by status, on top of my own owner summary — no other role sees platform-wide moderation counts.
+- Given I am signed in as an admin, when I load my dashboard summary, then I additionally see platform-wide agency verification counts by status and user violation counts by status — I do not see an owner listings section, since admins do not manage listings.
 
 ### Tenant Property Discovery
 
@@ -452,22 +452,25 @@ Acceptance criteria:
 - Given I filter my properties by status, then I only see my own listings matching that lifecycle state.
 - Given I am not authenticated, when I request my properties, then the API rejects the request.
 
-### Admin Listing Management
+### Admin User Management
 
-As an admin, I want to view and manage all property listings, so that I can moderate platform inventory regardless of who created the listing.
+As an admin, I want to search, review, and change the status of user accounts, so that I can moderate the platform's users without needing any access to listings.
 
 Acceptance criteria:
-- Given I am authenticated as an admin, when I open listing management, then I can see listings across all owners and statuses.
-- Given I am authenticated as an admin, when I update or remove a listing, then the API allows the moderation action.
-- Given I am not an admin, when I open listing management, then I only see listings I own.
+- Given I am authenticated as an admin, when I list users, then I can search by name, email, or phone and filter by role.
+- Given I am authenticated as an admin, when I open a user's account, then I can see their profile, violation counts, and role-specific activity counts (tenant, owner, or agency), and their full account status change history.
+- Given I am authenticated as an admin, when I change a user's account status to active, suspended, or banned with a reason, then the account is updated, the change is logged for audit, and the user receives a notification.
+- Given I am authenticated as an admin, when I try to change my own account status to suspended or banned, then the API rejects the request.
+- Given I am not an admin, when I try to list users or change a user's account status, then the API rejects the request.
+- Given I am authenticated as an admin, when I try to create, edit, delete, or view listings, or manage inquiries or viewing requests for any property, then the API rejects the request — admins have no listing-management capability anywhere in the API.
 
 ### Transparent Pricing
 
 As a landlord or agency, I want to add rent, deposit, and agency fee values to my property listings, so that tenants can understand the full cost before contacting me.
 
 Acceptance criteria:
-- Given I am logged in as a landlord, agency, or admin, when I create or update a property, then I can save valid pricing fields.
-- Given I am not authenticated or I have a tenant role, when I try to create or update property pricing, then the API rejects the request.
+- Given I am logged in as a landlord or agency, when I create or update a property, then I can save valid pricing fields.
+- Given I am not authenticated, or I have a tenant or admin role, when I try to create or update property pricing, then the API rejects the request.
 - Given I am any user, when I submit price values to the cost calculator, then I receive calculated first-month, upfront, and recurring monthly totals without creating or changing a property.
 
 ### Listing Contact Details
@@ -484,7 +487,7 @@ Acceptance criteria:
 As a landlord or agency, I want to add and remove images for my property listings, so that tenants can inspect the home before requesting a viewing.
 
 Acceptance criteria:
-- Given I am logged in as the property owner, agency owner, or admin, when I add a valid image URL and optional alt text, then the image appears on the property.
+- Given I am logged in as the property owner or agency owner, when I add a valid image URL and optional alt text, then the image appears on the property.
 - Given I am not authorized to manage the property, when I try to add or remove an image, then the API rejects the request.
 - Given I remove an existing image from my property, when the property is returned, then that image is no longer present.
 - Given I add image alt text, when tenants view the property, then the alt text is available for accessibility and context.
@@ -518,10 +521,10 @@ As a tenant, I want to send an inquiry about a property, so that I can ask quest
 Acceptance criteria:
 - Given I am logged in and the property exists, when I submit a message and optional contact preference, then an open inquiry is created.
 - Given I own the property, when a tenant sends an inquiry, then I receive a notification.
-- Given I am the property owner or admin, when I respond to an inquiry, then the tenant receives a notification.
+- Given I am the property owner, when I respond to an inquiry, then the tenant receives a notification.
 - Given I list my inquiries, when the response loads, then I only see inquiries I sent.
 - Given I own a property, when I list property inquiries, then I only see inquiry records for that property.
-- Given I am a landlord, agency, or admin, when I list received inquiries, then I see inquiries across all of my properties in one call, scoped server-side by owner (admins see all).
+- Given I am a landlord or agency, when I list received inquiries, then I see inquiries across all of my properties in one call, scoped server-side by owner. Admins cannot view or respond to inquiries for any property, since admins do not manage listings.
 
 ### Viewing Requests
 
@@ -533,7 +536,7 @@ Acceptance criteria:
 - Given I am logged in and the property has open viewing, when I submit an optional message without a requested date, then an approved viewing request is created.
 - Given I own the property, when a tenant requests a viewing, then I receive a notification.
 - Given I already have a pending or approved request for the same property, when I request another viewing, then the API rejects the duplicate request.
-- Given I am the property owner or an admin, when I approve, reject, cancel, or complete a viewing request, then the requester receives a notification.
+- Given I am the property owner, when I approve, reject, cancel, or complete a viewing request, then the requester receives a notification. Admins cannot view or manage viewing requests for any property, since admins do not manage listings.
 
 ### Agency Verification
 
@@ -619,7 +622,7 @@ Properties:
 ```text
 GET    /api/properties
 GET    /api/properties?lat=-1.2921&lng=36.782&radiusKm=5
-GET    /api/properties/mine                                 landlord, agency, admin
+GET    /api/properties/mine                                 landlord, agency
 POST   /api/properties
 GET    /api/properties/:id
 PUT    /api/properties/:id
@@ -642,7 +645,7 @@ Reviews:
 
 ```text
 POST   /api/reviews
-GET    /api/reviews/mine                                  landlord, agency, admin
+GET    /api/reviews/mine                                  landlord, agency
 PUT    /api/reviews/:id/response                          landlord, agency property owner only
 GET    /api/properties/:id/reviews
 ```
@@ -653,8 +656,8 @@ Inquiries:
 GET    /api/inquiries                                        tenant (their own sent inquiries)
 POST   /api/inquiries                                         tenant
 PUT    /api/inquiries/:id
-GET    /api/properties/:id/inquiries                          landlord, agency, admin (per property)
-GET    /api/inquiries/received                                landlord, agency, admin (across all their properties)
+GET    /api/properties/:id/inquiries                          landlord, agency (per property)
+GET    /api/inquiries/received                                landlord, agency (across all their properties)
 ```
 
 Viewings:
@@ -979,10 +982,11 @@ Completed:
 - Consolidated the app's two-shade green palette (web's `--green`/`--green-dark` CSS variables, mobile's `colors.green`/`colors.greenDark`) down to a single dark shade everywhere, at the user's request. Previously `--green-dark` was deliberately re-lightened in dark mode (to `#4fbf7a`) to fix a text-contrast bug against the dark background (~1.4:1 contrast otherwise); collapsing to one literal color per the request reintroduces that low-contrast text in dark mode for elements that use the shared green (nav links, prices, stat numbers) — a known, explicitly-accepted tradeoff, not an oversight.
 - Removed the web frontend's default-vs-Kenya-flag theme toggle, at the user's request — the Kenyan flag palette (previously the `data-theme="kenya"` variant) is now the only look, merged directly into `:root`. The separate light/dark mode toggle is untouched (mobile never had a theme toggle to begin with, only the one fixed palette).
 - Replaced the web frontend's single cycling "Mode" button with an explicit two-option Light/Dark radio toggle (`role="radiogroup"`, native radio inputs under the hood) in the header's top-right corner, at the user's request. It's the same shared header on every page, including the landing page, and — unlike the old button — is no longer hidden on narrow phone widths.
+- Corrected the admin role to match its user story: admins moderate users, not listings. Previously admins were quietly included in `listingManagers`/`propertyOwners`-style role checks across the property, inquiry, and viewing-request routes and controllers, plus the dashboard and user-summary "owner" sections — meaning an admin account could in principle create, edit, or delete any property, and view/manage inquiries and viewing requests, none of which matched the documented user stories. Removed admin from every listing-management role check on the backend (routes, `ensurePropertyOwner`/`ensureInquiryManager`/`ensurePropertyManager`, `listMyProperties`/`listReceivedInquiries`/`listPropertyInquiries`, dashboard and admin-user-summary "owner" blocks) and from the frontend/mobile's `canManageListings`/`listingManagerRoles` equivalents, and replaced the web `AdminPage` placeholder with a real user-management console (search/filter users, view a user's account summary and status history, change account status to active/suspended/banned with a reason) built on the admin API endpoints that already existed but had no UI.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
-- Mobile: owner workspace now covers listing + creating properties; editing an existing listing, image management, and the received-inquiries view are still web-only. Admin console and reviews UI are still placeholders/missing on both web and mobile.
+- Mobile: owner workspace now covers listing + creating properties; editing an existing listing, image management, and the received-inquiries view are still web-only. The web admin console now covers user management, but mobile still has no admin console screen at all, and review moderation UI is still missing on both web and mobile.
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
 - Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).

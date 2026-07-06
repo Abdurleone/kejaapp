@@ -8,7 +8,7 @@ const roles = Object.freeze({
 const roleGroups = Object.freeze({
   publicRegistration: [roles.tenant, roles.landlord, roles.agency],
   tenantOnly: [roles.tenant],
-  listingManagers: [roles.landlord, roles.agency, roles.admin],
+  listingManagers: [roles.landlord, roles.agency],
   propertyOwners: [roles.landlord, roles.agency],
   agencies: [roles.agency],
   admins: [roles.admin],

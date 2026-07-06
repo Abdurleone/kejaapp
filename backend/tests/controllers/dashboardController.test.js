@@ -103,5 +103,6 @@ describe("dashboardController", () => {
 
     assert.equal(res.body.data.admin.agencyVerifications.pending, 4);
     assert.equal(res.body.data.admin.violations.open, 5);
+    assert.equal(res.body.data.owner, undefined);
   });
 });

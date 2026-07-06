@@ -182,9 +182,8 @@ describe("propertyController", () => {
     assert.equal(res.statusCode, 200);
   });
 
-  it("lets admins list all managed properties", async () => {
+  it("scopes admins to their own properties too, since admins do not manage listings", async () => {
     let findFilters;
-    let countFilters;
     mock.method(Property, "find", (filters) => {
       findFilters = filters;
 
@@ -203,21 +202,18 @@ describe("propertyController", () => {
         },
       };
     });
-    mock.method(Property, "countDocuments", (filters) => {
-      countFilters = filters;
-      return Promise.resolve(0);
-    });
+    mock.method(Property, "countDocuments", () => Promise.resolve(0));
 
+    const adminId = new mongoose.Types.ObjectId();
     const req = {
       query: {},
-      user: { _id: new mongoose.Types.ObjectId(), role: "admin" },
+      user: { _id: adminId, role: "admin" },
     };
     const res = createResponse();
 
     await listMyProperties(req, res, () => {});
 
-    assert.deepEqual(findFilters, {});
-    assert.deepEqual(countFilters, {});
+    assert.deepEqual(findFilters, { owner: adminId });
     assert.equal(res.statusCode, 200);
   });
 
