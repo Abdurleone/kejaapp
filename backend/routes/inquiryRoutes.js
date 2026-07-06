@@ -2,6 +2,7 @@ import express from "express";
 import {
   createInquiry,
   listMyInquiries,
+  listReceivedInquiries,
   updateInquiry,
 } from "../controllers/inquiryController.js";
 import { roleGroups } from "../constants/rbac.js";
@@ -20,6 +21,8 @@ router
   .route("/")
   .get(authorizeGroup(roleGroups.tenantOnly), listMyInquiries)
   .post(authorizeGroup(roleGroups.tenantOnly), validateRequest(createInquirySchema), createInquiry);
+
+router.get("/received", authorizeGroup(roleGroups.listingManagers), listReceivedInquiries);
 
 router.put("/:id", validateRequest(updateInquirySchema), updateInquiry);
 

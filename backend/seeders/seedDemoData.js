@@ -214,7 +214,7 @@ const properties = [
     amenities: ["parking", "wifi", "security"],
     images: [
       {
-        url: "https://example.com/shared-living-room.jpg",
+        url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=70",
         alt: "Bright living room with balcony",
       },
     ],
@@ -318,7 +318,7 @@ const properties = [
     amenities: ["parking", "garden", "water storage"],
     images: [
       {
-        url: "https://example.com/shared-living-room.jpg",
+        url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=70",
         alt: "Living room reused from another listing",
       },
     ],

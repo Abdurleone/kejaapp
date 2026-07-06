@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import {
   fetchFavorites,
   fetchProperties,
@@ -9,7 +10,7 @@ import {
   summarizeProperties,
 } from "../../app-utils.js";
 
-export default function DiscoverPage({ signedIn, onRequireAuth }) {
+export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }) {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,7 +26,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth }) {
       setError("");
       const params = { page: 1, limit: 12 };
 
-      if (lat && lng) {
+      if (lat != null && lng != null) {
         params.lat = lat;
         params.lng = lng;
         params.radiusKm = radiusKm;
@@ -172,9 +173,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth }) {
       )}
 
       {loading ? (
-        <div className="panel">
-          <p>Loading rentals...</p>
-        </div>
+        <PropertyCardSkeletonGrid />
       ) : error ? (
         <div className="panel">
           <p className="muted-copy">{error}</p>
@@ -229,7 +228,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth }) {
                     >
                       {savingPropertyId === propertyId ? "Saving..." : isSaved ? "Saved" : signedIn ? "Save" : "Sign in to save"}
                     </button>
-                    <button className="secondary-button" type="button">
+                    <button className="secondary-button" type="button" onClick={() => onOpenProperty(propertyId)}>
                       Details
                     </button>
                   </div>

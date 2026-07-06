@@ -115,6 +115,74 @@ export const fetchProperties = async (query = {}) => {
   return data;
 };
 
+export const fetchPropertyById = async (propertyId) => {
+  const cacheKey = `property:${propertyId}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/properties/${propertyId}`, {
+    method: "GET",
+  });
+  setCached(cacheKey, response.data, propertiesCacheTtlMs);
+  return response.data;
+};
+
+const myPropertiesCacheTtlMs = 15000;
+const receivedInquiriesCacheTtlMs = 15000;
+
+export const fetchMyProperties = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `myProperties:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/properties/mine${queryString}`, {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, myPropertiesCacheTtlMs);
+  return data;
+};
+
+export const fetchReceivedInquiries = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `receivedInquiries:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/inquiries/received${queryString}`, {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, receivedInquiriesCacheTtlMs);
+  return data;
+};
+
+export const createInquiry = async ({ property, subject, message, contactPreference }) => {
+  const response = await apiFetch("/api/inquiries", {
+    method: "POST",
+    body: { property, subject, message, contactPreference },
+  });
+  return response.data;
+};
+
+export const createViewingRequest = async ({ property, requestedDate, message }) => {
+  const response = await apiFetch("/api/viewings", {
+    method: "POST",
+    body: { property, requestedDate, message },
+  });
+  return response.data;
+};
+
 export const fetchCurrentUser = async () => {
   const response = await apiFetch("/api/auth/me", { method: "GET" });
   return response.user;
@@ -371,11 +439,26 @@ const viewPaths = {
   deleteAccount: "/delete-account",
 };
 
+const propertyDetailPathPrefix = "/property/";
+
+export const getPropertyDetailPath = (propertyId) => `${propertyDetailPathPrefix}${propertyId}`;
+
+export const getPropertyIdFromPath = (path) => {
+  const normalizedPath = String(path || "").replace(/\/$/, "");
+  return normalizedPath.startsWith(propertyDetailPathPrefix)
+    ? normalizedPath.slice(propertyDetailPathPrefix.length)
+    : null;
+};
+
 export const resolveViewFromPath = (path) => {
   const normalizedPath = path === "/" ? "/" : String(path || "").replace(/\/$/, "");
 
   if (normalizedPath === "/") {
     return "discover";
+  }
+
+  if (normalizedPath.startsWith(propertyDetailPathPrefix)) {
+    return "propertyDetail";
   }
 
   const match = Object.entries(viewPaths).find(([, viewPath]) => viewPath === normalizedPath);

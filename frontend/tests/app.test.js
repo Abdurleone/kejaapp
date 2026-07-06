@@ -14,6 +14,8 @@ import {
   formatKes,
   formatRatingSummary,
   findPropertyById,
+  getPropertyDetailPath,
+  getPropertyIdFromPath,
   getPropertyImage,
   getViewPath,
   getDefaultViewForRole,
@@ -115,6 +117,16 @@ describe("frontend app utilities", () => {
     assert.equal(resolveViewFromPath("/unknown"), "discover");
     assert.equal(getViewPath("discover"), "/search");
     assert.equal(getViewPath("saved"), "/saved");
+  });
+
+  it("routes property detail paths to the propertyDetail view and back", () => {
+    assert.equal(getPropertyDetailPath("abc123"), "/property/abc123");
+    assert.equal(resolveViewFromPath("/property/abc123"), "propertyDetail");
+    assert.equal(resolveViewFromPath("/property/abc123/"), "propertyDetail");
+    assert.equal(getPropertyIdFromPath("/property/abc123"), "abc123");
+    assert.equal(getPropertyIdFromPath("/property/abc123/"), "abc123");
+    assert.equal(getPropertyIdFromPath("/search"), null);
+    assert.equal(getPropertyIdFromPath("/property/"), null);
   });
 
   it("shows the splash only for anonymous users on the root path", () => {

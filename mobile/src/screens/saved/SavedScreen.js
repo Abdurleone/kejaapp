@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fetchFavorites, removeFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import PropertyCard from "../../components/PropertyCard.js";
-import LoadingView from "../../components/LoadingView.js";
+import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import colors from "../../theme/colors.js";
 
@@ -74,7 +74,11 @@ export default function SavedScreen() {
   }
 
   if (loading) {
-    return <LoadingView label="Loading saved listings..." />;
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.list}>
+        <PropertyCardSkeletonList />
+      </ScrollView>
+    );
   }
 
   if (error) {

@@ -82,7 +82,7 @@ Application foundation:
 - Health endpoint with database status and configured database path.
 - Load-balancer liveness and readiness endpoints.
 - CORS, Helmet, Morgan logging, centralized async handling, and error middleware.
-- Daily-rotated log files in `backend/logs/` (`access-YYYY-MM-DD.log` for HTTP requests, `app-YYYY-MM-DD.log` for connection/cache/rate-limit warnings and 5xx errors with stack traces), in addition to console output. Disabled during tests. Configurable via `LOG_DIR`.
+- Daily-rotated log files in `backend/logs/` (`access-YYYY-MM-DD.log` for HTTP requests, `app-YYYY-MM-DD.log` for connection/cache/rate-limit warnings and 5xx errors with stack traces), in addition to console output. Disabled during tests. Configurable via `LOG_DIR`. Timestamps (and the daily file rollover boundary) are in Nairobi time (`Africa/Nairobi`, a stable UTC+3 with no daylight saving), not UTC.
 - Nodemon watch configuration for backend auto-refresh.
 - Configurable API and auth rate limiting, backed by Redis when `REDIS_URL` is set (falls back to per-process in-memory limits otherwise).
 - Response caching for public property and mover listings, with immediate invalidation on writes; long-lived immutable `Cache-Control` headers on uploaded property images.
@@ -215,27 +215,33 @@ Authentication and session:
 
 Frontend API helpers in `app-utils.js`:
 - `fetchProperties({ page, limit, ...filters })` → `GET /api/properties`
+- `fetchPropertyById(propertyId)` → `GET /api/properties/:id`
 - `fetchCurrentUser()` → `GET /api/auth/me`
 - `fetchFavorites()` → `GET /api/favorites`
 - `saveFavorite(propertyId)` → `POST /api/favorites/:propertyId`
 - `removeFavorite(propertyId)` → `DELETE /api/favorites/:propertyId`
+- `createInquiry({ property, subject, message, contactPreference })` → `POST /api/inquiries`
+- `createViewingRequest({ property, requestedDate, message })` → `POST /api/viewings`
+- `fetchMyProperties({ page, limit, status })` → `GET /api/properties/mine` (landlord/agency/admin only)
+- `fetchReceivedInquiries({ status })` → `GET /api/inquiries/received` (landlord/agency/admin only)
 - `loginUser({ email, password })` → `POST /api/auth/login`
 - `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
 - `logoutUser()` → `POST /api/auth/logout`
 - All requests include Authorization bearer token if signed in.
-- `fetchProperties` and `fetchFavorites` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, and the whole cache clears on login, logout, register, and account deletion.
+- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, and `fetchReceivedInquiries` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, theme toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
 - Anonymous property discovery with radius search and gated save actions.
-- Adaptive property cards, listing insights, loading states, error states, and empty states.
+- Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, and inline forms to send an inquiry or request a viewing (matching the mobile app's flow).
+- Adaptive property cards, listing insights, skeleton loading states (shape-matching placeholders for Discover/Saved/Workspace/property detail, not spinners or "Loading..." text; respects `prefers-reduced-motion`), error states, and empty states.
 - Login and registration with form validation.
 - Role-aware navigation so tenants, owners, agencies, and admins only see the views they can access.
 - Polished responsive web UI with a splash landing page, centered workspace, sticky header actions, richer listing cards, account deletion flow, and light/dark plus Kenyan flag theme toggles.
 - Landing hero background reacts to the Kenya flag / default theme toggle since it is rendered from CSS theme tokens instead of a fixed image.
 - Saved property actions with favorite/unfavorite buttons.
-- Saved properties list loading from real `/api/favorites` endpoint.
-- Owner workspace placeholder for upcoming listing management.
+- Saved properties list loading from real `/api/favorites` endpoint, with a Details link into the same property detail page as Discover.
+- Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side).
 - Admin console placeholder for upcoming moderation tools.
 - Theme toggle between the standard palette and Kenyan flag colors.
 - Light and dark mode toggle that persists locally.
@@ -496,6 +502,7 @@ Acceptance criteria:
 - Given I am the property owner or admin, when I respond to an inquiry, then the tenant receives a notification.
 - Given I list my inquiries, when the response loads, then I only see inquiries I sent.
 - Given I own a property, when I list property inquiries, then I only see inquiry records for that property.
+- Given I am a landlord, agency, or admin, when I list received inquiries, then I see inquiries across all of my properties in one call, scoped server-side by owner (admins see all).
 
 ### Viewing Requests
 
@@ -624,10 +631,11 @@ GET    /api/properties/:id/reviews
 Inquiries:
 
 ```text
-GET    /api/inquiries
-POST   /api/inquiries
+GET    /api/inquiries                                        tenant (their own sent inquiries)
+POST   /api/inquiries                                         tenant
 PUT    /api/inquiries/:id
-GET    /api/properties/:id/inquiries
+GET    /api/properties/:id/inquiries                          landlord, agency, admin (per property)
+GET    /api/inquiries/received                                landlord, agency, admin (across all their properties)
 ```
 
 Viewings:
@@ -937,11 +945,12 @@ Completed:
 - React Native (Expo) mobile app MVP for iOS and Android covering auth, discover/search, property detail, saved favorites, inquiries, and viewing requests — see `mobile/README.md`. Verified end-to-end on a real Android emulator, not just the Expo web preview.
 - CI (GitHub Actions), Docker images for backend/frontend, docker-compose for local/staging, and health check endpoints — see `docs/devops.md`.
 - ESLint across backend/frontend/mobile (each with its own flat config) wired into CI, Dependabot for weekly dependency updates, a Jest + React Native Testing Library test setup for mobile, and a fix for 11 moderate mobile dependency vulnerabilities.
+- Seeded demo data expanded from 2 to 9 counties (11 available properties) with matching mover coverage, and a property detail page + inquiry/viewing-request forms added to the web frontend (previously mobile-only), closing the gap where the Discover page's "Details" button had no handler at all.
+- Web owner workspace replaced its hardcoded placeholder numbers with real, server-scoped data — a new `GET /api/inquiries/received` endpoint plus the existing `GET /api/properties/mine` now drive a real "your listings + inquiries about them" view, verified against two different landlord/agency accounts to confirm correct per-owner scoping.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
-- Expand the web frontend from the static MVP into a richer app experience.
-- Mobile: owner workspace, admin console, and reviews UI (still placeholders/missing on web too).
+- Mobile: owner workspace (now real on web, still missing on mobile), admin console, and reviews UI (still placeholders/missing on both web and mobile).
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
 - Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
