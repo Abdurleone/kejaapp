@@ -198,7 +198,7 @@ Developer workflow:
 The web frontend in `frontend/` is a React 19 + Vite single-page app (SPA) with manual routing and real backend API integration.
 
 Frontend architecture:
-- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, AdminPage).
+- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
 - Global `app-utils.js` for API helpers, formatting, and view logic.
@@ -224,12 +224,14 @@ Frontend API helpers in `app-utils.js`:
 - `createInquiry({ property, subject, message, contactPreference })` → `POST /api/inquiries`
 - `createViewingRequest({ property, requestedDate, message })` → `POST /api/viewings`
 - `fetchMyProperties({ page, limit, status })` → `GET /api/properties/mine` (landlord/agency/admin only)
+- `createProperty(payload)` → `POST /api/properties` (landlord/agency/admin only)
+- `updateProperty(propertyId, payload)` → `PUT /api/properties/:id` (landlord/agency/admin only, and only for listings they own)
 - `fetchReceivedInquiries({ status })` → `GET /api/inquiries/received` (landlord/agency/admin only)
 - `loginUser({ email, password })` → `POST /api/auth/login`
 - `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
 - `logoutUser()` → `POST /api/auth/logout`
 - All requests include Authorization bearer token if signed in.
-- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, and `fetchReceivedInquiries` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, and the whole cache clears on login, logout, register, and account deletion.
+- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, and `fetchReceivedInquiries` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, theme toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
@@ -243,7 +245,7 @@ Included flows:
 - Landing hero background reacts to the Kenya flag / default theme toggle since it is rendered from CSS theme tokens instead of a fixed image.
 - Saved property actions with favorite/unfavorite buttons.
 - Saved properties list loading from real `/api/favorites` endpoint, with a Details link into the same property detail page as Discover.
-- Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side).
+- Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency, admin).
 - Admin console placeholder for upcoming moderation tools.
 - Theme toggle between the standard palette and Kenyan flag colors.
 - Light and dark mode toggle that persists locally.
@@ -973,10 +975,12 @@ Completed:
 - Added Calibri as the primary body font (falls back to the existing Inter/system stack on platforms without it, since Calibri can't be legally bundled as a web font).
 - Automated API testing: migrated `tests/app.test.js` from a homemade in-process request helper to [supertest](https://github.com/ladjs/supertest), and added a real-database end-to-end API flow test (`tests/integration/apiFlows.integration.test.js`) covering register/login, property CRUD, inquiries, viewing requests, reviews, and favorites — opt-in via `TEST_MONGODB_URI`, same as the existing MongoDB integration test. Building it surfaced three real bugs, now fixed: (1) `tests/helpers/nodeTestCompat.js`'s `after()` ran its callbacks after the *first* test in a suite instead of the last, masked until now because the only prior multi-`before`/`after` consumer had just one test; (2) `Review.updatePropertyRating` matched on a raw (non-auto-cast) aggregation `$match`, so `respondToReview`'s populated `review.property` (instead of a plain ObjectId) silently zeroed out a property's rating whenever an owner responded to a review; (3) `reviewController.js` never invalidated the `properties` response cache on review create/response, so a property's rating could appear stale for up to the cache TTL after a review was submitted.
 - Built a Dashboard on both web and mobile that actually consumes the previously backend-only, role-aware `GET /api/dashboard/summary` endpoint — the User Stories documented what each role sees, but nothing in either app ever called it. Now it's the default landing view for every signed-in role right after sign-in (a new nav tab on web at `/dashboard`, a new first bottom tab on mobile), showing unread notifications plus role-specific sections. This is also the first landlord/agency/admin-facing screen on mobile, which previously had none.
+- Fixed the web owner workspace's "Your listings" cards, which rendered as static, non-interactive `<article>`s with no click handler at all — landlords/agencies had no way to open or edit a listing once created, even though the backend's `PUT /api/properties/:id` had existed all along. Added an Edit action per card that opens a new `PropertyEditPage` (`/owner/properties/:id/edit`, gated by `canManageListings`) covering title/description/type/status, price, location, bedrooms/bathrooms/amenities, viewing type/instructions, and contact details; carries forward the existing `location.coordinates` on save since the update endpoint replaces the whole `location` subdocument and the edit form has no map picker to re-supply it.
+- Added a "New listing" creation flow for landlords/agencies on both web and mobile, backed by the existing `POST /api/properties` endpoint (previously only reachable via seeding/direct API calls — neither app had any UI to create a listing at all). Web: a `PropertyCreatePage` sharing its form fields with `PropertyEditPage` via a new `PropertyForm` component, reached from a "New listing" button in the workspace header, gated by `canManageListings`. Mobile: a first-ever Workspace tab (role-gated: sign-in and landlord/agency/admin required, shown as a message otherwise) listing the signed-in owner's properties via the newly added `fetchMyProperties`, with a "New listing" header action opening a create form (`WorkspaceStack` → `PropertyCreateScreen`). Tenants retain read-only access everywhere (Discover/Saved/property detail) and cannot reach either creation path.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
-- Mobile: owner workspace (now real on web, still missing on mobile), admin console, and reviews UI (still placeholders/missing on both web and mobile).
+- Mobile: owner workspace now covers listing + creating properties; editing an existing listing, image management, and the received-inquiries view are still web-only. Admin console and reviews UI are still placeholders/missing on both web and mobile.
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
 - Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).

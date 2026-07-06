@@ -15,6 +15,9 @@ import {
   formatRatingSummary,
   findPropertyById,
   getPropertyDetailPath,
+  getPropertyEditIdFromPath,
+  getPropertyEditPath,
+  getPropertyCreatePath,
   getPropertyIdFromPath,
   getPropertyImage,
   getViewPath,
@@ -129,6 +132,23 @@ describe("frontend app utilities", () => {
     assert.equal(getPropertyIdFromPath("/property/abc123/"), "abc123");
     assert.equal(getPropertyIdFromPath("/search"), null);
     assert.equal(getPropertyIdFromPath("/property/"), null);
+  });
+
+  it("routes property edit paths to the propertyEdit view and back", () => {
+    assert.equal(getPropertyEditPath("abc123"), "/owner/properties/abc123/edit");
+    assert.equal(resolveViewFromPath("/owner/properties/abc123/edit"), "propertyEdit");
+    assert.equal(resolveViewFromPath("/owner/properties/abc123/edit/"), "propertyEdit");
+    assert.equal(getPropertyEditIdFromPath("/owner/properties/abc123/edit"), "abc123");
+    assert.equal(getPropertyEditIdFromPath("/owner/properties/abc123/edit/"), "abc123");
+    assert.equal(getPropertyEditIdFromPath("/owner"), null);
+    assert.equal(getPropertyEditIdFromPath("/property/abc123"), null);
+  });
+
+  it("routes the property create path to the propertyCreate view, not propertyEdit", () => {
+    assert.equal(getPropertyCreatePath(), "/owner/properties/new");
+    assert.equal(resolveViewFromPath("/owner/properties/new"), "propertyCreate");
+    assert.equal(getViewPath("propertyCreate"), "/owner/properties/new");
+    assert.equal(getPropertyEditIdFromPath("/owner/properties/new"), null);
   });
 
   it("shows the splash only for anonymous users on the root path", () => {

@@ -20,9 +20,10 @@ Implemented:
 - Saved favorites: save/unsave, saved list
 - Inquiries: send an inquiry from a property, view your inquiries and any owner response
 - Viewing requests: request a scheduled or open viewing, view your requests and their status
+- Owner/agency Workspace tab: lists the signed-in landlord/agency's own properties (`fetchMyProperties`) and a "New listing" action that opens a create-listing form (`POST /api/properties`); gated so tenants see a sign-in/role message instead. Editing an existing listing and managing images are still web-only.
 
 Not yet built (still placeholders on the web frontend too, so this isn't a regression):
-- Owner/agency listing management workspace (Dashboard shows the summary counts, but not a full create/edit/manage-listings UI yet)
+- Editing an existing listing, image management, and the received-inquiries view from the owner workspace (all web-only so far)
 - Admin moderation console
 - Property reviews UI (the backend supports it; the property detail screen shows the rating summary but not a review list/composer yet)
 
@@ -89,8 +90,8 @@ mobile/
     ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings)
     ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists)
     ├── context/             # AuthContext (session), SettingsContext (API base URL)
-    ├── navigation/           # Root stack, bottom tabs, Discover stack
-    ├── screens/              # auth/, dashboard/, discover/, saved/, requests/, account/
+    ├── navigation/           # Root stack, bottom tabs, Discover stack, Workspace stack
+    ├── screens/              # auth/, dashboard/, discover/, saved/, workspace/, requests/, account/
     ├── theme/                # Shared color tokens (mirrors frontend/styles.css palette)
     └── utils/                # Formatting helpers (currency, status labels)
 ```

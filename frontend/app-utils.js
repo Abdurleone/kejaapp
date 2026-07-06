@@ -130,6 +130,28 @@ export const fetchPropertyById = async (propertyId) => {
   return response.data;
 };
 
+export const createProperty = async (payload) => {
+  const response = await apiFetch("/api/properties", {
+    method: "POST",
+    body: payload,
+  });
+  // "property" also matches "properties:" list-query cache keys, since both
+  // start with that prefix - see clearRequestCache's startsWith check.
+  clearRequestCache("property");
+  clearRequestCache("myProperties");
+  return response.data;
+};
+
+export const updateProperty = async (propertyId, payload) => {
+  const response = await apiFetch(`/api/properties/${propertyId}`, {
+    method: "PUT",
+    body: payload,
+  });
+  clearRequestCache("property");
+  clearRequestCache("myProperties");
+  return response.data;
+};
+
 const myPropertiesCacheTtlMs = 15000;
 const receivedInquiriesCacheTtlMs = 15000;
 
@@ -451,6 +473,7 @@ const viewPaths = {
   discover: "/search",
   saved: "/saved",
   owner: "/owner",
+  propertyCreate: "/owner/properties/new",
   admin: "/admin",
   account: "/account",
   privacy: "/privacy",
@@ -458,6 +481,8 @@ const viewPaths = {
 };
 
 const propertyDetailPathPrefix = "/property/";
+const propertyEditPathPrefix = "/owner/properties/";
+const propertyEditPathSuffix = "/edit";
 
 export const getPropertyDetailPath = (propertyId) => `${propertyDetailPathPrefix}${propertyId}`;
 
@@ -468,11 +493,24 @@ export const getPropertyIdFromPath = (path) => {
     : null;
 };
 
+export const getPropertyEditPath = (propertyId) => `${propertyEditPathPrefix}${propertyId}${propertyEditPathSuffix}`;
+
+export const getPropertyEditIdFromPath = (path) => {
+  const normalizedPath = String(path || "").replace(/\/$/, "");
+  return normalizedPath.startsWith(propertyEditPathPrefix) && normalizedPath.endsWith(propertyEditPathSuffix)
+    ? normalizedPath.slice(propertyEditPathPrefix.length, -propertyEditPathSuffix.length)
+    : null;
+};
+
 export const resolveViewFromPath = (path) => {
   const normalizedPath = path === "/" ? "/" : String(path || "").replace(/\/$/, "");
 
   if (normalizedPath === "/") {
     return "discover";
+  }
+
+  if (normalizedPath.startsWith(propertyEditPathPrefix) && normalizedPath.endsWith(propertyEditPathSuffix)) {
+    return "propertyEdit";
   }
 
   if (normalizedPath.startsWith(propertyDetailPathPrefix)) {
@@ -484,6 +522,8 @@ export const resolveViewFromPath = (path) => {
 };
 
 export const getViewPath = (view) => viewPaths[view] || viewPaths.discover;
+
+export const getPropertyCreatePath = () => viewPaths.propertyCreate;
 
 export const findPropertyById = (collections, propertyId) =>
   collections.flat().find((property) => String(property?._id || property?.id) === String(propertyId));
