@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   imagePlaceholderText: {
     fontSize: 32,
     fontWeight: "800",
-    color: colors.green,
+    color: colors.greenDark,
   },
   statusPill: {
     position: "absolute",
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: 4,
     alignSelf: "flex-start",
-    backgroundColor: colors.green,
+    backgroundColor: colors.greenDark,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

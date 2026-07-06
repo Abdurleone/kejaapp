@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   roleChipActive: {
-    backgroundColor: colors.green,
-    borderColor: colors.green,
+    backgroundColor: colors.greenDark,
+    borderColor: colors.greenDark,
   },
   roleChipText: {
     color: colors.ink,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.greenDark,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",

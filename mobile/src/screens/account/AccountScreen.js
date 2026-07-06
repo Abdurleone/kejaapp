@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   primaryButton: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.greenDark,
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 32,

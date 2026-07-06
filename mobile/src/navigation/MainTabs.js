@@ -24,7 +24,7 @@ export default function MainTabs() {
     <Tab.Navigator
       initialRouteName="Dashboard"
       screenOptions={({ route }) => ({
-        tabBarActiveTintColor: colors.green,
+        tabBarActiveTintColor: colors.greenDark,
         tabBarInactiveTintColor: colors.muted,
         tabBarIcon: ({ color, size }) => (
           <Ionicons name={icons[route.name]} size={size} color={color} />

@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 14,
     fontWeight: "800",
-    color: colors.green,
+    color: colors.greenDark,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.greenDark,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
