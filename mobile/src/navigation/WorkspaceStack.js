@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext.js";
 import colors from "../theme/colors.js";
 
 const Stack = createNativeStackNavigator();
-const listingManagerRoles = ["landlord", "agency", "admin"];
+const listingManagerRoles = ["landlord", "agency"];
 
 export default function WorkspaceStack() {
   const { user, signedIn } = useAuth();

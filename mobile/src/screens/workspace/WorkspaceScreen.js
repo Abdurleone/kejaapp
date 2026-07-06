@@ -9,7 +9,7 @@ import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.
 import MessageView from "../../components/MessageView.js";
 import colors from "../../theme/colors.js";
 
-const listingManagerRoles = ["landlord", "agency", "admin"];
+const listingManagerRoles = ["landlord", "agency"];
 
 export default function WorkspaceScreen() {
   const navigation = useNavigation();

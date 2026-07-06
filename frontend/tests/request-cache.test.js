@@ -3,6 +3,7 @@ import { describe, it } from "./helpers/nodeTestCompat.js";
 import {
   clearRequestCache,
   createProperty,
+  fetchAdminUsers,
   fetchDashboardSummary,
   fetchFavorites,
   fetchMyProperties,
@@ -12,6 +13,7 @@ import {
   loginUser,
   removeFavorite,
   saveFavorite,
+  updateAdminUserStatus,
   updateProperty,
 } from "../app-utils.js";
 
@@ -125,6 +127,46 @@ describe("frontend request cache", () => {
     assert.equal(calls, 1);
     assert.equal(capturedUrl, "http://localhost:5000/api/dashboard/summary");
     assert.deepEqual(first, second);
+  });
+
+  it("reuses a cached admin-users response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedUrl;
+    global.fetch = async (url) => {
+      calls += 1;
+      capturedUrl = url;
+      return jsonResponse({ data: [{ _id: "u1", role: "tenant" }], pagination: { page: 1, pages: 1, total: 1 } });
+    };
+
+    const first = await fetchAdminUsers();
+    const second = await fetchAdminUsers();
+
+    assert.equal(calls, 1);
+    assert.equal(capturedUrl, "http://localhost:5000/api/admin/users");
+    assert.deepEqual(first, second);
+  });
+
+  it("invalidates the admin-users cache after updating an account status", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    global.fetch = async (url) => {
+      calls += 1;
+
+      if (url.endsWith("/status")) {
+        return jsonResponse({ data: { _id: "u1", role: "tenant", accountStatus: "suspended" } });
+      }
+
+      return jsonResponse({ data: [{ _id: "u1" }], pagination: { page: 1, pages: 1, total: 1 } });
+    };
+
+    await fetchAdminUsers();
+    await updateAdminUserStatus("u1", { status: "suspended", reason: "Reported by multiple tenants" });
+    await fetchAdminUsers();
+
+    assert.equal(calls, 3);
   });
 
   it("issues a fresh request for a different query", async () => {

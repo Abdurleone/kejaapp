@@ -115,7 +115,7 @@ const getUserSummary = asyncHandler(async (req, res) => {
     };
   }
 
-  if (["landlord", "agency", "admin"].includes(user.role)) {
+  if (["landlord", "agency"].includes(user.role)) {
     summary.owner = {
       properties: await countByStatus(Property, { owner: userId }, [
         "draft",

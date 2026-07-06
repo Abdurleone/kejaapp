@@ -22,7 +22,7 @@ const ensurePropertyManager = (property, user) => {
     ? property.owner._id.equals(user._id)
     : property.owner.equals(user._id);
 
-  if (!isOwner && user.role !== "admin") {
+  if (!isOwner) {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to manage viewing requests for this property");
   }
 };
@@ -121,13 +121,12 @@ const updateViewingRequestStatus = asyncHandler(async (req, res) => {
   const requesterId = viewingRequest.requester._id || viewingRequest.requester;
   const isRequester = requesterId.equals(req.user._id);
   const isOwner = viewingRequest.owner.equals(req.user._id);
-  const isAdmin = req.user.role === "admin";
 
   if (req.body.status === "cancelled") {
-    if (!isRequester && !isOwner && !isAdmin) {
+    if (!isRequester && !isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to cancel this viewing request");
     }
-  } else if (!isOwner && !isAdmin) {
+  } else if (!isOwner) {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to manage this viewing request");
   }
 
