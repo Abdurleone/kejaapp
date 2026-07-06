@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   tabActive: {
-    backgroundColor: colors.green,
-    borderColor: colors.green,
+    backgroundColor: colors.greenDark,
+    borderColor: colors.greenDark,
   },
   tabText: {
     fontWeight: "700",

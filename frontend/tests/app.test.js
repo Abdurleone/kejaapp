@@ -22,8 +22,6 @@ import {
   getPropertyImage,
   getViewPath,
   getDefaultViewForRole,
-  nextColorMode,
-  nextTheme,
   normalizeApiBaseUrl,
   resolveAssetUrl,
   resolveViewFromPath,
@@ -85,16 +83,6 @@ describe("frontend app utilities", () => {
   it("formats listing rating summaries", () => {
     assert.equal(formatRatingSummary(4.25, 3), "4.3 rating (3)");
     assert.equal(formatRatingSummary(0, 0), "No ratings");
-  });
-
-  it("toggles between the default and Kenyan flag themes", () => {
-    assert.equal(nextTheme("default"), "kenya");
-    assert.equal(nextTheme("kenya"), "default");
-  });
-
-  it("toggles between light and dark color modes", () => {
-    assert.equal(nextColorMode("light"), "dark");
-    assert.equal(nextColorMode("dark"), "light");
   });
 
   it("maps demo account roles to login emails", () => {

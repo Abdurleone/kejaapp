@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   imagePlaceholderText: {
     fontSize: 48,
     fontWeight: "800",
-    color: colors.green,
+    color: colors.greenDark,
   },
   title: {
     fontSize: 22,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryButton: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.greenDark,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",

@@ -7,7 +7,6 @@ const colors = {
   ink: "#141414",
   muted: "#5c5c59",
   line: "#dcdcda",
-  green: "#046a38",
   greenDark: "#033f21",
   red: "#bb0a1e",
   white: "#ffffff",

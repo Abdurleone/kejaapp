@@ -4,7 +4,7 @@ import colors from "../theme/colors.js";
 export default function LoadingView({ label = "Loading..." }) {
   return (
     <View style={styles.container}>
-      <ActivityIndicator color={colors.green} size="large" />
+      <ActivityIndicator color={colors.greenDark} size="large" />
       <Text style={styles.label}>{label}</Text>
     </View>
   );
