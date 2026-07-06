@@ -459,6 +459,13 @@ button:disabled {
   line-height: 1.25;
 }
 
+.property-rating {
+  margin: 4px 0 0;
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .cost-row {
   display: flex;
   align-items: baseline;
