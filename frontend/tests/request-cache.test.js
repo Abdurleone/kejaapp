@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "./helpers/nodeTestCompat.js";
 import {
   clearRequestCache,
+  createProperty,
   fetchDashboardSummary,
   fetchFavorites,
   fetchMyProperties,
@@ -139,6 +140,27 @@ describe("frontend request cache", () => {
     await fetchProperties({ page: 2 });
 
     assert.equal(calls, 2);
+  });
+
+  it("invalidates the my-properties cache after creating a listing", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedCreateUrl;
+    global.fetch = async (url, options = {}) => {
+      calls += 1;
+      if (options.method === "POST") capturedCreateUrl = url;
+      return options.method === "POST"
+        ? jsonResponse({ data: { _id: "p2", title: "New Property" } })
+        : jsonResponse({ data: [{ _id: "p1", title: "Existing Property" }] });
+    };
+
+    await fetchMyProperties();
+    await createProperty({ title: "New Property", price: { rent: 10000 } });
+    await fetchMyProperties();
+
+    assert.equal(calls, 3, "the second read after creating should not be served from stale cache");
+    assert.equal(capturedCreateUrl, "http://localhost:5000/api/properties");
   });
 
   it("invalidates the property and my-properties caches after an edit", async () => {

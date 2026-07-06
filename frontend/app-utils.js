@@ -130,13 +130,23 @@ export const fetchPropertyById = async (propertyId) => {
   return response.data;
 };
 
+export const createProperty = async (payload) => {
+  const response = await apiFetch("/api/properties", {
+    method: "POST",
+    body: payload,
+  });
+  // "property" also matches "properties:" list-query cache keys, since both
+  // start with that prefix - see clearRequestCache's startsWith check.
+  clearRequestCache("property");
+  clearRequestCache("myProperties");
+  return response.data;
+};
+
 export const updateProperty = async (propertyId, payload) => {
   const response = await apiFetch(`/api/properties/${propertyId}`, {
     method: "PUT",
     body: payload,
   });
-  // "property" also matches "properties:" list-query cache keys, since both
-  // start with that prefix - see clearRequestCache's startsWith check.
   clearRequestCache("property");
   clearRequestCache("myProperties");
   return response.data;
@@ -463,6 +473,7 @@ const viewPaths = {
   discover: "/search",
   saved: "/saved",
   owner: "/owner",
+  propertyCreate: "/owner/properties/new",
   admin: "/admin",
   account: "/account",
   privacy: "/privacy",
@@ -511,6 +522,8 @@ export const resolveViewFromPath = (path) => {
 };
 
 export const getViewPath = (view) => viewPaths[view] || viewPaths.discover;
+
+export const getPropertyCreatePath = () => viewPaths.propertyCreate;
 
 export const findPropertyById = (collections, propertyId) =>
   collections.flat().find((property) => String(property?._id || property?.id) === String(propertyId));

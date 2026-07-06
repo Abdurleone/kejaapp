@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import { fetchMyProperties, fetchReceivedInquiries, formatKes, formatStatusLabel } from "../../app-utils.js";
 
-export default function WorkspacePage({ onEditProperty }) {
+export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
   const [properties, setProperties] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +45,11 @@ export default function WorkspacePage({ onEditProperty }) {
         <div>
           <h2>Property workspace</h2>
           <p>Your listings and the inquiries tenants have sent about them.</p>
+        </div>
+        <div className="header-actions">
+          <button className="primary-button" type="button" onClick={onCreateProperty}>
+            New listing
+          </button>
         </div>
       </div>
 

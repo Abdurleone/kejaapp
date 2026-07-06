@@ -17,6 +17,7 @@ import {
   getPropertyDetailPath,
   getPropertyEditIdFromPath,
   getPropertyEditPath,
+  getPropertyCreatePath,
   getPropertyIdFromPath,
   getPropertyImage,
   getViewPath,
@@ -141,6 +142,13 @@ describe("frontend app utilities", () => {
     assert.equal(getPropertyEditIdFromPath("/owner/properties/abc123/edit/"), "abc123");
     assert.equal(getPropertyEditIdFromPath("/owner"), null);
     assert.equal(getPropertyEditIdFromPath("/property/abc123"), null);
+  });
+
+  it("routes the property create path to the propertyCreate view, not propertyEdit", () => {
+    assert.equal(getPropertyCreatePath(), "/owner/properties/new");
+    assert.equal(resolveViewFromPath("/owner/properties/new"), "propertyCreate");
+    assert.equal(getViewPath("propertyCreate"), "/owner/properties/new");
+    assert.equal(getPropertyEditIdFromPath("/owner/properties/new"), null);
   });
 
   it("shows the splash only for anonymous users on the root path", () => {

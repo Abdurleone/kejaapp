@@ -48,7 +48,10 @@ const createRefreshSession = async (req, user) => {
 };
 
 const getRefreshTokenFromRequest = (req) => {
-  if (req.body.refreshToken) {
+  // req.body is only populated when the request has a JSON body/Content-Type
+  // (e.g. login/refresh calls with a payload); logout is called with neither,
+  // so express.json() leaves req.body undefined here.
+  if (req.body?.refreshToken) {
     return req.body.refreshToken;
   }
 

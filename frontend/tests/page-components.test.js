@@ -12,6 +12,8 @@ const landingSource = await readSource("pages/LandingPage.jsx");
 const dashboardSource = await readSource("pages/DashboardPage.jsx");
 const workspaceSource = await readSource("pages/WorkspacePage.jsx");
 const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
+const propertyCreateSource = await readSource("pages/PropertyCreatePage.jsx");
+const propertyFormSource = await readSource("components/PropertyForm.jsx");
 
 describe("frontend page component contracts", () => {
   it("renders discover listings with API data, cards, and save actions", () => {
@@ -107,8 +109,26 @@ describe("frontend page component contracts", () => {
 
   it("renders a property edit form backed by the update API", () => {
     assert.match(propertyEditSource, /fetchPropertyById\(propertyId\)/);
-    assert.match(propertyEditSource, /updateProperty\(propertyId, formToPayload\(form, property\)\)/);
-    assert.match(propertyEditSource, /location\.coordinates = originalProperty\.location\.coordinates/);
-    assert.match(propertyEditSource, /Save changes/);
+    assert.match(propertyEditSource, /updateProperty\(propertyId, formToPropertyPayload\(form, property\)\)/);
+    assert.match(propertyEditSource, /submitLabel="Save changes"/);
+  });
+
+  it("shares the property form between create and edit, preserving geo data on edit", () => {
+    assert.match(propertyFormSource, /location\.coordinates = originalProperty\.location\.coordinates/);
+    assert.match(propertyFormSource, /export default function PropertyForm/);
+  });
+
+  it("lets landlords create a new listing via the shared form", () => {
+    assert.match(propertyCreateSource, /createProperty\(formToPropertyPayload\(form\)\)/);
+    assert.match(propertyCreateSource, /emptyPropertyForm/);
+    assert.match(propertyCreateSource, /submitLabel="Create listing"/);
+  });
+
+  it("wires the propertyCreate view into app navigation, workspace, and access control", () => {
+    assert.match(appSource, /case "propertyCreate":/);
+    assert.match(appSource, /You need an owner or agency account to create listings\./);
+    assert.match(appSource, /onCreated=\{\(created\) => navigate\(getPropertyEditPath\(created\._id\)\)\}/);
+    assert.match(workspaceSource, /onClick=\{onCreateProperty\}/);
+    assert.match(workspaceSource, /New listing/);
   });
 });

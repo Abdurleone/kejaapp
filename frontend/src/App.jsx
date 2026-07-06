@@ -6,6 +6,7 @@ import DiscoverPage from "./pages/DiscoverPage.jsx";
 import SavedPage from "./pages/SavedPage.jsx";
 import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
 import PropertyEditPage from "./pages/PropertyEditPage.jsx";
+import PropertyCreatePage from "./pages/PropertyCreatePage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
@@ -18,6 +19,7 @@ import {
   getPropertyDetailPath,
   getPropertyEditPath,
   getPropertyEditIdFromPath,
+  getPropertyCreatePath,
   shouldShowSplash,
   nextColorMode,
   nextTheme,
@@ -244,6 +246,21 @@ function App() {
             onBack={() => navigate(getViewPath("owner"))}
           />
         );
+      case "propertyCreate":
+        if (!signedIn || !canManageListings(currentUser?.role)) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">You need an owner or agency account to create listings.</p>
+            </div>
+          );
+        }
+
+        return (
+          <PropertyCreatePage
+            onBack={() => navigate(getViewPath("owner"))}
+            onCreated={(created) => navigate(getPropertyEditPath(created._id))}
+          />
+        );
       case "owner":
         if (!signedIn || !canAccessView(currentUser?.role, "owner")) {
           return (
@@ -259,6 +276,7 @@ function App() {
             onRequireAuth={openAuthPanel}
             currentUser={currentUser}
             onEditProperty={(propertyId) => navigate(getPropertyEditPath(propertyId))}
+            onCreateProperty={() => navigate(getPropertyCreatePath())}
           />
         );
       case "admin":
