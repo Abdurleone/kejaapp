@@ -10,6 +10,8 @@ const savedSource = await readSource("pages/SavedPage.jsx");
 const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
 const dashboardSource = await readSource("pages/DashboardPage.jsx");
+const workspaceSource = await readSource("pages/WorkspacePage.jsx");
+const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
 
 describe("frontend page component contracts", () => {
   it("renders discover listings with API data, cards, and save actions", () => {
@@ -88,5 +90,25 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /view: "dashboard", label: "Dashboard"/);
     assert.match(appSource, /case "dashboard":/);
     assert.match(appSource, /getDefaultViewForRole/);
+  });
+
+  it("lets landlords open an edit action from their workspace listings", () => {
+    assert.match(workspaceSource, /fetchMyProperties\(\)/);
+    assert.match(workspaceSource, /onEditProperty\(property\._id\)/);
+    assert.match(workspaceSource, /className="card-actions"/);
+  });
+
+  it("wires the propertyEdit view into app navigation and access control", () => {
+    assert.match(appSource, /case "propertyEdit":/);
+    assert.match(appSource, /canManageListings\(currentUser\?\.role\)/);
+    assert.match(appSource, /getPropertyEditPath\(propertyId\)/);
+    assert.match(appSource, /onEditProperty=\{\(propertyId\) => navigate\(getPropertyEditPath\(propertyId\)\)\}/);
+  });
+
+  it("renders a property edit form backed by the update API", () => {
+    assert.match(propertyEditSource, /fetchPropertyById\(propertyId\)/);
+    assert.match(propertyEditSource, /updateProperty\(propertyId, formToPayload\(form, property\)\)/);
+    assert.match(propertyEditSource, /location\.coordinates = originalProperty\.location\.coordinates/);
+    assert.match(propertyEditSource, /Save changes/);
   });
 });

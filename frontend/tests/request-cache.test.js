@@ -11,6 +11,7 @@ import {
   loginUser,
   removeFavorite,
   saveFavorite,
+  updateProperty,
 } from "../app-utils.js";
 
 describe("frontend request cache", () => {
@@ -138,6 +139,26 @@ describe("frontend request cache", () => {
     await fetchProperties({ page: 2 });
 
     assert.equal(calls, 2);
+  });
+
+  it("invalidates the property and my-properties caches after an edit", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    global.fetch = async (url, options = {}) => {
+      calls += 1;
+      return options.method === "PUT"
+        ? jsonResponse({ data: { _id: "p1", title: "Updated Property" } })
+        : jsonResponse({ data: [{ _id: "p1", title: "Original Property" }] });
+    };
+
+    await fetchPropertyById("p1");
+    await fetchMyProperties();
+    await updateProperty("p1", { title: "Updated Property" });
+    await fetchPropertyById("p1");
+    await fetchMyProperties();
+
+    assert.equal(calls, 5, "the two reads after the edit should not be served from stale cache");
   });
 
   it("invalidates the favorites cache after saving a favorite", async () => {

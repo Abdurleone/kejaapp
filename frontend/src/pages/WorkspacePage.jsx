@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import { fetchMyProperties, fetchReceivedInquiries, formatKes, formatStatusLabel } from "../../app-utils.js";
 
-export default function WorkspacePage() {
+export default function WorkspacePage({ onEditProperty }) {
   const [properties, setProperties] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +80,15 @@ export default function WorkspacePage() {
                         <span>{property.location?.area || "Nairobi"}</span>
                       </div>
                       <span className="status-pill">{formatStatusLabel(property.status)}</span>
+                      <div className="card-actions">
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          onClick={() => onEditProperty(property._id)}
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}

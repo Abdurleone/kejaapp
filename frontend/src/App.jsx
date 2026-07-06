@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import DiscoverPage from "./pages/DiscoverPage.jsx";
 import SavedPage from "./pages/SavedPage.jsx";
 import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
+import PropertyEditPage from "./pages/PropertyEditPage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
@@ -15,6 +16,8 @@ import {
   resolveViewFromPath,
   getPropertyIdFromPath,
   getPropertyDetailPath,
+  getPropertyEditPath,
+  getPropertyEditIdFromPath,
   shouldShowSplash,
   nextColorMode,
   nextTheme,
@@ -25,6 +28,7 @@ import {
   logoutUser,
   registerUser,
   canAccessView,
+  canManageListings,
 } from "../app-utils.js";
 
 const apiBaseUrl = normalizeApiBaseUrl(
@@ -225,6 +229,21 @@ function App() {
             onBack={() => navigate(getViewPath("discover"))}
           />
         );
+      case "propertyEdit":
+        if (!signedIn || !canManageListings(currentUser?.role)) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">You need an owner or agency account to edit listings.</p>
+            </div>
+          );
+        }
+
+        return (
+          <PropertyEditPage
+            propertyId={getPropertyEditIdFromPath(path)}
+            onBack={() => navigate(getViewPath("owner"))}
+          />
+        );
       case "owner":
         if (!signedIn || !canAccessView(currentUser?.role, "owner")) {
           return (
@@ -234,7 +253,14 @@ function App() {
           );
         }
 
-        return <WorkspacePage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+        return (
+          <WorkspacePage
+            signedIn={signedIn}
+            onRequireAuth={openAuthPanel}
+            currentUser={currentUser}
+            onEditProperty={(propertyId) => navigate(getPropertyEditPath(propertyId))}
+          />
+        );
       case "admin":
         if (!signedIn || !canAccessView(currentUser?.role, "admin")) {
           return (
