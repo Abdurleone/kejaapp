@@ -314,7 +314,8 @@ npm run test:frontend
 ### Backend tests
 
 Backend tests cover:
-- Route handlers and middleware
+- Route handlers and middleware, driven through the real Express app over real HTTP via [supertest](https://github.com/ladjs/supertest) (`tests/app.test.js`) — auth/validation guard-rail cases without a live database
+- A real-database end-to-end API flow test (`tests/integration/apiFlows.integration.test.js`, opt-in via `TEST_MONGODB_URI`) — register/login, property CRUD, inquiries, viewing requests, reviews/ratings, and favorites, all through real HTTP requests against a real MongoDB
 - Controllers (auth, properties, favorites, inquiries, viewing requests, reviews)
 - Models and data validation
 - Services (notifications, cost calculations, image fingerprints)
@@ -362,11 +363,15 @@ npm run lint:mobile
 
 ### Integration testing
 
-For integration tests with a real MongoDB instance, set the `TEST_MONGODB_URI` environment variable:
+For integration tests with a real MongoDB instance, set the `TEST_MONGODB_URI` environment variable (this also runs the real-database API flow test above; it's skipped otherwise):
 
 ```bash
 TEST_MONGODB_URI="mongodb+srv://..." npm run test:backend
 ```
+
+### Manual API testing
+
+There's also an [Insomnia](https://insomnia.rest/) collection at `docs/kejaapp-insomnia.json` for exploratory/manual testing against a running backend — see [API Testing With Insomnia](#api-testing-with-insomnia) below.
 
 ## Authentication
 
@@ -951,6 +956,9 @@ Completed:
 - Skeleton loading UI (pulse animation) on all card/list-shaped loading states on both web and mobile, replacing plain "Loading..." text.
 - Backend/HTTP log timestamps now use Nairobi (`Africa/Nairobi`, UTC+3) time instead of UTC, including the app log file's day-rollover boundary.
 - Dependency upgrades via Dependabot: frontend to React 19 + Vite 8 (resolving the `vite@5` dev-server CVEs) and mobile to Expo 57.0.2/React Native 0.86, `@react-native-async-storage/async-storage` 3.x, and other patch bumps — `eslint`/`jest` were deliberately held back on frontend/mobile because `eslint-plugin-react`/`eslint-config-expo`/`jest-expo` don't yet support `eslint@10`/`jest@30` (verified via a broken `npm ci`/crashing lint run before pinning back).
+- Fixed a bug in the landing page's header "Sign in" button: the auth modal was nested inside the non-splash branch of a ternary, so it never rendered while the landing page itself was showing.
+- Added Calibri as the primary body font (falls back to the existing Inter/system stack on platforms without it, since Calibri can't be legally bundled as a web font).
+- Automated API testing: migrated `tests/app.test.js` from a homemade in-process request helper to [supertest](https://github.com/ladjs/supertest), and added a real-database end-to-end API flow test (`tests/integration/apiFlows.integration.test.js`) covering register/login, property CRUD, inquiries, viewing requests, reviews, and favorites — opt-in via `TEST_MONGODB_URI`, same as the existing MongoDB integration test. Building it surfaced three real bugs, now fixed: (1) `tests/helpers/nodeTestCompat.js`'s `after()` ran its callbacks after the *first* test in a suite instead of the last, masked until now because the only prior multi-`before`/`after` consumer had just one test; (2) `Review.updatePropertyRating` matched on a raw (non-auto-cast) aggregation `$match`, so `respondToReview`'s populated `review.property` (instead of a plain ObjectId) silently zeroed out a property's rating whenever an owner responded to a review; (3) `reviewController.js` never invalidated the `properties` response cache on review create/response, so a property's rating could appear stale for up to the cache TTL after a review was submitted.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.

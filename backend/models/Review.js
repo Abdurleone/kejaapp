@@ -49,8 +49,15 @@ const reviewSchema = new mongoose.Schema(
 reviewSchema.index({ property: 1, user: 1 }, { unique: true });
 
 reviewSchema.statics.updatePropertyRating = async function updatePropertyRating(propertyId) {
+  // propertyId may be a populated Property document (e.g. if the caller ran
+  // .populate("property") before .save()) rather than a plain ObjectId.
+  // $match in a raw aggregation pipeline isn't auto-cast like a normal query,
+  // so matching against anything but a real ObjectId silently returns no
+  // rows here and would wipe out the property's rating.
+  const id = new mongoose.Types.ObjectId(propertyId?._id || propertyId);
+
   const [stats] = await this.aggregate([
-    { $match: { property: propertyId } },
+    { $match: { property: id } },
     {
       $group: {
         _id: "$property",
@@ -60,7 +67,7 @@ reviewSchema.statics.updatePropertyRating = async function updatePropertyRating(
     },
   ]);
 
-  await Property.findByIdAndUpdate(propertyId, {
+  await Property.findByIdAndUpdate(id, {
     ratingAverage: stats ? Number(stats.ratingAverage.toFixed(1)) : 0,
     ratingCount: stats ? stats.ratingCount : 0,
   });
