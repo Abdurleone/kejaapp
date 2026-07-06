@@ -1,0 +1,214 @@
+import { useCallback, useEffect, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { fetchDashboardSummary } from "../../api/index.js";
+import { useAuth } from "../../context/AuthContext.js";
+import DashboardSkeleton from "../../components/DashboardSkeleton.js";
+import MessageView from "../../components/MessageView.js";
+import { formatStatusLabel } from "../../utils/format.js";
+import colors from "../../theme/colors.js";
+
+const roleLabels = {
+  tenant: "Tenant",
+  landlord: "Landlord",
+  agency: "Agency",
+  admin: "Admin",
+};
+
+function StatTile({ value, label }) {
+  return (
+    <View style={styles.tile}>
+      <Text style={styles.tileValue}>{value}</Text>
+      <Text style={styles.tileLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function StatusStatTiles({ counts, suffix }) {
+  return Object.entries(counts).map(([status, count]) => (
+    <StatTile key={`${suffix}-${status}`} value={count} label={`${formatStatusLabel(status)} ${suffix}`} />
+  ));
+}
+
+export default function DashboardScreen() {
+  const navigation = useNavigation();
+  const { user, signedIn } = useAuth();
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setError("");
+
+    try {
+      const data = await fetchDashboardSummary();
+      setSummary(data);
+    } catch (err) {
+      setError(err.message || "Failed to load your dashboard.");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!signedIn) {
+      return;
+    }
+
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    load().finally(() => setLoading(false));
+  }, [signedIn, load]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
+
+  if (!signedIn) {
+    return (
+      <MessageView
+        title="Sign in required"
+        message="Sign in to see your dashboard."
+        actionLabel="Sign in"
+        onAction={() => navigation.navigate("Login")}
+      />
+    );
+  }
+
+  if (loading) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <DashboardSkeleton />
+      </ScrollView>
+    );
+  }
+
+  if (error) {
+    return <MessageView title="Couldn't load dashboard" message={error} />;
+  }
+
+  const roleLabel = roleLabels[user?.role] || "Account";
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+    >
+      <Text style={styles.subtitle}>
+        {roleLabel} overview for {user?.name || user?.email || "your account"}.
+      </Text>
+
+      <View style={styles.row}>
+        <StatTile value={summary.notifications.unread} label="Unread notifications" />
+      </View>
+
+      {summary.tenant ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Your activity</Text>
+          <View style={styles.row}>
+            <StatTile value={summary.tenant.savedProperties} label="Saved properties" />
+            <StatusStatTiles counts={summary.tenant.inquiries} suffix="inquiries" />
+            <StatusStatTiles counts={summary.tenant.viewings} suffix="viewings" />
+          </View>
+        </View>
+      ) : null}
+
+      {summary.owner ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Your listings</Text>
+          <View style={styles.row}>
+            <StatusStatTiles counts={summary.owner.properties} suffix="properties" />
+            <StatusStatTiles counts={summary.owner.incomingInquiries} suffix="incoming inquiries" />
+            <StatusStatTiles counts={summary.owner.incomingViewings} suffix="incoming viewings" />
+          </View>
+        </View>
+      ) : null}
+
+      {summary.agency ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Agency verification</Text>
+          <Text style={styles.muted}>
+            Status: <Text style={styles.strong}>{formatStatusLabel(summary.agency.verificationStatus)}</Text>
+          </Text>
+          {summary.agency.rejectionReason ? (
+            <Text style={styles.muted}>{summary.agency.rejectionReason}</Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {summary.admin ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Platform moderation</Text>
+          <View style={styles.row}>
+            <StatusStatTiles counts={summary.admin.agencyVerifications} suffix="agency verifications" />
+            <StatusStatTiles counts={summary.admin.violations} suffix="violations" />
+          </View>
+        </View>
+      ) : null}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  content: {
+    padding: 16,
+    gap: 16,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.muted,
+  },
+  row: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  tile: {
+    flexGrow: 1,
+    minWidth: 130,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 12,
+    padding: 14,
+    gap: 4,
+  },
+  tileValue: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: colors.greenDark,
+  },
+  tileLabel: {
+    fontSize: 12,
+    color: colors.muted,
+    textTransform: "capitalize",
+  },
+  panel: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 12,
+    padding: 14,
+    gap: 12,
+  },
+  panelTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.ink,
+  },
+  muted: {
+    fontSize: 13,
+    color: colors.muted,
+  },
+  strong: {
+    fontWeight: "800",
+    color: colors.ink,
+  },
+});

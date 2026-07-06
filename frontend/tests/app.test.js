@@ -114,9 +114,11 @@ describe("frontend app utilities", () => {
     assert.equal(resolveViewFromPath("/search"), "discover");
     assert.equal(resolveViewFromPath("/admin"), "admin");
     assert.equal(resolveViewFromPath("/owner/"), "owner");
+    assert.equal(resolveViewFromPath("/dashboard"), "dashboard");
     assert.equal(resolveViewFromPath("/unknown"), "discover");
     assert.equal(getViewPath("discover"), "/search");
     assert.equal(getViewPath("saved"), "/saved");
+    assert.equal(getViewPath("dashboard"), "/dashboard");
   });
 
   it("routes property detail paths to the propertyDetail view and back", () => {
@@ -138,17 +140,21 @@ describe("frontend app utilities", () => {
   it("enforces role-specific frontend access", () => {
     assert.equal(canAccessView(undefined, "discover"), true);
     assert.equal(canAccessView(undefined, "saved"), false);
+    assert.equal(canAccessView(undefined, "dashboard"), false);
     assert.equal(canAccessView("tenant", "owner"), false);
     assert.equal(canAccessView("tenant", "saved"), true);
+    assert.equal(canAccessView("tenant", "dashboard"), true);
     assert.equal(canAccessView("landlord", "discover"), false);
     assert.equal(canAccessView("landlord", "owner"), true);
+    assert.equal(canAccessView("landlord", "dashboard"), true);
     assert.equal(canAccessView("agency", "admin"), false);
     assert.equal(canAccessView("admin", "discover"), false);
     assert.equal(canAccessView("admin", "admin"), true);
     assert.equal(canAccessView("admin", "owner"), true);
-    assert.equal(getDefaultViewForRole("tenant"), "discover");
-    assert.equal(getDefaultViewForRole("landlord"), "owner");
-    assert.equal(getDefaultViewForRole("admin"), "admin");
+    assert.equal(canAccessView("admin", "dashboard"), true);
+    assert.equal(getDefaultViewForRole("tenant"), "dashboard");
+    assert.equal(getDefaultViewForRole("landlord"), "dashboard");
+    assert.equal(getDefaultViewForRole("admin"), "dashboard");
     assert.equal(canSearchListings(undefined), true);
     assert.equal(canSearchListings("tenant"), true);
     assert.equal(canSearchListings("agency"), false);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "./helpers/nodeTestCompat.js";
 import {
   clearRequestCache,
+  fetchDashboardSummary,
   fetchFavorites,
   fetchMyProperties,
   fetchProperties,
@@ -102,6 +103,25 @@ describe("frontend request cache", () => {
 
     assert.equal(calls, 1);
     assert.equal(capturedUrl, "http://localhost:5000/api/inquiries/received");
+    assert.deepEqual(first, second);
+  });
+
+  it("reuses a cached dashboard-summary response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedUrl;
+    global.fetch = async (url) => {
+      calls += 1;
+      capturedUrl = url;
+      return jsonResponse({ data: { role: "tenant", notifications: { unread: 2 } } });
+    };
+
+    const first = await fetchDashboardSummary();
+    const second = await fetchDashboardSummary();
+
+    assert.equal(calls, 1);
+    assert.equal(capturedUrl, "http://localhost:5000/api/dashboard/summary");
     assert.deepEqual(first, second);
   });
 

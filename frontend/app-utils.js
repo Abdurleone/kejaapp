@@ -167,6 +167,23 @@ export const fetchReceivedInquiries = async (query = {}) => {
   return data;
 };
 
+const dashboardSummaryCacheTtlMs = 15000;
+
+export const fetchDashboardSummary = async () => {
+  const cacheKey = "dashboardSummary";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/dashboard/summary", {
+    method: "GET",
+  });
+  setCached(cacheKey, response.data, dashboardSummaryCacheTtlMs);
+  return response.data;
+};
+
 export const createInquiry = async ({ property, subject, message, contactPreference }) => {
   const response = await apiFetch("/api/inquiries", {
     method: "POST",
@@ -388,10 +405,10 @@ export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
 export const canRegisterRole = (role) => hasRole(role, roleGroups.publicRegistration);
 
 const roleViewAccess = {
-  [roles.tenant]: ["discover", "saved", "account"],
-  [roles.landlord]: ["owner", "account"],
-  [roles.agency]: ["owner", "account"],
-  [roles.admin]: ["admin", "owner", "account"],
+  [roles.tenant]: ["dashboard", "discover", "saved", "account"],
+  [roles.landlord]: ["dashboard", "owner", "account"],
+  [roles.agency]: ["dashboard", "owner", "account"],
+  [roles.admin]: ["dashboard", "admin", "owner", "account"],
 };
 
 export const canAccessView = (role, view) => {
@@ -430,6 +447,7 @@ export const shouldShowSplash = ({ isSignedIn, path = "/" }) => {
 };
 
 const viewPaths = {
+  dashboard: "/dashboard",
   discover: "/search",
   saved: "/saved",
   owner: "/owner",
