@@ -296,7 +296,14 @@ button:disabled {
   gap: 12px;
 }
 
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
 .header-stats div,
+.stat-grid div,
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -304,18 +311,21 @@ button:disabled {
   box-shadow: var(--shadow);
 }
 
-.header-stats div {
+.header-stats div,
+.stat-grid div {
   display: grid;
   gap: 4px;
   padding: 14px;
 }
 
-.header-stats strong {
+.header-stats strong,
+.stat-grid strong {
   font-size: 1.25rem;
   color: var(--green-dark);
 }
 
-.header-stats span {
+.header-stats span,
+.stat-grid span {
   color: var(--muted);
   font-size: 0.85rem;
 }

@@ -15,13 +15,14 @@ If you do have Xcode or Android Studio installed, `npm run ios` / `npm run andro
 
 Implemented:
 - Auth: register, login, sign out, current-user session
+- Role-aware Dashboard: the default tab after sign-in, showing unread notifications plus role-specific summary counts (tenant activity; owner listings for landlord/agency/admin; agency verification status; admin platform-moderation counts) — the first landlord/agency/admin-facing screen on mobile
 - Discover: anonymous property browsing, radius ("Near me") search, property detail
 - Saved favorites: save/unsave, saved list
 - Inquiries: send an inquiry from a property, view your inquiries and any owner response
 - Viewing requests: request a scheduled or open viewing, view your requests and their status
 
 Not yet built (still placeholders on the web frontend too, so this isn't a regression):
-- Owner/agency listing management workspace
+- Owner/agency listing management workspace (Dashboard shows the summary counts, but not a full create/edit/manage-listings UI yet)
 - Admin moderation console
 - Property reviews UI (the backend supports it; the property detail screen shows the rating summary but not a review list/composer yet)
 
@@ -89,7 +90,7 @@ mobile/
     ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists)
     ├── context/             # AuthContext (session), SettingsContext (API base URL)
     ├── navigation/           # Root stack, bottom tabs, Discover stack
-    ├── screens/              # auth/, discover/, saved/, requests/, account/
+    ├── screens/              # auth/, dashboard/, discover/, saved/, requests/, account/
     ├── theme/                # Shared color tokens (mirrors frontend/styles.css palette)
     └── utils/                # Formatting helpers (currency, status labels)
 ```

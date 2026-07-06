@@ -9,6 +9,7 @@ const discoverSource = await readSource("pages/DiscoverPage.jsx");
 const savedSource = await readSource("pages/SavedPage.jsx");
 const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
+const dashboardSource = await readSource("pages/DashboardPage.jsx");
 
 describe("frontend page component contracts", () => {
   it("renders discover listings with API data, cards, and save actions", () => {
@@ -71,5 +72,21 @@ describe("frontend page component contracts", () => {
   it("does not keep placeholder component tests around", () => {
     assert.doesNotMatch(discoverSource, new RegExp(["Rest", "of", "your", "rendering", "logic"].join("\\s+")));
     assert.doesNotMatch(discoverSource, new RegExp(["Ensure", "this", "is", "imported"].join("\\s+")));
+  });
+
+  it("renders a role-aware dashboard summary", () => {
+    assert.match(dashboardSource, /fetchDashboardSummary\(\)/);
+    assert.match(dashboardSource, /summary\.notifications\.unread/);
+    assert.match(dashboardSource, /summary\.tenant/);
+    assert.match(dashboardSource, /summary\.owner/);
+    assert.match(dashboardSource, /summary\.agency/);
+    assert.match(dashboardSource, /summary\.admin/);
+    assert.match(dashboardSource, /<DashboardSkeleton/);
+  });
+
+  it("adds Dashboard as the default nav item for every role", () => {
+    assert.match(appSource, /view: "dashboard", label: "Dashboard"/);
+    assert.match(appSource, /case "dashboard":/);
+    assert.match(appSource, /getDefaultViewForRole/);
   });
 });
