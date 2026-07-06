@@ -326,8 +326,9 @@ function App() {
                   value={mode}
                   checked={colorMode === mode}
                   onChange={() => setColorMode(mode)}
+                  aria-label={mode === "light" ? "Light mode" : "Dark mode"}
                 />
-                {mode === "light" ? "Light" : "Dark"}
+                <span aria-hidden="true">{mode === "light" ? "☀" : "☾"}</span>
               </label>
             ))}
           </div>

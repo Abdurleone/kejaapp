@@ -156,23 +156,23 @@ button:disabled {
 .mode-toggle {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
   gap: 2px;
-  padding: 3px;
+  padding: 2px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   background: var(--surface);
 }
 
 .mode-option {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 5px;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
   color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -868,8 +868,7 @@ dialog {
   .text-button,
   .primary-button,
   .secondary-button,
-  .danger-button,
-  .mode-toggle {
+  .danger-button {
     min-height: 40px;
   }
 
