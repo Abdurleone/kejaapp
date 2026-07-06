@@ -393,8 +393,6 @@ export const sortProperties = (properties, sortMode) => {
   return sorted;
 };
 
-export const nextTheme = (theme) => (theme === "kenya" ? "default" : "kenya");
-
 export const nextColorMode = (mode) => (mode === "dark" ? "light" : "dark");
 
 export const demoAccounts = {

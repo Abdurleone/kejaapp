@@ -48,7 +48,7 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 Frontend:
 - Static web MVP
 - Adaptive responsive UI for desktop, tablet, and phone screens
-- Kenyan flag color theme toggle
+- Kenyan flag color palette (single, fixed theme) with a separate light/dark mode toggle
 
 Mobile:
 - React Native (Expo), targeting iOS and Android from one codebase
@@ -202,7 +202,7 @@ Frontend architecture:
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
 - Global `app-utils.js` for API helpers, formatting, and view logic.
-- Theme persistence (Kenya flag vs. default) and light/dark mode toggle.
+- Light/dark mode toggle that persists locally.
 
 Authentication and session:
 - Sign-in/sign-up modal overlay in the header with login and register tabs.
@@ -234,20 +234,19 @@ Frontend API helpers in `app-utils.js`:
 - `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, and `fetchReceivedInquiries` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
-- Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, theme toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
+- Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, mode toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
 - Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency/admin; agency verification status; admin platform-moderation counts), backed by `GET /api/dashboard/summary`.
 - Anonymous property discovery with radius search and gated save actions.
 - Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, and inline forms to send an inquiry or request a viewing (matching the mobile app's flow).
 - Adaptive property cards, listing insights, skeleton loading states (shape-matching placeholders for Discover/Saved/Workspace/Dashboard/property detail, not spinners or "Loading..." text; respects `prefers-reduced-motion`), error states, and empty states.
 - Login and registration with form validation.
 - Role-aware navigation so tenants, owners, agencies, and admins only see the views they can access.
-- Polished responsive web UI with a splash landing page, centered workspace, sticky header actions, richer listing cards, account deletion flow, and light/dark plus Kenyan flag theme toggles.
-- Landing hero background reacts to the Kenya flag / default theme toggle since it is rendered from CSS theme tokens instead of a fixed image.
+- Polished responsive web UI with a splash landing page, centered workspace, sticky header actions, richer listing cards, account deletion flow, and a light/dark mode toggle.
+- Landing hero background is rendered from CSS theme tokens (a fixed Kenyan flag palette) instead of a fixed image.
 - Saved property actions with favorite/unfavorite buttons.
 - Saved properties list loading from real `/api/favorites` endpoint, with a Details link into the same property detail page as Discover.
 - Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency, admin).
 - Admin console placeholder for upcoming moderation tools.
-- Theme toggle between the standard palette and Kenyan flag colors.
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
@@ -260,7 +259,7 @@ Frontend access model:
 - Non-admin users do not see admin console navigation.
 
 Responsive behavior:
-- The landing page adapts from desktop split layout to a single-column phone layout, and the overlay header trims down to logo plus sign-in (dropping the theme/mode toggles) on narrow phone widths to avoid crowding the hero.
+- The landing page adapts from desktop split layout to a single-column phone layout, and the overlay header trims down to logo plus sign-in (dropping the mode toggle) on narrow phone widths to avoid crowding the hero.
 - Header actions, location radius controls, stat panels, and workspace tabs reflow across desktop, tablet, and phone widths.
 - Property grids and listing actions use container-safe sizing so listings do not overflow narrow screens.
 - Owner workspace and admin console panels adapt for smaller screens.
@@ -978,6 +977,7 @@ Completed:
 - Fixed the web owner workspace's "Your listings" cards, which rendered as static, non-interactive `<article>`s with no click handler at all — landlords/agencies had no way to open or edit a listing once created, even though the backend's `PUT /api/properties/:id` had existed all along. Added an Edit action per card that opens a new `PropertyEditPage` (`/owner/properties/:id/edit`, gated by `canManageListings`) covering title/description/type/status, price, location, bedrooms/bathrooms/amenities, viewing type/instructions, and contact details; carries forward the existing `location.coordinates` on save since the update endpoint replaces the whole `location` subdocument and the edit form has no map picker to re-supply it.
 - Added a "New listing" creation flow for landlords/agencies on both web and mobile, backed by the existing `POST /api/properties` endpoint (previously only reachable via seeding/direct API calls — neither app had any UI to create a listing at all). Web: a `PropertyCreatePage` sharing its form fields with `PropertyEditPage` via a new `PropertyForm` component, reached from a "New listing" button in the workspace header, gated by `canManageListings`. Mobile: a first-ever Workspace tab (role-gated: sign-in and landlord/agency/admin required, shown as a message otherwise) listing the signed-in owner's properties via the newly added `fetchMyProperties`, with a "New listing" header action opening a create form (`WorkspaceStack` → `PropertyCreateScreen`). Tenants retain read-only access everywhere (Discover/Saved/property detail) and cannot reach either creation path.
 - Consolidated the app's two-shade green palette (web's `--green`/`--green-dark` CSS variables, mobile's `colors.green`/`colors.greenDark`) down to a single dark shade everywhere, at the user's request. Previously `--green-dark` was deliberately re-lightened in dark mode (to `#4fbf7a`) to fix a text-contrast bug against the dark background (~1.4:1 contrast otherwise); collapsing to one literal color per the request reintroduces that low-contrast text in dark mode for elements that use the shared green (nav links, prices, stat numbers) — a known, explicitly-accepted tradeoff, not an oversight.
+- Removed the web frontend's default-vs-Kenya-flag theme toggle, at the user's request — the Kenyan flag palette (previously the `data-theme="kenya"` variant) is now the only look, merged directly into `:root`. The separate light/dark mode toggle is untouched (mobile never had a theme toggle to begin with, only the one fixed palette).
 
 Next:
 - Keep payments off-platform unless the product scope changes later.

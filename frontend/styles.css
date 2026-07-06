@@ -1,16 +1,15 @@
-/* Default palette follows the Kenyan flag: black (ink/borders), red, green,
-   and white (surfaces). The "kenya" data-theme variant amplifies it further
-   with more saturated, more literal flag colors. */
+/* Palette follows the Kenyan flag: black (ink/borders), red, green, and
+   white (surfaces), using the more saturated, literal flag colors. */
 :root {
   color-scheme: light;
   --bg: #f7f7f6;
   --surface: #ffffff;
-  --surface-soft: #f1f1ef;
-  --ink: #141414;
+  --surface-soft: #eef0ee;
+  --ink: #000000;
   --muted: #5c5c59;
   --line: #dcdcda;
-  --green: #033f21;
-  --red: #bb0a1e;
+  --green: #003d00;
+  --red: #ce1126;
   --amber: #a86416;
   --teal: #1f6d72;
   --shadow: 0 16px 36px rgba(10, 10, 10, 0.08);
@@ -19,13 +18,6 @@
   --radius-sm: 6px;
   --content: 1180px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-:root[data-theme="kenya"] {
-  --green: #003d00;
-  --red: #ce1126;
-  --ink: #000000;
-  --surface-soft: #eef0ee;
 }
 
 :root[data-color-mode="dark"] {

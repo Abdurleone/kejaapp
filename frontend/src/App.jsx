@@ -22,7 +22,6 @@ import {
   getPropertyCreatePath,
   shouldShowSplash,
   nextColorMode,
-  nextTheme,
   getViewPath,
   getDefaultViewForRole,
   fetchCurrentUser,
@@ -49,7 +48,6 @@ const navItems = [
 ];
 
 function App() {
-  const [theme, setTheme] = useState(localStorage.getItem("keja_theme") || "default");
   const [colorMode, setColorMode] = useState(localStorage.getItem("keja_color_mode") || "light");
   const [path, setPath] = useState(window.location.pathname);
   const [signedIn, setSignedIn] = useState(Boolean(localStorage.getItem("keja_token")));
@@ -67,11 +65,9 @@ function App() {
   });
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.colorMode = colorMode;
-    localStorage.setItem("keja_theme", theme);
     localStorage.setItem("keja_color_mode", colorMode);
-  }, [theme, colorMode]);
+  }, [colorMode]);
 
   const navigate = (nextPath) => {
     if (nextPath === path) return;
@@ -322,9 +318,6 @@ function App() {
         </div>
 
         <div className="header-actions">
-          <button className="text-button" type="button" onClick={() => setTheme(nextTheme(theme))}>
-            Theme
-          </button>
           <button className="text-button" type="button" onClick={() => setColorMode(nextColorMode(colorMode))}>
             Mode
           </button>
