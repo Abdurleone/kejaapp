@@ -165,7 +165,12 @@ export default function DiscoverScreen({ navigation }) {
       {locationError ? <Text style={styles.inlineError}>{locationError}</Text> : null}
 
       {error ? (
-        <MessageView title="Couldn't load rentals" message={error} />
+        <MessageView
+          title="Couldn't load rentals"
+          message={error}
+          actionLabel="Retry"
+          onAction={() => loadProperties(coords ? { lat: coords.lat, lng: coords.lng, radiusKm: radius } : {})}
+        />
       ) : properties.length === 0 ? (
         <MessageView title="No rentals found" message="Try clearing location search or widening the radius." />
       ) : (
@@ -216,7 +221,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 999,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    minHeight: 44,
+    justifyContent: "center",
   },
   radiusChipActive: {
     backgroundColor: colors.greenDark,

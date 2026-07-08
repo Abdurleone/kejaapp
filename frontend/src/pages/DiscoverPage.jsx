@@ -168,7 +168,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
 
       {saveError && (
         <div className="panel notice-panel">
-          <p className="muted-copy">{saveError}</p>
+          <p className="error-text">{saveError}</p>
         </div>
       )}
 
@@ -176,7 +176,10 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
         <PropertyCardSkeletonGrid />
       ) : error ? (
         <div className="panel">
-          <p className="muted-copy">{error}</p>
+          <p className="error-text">{error}</p>
+          <button className="secondary-button" type="button" onClick={() => loadProperties(coords?.lat, coords?.lng)}>
+            Retry
+          </button>
         </div>
       ) : properties.length === 0 ? (
         <div className="panel empty-state">

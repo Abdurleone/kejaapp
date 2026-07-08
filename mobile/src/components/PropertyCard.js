@@ -145,7 +145,8 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     backgroundColor: colors.greenDark,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
     borderRadius: 8,
   },
   saveButtonSaved: {

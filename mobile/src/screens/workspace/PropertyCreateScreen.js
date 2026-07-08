@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { createProperty } from "../../api/index.js";
 import colors from "../../theme/colors.js";
 
@@ -124,7 +133,8 @@ export default function PropertyCreateScreen({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.field}>
         <Text style={styles.label}>Title</Text>
         <TextInput style={styles.input} value={form.title} onChangeText={updateField("title")} maxLength={140} />
@@ -249,11 +259,16 @@ export default function PropertyCreateScreen({ navigation }) {
       <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={submitting}>
         <Text style={styles.primaryButtonText}>{submitting ? "Creating..." : "Create listing"}</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
   container: {
     padding: 16,
     gap: 14,
@@ -305,11 +320,12 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 999,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
   },
   chipActive: {
-    backgroundColor: colors.green,
-    borderColor: colors.green,
+    backgroundColor: colors.greenDark,
+    borderColor: colors.greenDark,
   },
   chipText: {
     color: colors.ink,
@@ -324,7 +340,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.greenDark,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",

@@ -82,7 +82,9 @@ export default function SavedScreen() {
   }
 
   if (error) {
-    return <MessageView title="Couldn't load saved listings" message={error} />;
+    return (
+      <MessageView title="Couldn't load saved listings" message={error} actionLabel="Retry" onAction={load} />
+    );
   }
 
   if (favorites.length === 0) {

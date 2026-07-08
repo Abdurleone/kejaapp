@@ -14,6 +14,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import moverRoutes from "./routes/moverRoutes.js";
@@ -75,6 +76,7 @@ app.use("/api/auth", createRateLimiter({
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/docs", docsRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/feedback", feedbackRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/movers", moverRoutes);

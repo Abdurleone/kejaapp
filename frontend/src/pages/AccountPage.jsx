@@ -68,7 +68,7 @@ export default function AccountPage({ currentUser, onAccountDeleted }) {
             autoComplete="off"
           />
         </label>
-        {error && <p className="muted-copy">{error}</p>}
+        {error && <p className="error-text">{error}</p>}
         <div className="form-actions">
           <button className="danger-button" type="button" disabled={!canDelete || loading} onClick={handleDelete}>
             {loading ? "Deleting..." : "Delete my account"}

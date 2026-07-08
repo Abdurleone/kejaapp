@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../context/AuthContext.js";
 import colors from "../../theme/colors.js";
@@ -6,6 +6,13 @@ import colors from "../../theme/colors.js";
 export default function AccountScreen() {
   const navigation = useNavigation();
   const { user, signedIn, logout } = useAuth();
+
+  const confirmSignOut = () => {
+    Alert.alert("Sign out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign out", style: "destructive", onPress: logout },
+    ]);
+  };
 
   if (!signedIn) {
     return (
@@ -31,7 +38,7 @@ export default function AccountScreen() {
         <DetailRow label="Phone" value={user?.phone || "Not set"} />
       </View>
 
-      <Pressable style={styles.dangerButton} onPress={logout}>
+      <Pressable style={styles.dangerButton} onPress={confirmSignOut}>
         <Text style={styles.dangerButtonText}>Sign out</Text>
       </Pressable>
     </View>

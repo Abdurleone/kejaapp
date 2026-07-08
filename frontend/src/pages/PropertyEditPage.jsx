@@ -85,7 +85,7 @@ export default function PropertyEditPage({ propertyId, onBack, onSaved }) {
     return (
       <div className="view active-view">
         <div className="panel">
-          <p className="muted-copy">{loadError || "Property not found."}</p>
+          <p className="error-text">{loadError || "Property not found."}</p>
           <button className="secondary-button" type="button" onClick={onBack}>
             Back to workspace
           </button>
@@ -113,6 +113,7 @@ export default function PropertyEditPage({ propertyId, onBack, onSaved }) {
         submitting={saving}
         submitLabel="Save changes"
         message={saveError || (saved ? "Listing updated." : "")}
+        messageVariant={saveError ? "error" : "success"}
         onCancel={onBack}
       />
     </div>

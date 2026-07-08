@@ -91,7 +91,9 @@ export default function WorkspaceScreen() {
   }
 
   if (error) {
-    return <MessageView title="Couldn't load your workspace" message={error} />;
+    return (
+      <MessageView title="Couldn't load your workspace" message={error} actionLabel="Retry" onAction={load} />
+    );
   }
 
   if (properties.length === 0) {

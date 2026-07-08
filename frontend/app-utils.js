@@ -256,6 +256,74 @@ export const createInquiry = async ({ property, subject, message, contactPrefere
   return response.data;
 };
 
+const myFeedbackCacheTtlMs = 15000;
+const adminFeedbackCacheTtlMs = 15000;
+const publicTestimonialsCacheTtlMs = 60000;
+
+export const createFeedback = async ({ message }) => {
+  const response = await apiFetch("/api/feedback", {
+    method: "POST",
+    body: { message },
+  });
+  clearRequestCache("myFeedback");
+  return response.data;
+};
+
+export const fetchMyFeedback = async () => {
+  const cacheKey = "myFeedback";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/feedback/mine", { method: "GET" });
+  const data = response.data || [];
+  setCached(cacheKey, data, myFeedbackCacheTtlMs);
+  return data;
+};
+
+export const fetchAdminFeedback = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `adminFeedback:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/admin/feedback${queryString}`, {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, adminFeedbackCacheTtlMs);
+  return data;
+};
+
+export const respondToFeedback = async (feedbackId, { message }) => {
+  const response = await apiFetch(`/api/admin/feedback/${feedbackId}/respond`, {
+    method: "PUT",
+    body: { message },
+  });
+  clearRequestCache("adminFeedback");
+  clearRequestCache("myFeedback");
+  return response.data;
+};
+
+export const fetchPublicTestimonials = async () => {
+  const cacheKey = "publicTestimonials";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/feedback/public", { method: "GET" });
+  const data = response.data || [];
+  setCached(cacheKey, data, publicTestimonialsCacheTtlMs);
+  return data;
+};
+
 export const createViewingRequest = async ({ property, requestedDate, message }) => {
   const response = await apiFetch("/api/viewings", {
     method: "POST",
@@ -367,7 +435,7 @@ export const getPropertyImage = (property, baseUrl = defaultApiBaseUrl) =>
   resolveAssetUrl(property.images?.[0]?.url, baseUrl);
 
 export const statusTone = (status) => {
-  if (status === "available" || status === "active" || status === "approved") {
+  if (status === "available" || status === "active" || status === "approved" || status === "responded") {
     return "status-active";
   }
 
@@ -465,10 +533,10 @@ export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
 export const canRegisterRole = (role) => hasRole(role, roleGroups.publicRegistration);
 
 const roleViewAccess = {
-  [roles.tenant]: ["dashboard", "discover", "saved", "account"],
-  [roles.landlord]: ["dashboard", "owner", "account"],
-  [roles.agency]: ["dashboard", "owner", "account"],
-  [roles.admin]: ["dashboard", "admin", "account"],
+  [roles.tenant]: ["dashboard", "discover", "saved", "feedback", "account"],
+  [roles.landlord]: ["dashboard", "owner", "feedback", "account"],
+  [roles.agency]: ["dashboard", "owner", "feedback", "account"],
+  [roles.admin]: ["dashboard", "admin", "feedback", "account"],
 };
 
 export const canAccessView = (role, view) => {
@@ -505,6 +573,7 @@ const viewPaths = {
   owner: "/owner",
   propertyCreate: "/owner/properties/new",
   admin: "/admin",
+  feedback: "/feedback",
   account: "/account",
   privacy: "/privacy",
   deleteAccount: "/delete-account",
