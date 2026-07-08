@@ -7,11 +7,13 @@ export default function SavedPage({ onOpenProperty }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [removingPropertyId, setRemovingPropertyId] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     const loadSaved = async () => {
       try {
         setLoading(true);
+        setError("");
         const favorites = await fetchFavorites();
         setSaved(favorites);
       } catch (err) {
@@ -22,7 +24,7 @@ export default function SavedPage({ onOpenProperty }) {
     };
 
     loadSaved();
-  }, []);
+  }, [retryKey]);
 
   return (
     <div className="view active-view">
@@ -37,7 +39,10 @@ export default function SavedPage({ onOpenProperty }) {
         <PropertyCardSkeletonGrid compact />
       ) : error ? (
         <div className="panel">
-          <p className="muted-copy">{error}</p>
+          <p className="error-text">{error}</p>
+          <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+            Retry
+          </button>
         </div>
       ) : saved.length === 0 ? (
         <div className="panel">

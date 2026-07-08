@@ -9,6 +9,7 @@ import PropertyEditPage from "./pages/PropertyEditPage.jsx";
 import PropertyCreatePage from "./pages/PropertyCreatePage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import FeedbackPage from "./pages/FeedbackPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import PrivacyPage from "./pages/PrivacyPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
@@ -43,6 +44,7 @@ const navItems = [
   { view: "saved", label: "Saved", path: getViewPath("saved") },
   { view: "owner", label: "Workspace", path: getViewPath("owner") },
   { view: "admin", label: "Admin", path: getViewPath("admin") },
+  { view: "feedback", label: "Feedback", path: getViewPath("feedback") },
   { view: "account", label: "Account", path: getViewPath("account") },
 ];
 
@@ -186,6 +188,9 @@ function App() {
           return (
             <div className="panel">
               <p className="muted-copy">Sign in to see your dashboard.</p>
+              <button className="primary-button" type="button" onClick={openAuthPanel}>
+                Sign in
+              </button>
             </div>
           );
         }
@@ -205,6 +210,9 @@ function App() {
           return (
             <div className="panel">
               <p className="muted-copy">Sign in to see your saved rentals and manage favorites.</p>
+              <button className="primary-button" type="button" onClick={openAuthPanel}>
+                Sign in
+              </button>
             </div>
           );
         }
@@ -284,11 +292,24 @@ function App() {
         }
 
         return <AdminPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+      case "feedback":
+        if (!signedIn || !canAccessView(currentUser?.role, "feedback")) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in to view or submit feedback.</p>
+            </div>
+          );
+        }
+
+        return <FeedbackPage currentUser={currentUser} />;
       case "account":
         if (!signedIn) {
           return (
             <div className="panel">
               <p className="muted-copy">Sign in to manage or delete your account.</p>
+              <button className="primary-button" type="button" onClick={openAuthPanel}>
+                Sign in
+              </button>
             </div>
           );
         }
@@ -440,7 +461,7 @@ function App() {
                     required
                   />
                 </label>
-                {authError && <p className="muted-copy">{authError}</p>}
+                {authError && <p className="error-text">{authError}</p>}
                 <div className="form-actions">
                   <button className="primary-button" type="submit" disabled={authLoading}>
                     {authLoading ? "Working..." : authMode === "login" ? "Sign in" : "Register"}

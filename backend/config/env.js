@@ -203,6 +203,11 @@ const env = {
     60 * 1000,
     "MOVERS_CACHE_TTL_MS"
   ),
+  feedbackPublicCacheTtlMs: parsePositiveInteger(
+    process.env.FEEDBACK_PUBLIC_CACHE_TTL_MS,
+    30 * 1000,
+    "FEEDBACK_PUBLIC_CACHE_TTL_MS"
+  ),
   logDir: path.resolve(process.env.LOG_DIR || "logs"),
 };
 

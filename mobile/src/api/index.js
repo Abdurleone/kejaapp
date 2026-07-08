@@ -108,3 +108,28 @@ export const createViewingRequest = async ({ property, requestedDate, message })
   });
   return response.data;
 };
+
+// --- Feedback ---
+
+export const fetchMyFeedback = async () => {
+  const response = await apiFetch("/api/feedback/mine", { method: "GET" });
+  return response.data || [];
+};
+
+export const createFeedback = async ({ message }) => {
+  const response = await apiFetch("/api/feedback", { method: "POST", body: { message } });
+  return response.data;
+};
+
+export const fetchAdminFeedback = async (query = {}) => {
+  const response = await apiFetch(`/api/admin/feedback${buildQueryString(query)}`, { method: "GET" });
+  return response.data || [];
+};
+
+export const respondToFeedback = async (feedbackId, { message }) => {
+  const response = await apiFetch(`/api/admin/feedback/${feedbackId}/respond`, {
+    method: "PUT",
+    body: { message },
+  });
+  return response.data;
+};

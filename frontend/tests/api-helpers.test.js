@@ -2,14 +2,19 @@ import assert from "node:assert/strict";
 import { describe, it, before } from "./helpers/nodeTestCompat.js";
 import {
   createApiUrl,
+  createFeedback,
   createInquiry,
   createViewingRequest,
+  fetchAdminFeedback,
   fetchCurrentUser,
+  fetchMyFeedback,
   fetchProperties,
   fetchFavorites,
+  fetchPublicTestimonials,
   loginUser,
   logoutUser,
   registerUser,
+  respondToFeedback,
   getAuthToken,
   setAuthToken,
 } from "../app-utils.js";
@@ -132,5 +137,65 @@ describe("frontend API helpers", () => {
       message: "Looking forward to it.",
     });
     assert.deepEqual(result, { _id: "v1", status: "pending" });
+  });
+
+  it("submits platform feedback with just a message", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "f1", status: "pending" } });
+    };
+
+    const result = await createFeedback({ message: "KejaApp helped me find my dream home." });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/feedback");
+    assert.equal(capturedOptions.method, "POST");
+    assert.deepEqual(JSON.parse(capturedOptions.body), {
+      message: "KejaApp helped me find my dream home.",
+    });
+    assert.deepEqual(result, { _id: "f1", status: "pending" });
+  });
+
+  it("fetches the current user's own feedback", async () => {
+    global.fetch = async () => jsonResponse({ data: [{ _id: "f1", status: "pending" }] });
+
+    const result = await fetchMyFeedback();
+
+    assert.deepEqual(result, [{ _id: "f1", status: "pending" }]);
+  });
+
+  it("fetches all feedback for admins", async () => {
+    global.fetch = async () => jsonResponse({ data: [{ _id: "f1", status: "pending" }] });
+
+    const result = await fetchAdminFeedback();
+
+    assert.deepEqual(result, [{ _id: "f1", status: "pending" }]);
+  });
+
+  it("responds to feedback as an admin", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "f1", status: "responded" } });
+    };
+
+    const result = await respondToFeedback("f1", { message: "Thank you!" });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/admin/feedback/f1/respond");
+    assert.equal(capturedOptions.method, "PUT");
+    assert.deepEqual(JSON.parse(capturedOptions.body), { message: "Thank you!" });
+    assert.deepEqual(result, { _id: "f1", status: "responded" });
+  });
+
+  it("fetches public testimonials", async () => {
+    global.fetch = async () => jsonResponse({ data: [{ _id: "f1", message: "Great app!" }] });
+
+    const result = await fetchPublicTestimonials();
+
+    assert.deepEqual(result, [{ _id: "f1", message: "Great app!" }]);
   });
 });

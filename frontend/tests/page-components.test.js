@@ -10,6 +10,7 @@ const savedSource = await readSource("pages/SavedPage.jsx");
 const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
 const dashboardSource = await readSource("pages/DashboardPage.jsx");
+const feedbackSource = await readSource("pages/FeedbackPage.jsx");
 const workspaceSource = await readSource("pages/WorkspacePage.jsx");
 const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
 const propertyCreateSource = await readSource("pages/PropertyCreatePage.jsx");
@@ -64,6 +65,29 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /Admin access is required/);
   });
 
+  it("wires the Feedback tab into navigation and view routing", () => {
+    assert.match(appSource, /view: "feedback", label: "Feedback"/);
+    assert.match(appSource, /case "feedback":/);
+    assert.match(appSource, /canAccessView\(currentUser\?\.role, "feedback"\)/);
+    assert.match(appSource, /<FeedbackPage currentUser=\{currentUser\}/);
+  });
+
+  it("submits feedback and lists the current user's own submissions", () => {
+    assert.match(feedbackSource, /fetchMyFeedback\(\)/);
+    assert.match(feedbackSource, /createFeedback\(\{ message \}\)/);
+    assert.match(feedbackSource, /className="property-grid compact-grid"/);
+    assert.match(feedbackSource, /className="auth-panel-form"/);
+    assert.match(feedbackSource, /statusTone\(item\.status\)/);
+    assert.match(feedbackSource, /item\.response\?\.message/);
+  });
+
+  it("lets admins list all feedback and respond to it", () => {
+    assert.match(feedbackSource, /fetchAdminFeedback\(\)/);
+    assert.match(feedbackSource, /respondToFeedback\(feedbackId, \{ message: responseMessage \}\)/);
+    assert.match(feedbackSource, /currentUser\?\.role === "admin"/);
+    assert.match(feedbackSource, /"Send response"/);
+  });
+
   it("keeps account deletion and landing entry points available", () => {
     assert.match(accountSource, /deleteCurrentAccount\(\)/);
     assert.match(accountSource, /confirmation === "DELETE"/);
@@ -71,6 +95,12 @@ describe("frontend page component contracts", () => {
     assert.match(landingSource, /className="landing-page"/);
     assert.match(landingSource, /Start searching/);
     assert.match(landingSource, /onStart/);
+  });
+
+  it("shows public testimonials on the landing page once available", () => {
+    assert.match(landingSource, /fetchPublicTestimonials\(\)/);
+    assert.match(landingSource, /className="landing-testimonials"/);
+    assert.match(landingSource, /testimonials\.length > 0/);
   });
 
   it("does not keep placeholder component tests around", () => {
@@ -85,6 +115,7 @@ describe("frontend page component contracts", () => {
     assert.match(dashboardSource, /summary\.owner/);
     assert.match(dashboardSource, /summary\.agency/);
     assert.match(dashboardSource, /summary\.admin/);
+    assert.match(dashboardSource, /summary\.admin\.feedback/);
     assert.match(dashboardSource, /<DashboardSkeleton/);
   });
 

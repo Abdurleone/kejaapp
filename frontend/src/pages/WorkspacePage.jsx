@@ -7,6 +7,7 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -37,7 +38,7 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [retryKey]);
 
   return (
     <div className="view active-view">
@@ -66,7 +67,10 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
         </>
       ) : error ? (
         <div className="panel">
-          <p className="muted-copy">{error}</p>
+          <p className="error-text">{error}</p>
+          <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+            Retry
+          </button>
         </div>
       ) : (
         <>

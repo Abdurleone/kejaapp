@@ -4,6 +4,7 @@ import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import { getDashboardSummary } from "../../controllers/dashboardController.js";
 import AgencyVerification from "../../models/AgencyVerification.js";
 import Favorite from "../../models/Favorite.js";
+import Feedback from "../../models/Feedback.js";
 import Inquiry from "../../models/Inquiry.js";
 import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
@@ -89,6 +90,7 @@ describe("dashboardController", () => {
       filters.status === "pending" ? 4 : 0
     );
     mock.method(UserViolation, "countDocuments", async (filters) => (filters.status === "open" ? 5 : 0));
+    mock.method(Feedback, "countDocuments", async (filters) => (filters.status === "pending" ? 6 : 0));
     const req = {
       user: {
         _id: new mongoose.Types.ObjectId(),
@@ -103,6 +105,7 @@ describe("dashboardController", () => {
 
     assert.equal(res.body.data.admin.agencyVerifications.pending, 4);
     assert.equal(res.body.data.admin.violations.open, 5);
+    assert.equal(res.body.data.admin.feedback.pending, 6);
     assert.equal(res.body.data.owner, undefined);
   });
 });

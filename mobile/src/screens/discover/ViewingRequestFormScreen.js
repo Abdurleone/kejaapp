@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { createViewingRequest } from "../../api/index.js";
 import colors from "../../theme/colors.js";
 
@@ -77,7 +86,8 @@ export default function ViewingRequestFormScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       {isScheduled ? (
         <View style={styles.field}>
           <Text style={styles.label}>Requested date</Text>
@@ -130,11 +140,16 @@ export default function ViewingRequestFormScreen({ route, navigation }) {
       <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={submitting}>
         <Text style={styles.primaryButtonText}>{submitting ? "Sending..." : "Request viewing"}</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
   container: {
     padding: 16,
     gap: 14,
