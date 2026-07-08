@@ -33,6 +33,7 @@ export default function AccountScreen() {
     <View style={styles.container}>
       <View style={styles.card}>
         <DetailRow label="Name" value={user?.name || "Not set"} />
+        <DetailRow label="Username" value={user?.username || "Not set"} />
         <DetailRow label="Email" value={user?.email || "Not set"} />
         <DetailRow label="Role" value={user?.role || "Not set"} />
         <DetailRow label="Phone" value={user?.phone || "Not set"} />

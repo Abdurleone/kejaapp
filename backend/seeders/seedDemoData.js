@@ -9,6 +9,7 @@ import Review from "../models/Review.js";
 import User from "../models/User.js";
 import ViewingRequest from "../models/ViewingRequest.js";
 import { fingerprintPropertyImage } from "../services/imageFingerprintService.js";
+import { generateUniqueUsername } from "../utils/usernameGenerator.js";
 
 const users = [
   {
@@ -785,7 +786,7 @@ const upsertUsers = async () => {
     let user = await User.findOne({ email: userData.email });
 
     if (!user) {
-      user = await User.create(userData);
+      user = await User.create({ ...userData, username: await generateUniqueUsername(User) });
     } else {
       user.name = userData.name;
       user.role = userData.role;

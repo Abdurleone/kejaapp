@@ -241,7 +241,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
   },
   nearMeButtonText: {
     fontSize: 12,

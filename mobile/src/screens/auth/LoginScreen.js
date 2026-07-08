@@ -16,7 +16,7 @@ import colors from "../../theme/colors.js";
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
   const { apiBaseUrl, setApiBaseUrl } = useSettings();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
 
     try {
-      await login({ email: email.trim(), password });
+      await login({ identifier: identifier.trim(), password });
       navigation.goBack();
     } catch (err) {
       setError(err.message || "Sign in failed");
@@ -48,14 +48,13 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.subtitle}>Find and manage your rentals in Kenya.</Text>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Email or username</Text>
           <TextInput
             style={styles.input}
-            value={email}
-            onChangeText={setEmail}
+            value={identifier}
+            onChangeText={setIdentifier}
             autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
+            autoComplete="username"
           />
         </View>
 

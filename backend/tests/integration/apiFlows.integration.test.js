@@ -11,6 +11,7 @@ import Favorite from "../../models/Favorite.js";
 import Feedback from "../../models/Feedback.js";
 import User from "../../models/User.js";
 import generateToken from "../../utils/generateToken.js";
+import { generateUniqueUsername } from "../../utils/usernameGenerator.js";
 
 const testMongoUri = process.env.TEST_MONGODB_URI;
 
@@ -29,6 +30,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
   let viewingRequestId;
   let reviewId;
   let feedbackId;
+  let tenantUsername;
 
   before(async () => {
     await mongoose.connect(testMongoUri, {
@@ -40,6 +42,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
     const admin = await User.create({
       name: "Integration Admin",
       email: adminEmail,
+      username: await generateUniqueUsername(User),
       password: "password123",
       role: "admin",
     });
@@ -77,7 +80,9 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
 
     assert.equal(response.status, 201);
     assert.equal(response.body.user.email, tenantEmail);
+    assert.match(response.body.user.username, /^[a-z]+[a-z]+\d{3,4}$/);
     assert.ok(response.body.token);
+    tenantUsername = response.body.user.username;
   });
 
   it("registers a landlord", async () => {
@@ -105,9 +110,9 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
     assert.equal(response.status, 409);
   });
 
-  it("logs the tenant in", async () => {
+  it("logs the tenant in with their email", async () => {
     const response = await request(app).post("/api/auth/login").send({
-      email: tenantEmail,
+      identifier: tenantEmail,
       password: "password123",
     });
 
@@ -116,9 +121,19 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
     tenantToken = response.body.token;
   });
 
+  it("logs the tenant in with their generated username", async () => {
+    const response = await request(app).post("/api/auth/login").send({
+      identifier: tenantUsername,
+      password: "password123",
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.user.email, tenantEmail);
+  });
+
   it("rejects login with the wrong password", async () => {
     const response = await request(app).post("/api/auth/login").send({
-      email: tenantEmail,
+      identifier: tenantEmail,
       password: "wrong-password",
     });
 

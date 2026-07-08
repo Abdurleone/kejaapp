@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   changePasswordSchema,
+  loginUserSchema,
   registerUserSchema,
   updateProfileSchema,
 } from "../../validators/authValidators.js";
@@ -19,5 +20,10 @@ describe("authValidators", () => {
   it("requires a strong enough new password", () => {
     assert.equal(changePasswordSchema.currentPassword.required, true);
     assert.equal(changePasswordSchema.newPassword.minLength, 8);
+  });
+
+  it("accepts either an email or a username to log in", () => {
+    assert.equal(loginUserSchema.identifier.required, true);
+    assert.equal(loginUserSchema.identifier.pattern, undefined);
   });
 });

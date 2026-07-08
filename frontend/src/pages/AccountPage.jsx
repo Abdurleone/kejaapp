@@ -40,6 +40,10 @@ export default function AccountPage({ currentUser, onAccountDeleted }) {
             {currentUser?.name || "Not set"}
           </span>
           <span>
+            <strong>Username</strong>
+            {currentUser?.username || "Not set"}
+          </span>
+          <span>
             <strong>Email</strong>
             {currentUser?.email || "Not set"}
           </span>
