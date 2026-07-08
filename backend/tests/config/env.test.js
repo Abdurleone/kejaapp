@@ -45,4 +45,9 @@ describe("env config", () => {
     assert.equal(env.uploadPublicBaseUrl, "");
     assert.equal(env.maxUploadBytes, 5 * 1024 * 1024);
   });
+
+  it("defaults to the local storage driver", () => {
+    assert.equal(env.storageDriver, "local");
+  });
 });
+

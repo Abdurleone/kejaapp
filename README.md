@@ -68,10 +68,12 @@ Development and testing:
 - Insomnia
 
 DevOps:
-- GitHub Actions CI (lint + tests for backend/frontend/mobile, frontend build, Docker build) — `.github/workflows/ci.yml`
+- GitHub Actions CI (lint + tests for backend/frontend/mobile, frontend build, Docker build, image publish to GHCR on `main`) — `.github/workflows/ci.yml`
 - Dependabot for weekly dependency updates across all three `package.json`s and GitHub Actions — `.github/dependabot.yml`
 - Docker + docker-compose for a local/staging stack (backend, frontend, MongoDB, Redis)
-- Not deployed to a live host yet — see `docs/devops.md`
+- Two independent deployment paths, both using S3-compatible object storage for uploads — see `docs/devops.md`:
+  - Render Blueprint (`render.yaml`): backend web service (Docker), frontend static site, managed Redis.
+  - Kubernetes manifests (`k8s/`): backend + frontend Deployments (HPA on the backend), in-cluster Redis StatefulSet, Ingress — cluster-agnostic, images published by CI to GHCR.
 
 ## Implemented Backend
 
@@ -113,7 +115,7 @@ Properties and pricing:
 - Rent, deposit, and agency fee fields.
 - Cost summary enrichment on property responses.
 - Protected image URL and alt text management for property galleries.
-- Protected local property image upload storage with file metadata.
+- Protected property image upload storage with file metadata, backed by local disk or an S3-compatible bucket (`STORAGE_DRIVER`).
 - Property image fingerprinting for duplicate image detection.
 - Admin violation review for suspicious duplicate property images.
 - Listing-specific contact method, contact hours, and contact notes for landlords and agencies.
