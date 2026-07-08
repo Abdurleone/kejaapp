@@ -15,6 +15,7 @@ import { describe, it } from "./helpers/nodeTestCompat.js";
 const TEST_API_BASE = "http://localhost:5000";
 const testUser = {
   email: `test-${Date.now()}@example.com`,
+  username: `testuser${Date.now()}`,
   password: "TestPassword123!",
   name: "Test User",
   phone: "+254712345678",

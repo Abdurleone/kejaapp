@@ -75,6 +75,19 @@ describe("apiFetch", () => {
     await expect(apiFetch("/api/properties")).rejects.toThrow("Invalid request");
   });
 
+  it("attaches suggestions from the error response onto the thrown error", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ message: "Username is already taken", suggestions: ["a1", "a2", "a3"] }),
+    });
+
+    await expect(apiFetch("/api/auth/register")).rejects.toMatchObject({
+      message: "Username is already taken",
+      suggestions: ["a1", "a2", "a3"],
+    });
+  });
+
   it("throws a network-reachability error when fetch itself rejects", async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error("network down"));
 

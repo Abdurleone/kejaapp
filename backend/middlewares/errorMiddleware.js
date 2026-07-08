@@ -49,6 +49,7 @@ const errorHandler = (err, req, res, _next) => {
 
   res.status(statusCode).json({
     message,
+    ...(err.details || {}),
     stack: env.nodeEnv === "production" ? undefined : err.stack,
   });
 };

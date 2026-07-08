@@ -20,6 +20,10 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
   const tenantEmail = `integration+tenant.${suffix}@example.com`;
   const landlordEmail = `integration+landlord.${suffix}@example.com`;
   const adminEmail = `integration+admin.${suffix}@example.com`;
+  const usernameTakenEmail = `integration+usernametaken.${suffix}@example.com`;
+  const tenantUsernameRequested = `  IntegrationTenant${suffix}  `;
+  const tenantUsername = tenantUsernameRequested.trim().toLowerCase();
+  const landlordUsername = `integrationlandlord${suffix}`;
 
   let tenantToken;
   let landlordToken;
@@ -30,7 +34,6 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
   let viewingRequestId;
   let reviewId;
   let feedbackId;
-  let tenantUsername;
 
   before(async () => {
     await mongoose.connect(testMongoUri, {
@@ -65,14 +68,17 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       await Feedback.deleteOne({ _id: feedbackId });
     }
 
-    await User.deleteMany({ email: { $in: [tenantEmail, landlordEmail, adminEmail] } });
+    await User.deleteMany({
+      email: { $in: [tenantEmail, landlordEmail, adminEmail, usernameTakenEmail] },
+    });
     await mongoose.disconnect();
   });
 
-  it("registers a tenant", async () => {
+  it("registers a tenant with their chosen username", async () => {
     const response = await request(app).post("/api/auth/register").send({
       name: "Integration Tenant",
       email: tenantEmail,
+      username: tenantUsernameRequested,
       password: "password123",
       role: "tenant",
       phone: "+254700111111",
@@ -80,34 +86,53 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
 
     assert.equal(response.status, 201);
     assert.equal(response.body.user.email, tenantEmail);
-    assert.match(response.body.user.username, /^[a-z]+[a-z]+\d{3,4}$/);
+    assert.equal(response.body.user.username, tenantUsername);
     assert.ok(response.body.token);
-    tenantUsername = response.body.user.username;
   });
 
-  it("registers a landlord", async () => {
+  it("registers a landlord with their chosen username", async () => {
     const response = await request(app).post("/api/auth/register").send({
       name: "Integration Landlord",
       email: landlordEmail,
+      username: landlordUsername,
       password: "password123",
       role: "landlord",
       phone: "+254700222222",
     });
 
     assert.equal(response.status, 201);
+    assert.equal(response.body.user.username, landlordUsername);
     assert.ok(response.body.token);
     landlordToken = response.body.token;
   });
 
-  it("rejects a duplicate registration", async () => {
+  it("rejects a duplicate email registration", async () => {
     const response = await request(app).post("/api/auth/register").send({
       name: "Integration Landlord Again",
       email: landlordEmail,
+      username: `${landlordUsername}again`,
       password: "password123",
       role: "landlord",
     });
 
     assert.equal(response.status, 409);
+  });
+
+  it("rejects a taken username with available suggestions", async () => {
+    const response = await request(app).post("/api/auth/register").send({
+      name: "Integration Username Taken",
+      email: usernameTakenEmail,
+      username: tenantUsername,
+      password: "password123",
+      role: "tenant",
+    });
+
+    assert.equal(response.status, 409);
+    assert.equal(response.body.message, "Username is already taken");
+    assert.equal(response.body.suggestions.length, 3);
+    for (const suggestion of response.body.suggestions) {
+      assert.match(suggestion, new RegExp(`^${tenantUsername}\\d{3,4}$`));
+    }
   });
 
   it("logs the tenant in with their email", async () => {
@@ -121,7 +146,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
     tenantToken = response.body.token;
   });
 
-  it("logs the tenant in with their generated username", async () => {
+  it("logs the tenant in with their chosen username", async () => {
     const response = await request(app).post("/api/auth/login").send({
       identifier: tenantUsername,
       password: "password123",

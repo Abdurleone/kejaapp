@@ -43,7 +43,7 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 - User notifications for important listing and account activity.
 - Mover and relocation service discovery.
 - Platform feedback from tenants, landlords, and agencies, with admin responses published as public testimonials on the landing page.
-- Sign in with either your email or a backend-assigned username, for users who'd rather not type their email at login.
+- Sign in with either your email or a username you choose at registration, for users who'd rather not type their email at login.
 
 ## Tech Stack
 
@@ -98,8 +98,8 @@ Application foundation:
 
 Authentication and authorization:
 - User registration and login.
-- Login accepts either the account's email or its backend-assigned username; registration always requires a real email.
-- Backend-assigned, opaque usernames (e.g. `swiftcheetah284` — an adjective, a noun, and a number, not derived from the user's name) generated automatically at registration, with collision-safe retry. Immutable in v1 — no user-facing "change username" flow yet. A one-off `backend/seeders/backfillUsernames.js` script assigns usernames to accounts created before this feature existed.
+- Login accepts either the account's email or its username; registration always requires a real email plus a free-text username the user chooses (no character restrictions, just non-blank after trimming).
+- If the requested username is already taken, registration is rejected with a `409` and up to 3 available alternatives (the requested name plus different random number suffixes, e.g. `johnkamau284`) for the user to pick from instead. Immutable after registration in v1 — no user-facing "change username" flow yet. A one-off `backend/seeders/backfillUsernames.js` script assigns an opaque, auto-generated username (e.g. `swiftcheetah284`) to accounts created before this feature existed, since there's no one to ask.
 - JWT generation and validation.
 - Refresh-token session records with hashed tokens at rest.
 - Bearer token support for API clients.
@@ -243,7 +243,7 @@ Frontend API helpers in `app-utils.js`:
 - `createProperty(payload)` → `POST /api/properties` (landlord/agency/admin only)
 - `updateProperty(propertyId, payload)` → `PUT /api/properties/:id` (landlord/agency/admin only, and only for listings they own)
 - `fetchReceivedInquiries({ status })` → `GET /api/inquiries/received` (landlord/agency/admin only)
-- `loginUser({ identifier, password })` → `POST /api/auth/login` (`identifier` accepts either the account's email or its backend-assigned username)
+- `loginUser({ identifier, password })` → `POST /api/auth/login` (`identifier` accepts either the account's email or its username)
 - `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
 - `logoutUser()` → `POST /api/auth/logout`
 - `createFeedback({ message })` → `POST /api/feedback` (tenant/landlord/agency only)
@@ -413,7 +413,7 @@ The app implements complete JWT-based authentication with role-based access cont
 - Security considerations
 
 **Quick Reference:**
-- Register: Collect name, email, password, phone, and role (tenant/landlord/agency); the backend assigns an opaque username automatically (e.g. `swiftcheetah284`), returned in the response and shown on the Account page
+- Register: Collect name, email, a free-text username, password, phone, and role (tenant/landlord/agency); if the username is taken, the API responds with a `409` and up to 3 available alternatives to choose from instead
 - Login: Enter either your email or your assigned username, plus your password
 - Protected API calls: Automatically inject `Authorization: Bearer <token>` header
 - Role-based views: Navigation filters and page guards based on user role
@@ -610,13 +610,14 @@ Acceptance criteria:
 
 ### Username Login
 
-As a user who would rather not type my email at login, I want an alternate, backend-assigned username, so that I can sign in without exposing my email on the login screen.
+As a user who would rather not type my email at login, I want to choose my own username at registration, so that I can sign in without exposing my email on the login screen.
 
 Acceptance criteria:
-- Given I register a new account, then the backend assigns me an opaque username (not derived from my name or email) that I can see on my Account page.
-- Given I sign in with either my email or my assigned username plus my correct password, then I am logged in.
+- Given I register a new account, when I choose a username that's available, then my account is created with that username, shown to me right away and visible afterward on my Account page.
+- Given I choose a username that's already taken, then registration is rejected with a clear error and a few available alternatives I can pick from instead.
+- Given I sign in with either my email or my chosen username plus my correct password, then I am logged in.
 - Given I sign in with the correct identifier but the wrong password, then the API rejects the request with a generic invalid-credentials message that doesn't reveal which part was wrong.
-- Given my account was created before this feature existed, then a one-off backfill assigns me a username the next time it runs, without requiring me to do anything.
+- Given my account was created before this feature existed, then a one-off backfill assigns me an auto-generated username the next time it runs, without requiring me to do anything.
 
 ## API Reference
 
@@ -782,7 +783,7 @@ GET    /api/movers
 - MongoDB connection health reporting.
 - TTL response caching for public property and mover listings (in-memory by default, Redis-backed across instances when `REDIS_URL` is set), invalidated on property writes.
 - Platform feedback becomes a public testimonial the moment an admin responds — the public feedback list's response cache is invalidated on that same write so it appears immediately rather than waiting out the cache TTL.
-- Backend-assigned username generation with collision-safe retries, reused by both registration and the one-off backfill script for pre-existing accounts.
+- User-chosen usernames at registration, with availability checking and up to 3 collision-safe alternative suggestions on conflict; the same opaque-username generator is reused by the one-off backfill script for pre-existing accounts.
 
 ## Payment Boundary
 
@@ -966,17 +967,17 @@ Seeded properties span 9 counties — Nairobi (Kilimani, Westlands, Kileleshwa, 
 
 Seeded movers now also cover Mombasa and Kisumu, alongside the existing Nairobi and Nakuru-based movers, matching the wider property coverage.
 
-Demo login accounts all use `password123`:
+Demo login accounts all use `password123`. Each can also sign in with its username instead of its email — these were assigned by the opaque-username generator (the same one the seeder and `backfillUsernames.js` use for accounts with no one to ask), not hand-picked, and are stable across reseeds (the seeder only assigns one the first time an account is created). New registrations through the actual UI instead let the user choose their own.
 
 ```text
-tenant@example.com
-grace.tenant@example.com
-landlord@example.com
-mary.landlord@example.com
-agency@example.com
-urban.agency@example.com
-rejected.agency@example.com
-admin@example.com
+tenant@example.com          -> smartdelta3452
+grace.tenant@example.com    -> quietstream8312
+landlord@example.com        -> mightyeagle9957
+mary.landlord@example.com   -> tidystream8373
+agency@example.com          -> crimsonsavanna9698
+urban.agency@example.com    -> fairjungle5360
+rejected.agency@example.com -> nimblelagoon9265
+admin@example.com           -> primeprairie2890
 ```
 
 Seeded agency verification records:
@@ -1044,6 +1045,7 @@ Completed:
 - Platform feedback and testimonials: tenants, landlords, and agencies can submit general feedback about their experience; only admins can respond, and responding immediately publishes the feedback as a testimonial on the signed-out landing page. New `Feedback` model/controller/routes on the backend, a `Feedback` tab on both web (`/feedback`) and mobile (a 7th always-visible bottom tab), and a pending-feedback count added to the existing admin dashboard "platform moderation" panel. Building this surfaced a real caching bug: the admin-response endpoint wasn't invalidating the public feedback response cache, so a newly-published testimonial could take up to the cache TTL to actually appear.
 - Username login: registration now also assigns every account an opaque, backend-generated username (e.g. `swiftcheetah284` — an adjective, a noun, and a number, never derived from the person's real name, specifically so it doesn't leak identity the way a name-based handle would), and login accepts either the account's email or this username. A one-off `backend/seeders/backfillUsernames.js` script assigns usernames to accounts that predate this feature. Verified against a real database: registered a new account, logged in with the generated username, with the email, and with a mixed-case version of the username (case-insensitive match), confirmed a wrong password still fails, and confirmed the backfill script only touches accounts actually missing a username.
 - Small alignment fixes on the Discover radius/location filters: the web "Radius" control (a stacked label + select) was vertically floating against its shorter neighboring buttons because the shared `.header-actions` row centered items instead of aligning their bottoms; and the mobile "Near me" button didn't share the 44px touch-target height of the radius chips beside it, making it look shorter than its row.
+- Follow-up to username login: users now choose their own username at registration (free text, no character restrictions) instead of receiving an auto-generated one. If the requested username is already taken, registration is rejected with a `409` and up to 3 available alternatives (the requested name plus different random-number suffixes) to pick from instead — both web and mobile show these as clickable/tappable suggestions under the username field. The opaque generator didn't go away: `backend/seeders/backfillUsernames.js` and the demo seeder still use it for accounts with no human to ask. Generalized the backend's `ApiError`/central error handler to carry structured extra data (like `suggestions`) through to the JSON response, and fixed both web and mobile's `apiFetch` helpers, which previously discarded every field but `message` from error responses.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.

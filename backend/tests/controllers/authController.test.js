@@ -117,9 +117,8 @@ describe("authController", () => {
     assert.equal(nextError.message, "Current password is incorrect");
   });
 
-  it("assigns a generated username during registration", async () => {
+  it("registers a user with their chosen username", async () => {
     mock.method(User, "findOne", async () => null);
-    mock.method(User, "exists", async () => false);
     let createdPayload;
     mock.method(User, "create", async (payload) => {
       createdPayload = payload;
@@ -138,6 +137,7 @@ describe("authController", () => {
       body: {
         email: "new@example.com",
         name: "New User",
+        username: "  JohnKamau  ",
         password: "password123",
         phone: "+254700000000",
         role: "tenant",
@@ -151,8 +151,43 @@ describe("authController", () => {
     });
 
     assert.equal(res.statusCode, 201);
-    assert.match(res.body.user.username, /^[a-z]+[a-z]+\d{3,4}$/);
-    assert.equal(createdPayload.username, res.body.user.username);
+    assert.equal(res.body.user.username, "johnkamau");
+    assert.equal(createdPayload.username, "johnkamau");
+  });
+
+  it("rejects a taken username with available suggestions", async () => {
+    mock.method(User, "findOne", async (filter) => {
+      if (filter.username) {
+        return { _id: new mongoose.Types.ObjectId() };
+      }
+      return null;
+    });
+    mock.method(User, "exists", async () => false);
+
+    const req = {
+      body: {
+        email: "new2@example.com",
+        name: "New User",
+        username: "johnkamau",
+        password: "password123",
+        phone: "+254700000000",
+        role: "tenant",
+      },
+      headers: {},
+    };
+    const res = createResponse();
+    let nextError;
+
+    await registerUser(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 409);
+    assert.equal(nextError.message, "Username is already taken");
+    assert.equal(nextError.details.suggestions.length, 3);
+    for (const suggestion of nextError.details.suggestions) {
+      assert.match(suggestion, /^johnkamau\d{3,4}$/);
+    }
   });
 
   it("logs in using a username instead of an email", async () => {

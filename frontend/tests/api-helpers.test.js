@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it, before } from "./helpers/nodeTestCompat.js";
 import {
+  apiFetch,
   createApiUrl,
   createFeedback,
   createInquiry,
@@ -85,6 +86,39 @@ describe("frontend API helpers", () => {
   it("exports logout and register API helpers", () => {
     assert.equal(typeof logoutUser, "function");
     assert.equal(typeof registerUser, "function");
+  });
+
+  it("attaches suggestions from an error response onto the thrown error", async () => {
+    global.fetch = async () =>
+      new Response(
+        JSON.stringify({ message: "Username is already taken", suggestions: ["a1", "a2", "a3"] }),
+        { status: 409, headers: { "Content-Type": "application/json" } }
+      );
+
+    await assert.rejects(
+      () => apiFetch("/api/auth/register", { method: "POST", body: {} }),
+      (error) => {
+        assert.equal(error.message, "Username is already taken");
+        assert.deepEqual(error.suggestions, ["a1", "a2", "a3"]);
+        return true;
+      }
+    );
+  });
+
+  it("does not add a suggestions property when an error response has none", async () => {
+    global.fetch = async () =>
+      new Response(JSON.stringify({ message: "Invalid credentials" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+
+    await assert.rejects(
+      () => apiFetch("/api/auth/login", { method: "POST", body: {} }),
+      (error) => {
+        assert.equal("suggestions" in error, false);
+        return true;
+      }
+    );
   });
 
   it("sends an inquiry with the property, subject, message, and contact preference", async () => {

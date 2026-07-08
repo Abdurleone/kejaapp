@@ -43,4 +43,27 @@ const generateUniqueUsername = async (UserModel) => {
   throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Could not generate a unique username");
 };
 
-export { buildUsername, generateUniqueUsername };
+const maxSuggestionAttempts = 15;
+
+const suggestUsernames = async (UserModel, base, count = 3) => {
+  const normalizedBase = base.trim().toLowerCase();
+  const suggestions = [];
+
+  for (let attempt = 0; attempt < maxSuggestionAttempts && suggestions.length < count; attempt += 1) {
+    const candidate = `${normalizedBase}${randomDigits()}`;
+
+    if (suggestions.includes(candidate)) {
+      continue;
+    }
+
+    const exists = await UserModel.exists({ username: candidate });
+
+    if (!exists) {
+      suggestions.push(candidate);
+    }
+  }
+
+  return suggestions;
+};
+
+export { buildUsername, generateUniqueUsername, suggestUsernames };
