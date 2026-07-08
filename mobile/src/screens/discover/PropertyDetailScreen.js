@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { fetchFavorites, fetchProperty, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -25,21 +25,25 @@ export default function PropertyDetailScreen({ route, navigation }) {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setError("");
+  const loadProperty = useCallback(async () => {
+    setError("");
 
-      try {
-        const data = await fetchProperty(propertyId);
-        setProperty(data);
-      } catch (err) {
-        setError(err.message || "Failed to load this property.");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    try {
+      const data = await fetchProperty(propertyId);
+      setProperty(data);
+    } catch (err) {
+      setError(err.message || "Failed to load this property.");
+    } finally {
+      setLoading(false);
+    }
   }, [propertyId]);
+
+  useEffect(() => {
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    loadProperty();
+  }, [loadProperty]);
 
   useEffect(() => {
     if (!signedIn) return;
@@ -86,7 +90,14 @@ export default function PropertyDetailScreen({ route, navigation }) {
   }
 
   if (error || !property) {
-    return <MessageView title="Couldn't load this property" message={error || "Property not found."} />;
+    return (
+      <MessageView
+        title="Couldn't load this property"
+        message={error || "Property not found."}
+        actionLabel={error ? "Retry" : undefined}
+        onAction={error ? loadProperty : undefined}
+      />
+    );
   }
 
   const imageUrl = resolveAssetUrl(property.images?.[0]?.url, apiBaseUrl);

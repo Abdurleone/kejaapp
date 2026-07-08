@@ -87,6 +87,18 @@ const notifyPropertyInquiryResponded = (inquiry) =>
     },
   });
 
+const notifyFeedbackResponded = (feedback) =>
+  createNotification({
+    user: feedback.submitter._id || feedback.submitter,
+    type: "feedback",
+    title: "Your feedback received a response",
+    message: "An admin responded to your platform feedback.",
+    data: {
+      feedback: feedback._id,
+      status: feedback.status,
+    },
+  });
+
 const notifyUserStatusChanged = ({ user, status, reason }) => {
   const titles = {
     active: "Account restored",
@@ -114,6 +126,7 @@ const notifyUserStatusChanged = ({ user, status, reason }) => {
 export {
   createNotification,
   notifyAgencyVerificationDecision,
+  notifyFeedbackResponded,
   notifyPropertyInquiryCreated,
   notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,

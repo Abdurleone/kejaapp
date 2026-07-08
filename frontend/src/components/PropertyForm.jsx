@@ -128,6 +128,7 @@ export default function PropertyForm({
   submitLabel,
   submittingLabel = "Saving...",
   message,
+  messageVariant = "error",
   onCancel,
 }) {
   const updateField = (field) => (event) => onFieldChange(field, event.target.value);
@@ -260,7 +261,9 @@ export default function PropertyForm({
         <textarea value={form.contactNotes} onChange={updateField("contactNotes")} rows={2} maxLength={500} />
       </label>
 
-      {message && <p className="muted-copy">{message}</p>}
+      {message && (
+        <p className={messageVariant === "success" ? "success-text" : "error-text"}>{message}</p>
+      )}
 
       <div className="form-actions">
         <button className="primary-button" type="submit" disabled={submitting}>

@@ -15,6 +15,10 @@ import {
   listMyPropertyReviews,
 } from "../controllers/reviewController.js";
 import {
+  listFeedbackForAdmin,
+  respondToFeedback,
+} from "../controllers/feedbackController.js";
+import {
   listViolations,
   updateViolationStatus,
 } from "../controllers/violationController.js";
@@ -25,6 +29,7 @@ import {
   updateUserStatusSchema,
 } from "../validators/adminValidators.js";
 import { updateViolationStatusSchema } from "../validators/violationValidators.js";
+import { respondToFeedbackSchema } from "../validators/feedbackValidators.js";
 
 const router = express.Router();
 
@@ -49,5 +54,7 @@ router.put(
   validateRequest(updateViolationStatusSchema),
   updateViolationStatus
 );
+router.get("/feedback", listFeedbackForAdmin);
+router.put("/feedback/:id/respond", validateRequest(respondToFeedbackSchema), respondToFeedback);
 
 export default router;

@@ -2,16 +2,20 @@ import assert from "node:assert/strict";
 import { describe, it } from "./helpers/nodeTestCompat.js";
 import {
   clearRequestCache,
+  createFeedback,
   createProperty,
+  fetchAdminFeedback,
   fetchAdminUsers,
   fetchDashboardSummary,
   fetchFavorites,
+  fetchMyFeedback,
   fetchMyProperties,
   fetchProperties,
   fetchPropertyById,
   fetchReceivedInquiries,
   loginUser,
   removeFavorite,
+  respondToFeedback,
   saveFavorite,
   updateAdminUserStatus,
   updateProperty,
@@ -167,6 +171,66 @@ describe("frontend request cache", () => {
     await fetchAdminUsers();
 
     assert.equal(calls, 3);
+  });
+
+  it("reuses a cached my-feedback response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedUrl;
+    global.fetch = async (url) => {
+      calls += 1;
+      capturedUrl = url;
+      return jsonResponse({ data: [{ _id: "f1", status: "pending" }] });
+    };
+
+    const first = await fetchMyFeedback();
+    const second = await fetchMyFeedback();
+
+    assert.equal(calls, 1);
+    assert.equal(capturedUrl, "http://localhost:5000/api/feedback/mine");
+    assert.deepEqual(first, second);
+  });
+
+  it("invalidates the my-feedback cache after submitting new feedback", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    global.fetch = async (url, options = {}) => {
+      calls += 1;
+      return options.method === "POST"
+        ? jsonResponse({ data: { _id: "f2", status: "pending" } })
+        : jsonResponse({ data: [{ _id: "f1", status: "pending" }] });
+    };
+
+    await fetchMyFeedback();
+    await createFeedback({ message: "KejaApp helped me find my dream home." });
+    await fetchMyFeedback();
+
+    assert.equal(calls, 3, "the second read after submitting should not be served from stale cache");
+  });
+
+  it("invalidates the admin-feedback and my-feedback caches after responding", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    global.fetch = async (url) => {
+      calls += 1;
+
+      if (url.endsWith("/respond")) {
+        return jsonResponse({ data: { _id: "f1", status: "responded" } });
+      }
+
+      return jsonResponse({ data: [{ _id: "f1", status: "pending" }] });
+    };
+
+    await fetchAdminFeedback();
+    await fetchMyFeedback();
+    await respondToFeedback("f1", { message: "Thank you!" });
+    await fetchAdminFeedback();
+    await fetchMyFeedback();
+
+    assert.equal(calls, 5, "the reads after responding should not be served from stale cache");
   });
 
   it("issues a fresh request for a different query", async () => {

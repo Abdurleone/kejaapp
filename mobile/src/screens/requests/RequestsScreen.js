@@ -72,7 +72,9 @@ export default function RequestsScreen() {
   }
 
   if (error) {
-    return <MessageView title="Couldn't load requests" message={error} />;
+    return (
+      <MessageView title="Couldn't load requests" message={error} actionLabel="Retry" onAction={load} />
+    );
   }
 
   const data = tab === "inquiries" ? inquiries : viewings;

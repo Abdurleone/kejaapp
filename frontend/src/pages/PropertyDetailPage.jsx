@@ -187,7 +187,7 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
     return (
       <div className="view active-view">
         <div className="panel">
-          <p className="muted-copy">{error || "Property not found."}</p>
+          <p className="error-text">{error || "Property not found."}</p>
           <button className="secondary-button" type="button" onClick={onBack}>
             Back to Discover
           </button>
@@ -375,7 +375,7 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
                   ))}
                 </select>
               </label>
-              {inquiryError && <p className="muted-copy">{inquiryError}</p>}
+              {inquiryError && <p className="error-text">{inquiryError}</p>}
               <div className="form-actions">
                 <button className="primary-button" type="submit" disabled={inquirySubmitting}>
                   {inquirySubmitting ? "Sending..." : "Send inquiry"}
@@ -428,7 +428,7 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
                   maxLength={1000}
                 />
               </label>
-              {viewingError && <p className="muted-copy">{viewingError}</p>}
+              {viewingError && <p className="error-text">{viewingError}</p>}
               <div className="form-actions">
                 <button className="primary-button" type="submit" disabled={viewingSubmitting}>
                   {viewingSubmitting ? "Sending..." : "Request viewing"}

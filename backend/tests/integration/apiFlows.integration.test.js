@@ -8,7 +8,9 @@ import Inquiry from "../../models/Inquiry.js";
 import ViewingRequest from "../../models/ViewingRequest.js";
 import Review from "../../models/Review.js";
 import Favorite from "../../models/Favorite.js";
+import Feedback from "../../models/Feedback.js";
 import User from "../../models/User.js";
+import generateToken from "../../utils/generateToken.js";
 
 const testMongoUri = process.env.TEST_MONGODB_URI;
 
@@ -16,18 +18,33 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
   const suffix = Date.now();
   const tenantEmail = `integration+tenant.${suffix}@example.com`;
   const landlordEmail = `integration+landlord.${suffix}@example.com`;
+  const adminEmail = `integration+admin.${suffix}@example.com`;
 
   let tenantToken;
   let landlordToken;
+  let adminToken;
+  let adminId;
   let propertyId;
   let inquiryId;
   let viewingRequestId;
   let reviewId;
+  let feedbackId;
 
   before(async () => {
     await mongoose.connect(testMongoUri, {
       dbName: process.env.TEST_MONGODB_DB_NAME || "kejaapp_test",
     });
+
+    // Admins can't self-register through the public API (roleGroups.publicRegistration
+    // excludes "admin"), so create one directly for the feedback-response flow below.
+    const admin = await User.create({
+      name: "Integration Admin",
+      email: adminEmail,
+      password: "password123",
+      role: "admin",
+    });
+    adminId = admin._id;
+    adminToken = generateToken({ id: admin._id, role: "admin" });
   });
 
   after(async () => {
@@ -41,7 +58,11 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       ]);
     }
 
-    await User.deleteMany({ email: { $in: [tenantEmail, landlordEmail] } });
+    if (feedbackId) {
+      await Feedback.deleteOne({ _id: feedbackId });
+    }
+
+    await User.deleteMany({ email: { $in: [tenantEmail, landlordEmail, adminEmail] } });
     await mongoose.disconnect();
   });
 
@@ -299,6 +320,67 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
     assert.equal(response.status, 200);
     assert.equal(response.body.data.ratingAverage, 5);
     assert.equal(response.body.data.ratingCount, 1);
+  });
+
+  it("lets the tenant submit platform feedback", async () => {
+    const response = await request(app)
+      .post("/api/feedback")
+      .set("Authorization", `Bearer ${tenantToken}`)
+      .send({ message: "KejaApp helped me find my dream home in Kilimani." });
+
+    assert.equal(response.status, 201);
+    feedbackId = response.body.data._id;
+  });
+
+  it("blocks an admin from submitting feedback", async () => {
+    const response = await request(app)
+      .post("/api/feedback")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ message: "Admins shouldn't be able to submit feedback." });
+
+    assert.equal(response.status, 403);
+  });
+
+  it("does not show unresponded feedback in the public testimonial list", async () => {
+    const response = await request(app).get("/api/feedback/public");
+
+    assert.equal(response.status, 200);
+    assert.ok(!response.body.data.some((item) => item._id === feedbackId));
+  });
+
+  it("requires authentication to list the tenant's own feedback", async () => {
+    const response = await request(app).get("/api/feedback/mine");
+
+    assert.equal(response.status, 401);
+  });
+
+  it("lets the tenant list their own feedback", async () => {
+    const response = await request(app)
+      .get("/api/feedback/mine")
+      .set("Authorization", `Bearer ${tenantToken}`);
+
+    assert.equal(response.status, 200);
+    assert.ok(response.body.data.some((item) => item._id === feedbackId));
+  });
+
+  it("lets the admin respond to the feedback", async () => {
+    const response = await request(app)
+      .put(`/api/admin/feedback/${feedbackId}/respond`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ message: "Thank you for sharing your experience!" });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.data.status, "responded");
+    assert.equal(response.body.data.isPublic, true);
+    assert.equal(response.body.data.response.message, "Thank you for sharing your experience!");
+    assert.equal(response.body.data.response.respondedBy._id, adminId.toString());
+  });
+
+  it("shows the responded feedback in the public testimonial list", async () => {
+    const response = await request(app).get("/api/feedback/public");
+
+    assert.equal(response.status, 200);
+    assert.ok(response.body.data.some((item) => item._id === feedbackId));
   });
 
   it("saves and lists the property as a tenant favorite", async () => {

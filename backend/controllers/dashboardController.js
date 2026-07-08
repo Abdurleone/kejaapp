@@ -1,5 +1,6 @@
 import AgencyVerification from "../models/AgencyVerification.js";
 import Favorite from "../models/Favorite.js";
+import Feedback, { feedbackStatuses } from "../models/Feedback.js";
 import Inquiry from "../models/Inquiry.js";
 import Notification from "../models/Notification.js";
 import Property from "../models/Property.js";
@@ -79,6 +80,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
         "rejected",
       ]),
       violations: await countByStatus(UserViolation, {}, ["open", "reviewed", "dismissed"]),
+      feedback: await countByStatus(Feedback, {}, feedbackStatuses),
     };
   }
 

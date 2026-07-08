@@ -28,7 +28,7 @@ export default function WorkspaceStack() {
           headerRight: canManageListings
             ? () => (
                 <Pressable onPress={() => navigation.navigate("PropertyCreate")} hitSlop={10}>
-                  <Text style={{ color: colors.green, fontWeight: "700" }}>New listing</Text>
+                  <Text style={{ color: colors.greenDark, fontWeight: "700" }}>New listing</Text>
                 </Pressable>
               )
             : undefined,

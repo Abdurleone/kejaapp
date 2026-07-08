@@ -20,6 +20,7 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -52,7 +53,7 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [userId, retryKey]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -77,8 +78,10 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
 
   if (loading) {
     return (
-      <div className="panel detail-panel">
-        <p className="muted-copy">Loading user...</p>
+      <div className="panel detail-panel stack" role="status" aria-label="Loading user" aria-hidden="true">
+        <span className="skeleton skeleton-line skeleton-line--title" />
+        <span className="skeleton skeleton-line skeleton-line--md" />
+        <span className="skeleton skeleton-line skeleton-line--full" />
       </div>
     );
   }
@@ -86,7 +89,10 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
   if (error && !summary) {
     return (
       <div className="panel detail-panel">
-        <p className="muted-copy">{error}</p>
+        <p className="error-text">{error}</p>
+        <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+          Retry
+        </button>
       </div>
     );
   }
@@ -178,8 +184,8 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
               placeholder="Why is this account's status changing?"
             />
           </label>
-          {error && <p className="muted-copy">{error}</p>}
-          {message && <p className="muted-copy">{message}</p>}
+          {error && <p className="error-text">{error}</p>}
+          {message && <p className="success-text">{message}</p>}
           <div className="form-actions">
             <button className="primary-button" type="submit" disabled={submitting}>
               {submitting ? "Saving..." : "Update status"}
@@ -219,6 +225,7 @@ export default function AdminPage({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -250,7 +257,7 @@ export default function AdminPage({ currentUser }) {
     return () => {
       active = false;
     };
-  }, [page, role, search]);
+  }, [page, role, search, retryKey]);
 
   const handleStatusUpdated = (updatedUser) => {
     setUsers((current) =>
@@ -295,9 +302,18 @@ export default function AdminPage({ currentUser }) {
         </div>
 
         {loading ? (
-          <p className="muted-copy">Loading users...</p>
+          <div className="stack" role="status" aria-label="Loading users" aria-hidden="true">
+            <span className="skeleton skeleton-line skeleton-line--full" />
+            <span className="skeleton skeleton-line skeleton-line--full" />
+            <span className="skeleton skeleton-line skeleton-line--full" />
+          </div>
         ) : error ? (
-          <p className="muted-copy">{error}</p>
+          <div className="stack">
+            <p className="error-text">{error}</p>
+            <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+              Retry
+            </button>
+          </div>
         ) : users.length === 0 ? (
           <p className="muted-copy">No users match this search.</p>
         ) : (
@@ -316,7 +332,16 @@ export default function AdminPage({ currentUser }) {
                   <tr
                     key={user._id}
                     className={user._id === selectedUserId ? "selected" : ""}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={user._id === selectedUserId}
                     onClick={() => setSelectedUserId(user._id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedUserId(user._id);
+                      }
+                    }}
                   >
                     <td>{user.name || "Unnamed"}</td>
                     <td>{user.email}</td>

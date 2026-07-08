@@ -86,7 +86,9 @@ export default function DashboardScreen() {
   }
 
   if (error) {
-    return <MessageView title="Couldn't load dashboard" message={error} />;
+    return (
+      <MessageView title="Couldn't load dashboard" message={error} actionLabel="Retry" onAction={load} />
+    );
   }
 
   const roleLabel = roleLabels[user?.role] || "Account";
@@ -145,6 +147,7 @@ export default function DashboardScreen() {
           <View style={styles.row}>
             <StatusStatTiles counts={summary.admin.agencyVerifications} suffix="agency verifications" />
             <StatusStatTiles counts={summary.admin.violations} suffix="violations" />
+            <StatusStatTiles counts={summary.admin.feedback} suffix="feedback" />
           </View>
         </View>
       ) : null}

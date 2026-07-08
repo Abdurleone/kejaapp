@@ -4,6 +4,7 @@ import { describe, it, mock } from "../helpers/nodeTestCompat.js";
 import Notification from "../../models/Notification.js";
 import {
   notifyAgencyVerificationDecision,
+  notifyFeedbackResponded,
   notifyPropertyInquiryCreated,
   notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,
@@ -190,6 +191,24 @@ describe("notificationService", () => {
     assert.equal(notification.title, "Account suspended");
     assert.equal(notification.message, "Repeated duplicate listing uploads");
     assert.equal(notification.data.accountStatus, "suspended");
+    create.mock.restore();
+  });
+
+  it("creates a notification when feedback receives an admin response", async () => {
+    const create = mock.method(Notification, "create", async (payload) => payload);
+    const feedback = {
+      _id: new mongoose.Types.ObjectId(),
+      submitter: new mongoose.Types.ObjectId(),
+      status: "responded",
+    };
+
+    const notification = await notifyFeedbackResponded(feedback);
+
+    assert.equal(create.mock.callCount(), 1);
+    assert.equal(notification.user, feedback.submitter);
+    assert.equal(notification.type, "feedback");
+    assert.equal(notification.data.feedback, feedback._id);
+    assert.equal(notification.data.status, "responded");
     create.mock.restore();
   });
 

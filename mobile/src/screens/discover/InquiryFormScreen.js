@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { createInquiry } from "../../api/index.js";
 import colors from "../../theme/colors.js";
 
@@ -51,7 +51,8 @@ export default function InquiryFormScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.field}>
         <Text style={styles.label}>Subject (optional)</Text>
         <TextInput style={styles.input} value={subject} onChangeText={setSubject} maxLength={140} />
@@ -91,11 +92,16 @@ export default function InquiryFormScreen({ route, navigation }) {
       <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={submitting}>
         <Text style={styles.primaryButtonText}>{submitting ? "Sending..." : "Send inquiry"}</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
   container: {
     padding: 16,
     gap: 14,
@@ -133,7 +139,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 999,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
   },
   chipActive: {
     backgroundColor: colors.greenDark,
