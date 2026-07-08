@@ -108,6 +108,44 @@ const normalizeMongoUri = (value, databaseName) => {
   return uri.toString();
 };
 
+const parseStorageDriver = (value) => {
+  if (!value || value === "local") {
+    return "local";
+  }
+
+  if (value === "s3") {
+    return "s3";
+  }
+
+  throw new Error("STORAGE_DRIVER must be local or s3");
+};
+
+const storageDriver = parseStorageDriver(process.env.STORAGE_DRIVER);
+const s3Config = {
+  s3Bucket: process.env.S3_BUCKET || "",
+  s3Region: process.env.S3_REGION || "auto",
+  s3Endpoint: process.env.S3_ENDPOINT || "",
+  s3AccessKeyId: process.env.S3_ACCESS_KEY_ID || "",
+  s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+  s3PublicBaseUrl: (process.env.S3_PUBLIC_BASE_URL || "").replace(/\/$/, ""),
+  s3ForcePathStyle: parseBoolean(process.env.S3_FORCE_PATH_STYLE, false, "S3_FORCE_PATH_STYLE"),
+};
+
+if (storageDriver === "s3") {
+  const requiredS3Env = {
+    S3_BUCKET: s3Config.s3Bucket,
+    S3_ACCESS_KEY_ID: s3Config.s3AccessKeyId,
+    S3_SECRET_ACCESS_KEY: s3Config.s3SecretAccessKey,
+    S3_PUBLIC_BASE_URL: s3Config.s3PublicBaseUrl,
+  };
+
+  for (const [key, value] of Object.entries(requiredS3Env)) {
+    if (!value) {
+      throw new Error(`${key} is required when STORAGE_DRIVER=s3`);
+    }
+  }
+}
+
 const env = {
   nodeEnv,
   port: parsePort(process.env.PORT),
@@ -152,6 +190,8 @@ const env = {
     5 * 1024 * 1024,
     "MAX_UPLOAD_BYTES"
   ),
+  storageDriver,
+  ...s3Config,
   redisUrl: process.env.REDIS_URL || "",
   propertiesCacheTtlMs: parsePositiveInteger(
     process.env.PROPERTIES_CACHE_TTL_MS,
