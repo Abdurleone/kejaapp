@@ -199,8 +199,7 @@ button:disabled {
 }
 
 .user-pill,
-.status-pill,
-.api-state {
+.status-pill {
   display: inline-flex;
   align-items: center;
   min-height: 30px;
@@ -210,11 +209,6 @@ button:disabled {
   color: var(--green);
   font-size: 0.78rem;
   font-weight: 800;
-}
-
-.api-state[data-status="offline"] {
-  background: #f9e8e8;
-  color: var(--red);
 }
 
 .workspace {
