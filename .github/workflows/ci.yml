@@ -241,8 +241,10 @@ jobs:
           # Without this, the backend's Deployment (applied next) starts racing
           # Mongo's own startup, and its livenessProbe kills the pod before
           # Mongo's first reachable - a real restart loop reproduced locally
-          # while building this job, not a hypothetical.
-          kubectl -n kejaapp rollout status deployment/mongo-ci --timeout=90s
+          # while building this job, not a hypothetical. 180s because a cold
+          # mongo:7 pull (~290MB, uncached on a fresh cluster) alone measured
+          # ~1m45s locally, blowing past a tighter timeout on its own.
+          kubectl -n kejaapp rollout status deployment/mongo-ci --timeout=180s
 
           kubectl apply -f k8s/redis-statefulset.yaml
           kubectl apply -f k8s/backend-deployment.yaml
