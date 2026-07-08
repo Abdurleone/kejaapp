@@ -493,14 +493,6 @@ export const canSearchListings = (role) => !role || hasRole(role, roleGroups.ten
 
 export const canOpenPropertyDetails = (role) => hasRole(role, roleGroups.tenantOnly);
 
-export const canUseFavorites = (role) => hasRole(role, roleGroups.tenantOnly);
-
-export const canCreateTenantRequest = (role) => hasRole(role, roleGroups.tenantOnly);
-
-export const canSubmitAgencyVerification = (role) => hasRole(role, roleGroups.agencies);
-
-export const canUseAdminTools = (role) => hasRole(role, roleGroups.admins);
-
 export const shouldShowSplash = ({ isSignedIn, path = "/" }) => {
   const normalizedPath = String(path || "/").replace(/\/$/, "") || "/";
   return !isSignedIn && normalizedPath === "/";
