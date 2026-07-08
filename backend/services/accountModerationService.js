@@ -55,4 +55,4 @@ const enforceViolationThreshold = async (userId) => {
   };
 };
 
-export { activeViolationStatuses, automaticBanThreshold, enforceViolationThreshold };
+export { automaticBanThreshold, enforceViolationThreshold };
