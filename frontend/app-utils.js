@@ -89,7 +89,11 @@ export const apiFetch = async (path, options = {}) => {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.message || `Request failed with status ${response.status}`);
+    const error = new Error(payload.message || `Request failed with status ${response.status}`);
+    if (payload.suggestions) {
+      error.suggestions = payload.suggestions;
+    }
+    throw error;
   }
 
   return payload;

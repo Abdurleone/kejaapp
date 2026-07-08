@@ -17,7 +17,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
-import { generateUniqueUsername } from "../utils/usernameGenerator.js";
+import { suggestUsernames } from "../utils/usernameGenerator.js";
 
 // --- EXISTING UTILITIES ---
 const getCookieOptions = () => ({
@@ -134,40 +134,42 @@ const registerFcmToken = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { email, name, password, phone, role } = req.body;
   const normalizedEmail = email.toLowerCase();
-  const existingUser = await User.findOne({ email: normalizedEmail });
+  const normalizedUsername = req.body.username.trim().toLowerCase();
 
-  if (existingUser) {
+  const [existingEmail, existingUsername] = await Promise.all([
+    User.findOne({ email: normalizedEmail }),
+    User.findOne({ username: normalizedUsername }),
+  ]);
+
+  if (existingEmail) {
     throw new ApiError(httpStatus.CONFLICT, "A user with this email already exists");
   }
 
-  let username = await generateUniqueUsername(User);
+  if (existingUsername) {
+    const suggestions = await suggestUsernames(User, normalizedUsername);
+    throw new ApiError(httpStatus.CONFLICT, "Username is already taken", { suggestions });
+  }
+
   let user;
 
   try {
     user = await User.create({
       email: normalizedEmail,
       name,
-      username,
+      username: normalizedUsername,
       password,
       phone,
       role,
     });
   } catch (err) {
-    // Extremely rare race: another registration claimed this username between
-    // our uniqueness check and this write. Regenerate once and retry.
+    // Rare race: another registration claimed this exact username between our
+    // check and this write. Tell the user, with fresh suggestions, instead of
+    // silently swapping in a username they never chose.
     if (err.code === 11000 && err.keyPattern?.username) {
-      username = await generateUniqueUsername(User);
-      user = await User.create({
-        email: normalizedEmail,
-        name,
-        username,
-        password,
-        phone,
-        role,
-      });
-    } else {
-      throw err;
+      const suggestions = await suggestUsernames(User, normalizedUsername);
+      throw new ApiError(httpStatus.CONFLICT, "Username is already taken", { suggestions });
     }
+    throw err;
   }
 
   await sendAuthResponse(req, res, httpStatus.CREATED, user);

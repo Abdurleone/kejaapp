@@ -26,4 +26,11 @@ describe("authValidators", () => {
     assert.equal(loginUserSchema.identifier.required, true);
     assert.equal(loginUserSchema.identifier.pattern, undefined);
   });
+
+  it("requires a non-blank, free-text username during registration", () => {
+    assert.equal(registerUserSchema.username.required, true);
+    assert.equal(registerUserSchema.username.pattern, undefined);
+    assert.equal(registerUserSchema.username.validate("   "), "username is required");
+    assert.equal(registerUserSchema.username.validate("johnkamau"), undefined);
+  });
 });

@@ -20,14 +20,33 @@ const roles = [
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", role: "tenant" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    username: "",
+    password: "",
+    phone: "",
+    role: "tenant",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [usernameSuggestions, setUsernameSuggestions] = useState([]);
 
-  const setField = (field) => (value) => setForm((prev) => ({ ...prev, [field]: value }));
+  const setField = (field) => (value) => {
+    if (field === "username") {
+      setUsernameSuggestions([]);
+    }
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const applyUsernameSuggestion = (suggestion) => {
+    setForm((prev) => ({ ...prev, username: suggestion }));
+    setUsernameSuggestions([]);
+  };
 
   const handleSubmit = async () => {
     setError("");
+    setUsernameSuggestions([]);
     setLoading(true);
 
     try {
@@ -35,6 +54,7 @@ export default function RegisterScreen({ navigation }) {
       navigation.goBack();
     } catch (err) {
       setError(err.message || "Registration failed");
+      setUsernameSuggestions(err.suggestions || []);
     } finally {
       setLoading(false);
     }
@@ -60,6 +80,29 @@ export default function RegisterScreen({ navigation }) {
             autoCapitalize="none"
             keyboardType="email-address"
           />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Username</Text>
+          <TextInput
+            style={styles.input}
+            value={form.username}
+            onChangeText={setField("username")}
+            autoCapitalize="none"
+          />
+          {usernameSuggestions.length > 0 ? (
+            <View style={styles.roleRow}>
+              {usernameSuggestions.map((suggestion) => (
+                <Pressable
+                  key={suggestion}
+                  style={styles.roleChip}
+                  onPress={() => applyUsernameSuggestion(suggestion)}
+                >
+                  <Text style={styles.roleChipText}>{suggestion}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.field}>

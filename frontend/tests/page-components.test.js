@@ -65,6 +65,13 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /Admin access is required/);
   });
 
+  it("lets a registering user pick their own username and apply a suggestion on conflict", () => {
+    assert.match(appSource, /value={authForm\.username}/);
+    assert.match(appSource, /setUsernameSuggestions\(err\.suggestions \|\| \[\]\)/);
+    assert.match(appSource, /usernameSuggestions\.map\(\(suggestion\) =>/);
+    assert.match(appSource, /applyUsernameSuggestion/);
+  });
+
   it("wires the Feedback tab into navigation and view routing", () => {
     assert.match(appSource, /view: "feedback", label: "Feedback"/);
     assert.match(appSource, /case "feedback":/);

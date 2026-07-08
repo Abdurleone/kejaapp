@@ -14,6 +14,15 @@ const registerUserSchema = {
     pattern: emailPattern,
     message: "email must be a valid email address",
   },
+  username: {
+    required: true,
+    type: "string",
+    validate(value) {
+      if (!value.trim()) {
+        return "username is required";
+      }
+    },
+  },
   password: {
     required: true,
     type: "string",
