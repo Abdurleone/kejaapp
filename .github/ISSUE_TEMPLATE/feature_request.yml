@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an idea or improvement for KejaApp.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! The more context you give, the easier it
+        is to evaluate and (hopefully) build.
+
+  - type: checkboxes
+    attributes:
+      label: Checked for existing issues
+      description: Please search open and closed issues before filing a new one.
+      options:
+        - label: I searched and didn't find an existing request for this.
+          required: true
+
+  - type: dropdown
+    attributes:
+      label: Where does this apply?
+      multiple: true
+      options:
+        - Backend API
+        - Web frontend
+        - Mobile app (Expo)
+        - Not sure / other
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What problem does this solve?
+      description: What's missing or frustrating today? Who runs into this (tenant, landlord, agency, admin)?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen? Sketches, mockups, or example API shapes are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you thought about, and why you'd prefer this one.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: Additional context, links, or references.
+    validations:
+      required: false
