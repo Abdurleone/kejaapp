@@ -60,10 +60,12 @@ function App() {
   const [authForm, setAuthForm] = useState({
     name: "",
     email: "",
+    username: "",
     password: "",
     phone: "",
     role: "tenant",
   });
+  const [usernameSuggestions, setUsernameSuggestions] = useState([]);
 
   useEffect(() => {
     document.documentElement.dataset.colorMode = colorMode;
@@ -124,7 +126,8 @@ function App() {
   const openAuthPanel = () => {
     setAuthMode("login");
     setAuthError("");
-    setAuthForm({ name: "", email: "", password: "", phone: "", role: "tenant" });
+    setUsernameSuggestions([]);
+    setAuthForm({ name: "", email: "", username: "", password: "", phone: "", role: "tenant" });
     setAuthPanelOpen(true);
   };
 
@@ -134,13 +137,22 @@ function App() {
   };
 
   const handleAuthChange = (field) => (event) => {
+    if (field === "username") {
+      setUsernameSuggestions([]);
+    }
     setAuthForm((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const applyUsernameSuggestion = (suggestion) => {
+    setAuthForm((prev) => ({ ...prev, username: suggestion }));
+    setUsernameSuggestions([]);
   };
 
   const handleAuthSubmit = async (event) => {
     event.preventDefault();
     setAuthLoading(true);
     setAuthError("");
+    setUsernameSuggestions([]);
 
     try {
       const payload = authMode === "login"
@@ -150,10 +162,11 @@ function App() {
       setCurrentUser(payload.user);
       setSignedIn(true);
       setAuthPanelOpen(false);
-      setAuthForm({ name: "", email: "", password: "", phone: "", role: "tenant" });
+      setAuthForm({ name: "", email: "", username: "", password: "", phone: "", role: "tenant" });
       navigate(getViewPath(getDefaultViewForRole(payload.user.role)));
     } catch (err) {
       setAuthError(err.message || "Authentication failed");
+      setUsernameSuggestions(err.suggestions || []);
     } finally {
       setAuthLoading(false);
     }
@@ -412,6 +425,7 @@ function App() {
                   onClick={() => {
                     setAuthMode("login");
                     setAuthError("");
+                    setUsernameSuggestions([]);
                   }}
                 >
                   Sign in
@@ -422,6 +436,7 @@ function App() {
                   onClick={() => {
                     setAuthMode("register");
                     setAuthError("");
+                    setUsernameSuggestions([]);
                   }}
                 >
                   Register
@@ -434,6 +449,29 @@ function App() {
                       Name
                       <input type="text" value={authForm.name} onChange={handleAuthChange("name")} required />
                     </label>
+                    <label>
+                      Username
+                      <input
+                        type="text"
+                        value={authForm.username}
+                        onChange={handleAuthChange("username")}
+                        required
+                      />
+                    </label>
+                    {usernameSuggestions.length > 0 && (
+                      <div className="form-actions">
+                        {usernameSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => applyUsernameSuggestion(suggestion)}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <label>
                       Phone
                       <input type="tel" value={authForm.phone} onChange={handleAuthChange("phone")} />

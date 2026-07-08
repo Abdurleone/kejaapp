@@ -60,6 +60,7 @@ describe("KejaApp API", () => {
     assert.deepEqual(response.body.errors, [
       "name is required",
       "email is required",
+      "username is required",
       "password is required",
     ]);
   });
