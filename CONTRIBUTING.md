@@ -1,0 +1,129 @@
+# Contributing to KejaApp
+
+Thanks for your interest in contributing! This document covers everything
+you need to get set up, make a change, and get it merged.
+
+Please also read our [Code of Conduct](./CODE_OF_CONDUCT.md) — participation
+in this project means agreeing to abide by it.
+
+## Project layout
+
+This is a monorepo with three independent Node packages:
+
+```text
+backend/    Node/Express/MongoDB REST API
+frontend/   React + Vite single-page web app
+mobile/     React Native (Expo) app for iOS/Android
+```
+
+Each has its own `package.json`, ESLint flat config, and test suite. Root
+`package.json` scripts fan out to all three (see below).
+
+## Getting set up
+
+```bash
+git clone https://github.com/Abdurleone/kejaapp.git
+cd kejaapp
+npm install
+cp backend/.env.example backend/.env
+```
+
+Fill in `backend/.env` with a MongoDB URI and a JWT secret (a local
+`mongod`, a free MongoDB Atlas cluster, or `docker compose up mongodb` all
+work). See the [README](./README.md#getting-started) for the full local
+setup, Docker instructions, and MongoDB troubleshooting tips.
+
+Run everything:
+
+```bash
+npm run dev        # backend, from the repo root
+npm run frontend    # web app
+npm run mobile      # Expo/Metro bundler
+```
+
+## Before you open a pull request
+
+Run the full test suite and linters for whichever package(s) you touched
+(or everything, if you're not sure):
+
+```bash
+npm test            # all three packages
+npm run lint         # all three packages
+
+# or scoped to one package:
+npm run test:backend  &&  npm run lint:backend
+npm run test:frontend &&  npm run lint:frontend
+npm run test:mobile   &&  npm run lint:mobile
+```
+
+If you changed backend code, also run the real-MongoDB integration tests
+before submitting (CI runs these too, against a disposable database):
+
+```bash
+TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=kejaapp_test npm run test:backend
+```
+
+CI (`.github/workflows/ci.yml`) runs lint + tests for all three packages
+plus a frontend production build on every push and pull request — a PR
+won't be mergeable until it's green.
+
+## Branching and commits
+
+- `main` is protected: all changes land through a pull request, no direct
+  pushes.
+- Give your branch a short, descriptive name (e.g.
+  `fix-discover-radius-alignment`, `add-mover-reviews`).
+- Write commit messages and PR titles as a short, imperative summary of the
+  change (e.g. "Fix Discover radius filter alignment on narrow screens"),
+  matching the existing [commit history](https://github.com/Abdurleone/kejaapp/commits/main).
+- PRs are squash-merged, so intermediate "fix typo"/"address review
+  comments" commits within your branch are fine — they'll collapse into one
+  commit on `main`. Focus on a clear final PR title and description instead
+  of a pristine commit-by-commit history.
+
+## Code style
+
+- Each package has its own ESLint flat config (`eslint.config.js`) — run
+  `npm run lint` before pushing.
+- Match the existing patterns in the file/area you're editing rather than
+  introducing a new one — this codebase favors small, explicit functions
+  over abstraction, and reuses existing helpers (`app-utils.js` on web,
+  `mobile/src/api/index.js` on mobile, controller/validator/route patterns
+  on the backend) rather than duplicating logic.
+- No enforced comment style, but prefer comments that explain *why*
+  something non-obvious was done over comments that restate *what* the
+  code does.
+
+## Tests
+
+Every package uses a real test runner, not a homemade harness:
+
+- **backend**: Node's built-in `node:test` runner. Most tests mock Mongoose
+  model methods directly (see `backend/tests/helpers/nodeTestCompat.js` for
+  the `mock`/`describe`/`it` helpers used throughout); a smaller set of
+  integration tests hit a real MongoDB instance and are opt-in via
+  `TEST_MONGODB_URI` (skipped otherwise).
+- **frontend**: also `node:test`, with source-regex assertions for React
+  components (see `frontend/tests/page-components.test.js` for the style)
+  rather than full DOM rendering.
+- **mobile**: Jest + `jest-expo` + React Native Testing Library.
+
+New features and bug fixes should come with test coverage in the same style
+as the surrounding code. If you're fixing a bug, a regression test that
+fails before your fix and passes after it is the most useful thing you can
+add.
+
+## Reporting bugs and requesting features
+
+Open a [GitHub issue](https://github.com/Abdurleone/kejaapp/issues) with as
+much detail as you can: what you expected, what happened instead, and steps
+to reproduce (for bugs), or the problem you're trying to solve (for feature
+requests).
+
+Found a security vulnerability? Please don't open a public issue — see
+[SECURITY.md](./SECURITY.md) instead.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under
+this project's [MIT License](./LICENSE).
