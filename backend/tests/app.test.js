@@ -161,6 +161,19 @@ describe("KejaApp API", () => {
     assert.equal(response.body.message, "Not authorized, token missing");
   });
 
+  it("accepts image upload bodies bigger than express's 100kb JSON default", async () => {
+    // Base64 image data inflates ~4/3 over the raw file, so a body well past
+    // express.json()'s 100kb default has to clear the parser to ever reach
+    // env.maxUploadBytes's own size check. This only proves the body parser
+    // lets it through - it 401s afterward since there's no auth token.
+    const response = await request(app)
+      .post("/api/properties/000000000000000000000000/images/upload")
+      .send({ mimeType: "image/png", data: "a".repeat(200 * 1024) });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.message, "Not authorized, token missing");
+  });
+
   it("requires authentication for removing property images", async () => {
     const response = await request(app).delete(
       "/api/properties/000000000000000000000000/images/000000000000000000000001"

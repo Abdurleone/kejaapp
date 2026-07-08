@@ -1,0 +1,21 @@
+# Requires metrics-server in the cluster (bundled with most managed clusters;
+# `minikube addons enable metrics-server` / `kind` needs it installed manually).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kejaapp-backend
+  namespace: kejaapp
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kejaapp-backend
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

@@ -1,0 +1,62 @@
+# In-cluster Redis for rate limiting/caching (backend/config/env.js's redisUrl) -
+# not used for data that must survive a full cluster loss. No storageClassName
+# is set, so it uses whatever the cluster's default StorageClass is.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kejaapp-redis
+  namespace: kejaapp
+spec:
+  serviceName: kejaapp-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kejaapp
+      component: redis
+  template:
+    metadata:
+      labels:
+        app: kejaapp
+        component: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kejaapp-redis
+  namespace: kejaapp
+spec:
+  clusterIP: None
+  selector:
+    app: kejaapp
+    component: redis
+  ports:
+    - port: 6379

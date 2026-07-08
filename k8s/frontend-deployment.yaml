@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kejaapp-frontend
+  namespace: kejaapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kejaapp
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: kejaapp
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/abdurleone/kejaapp-frontend:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kejaapp-frontend
+  namespace: kejaapp
+spec:
+  selector:
+    app: kejaapp
+    component: frontend
+  ports:
+    - port: 80
+      targetPort: 80

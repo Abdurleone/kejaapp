@@ -6,7 +6,7 @@ import {
   attachCostSummary,
   calculatePropertyCosts,
 } from "../services/costService.js";
-import { storePropertyImage } from "../services/fileStorageService.js";
+import { deletePropertyImage, storePropertyImage } from "../services/fileStorageService.js";
 import {
   fingerprintPropertyImage,
   removePropertyImageFingerprint,
@@ -367,6 +367,7 @@ const removePropertyImage = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Property image not found");
   }
 
+  await deletePropertyImage({ storagePath: image.storagePath });
   image.deleteOne();
   await removePropertyImageFingerprint({
     imageId: req.params.imageId,

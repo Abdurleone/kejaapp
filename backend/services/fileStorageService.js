@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
 import ApiError from "../utils/apiError.js";
@@ -59,12 +60,25 @@ const createBytePerceptualHash = (buffer) => {
   return BigInt(`0b${bits}`).toString(16).padStart(16, "0");
 };
 
-const storePropertyImage = async ({ propertyId, imageId, fileName, mimeType, data }) => {
-  const buffer = decodeImagePayload({ data, mimeType });
-  const extension = allowedImageMimeTypes[mimeType];
-  const safeName = sanitizeFileName(fileName || `image.${extension}`);
-  const finalName = `${imageId}-${safeName.endsWith(`.${extension}`) ? safeName : `${safeName}.${extension}`}`;
-  const relativePath = path.posix.join("properties", propertyId.toString(), finalName);
+let s3Client;
+
+const getS3Client = () => {
+  if (!s3Client) {
+    s3Client = new S3Client({
+      region: env.s3Region,
+      endpoint: env.s3Endpoint || undefined,
+      forcePathStyle: env.s3ForcePathStyle,
+      credentials: {
+        accessKeyId: env.s3AccessKeyId,
+        secretAccessKey: env.s3SecretAccessKey,
+      },
+    });
+  }
+
+  return s3Client;
+};
+
+const writeLocalFile = async (relativePath, buffer) => {
   const absolutePath = path.join(env.uploadDir, relativePath);
 
   await fs.mkdir(path.dirname(absolutePath), { recursive: true });
@@ -75,6 +89,41 @@ const storePropertyImage = async ({ propertyId, imageId, fileName, mimeType, dat
   return {
     url: env.uploadPublicBaseUrl ? `${env.uploadPublicBaseUrl}${publicPath}` : publicPath,
     storagePath: absolutePath,
+  };
+};
+
+const writeS3Object = async (relativePath, buffer, mimeType) => {
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: env.s3Bucket,
+      Key: relativePath,
+      Body: buffer,
+      ContentType: mimeType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return {
+    url: `${env.s3PublicBaseUrl}/${relativePath}`,
+    storagePath: relativePath,
+  };
+};
+
+const storePropertyImage = async ({ propertyId, imageId, fileName, mimeType, data }) => {
+  const buffer = decodeImagePayload({ data, mimeType });
+  const extension = allowedImageMimeTypes[mimeType];
+  const safeName = sanitizeFileName(fileName || `image.${extension}`);
+  const finalName = `${imageId}-${safeName.endsWith(`.${extension}`) ? safeName : `${safeName}.${extension}`}`;
+  const relativePath = path.posix.join("properties", propertyId.toString(), finalName);
+
+  const { url, storagePath } =
+    env.storageDriver === "s3"
+      ? await writeS3Object(relativePath, buffer, mimeType)
+      : await writeLocalFile(relativePath, buffer);
+
+  return {
+    url,
+    storagePath,
     fileName: finalName,
     mimeType,
     size: buffer.length,
@@ -82,10 +131,24 @@ const storePropertyImage = async ({ propertyId, imageId, fileName, mimeType, dat
   };
 };
 
+const deletePropertyImage = async ({ storagePath }) => {
+  if (!storagePath) {
+    return;
+  }
+
+  if (env.storageDriver === "s3") {
+    await getS3Client().send(new DeleteObjectCommand({ Bucket: env.s3Bucket, Key: storagePath }));
+    return;
+  }
+
+  await fs.rm(storagePath, { force: true });
+};
+
 export {
   allowedImageMimeTypes,
   createBytePerceptualHash,
   decodeImagePayload,
+  deletePropertyImage,
   sanitizeFileName,
   storePropertyImage,
 };

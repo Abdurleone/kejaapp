@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: kejaapp
+data:
+  NODE_ENV: production
+  DB_REQUIRED: "true"
+  MONGODB_DB_NAME: kejaapp
+  JWT_EXPIRES_IN: 7d
+  TRUST_PROXY: "1"
+  AUTH_COOKIE_SECURE: "true"
+  # Frontend Ingress host (k8s/ingress.yaml) - update if you change the domain.
+  CORS_ORIGIN: https://kejaapp.example.com
+  STORAGE_DRIVER: s3
+  # Bucket name/endpoint/public URL aren't secret, just environment-specific.
+  # See docs/devops.md's Kubernetes section for provider setup (e.g. Cloudflare R2).
+  S3_BUCKET: kejaapp-uploads
+  S3_REGION: auto
+  S3_ENDPOINT: https://<account-id>.r2.cloudflarestorage.com
+  S3_PUBLIC_BASE_URL: https://cdn.kejaapp.example.com
+  # In-cluster Redis (k8s/redis-statefulset.yaml), addressed by Service name.
+  REDIS_URL: redis://kejaapp-redis:6379

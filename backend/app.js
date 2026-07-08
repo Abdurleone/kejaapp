@@ -27,8 +27,13 @@ const app = express();
 app.set("trust proxy", env.trustProxy);
 app.use(helmet());
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Property image uploads are base64-encoded JSON (~4/3 size inflation over the
+// raw file), so the body limit has to clear env.maxUploadBytes with room to
+// spare for the surrounding JSON fields, not just match it.
+const jsonBodyLimit = Math.ceil((env.maxUploadBytes * 4) / 3) + 1024;
+
+app.use(express.json({ limit: jsonBodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
 app.use(
   "/uploads",
   express.static(path.resolve(env.uploadDir), {
