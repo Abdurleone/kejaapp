@@ -17,6 +17,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
+import { generateUniqueUsername } from "../utils/usernameGenerator.js";
 
 // --- EXISTING UTILITIES ---
 const getCookieOptions = () => ({
@@ -72,6 +73,7 @@ const sendAuthResponse = async (req, res, statusCode, user) => {
       id: userId,
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       phone: user.phone,
     },
@@ -138,23 +140,48 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.CONFLICT, "A user with this email already exists");
   }
 
-  const user = await User.create({
-    email: normalizedEmail,
-    name,
-    password,
-    phone,
-    role,
-  });
+  let username = await generateUniqueUsername(User);
+  let user;
+
+  try {
+    user = await User.create({
+      email: normalizedEmail,
+      name,
+      username,
+      password,
+      phone,
+      role,
+    });
+  } catch (err) {
+    // Extremely rare race: another registration claimed this username between
+    // our uniqueness check and this write. Regenerate once and retry.
+    if (err.code === 11000 && err.keyPattern?.username) {
+      username = await generateUniqueUsername(User);
+      user = await User.create({
+        email: normalizedEmail,
+        name,
+        username,
+        password,
+        phone,
+        role,
+      });
+    } else {
+      throw err;
+    }
+  }
 
   await sendAuthResponse(req, res, httpStatus.CREATED, user);
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+  const { identifier, password } = req.body;
+  const normalizedIdentifier = identifier.trim().toLowerCase();
+  const user = await User.findOne({
+    $or: [{ email: normalizedIdentifier }, { username: normalizedIdentifier }],
+  }).select("+password");
 
   if (!user || !(await user.matchPassword(password))) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid email or password");
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
   }
 
   await sendAuthResponse(req, res, httpStatus.OK, user);
@@ -194,6 +221,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
       id: req.user._id.toString(),
       name: req.user.name,
       email: req.user.email,
+      username: req.user.username,
       role: req.user.role,
       phone: req.user.phone,
     },
@@ -222,6 +250,7 @@ const updateCurrentUser = asyncHandler(async (req, res) => {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       phone: user.phone,
     },

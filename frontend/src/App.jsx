@@ -144,7 +144,7 @@ function App() {
 
     try {
       const payload = authMode === "login"
-        ? await loginUser({ email: authForm.email, password: authForm.password })
+        ? await loginUser({ identifier: authForm.email, password: authForm.password })
         : await registerUser(authForm);
 
       setCurrentUser(payload.user);
@@ -449,8 +449,13 @@ function App() {
                   </>
                 )}
                 <label>
-                  Email
-                  <input type="email" value={authForm.email} onChange={handleAuthChange("email")} required />
+                  {authMode === "login" ? "Email or username" : "Email"}
+                  <input
+                    type={authMode === "login" ? "text" : "email"}
+                    value={authForm.email}
+                    onChange={handleAuthChange("email")}
+                    required
+                  />
                 </label>
                 <label>
                   Password

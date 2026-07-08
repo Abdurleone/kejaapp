@@ -153,6 +153,12 @@ button:disabled {
   gap: 10px;
 }
 
+.header-actions {
+  /* radius-control stacks a label above its select, taller than the plain
+     buttons beside it; align on the bottom edge so they read as one row. */
+  align-items: flex-end;
+}
+
 .mode-toggle {
   display: inline-flex;
   align-items: center;

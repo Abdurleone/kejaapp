@@ -42,6 +42,8 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 - Admin approval and rejection of agency verifications.
 - User notifications for important listing and account activity.
 - Mover and relocation service discovery.
+- Platform feedback from tenants, landlords, and agencies, with admin responses published as public testimonials on the landing page.
+- Sign in with either your email or a backend-assigned username, for users who'd rather not type their email at login.
 
 ## Tech Stack
 
@@ -96,6 +98,8 @@ Application foundation:
 
 Authentication and authorization:
 - User registration and login.
+- Login accepts either the account's email or its backend-assigned username; registration always requires a real email.
+- Backend-assigned, opaque usernames (e.g. `swiftcheetah284` — an adjective, a noun, and a number, not derived from the user's name) generated automatically at registration, with collision-safe retry. Immutable in v1 — no user-facing "change username" flow yet. A one-off `backend/seeders/backfillUsernames.js` script assigns usernames to accounts created before this feature existed.
 - JWT generation and validation.
 - Refresh-token session records with hashed tokens at rest.
 - Bearer token support for API clients.
@@ -181,6 +185,16 @@ Trust and safety:
 - Admin violation listing and review status updates.
 - Automatic user bans on the fourth active violation.
 
+Platform feedback:
+- Feedback model linked to the submitting user, with a `pending`/`responded` status and an embedded admin response (message, responder, timestamp).
+- Protected endpoint for tenants, landlords, and agencies to submit feedback (admins cannot submit — they only respond).
+- Protected endpoint for users to list their own submitted feedback.
+- Admin-only endpoints to list all feedback and respond to a pending item.
+- Responding marks the feedback `responded` and publishes it immediately — no separate publish/unpublish step.
+- Public, unauthenticated, cached endpoint listing only responded/published feedback, consumed by the landing page as testimonials.
+- Notification triggered for the submitter when an admin responds.
+- Pending feedback count surfaced in the admin dashboard summary, alongside the existing agency-verification and violation counts.
+
 Movers:
 - Mover model.
 - Public mover listing endpoint.
@@ -200,7 +214,7 @@ Developer workflow:
 The web frontend in `frontend/` is a React 19 + Vite single-page app (SPA) with manual routing and real backend API integration.
 
 Frontend architecture:
-- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
+- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage, FeedbackPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
 - Global `app-utils.js` for API helpers, formatting, and view logic.
@@ -229,14 +243,20 @@ Frontend API helpers in `app-utils.js`:
 - `createProperty(payload)` → `POST /api/properties` (landlord/agency/admin only)
 - `updateProperty(propertyId, payload)` → `PUT /api/properties/:id` (landlord/agency/admin only, and only for listings they own)
 - `fetchReceivedInquiries({ status })` → `GET /api/inquiries/received` (landlord/agency/admin only)
-- `loginUser({ email, password })` → `POST /api/auth/login`
+- `loginUser({ identifier, password })` → `POST /api/auth/login` (`identifier` accepts either the account's email or its backend-assigned username)
 - `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
 - `logoutUser()` → `POST /api/auth/logout`
+- `createFeedback({ message })` → `POST /api/feedback` (tenant/landlord/agency only)
+- `fetchMyFeedback()` → `GET /api/feedback/mine`
+- `fetchPublicTestimonials()` → `GET /api/feedback/public` (no auth required — used on the landing page)
+- `fetchAdminFeedback(query)` → `GET /api/admin/feedback` (admin only)
+- `respondToFeedback(feedbackId, { message })` → `PUT /api/admin/feedback/:id/respond` (admin only)
 - All requests include Authorization bearer token if signed in.
-- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, and `fetchReceivedInquiries` are cached in-memory for 15 seconds to avoid redundant refetches on remount; the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, and the whole cache clears on login, logout, register, and account deletion.
+- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, `fetchReceivedInquiries`, `fetchMyFeedback`, and `fetchAdminFeedback` are cached in-memory for 15 seconds to avoid redundant refetches on remount (`fetchPublicTestimonials` for 60 seconds); the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, the feedback caches clear on `createFeedback`/`respondToFeedback`, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, mode toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
+- Testimonials section on the landing page, populated from admin-responded platform feedback (`GET /api/feedback/public`) — hidden entirely when there are none yet, so it never shows an empty/error state to signed-out visitors.
 - Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency; agency verification status; admin platform-moderation counts). Admins do not get an owner listings section, since admins manage users, not listings. Backed by `GET /api/dashboard/summary`.
 - Anonymous property discovery with radius search and gated save actions.
 - Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, and inline forms to send an inquiry or request a viewing (matching the mobile app's flow).
@@ -249,6 +269,7 @@ Included flows:
 - Saved properties list loading from real `/api/favorites` endpoint, with a Details link into the same property detail page as Discover.
 - Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency). Admins cannot create, edit, or view the owner workspace at all — admins moderate accounts, not listings.
 - Admin console (`/admin`) for managing user accounts: search and filter users by role, open a user's account summary (violations, and role-specific activity counts) and status change history, and change an account's status to active, suspended, or banned with a reason, backed by the existing `GET/PUT /api/admin/users*` endpoints.
+- Feedback tab (`/feedback`), visible to every signed-in role: tenants/landlords/agencies get a submit form plus a list of their own past submissions and any admin response; admins instead see every submission and can respond inline, which immediately publishes it as a landing-page testimonial.
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
@@ -392,8 +413,8 @@ The app implements complete JWT-based authentication with role-based access cont
 - Security considerations
 
 **Quick Reference:**
-- Register: Collect name, email, password, phone, and role (tenant/landlord/agency)
-- Login: Enter email and password
+- Register: Collect name, email, password, phone, and role (tenant/landlord/agency); the backend assigns an opaque username automatically (e.g. `swiftcheetah284`), returned in the response and shown on the Account page
+- Login: Enter either your email or your assigned username, plus your password
 - Protected API calls: Automatically inject `Authorization: Bearer <token>` header
 - Role-based views: Navigation filters and page guards based on user role
 - Logout: Clear token from localStorage and reset auth state
@@ -575,6 +596,28 @@ Acceptance criteria:
 - Given I view movers, when I filter by service type, price, or rating, then I only see matching mover providers.
 - Given movers are returned, when I inspect the list, then I can see provider details, service areas, rating, and base price.
 
+### Platform Feedback
+
+As a tenant, landlord, or agency, I want to tell KejaApp how the platform helped me, and have an admin respond, so that my experience can be shared as a testimonial for future users.
+
+Acceptance criteria:
+- Given I am a signed-in tenant, landlord, or agency, when I submit feedback, then it is saved as pending and I can see it in my own feedback list.
+- Given I am an admin, when I try to submit feedback, then the API rejects the request — admins only respond to feedback, they don't submit it.
+- Given I am an admin, when I list all feedback, then I can see every submission regardless of who sent it.
+- Given I am an admin, when I respond to a pending item, then it becomes `responded`, the submitter is notified, and it becomes publicly visible as a testimonial.
+- Given feedback has not yet received an admin response, when I (or anyone signed out) view the public testimonials list, then it does not appear there.
+- Given I am a signed-out visitor, when I load the landing page, then I see published testimonials, if any exist, with no sign-in required.
+
+### Username Login
+
+As a user who would rather not type my email at login, I want an alternate, backend-assigned username, so that I can sign in without exposing my email on the login screen.
+
+Acceptance criteria:
+- Given I register a new account, then the backend assigns me an opaque username (not derived from my name or email) that I can see on my Account page.
+- Given I sign in with either my email or my assigned username plus my correct password, then I am logged in.
+- Given I sign in with the correct identifier but the wrong password, then the API rejects the request with a generic invalid-credentials message that doesn't reveal which part was wrong.
+- Given my account was created before this feature existed, then a one-off backfill assigns me a username the next time it runs, without requiring me to do anything.
+
 ## API Reference
 
 Base URL for local development:
@@ -685,6 +728,14 @@ POST   /api/agencies/verify
 GET    /api/agencies/status
 ```
 
+Feedback:
+
+```text
+POST   /api/feedback                                        tenant, landlord, agency
+GET    /api/feedback/mine
+GET    /api/feedback/public                                  no auth required
+```
+
 Admin:
 
 ```text
@@ -699,6 +750,8 @@ PUT    /api/admin/agencies/verifications/:id/approve
 PUT    /api/admin/agencies/verifications/:id/reject
 GET    /api/admin/violations
 PUT    /api/admin/violations/:id/status
+GET    /api/admin/feedback
+PUT    /api/admin/feedback/:id/respond
 ```
 
 Movers:
@@ -728,6 +781,8 @@ GET    /api/movers
 - Agency verification approval and rejection workflow.
 - MongoDB connection health reporting.
 - TTL response caching for public property and mover listings (in-memory by default, Redis-backed across instances when `REDIS_URL` is set), invalidated on property writes.
+- Platform feedback becomes a public testimonial the moment an admin responds — the public feedback list's response cache is invalidated on that same write so it appears immediately rather than waiting out the cache TTL.
+- Backend-assigned username generation with collision-safe retries, reused by both registration and the one-off backfill script for pre-existing accounts.
 
 ## Payment Boundary
 
@@ -985,9 +1040,14 @@ Completed:
 - Removed the web frontend's default-vs-Kenya-flag theme toggle, at the user's request — the Kenyan flag palette (previously the `data-theme="kenya"` variant) is now the only look, merged directly into `:root`. The separate light/dark mode toggle is untouched (mobile never had a theme toggle to begin with, only the one fixed palette).
 - Replaced the web frontend's single cycling "Mode" button with an explicit two-option Light/Dark radio toggle (`role="radiogroup"`, native radio inputs under the hood) in the header's top-right corner, at the user's request. It's the same shared header on every page, including the landing page, and — unlike the old button — is no longer hidden on narrow phone widths.
 - Corrected the admin role to match its user story: admins moderate users, not listings. Previously admins were quietly included in `listingManagers`/`propertyOwners`-style role checks across the property, inquiry, and viewing-request routes and controllers, plus the dashboard and user-summary "owner" sections — meaning an admin account could in principle create, edit, or delete any property, and view/manage inquiries and viewing requests, none of which matched the documented user stories. Removed admin from every listing-management role check on the backend (routes, `ensurePropertyOwner`/`ensureInquiryManager`/`ensurePropertyManager`, `listMyProperties`/`listReceivedInquiries`/`listPropertyInquiries`, dashboard and admin-user-summary "owner" blocks) and from the frontend/mobile's `canManageListings`/`listingManagerRoles` equivalents, and replaced the web `AdminPage` placeholder with a real user-management console (search/filter users, view a user's account summary and status history, change account status to active/suspended/banned with a reason) built on the admin API endpoints that already existed but had no UI.
+- A general UI/UX audit pass across web and mobile: added missing error/success styling and Retry actions to pages and screens that previously only showed a dead end on failure (Saved/Workspace/Dashboard/Discover/Admin on web; Dashboard/Saved/Requests/Workspace/Discover/property-detail on mobile), fixed several 44px-minimum touch-target violations (mobile save/chip buttons), added `KeyboardAvoidingView` to the remaining mobile forms that lacked it, added a sign-out confirmation dialog on mobile, made the admin users table keyboard-accessible, replaced plain loading text with skeleton placeholders where it was still missing, shrunk an oversized 477KB logo asset down to 31KB for its actual 44×44 display size, and fixed a real bug where two mobile screens referenced an undefined `colors.green` (should have been `colors.greenDark`), making the primary "Create listing" button invisible.
+- Platform feedback and testimonials: tenants, landlords, and agencies can submit general feedback about their experience; only admins can respond, and responding immediately publishes the feedback as a testimonial on the signed-out landing page. New `Feedback` model/controller/routes on the backend, a `Feedback` tab on both web (`/feedback`) and mobile (a 7th always-visible bottom tab), and a pending-feedback count added to the existing admin dashboard "platform moderation" panel. Building this surfaced a real caching bug: the admin-response endpoint wasn't invalidating the public feedback response cache, so a newly-published testimonial could take up to the cache TTL to actually appear.
+- Username login: registration now also assigns every account an opaque, backend-generated username (e.g. `swiftcheetah284` — an adjective, a noun, and a number, never derived from the person's real name, specifically so it doesn't leak identity the way a name-based handle would), and login accepts either the account's email or this username. A one-off `backend/seeders/backfillUsernames.js` script assigns usernames to accounts that predate this feature. Verified against a real database: registered a new account, logged in with the generated username, with the email, and with a mixed-case version of the username (case-insensitive match), confirmed a wrong password still fails, and confirmed the backfill script only touches accounts actually missing a username.
+- Small alignment fixes on the Discover radius/location filters: the web "Radius" control (a stacked label + select) was vertically floating against its shorter neighboring buttons because the shared `.header-actions` row centered items instead of aligning their bottoms; and the mobile "Near me" button didn't share the 44px touch-target height of the radius chips beside it, making it look shorter than its row.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
+- Username is currently immutable (assigned once at registration, no "change username" flow on web, mobile, or the API) — revisit if users ask to customize it.
 - Mobile: owner workspace now covers listing + creating properties; editing an existing listing, image management, and the received-inquiries view are still web-only. The web admin console now covers user management, but mobile still has no admin console screen at all, and review moderation UI is still missing on both web and mobile.
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
 - Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).

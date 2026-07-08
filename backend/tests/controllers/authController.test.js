@@ -3,7 +3,9 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   changePassword,
+  loginUser,
   refreshAccessToken,
+  registerUser,
   updateCurrentUser,
 } from "../../controllers/authController.js";
 import AuthSession from "../../models/AuthSession.js";
@@ -113,6 +115,95 @@ describe("authController", () => {
 
     assert.equal(nextError.statusCode, 401);
     assert.equal(nextError.message, "Current password is incorrect");
+  });
+
+  it("assigns a generated username during registration", async () => {
+    mock.method(User, "findOne", async () => null);
+    mock.method(User, "exists", async () => false);
+    let createdPayload;
+    mock.method(User, "create", async (payload) => {
+      createdPayload = payload;
+      return {
+        _id: new mongoose.Types.ObjectId(),
+        name: payload.name,
+        email: payload.email,
+        username: payload.username,
+        role: "tenant",
+        phone: payload.phone,
+      };
+    });
+    mock.method(AuthSession, "create", async (payload) => payload);
+
+    const req = {
+      body: {
+        email: "new@example.com",
+        name: "New User",
+        password: "password123",
+        phone: "+254700000000",
+        role: "tenant",
+      },
+      headers: {},
+    };
+    const res = createResponse();
+
+    await registerUser(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 201);
+    assert.match(res.body.user.username, /^[a-z]+[a-z]+\d{3,4}$/);
+    assert.equal(createdPayload.username, res.body.user.username);
+  });
+
+  it("logs in using a username instead of an email", async () => {
+    const user = {
+      _id: new mongoose.Types.ObjectId(),
+      name: "Tenant User",
+      email: "tenant@example.com",
+      username: "swiftcheetah284",
+      role: "tenant",
+      phone: "+254700000000",
+      async matchPassword() {
+        return true;
+      },
+    };
+    let findFilter;
+    mock.method(User, "findOne", (filter) => {
+      findFilter = filter;
+      return { select: async () => user };
+    });
+    mock.method(AuthSession, "create", async (payload) => payload);
+
+    const req = {
+      body: { identifier: "SwiftCheetah284", password: "password123" },
+      headers: {},
+    };
+    const res = createResponse();
+
+    await loginUser(req, res, (error) => {
+      throw error;
+    });
+
+    assert.deepEqual(findFilter.$or, [
+      { email: "swiftcheetah284" },
+      { username: "swiftcheetah284" },
+    ]);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.user.username, "swiftcheetah284");
+  });
+
+  it("rejects an unknown identifier with a generic message", async () => {
+    mock.method(User, "findOne", () => ({ select: async () => null }));
+    const req = { body: { identifier: "nobody", password: "whatever" } };
+    const res = createResponse();
+    let nextError;
+
+    await loginUser(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 401);
+    assert.equal(nextError.message, "Invalid credentials");
   });
 
   it("rejects missing refresh tokens", async () => {
