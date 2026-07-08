@@ -333,7 +333,7 @@ describe("frontend request cache", () => {
     };
 
     await fetchProperties({ page: 1 });
-    await loginUser({ email: "a@b.com", password: "password123" });
+    await loginUser({ identifier: "a@b.com", password: "password123" });
     await fetchProperties({ page: 1 });
 
     assert.equal(calls, 3);

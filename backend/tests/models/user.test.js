@@ -7,6 +7,7 @@ describe("User model", () => {
     const user = new User({
       name: "Test User",
       email: "test@example.com",
+      username: "testuser1",
       password: "password123",
     });
 
@@ -21,6 +22,7 @@ describe("User model", () => {
     const user = new User({
       name: "Test User",
       email: "test2@example.com",
+      username: "testuser2",
       password: "password123",
     });
 
@@ -38,9 +40,31 @@ describe("User model", () => {
     const user = new User({
       name: "Active User",
       email: "active@example.com",
+      username: "activeuser",
       password: "password123",
     });
 
     assert.equal(user.accountStatus, "active");
+  });
+
+  it("requires a username", async () => {
+    const user = new User({
+      name: "No Username",
+      email: "nousername@example.com",
+      password: "password123",
+    });
+
+    await assert.rejects(() => user.validate());
+  });
+
+  it("lowercases and trims the username", () => {
+    const user = new User({
+      name: "Cased User",
+      email: "cased@example.com",
+      username: "  SwiftCheetah284  ",
+      password: "password123",
+    });
+
+    assert.equal(user.username, "swiftcheetah284");
   });
 });

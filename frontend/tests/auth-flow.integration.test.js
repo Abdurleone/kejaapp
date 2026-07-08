@@ -90,7 +90,7 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
     const response = await apiFetch("/api/auth/login", {
       method: "POST",
       body: {
-        email: testUser.email,
+        identifier: testUser.email,
         password: testUser.password,
       },
     });
@@ -158,11 +158,11 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
     // as verified by manual curl testing
   });
 
-  it("requires email and password for login", async () => {
+  it("requires an identifier and password for login", async () => {
     try {
       await apiFetch("/api/auth/login", {
         method: "POST",
-        body: { email: "" },
+        body: { identifier: "" },
       });
       assert.fail("Should reject incomplete login");
     } catch (err) {
@@ -175,7 +175,7 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
       await apiFetch("/api/auth/login", {
         method: "POST",
         body: {
-          email: testUser.email,
+          identifier: testUser.email,
           password: "WrongPassword123!",
         },
       });

@@ -22,6 +22,7 @@ describe("MongoDB integration", { skip: !testMongoUri }, () => {
     const user = await User.create({
       name: "Integration User",
       email: "integration+user@example.com",
+      username: "integrationuser1",
       password: "password123",
       role: "tenant",
     });

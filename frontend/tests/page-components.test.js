@@ -59,7 +59,7 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /canAccessView\(currentUser\?\.role, item\.view\)/);
     assert.match(appSource, /authPanelOpen &&/);
     assert.match(appSource, /authMode === "login" \? "Sign in" : "Create account"/);
-    assert.match(appSource, /loginUser\(\{ email: authForm\.email, password: authForm\.password \}\)/);
+    assert.match(appSource, /loginUser\(\{ identifier: authForm\.email, password: authForm\.password \}\)/);
     assert.match(appSource, /registerUser\(authForm\)/);
     assert.match(appSource, /You need an owner or agency account/);
     assert.match(appSource, /Admin access is required/);
@@ -92,6 +92,7 @@ describe("frontend page component contracts", () => {
     assert.match(accountSource, /deleteCurrentAccount\(\)/);
     assert.match(accountSource, /confirmation === "DELETE"/);
     assert.match(accountSource, /Delete my account/);
+    assert.match(accountSource, /currentUser\?\.username \|\| "Not set"/);
     assert.match(landingSource, /className="landing-page"/);
     assert.match(landingSource, /Start searching/);
     assert.match(landingSource, /onStart/);

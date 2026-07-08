@@ -29,11 +29,10 @@ const registerUserSchema = {
 };
 
 const loginUserSchema = {
-  email: {
+  identifier: {
     required: true,
     type: "string",
-    pattern: emailPattern,
-    message: "email must be a valid email address",
+    minLength: 3,
   },
   password: {
     required: true,
