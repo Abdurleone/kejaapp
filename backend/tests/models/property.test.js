@@ -48,6 +48,7 @@ describe("Property model", () => {
 
     assert.equal(property.status, "available");
     assert.equal(property.isAvailable, true);
+    assert.equal(property.freshnessNudgeSentAt, null);
   });
 
   it("marks taken properties as unavailable", async () => {

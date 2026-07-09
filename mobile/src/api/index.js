@@ -109,6 +109,45 @@ export const createViewingRequest = async ({ property, requestedDate, message })
   return response.data;
 };
 
+// --- Saved searches ---
+
+export const createSavedSearch = async (payload) => {
+  const response = await apiFetch("/api/saved-searches", { method: "POST", body: payload });
+  return response.data;
+};
+
+export const fetchSavedSearches = async () => {
+  const response = await apiFetch("/api/saved-searches", { method: "GET" });
+  return response.data || [];
+};
+
+export const deleteSavedSearch = async (savedSearchId) => {
+  await apiFetch(`/api/saved-searches/${savedSearchId}`, { method: "DELETE" });
+};
+
+// --- Device tokens (push notifications) ---
+
+export const createDeviceToken = async ({ token, platform }) => {
+  const response = await apiFetch("/api/device-tokens", { method: "POST", body: { token, platform } });
+  return response.data;
+};
+
+export const deleteDeviceToken = async (token) => {
+  await apiFetch("/api/device-tokens", { method: "DELETE", body: { token } });
+};
+
+// --- Notifications ---
+
+export const fetchNotifications = async (query = {}) => {
+  const response = await apiFetch(`/api/notifications${buildQueryString(query)}`, { method: "GET" });
+  return response.data || [];
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+  const response = await apiFetch(`/api/notifications/${notificationId}/read`, { method: "PUT" });
+  return response.data;
+};
+
 // --- Feedback ---
 
 export const fetchMyFeedback = async () => {

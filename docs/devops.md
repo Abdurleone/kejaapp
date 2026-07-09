@@ -92,6 +92,7 @@ Files:
 - `backend-hpa.yaml` — HorizontalPodAutoscaler (2-6 replicas, scales on CPU). Requires `metrics-server` in the cluster.
 - `frontend-deployment.yaml` — Deployment (2 replicas) + Service for the Nginx-served static build.
 - `redis-statefulset.yaml` — in-cluster Redis (StatefulSet + 1Gi PVC on the cluster's default StorageClass) for rate limiting/caching. Not used for data that needs to survive losing the whole cluster.
+- `backend-cronjob.yaml` — CronJob running `node scripts/runScheduledJobs.js` (the time-based notification sweeps: stale inquiry/viewing nudges, viewing reminders, etc. — see `backend/jobs/`) every 15 minutes, reusing the same backend image/ConfigMap/Secret. `concurrencyPolicy: Forbid` guarantees exactly one run at a time regardless of how many `kejaapp-backend` Deployment replicas are up, so a naive in-process `setInterval` (which would fire once per replica and double-send notifications) was deliberately avoided. Each job is also idempotent on its own (it marks the records it's already acted on), so an overlapping or re-run is harmless even without the concurrency guard.
 - `ingress.yaml` — routes two hosts to the two Services. Assumes `ingress-nginx` is installed; no TLS/cert-manager wired up (same "left for later" posture as the Docker Compose stack).
 
 MongoDB stays external on Atlas, same as the Render setup — there's no in-cluster MongoDB manifest.
@@ -121,10 +122,13 @@ then update `CORS_ORIGIN` in `backend-configmap.yaml` to match your frontend dom
    kubectl apply -f k8s/namespace.yaml
    kubectl apply -f k8s/backend-configmap.yaml -f k8s/backend-secret.yaml
    kubectl apply -f k8s/backend-deployment.yaml -f k8s/backend-hpa.yaml
+   kubectl apply -f k8s/backend-cronjob.yaml
    kubectl apply -f k8s/redis-statefulset.yaml
    kubectl apply -f k8s/frontend-deployment.yaml
    kubectl apply -f k8s/ingress.yaml
    ```
+
+   Outside Kubernetes (local dev, Render, Docker Compose), run the same sweeps manually or via your own scheduler with `npm run jobs` in `backend/` (or `node scripts/runScheduledJobs.js` directly) — there's no in-process timer, so nothing runs automatically unless something external calls this on a schedule.
 
 ### Known limitations of this setup
 

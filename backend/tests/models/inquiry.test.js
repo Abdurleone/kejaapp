@@ -16,5 +16,6 @@ describe("Inquiry model", () => {
     assert.equal(inquiry.contactPreference, "in_app");
     assert.equal(inquiry.respondedAt, null);
     assert.equal(inquiry.respondedBy, null);
+    assert.equal(inquiry.nudgedAt, null);
   });
 });

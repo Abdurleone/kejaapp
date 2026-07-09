@@ -15,5 +15,8 @@ describe("ViewingRequest model", () => {
     assert.equal(viewingRequest.requestedDate, undefined);
     assert.equal(viewingRequest.reviewedAt, null);
     assert.equal(viewingRequest.reviewedBy, null);
+    assert.equal(viewingRequest.nudgedAt, null);
+    assert.equal(viewingRequest.reminderSentAt, null);
+    assert.equal(viewingRequest.reviewPromptSentAt, null);
   });
 });

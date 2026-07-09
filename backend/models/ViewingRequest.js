@@ -50,6 +50,18 @@ const viewingRequestSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    nudgedAt: {
+      type: Date,
+      default: null,
+    },
+    reminderSentAt: {
+      type: Date,
+      default: null,
+    },
+    reviewPromptSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

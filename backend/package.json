@@ -20,6 +20,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
+    "jobs": "node scripts/runScheduledJobs.js",
     "seed": "node seeders/seedDemoData.js",
     "start": "node server.js",
     "test": "node --test",
@@ -30,6 +31,7 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "expo-server-sdk": "^6.1.0",
     "express": "^5.2.1",
     "helmet": "^8.2.0",
     "ioredis": "^5.11.1",
