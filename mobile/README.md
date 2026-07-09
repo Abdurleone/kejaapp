@@ -24,6 +24,9 @@ Implemented:
 - Notifications tab: lists all notifications with an All/Unread filter and a "Mark as read" action per item.
 - Saved searches: a "Save search" action on Discover once a location is set (tenants), and a list to review/remove them on the Account tab.
 - Push notifications: registers/unregisters an Expo push token around sign-in/sign-out; every notification above also arrives as a push notification if the device is registered. Requires a development build to actually receive pushes — Expo Go on Android doesn't support them as of SDK 53+ (see Troubleshooting).
+- Light/dark mode toggle: an icon-only sun/moon control in the top-right header of every screen (`ThemeContext`, persisted to AsyncStorage) — replaces the old inline "Dark mode" switch that used to live on the Account screen only.
+- Property detail is gated to signed-in tenants: anonymous visitors and non-tenant roles get a "sign in with a tenant account" prompt instead of pricing/contact info; the Discover list itself stays open to everyone. Contact details include one-tap call/email/WhatsApp actions plus a "Contact via {method}" shortcut for the owner's preferred method.
+- Sign In screen has a branded gradient hero matching the landing page; the "Show API server settings" toggle is hidden in production builds (only visible in development, via `__DEV__`).
 
 Not yet built (still placeholders on the web frontend too, so this isn't a regression):
 - Editing an existing listing, image management, and the received-inquiries view from the owner workspace (all web-only so far)
@@ -62,7 +65,7 @@ The app needs to reach the backend from `../backend` (`npm run dev` from the rep
 | Physical device via Expo Go | `http://<your-computer's-LAN-IP>:5000` — must be set manually |
 | Web preview (`w`) | `http://localhost:5000` (default — runs in a real browser on the same machine) |
 
-For a physical device, open the app, go to the sign-in screen, tap **Show API server settings**, and enter your computer's LAN IP (e.g. `http://192.168.1.20:5000`, found via `ipconfig`/`ifconfig`). This is stored on-device and persists across restarts. Make sure the backend's `CORS_ORIGIN` doesn't need updating — CORS only applies to browser `fetch`, not native app requests, so no backend config changes are needed for iOS/Android, only for the web preview target if you change its origin.
+For a physical device, run the app in a development build or Expo Go's dev client, go to the sign-in screen, tap **Show API server settings** (only visible when `__DEV__` is true, i.e. not in production builds), and enter your computer's LAN IP (e.g. `http://192.168.1.20:5000`, found via `ipconfig`/`ifconfig`). This is stored on-device and persists across restarts. Make sure the backend's `CORS_ORIGIN` doesn't need updating — CORS only applies to browser `fetch`, not native app requests, so no backend config changes are needed for iOS/Android, only for the web preview target if you change its origin.
 
 ### Demo accounts
 
@@ -91,12 +94,12 @@ mobile/
 ├── assets/                  # App icons/splash, generated from frontend/assets/keja-logo.png
 └── src/
     ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings)
-    ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists)
-    ├── context/             # AuthContext (session), SettingsContext (API base URL)
+    ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists, ColorModeToggle)
+    ├── context/             # AuthContext (session), SettingsContext (API base URL), ThemeContext (light/dark mode)
     ├── navigation/           # Root stack, bottom tabs, Discover stack, Workspace stack
     ├── screens/              # auth/, dashboard/, discover/, saved/, workspace/, requests/, account/
-    ├── theme/                # Shared color tokens (mirrors frontend/styles.css palette)
-    └── utils/                # Formatting helpers (currency, status labels)
+    ├── theme/                # Shared color tokens (mirrors frontend/styles.css palette; light + dark variants)
+    └── utils/                # Formatting helpers (currency, status labels), contact.js (tel:/mailto:/wa.me link builders)
 ```
 
 ## Troubleshooting

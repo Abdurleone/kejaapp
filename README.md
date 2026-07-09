@@ -37,6 +37,8 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 - Transparent rent, deposit, and agency fee calculations.
 - Property inquiries between tenants and property owners.
 - Viewing request flow between tenants and property owners.
+- One-tap contact actions on a property's contact details — call, email, or WhatsApp the landlord/agency directly using their preferred method, on both web and mobile.
+- Full property detail views (pricing, contact info, amenities) require signing in as a tenant; anonymous visitors and other roles can still browse and filter the Discover list, but are prompted to sign in before opening a listing.
 - Reviews and rating aggregation.
 - Agency verification workflow.
 - Admin approval and rejection of agency verifications.
@@ -55,6 +57,7 @@ Frontend:
 
 Mobile:
 - React Native (Expo), targeting iOS and Android from one codebase
+- Light/dark mode toggle (icon-only, top-right of every screen), matching the web app's toggle and persisted locally
 - See `mobile/README.md` for setup, running via Expo Go, and EAS build instructions
 
 Backend:
@@ -466,7 +469,8 @@ Acceptance criteria:
 - Given I am on the property list, when I filter by rent, location, type, or availability, then I only see matching properties.
 - Given I browse listings without a status filter, then I only see properties marked as available.
 - Given I search near a latitude and longitude with a radius, then I only see properties with coordinates inside that area.
-- Given I open a property, when the details load, then I can view the title, description, location, images, amenities, owner or agency type, listing contact details, reviews, and pricing.
+- Given I am signed in as a tenant, when I open a property, then I can view the title, description, location, images, amenities, owner or agency type, listing contact details, reviews, and pricing.
+- Given I am not signed in, or signed in as a non-tenant role, when I try to open a property's full details, then I am prompted to sign in with a tenant account instead — the property list itself stays visible either way.
 - Given a property has rent, deposit, or agency fees, when I view it, then I can see the total upfront cost and recurring monthly cost.
 - Given I am signed in as a tenant, when I use the frontend, then I cannot access the owner listing creation tools.
 - Given I am not signed in, when I try to save a listing, then the frontend prompts me to sign in or sign up.
@@ -518,6 +522,7 @@ As a landlord or agency, I want to define the best contact method and available 
 Acceptance criteria:
 - Given I am authenticated as a landlord or agency, when I create or update a property, then I can add a preferred contact method, phone, email, WhatsApp number, contact hours, and notes.
 - Given a tenant views a property, when contact details are present, then they can read those contact details but cannot edit them.
+- Given contact details include a phone, email, or WhatsApp number, when a tenant taps one, then the app opens the device's dialer, mail client, or WhatsApp directly (a "Contact via {method}" shortcut is also shown for the owner's preferred method).
 - Given I submit invalid contact details, when validation runs, then the API rejects unsupported contact methods and invalid emails.
 
 ### Property Image Management
@@ -1096,6 +1101,9 @@ Completed:
 - Saved-search alerts: tenants can save a Discover location + radius search (`POST /api/saved-searches`, manage from the Account page/tab); publishing a new listing that matches a saved search now notifies its owner. The matching logic reuses the exact same filter-building/geo-radius code the property list endpoint already used for querying (extracted to `backend/utils/propertyFilters.js` to share it without a circular import between the property controller and the new matching service).
 - Scheduled-jobs infrastructure (`backend/jobs/`, `backend/scripts/runScheduledJobs.js`, `npm run jobs`) plus four time-based notification sweeps, run every 15 minutes via a new Kubernetes `CronJob` (`k8s/backend-cronjob.yaml`) in production or manually elsewhere: nudging landlords/agencies about inquiries and viewing requests left unanswered for 48+ hours, reminding both sides of an approved viewing happening within 24 hours, prompting a tenant for a review once an approved viewing's date has passed (which also flips its status to `completed` — the enum value existed but nothing ever set it before), and nudging owners about listings live for 14+ days with zero inquiries. Deliberately standalone scripts (not an in-process timer) since the backend already runs multiple replicas behind an HPA — an in-process scheduler would fire once per replica and double-send every nudge.
 - Push notifications on mobile via Expo's push service (`expo-notifications` + `expo-server-sdk`, not raw Firebase/FCM — the idiomatic zero-Firebase-project path for an Expo-managed app): registers/unregisters a device's push token around sign-in/sign-out, and the shared `createNotification` chokepoint now best-effort sends a push alongside every in-app notification, so every notification type above (and every one that already existed) gets push for free. In the process, found and removed a fully dead, never-wired-up predecessor: a `fcmTokens` array on the `User` model and a `POST /api/auth/fcm-token` endpoint that only ever wrote to that array and had no Firebase/sending code behind it at all.
+- Seeded demo images for the 11 properties that had none, added an explicit "View details" link on mobile property cards (previously the only way in was tapping the whole card), and added one-tap call/email/WhatsApp contact actions to the property detail view on both web and mobile — a "Contact via {method}" button plus individually-tappable phone/email/WhatsApp lines, built from the owner's preferred contact method.
+- Added a mobile light/dark mode toggle (`ThemeContext`, persisted via AsyncStorage) — mobile never had one before, only a single fixed palette. It's an icon-only sun/moon control in the top-right header of every screen (Login, Register, Dashboard, Discover, Saved, Workspace, Requests, Notifications, Feedback, Account), replacing the old inline "Dark mode" switch that only lived on the Account screen. Also redesigned the mobile Sign In screen with a branded gradient hero matching the landing page, hid the dev-only "Show API server settings" toggle behind `__DEV__` so production builds never expose it, and fixed the mobile landing page's gradient background not filling the screen on short content (now sized to the device's actual window height).
+- Gated full property details (pricing, contact info, amenities) behind tenant sign-in on both platforms, using an existing-but-previously-unwired `canOpenPropertyDetails` helper — anonymous visitors and non-tenant roles now see a "sign in with a tenant account" prompt instead, while the Discover list itself stays public. Also removed the literal API base URL from the web frontend's footer tagline, so backend wiring is never shown to end users.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.

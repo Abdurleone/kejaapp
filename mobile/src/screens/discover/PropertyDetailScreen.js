@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { fetchFavorites, fetchProperty, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { resolveAssetUrl, useSettings } from "../../context/SettingsContext.js";
 import PropertyDetailSkeleton from "../../components/PropertyDetailSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatKes, formatRatingSummary } from "../../utils/format.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
+import { buildEmailUrl, buildPhoneUrl, buildWhatsAppUrl, getPreferredContactUrl } from "../../utils/contact.js";
 
 const contactMethodLabels = {
   phone: "Phone",
@@ -15,10 +16,17 @@ const contactMethodLabels = {
   inquiry: "In-app inquiry",
 };
 
+const openContactUrl = (url) => {
+  if (url) Linking.openURL(url).catch(() => {});
+};
+
 export default function PropertyDetailScreen({ route, navigation }) {
   const { propertyId } = route.params;
-  const { signedIn } = useAuth();
+  const { signedIn, user } = useAuth();
+  const canViewDetails = signedIn && user?.role === "tenant";
   const { apiBaseUrl } = useSettings();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,14 +47,16 @@ export default function PropertyDetailScreen({ route, navigation }) {
   }, [propertyId]);
 
   useEffect(() => {
+    if (!canViewDetails) return;
+
     // Kicking off a real fetch here, not deriving avoidable state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     loadProperty();
-  }, [loadProperty]);
+  }, [canViewDetails, loadProperty]);
 
   useEffect(() => {
-    if (!signedIn) return;
+    if (!canViewDetails) return;
 
     fetchFavorites()
       .then((favorites) => {
@@ -56,14 +66,9 @@ export default function PropertyDetailScreen({ route, navigation }) {
         setIsSaved(saved);
       })
       .catch(() => {});
-  }, [signedIn, propertyId]);
+  }, [canViewDetails, propertyId]);
 
   const handleSave = async () => {
-    if (!signedIn) {
-      navigation.navigate("Login");
-      return;
-    }
-
     setSaving(true);
 
     try {
@@ -77,13 +82,19 @@ export default function PropertyDetailScreen({ route, navigation }) {
   };
 
   const requireAuth = (screen) => {
-    if (!signedIn) {
-      navigation.navigate("Login");
-      return;
-    }
-
     navigation.navigate(screen, { propertyId, viewingType: property?.viewingType });
   };
+
+  if (!canViewDetails) {
+    return (
+      <MessageView
+        title="Sign in as a tenant"
+        message="Sign in with a tenant account to view full property details and contact the owner."
+        actionLabel="Sign in"
+        onAction={() => navigation.navigate("Login")}
+      />
+    );
+  }
 
   if (loading) {
     return <PropertyDetailSkeleton />;
@@ -103,6 +114,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
   const imageUrl = resolveAssetUrl(property.images?.[0]?.url, apiBaseUrl);
   const cost = property.costSummary || {};
   const contact = property.contact || {};
+  const preferredContactUrl = getPreferredContactUrl(contact);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -132,11 +144,11 @@ export default function PropertyDetailScreen({ route, navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cost summary</Text>
         <View style={styles.costGrid}>
-          <CostRow label="Monthly rent" value={formatKes(cost.rent)} />
-          <CostRow label="Deposit" value={formatKes(cost.deposit)} />
-          <CostRow label="Agency fee" value={formatKes(cost.agencyFee)} />
-          <CostRow label="First month total" value={formatKes(cost.firstMonthTotal)} emphasize />
-          <CostRow label="Upfront total" value={formatKes(cost.upfrontTotal)} emphasize />
+          <CostRow label="Monthly rent" value={formatKes(cost.rent)} styles={styles} />
+          <CostRow label="Deposit" value={formatKes(cost.deposit)} styles={styles} />
+          <CostRow label="Agency fee" value={formatKes(cost.agencyFee)} styles={styles} />
+          <CostRow label="First month total" value={formatKes(cost.firstMonthTotal)} emphasize styles={styles} />
+          <CostRow label="Upfront total" value={formatKes(cost.upfrontTotal)} emphasize styles={styles} />
         </View>
       </View>
 
@@ -146,9 +158,30 @@ export default function PropertyDetailScreen({ route, navigation }) {
           <Text style={styles.contactLine}>
             Preferred method: {contactMethodLabels[contact.preferredMethod] || "In-app inquiry"}
           </Text>
-          {contact.phone ? <Text style={styles.contactLine}>Phone: {contact.phone}</Text> : null}
-          {contact.email ? <Text style={styles.contactLine}>Email: {contact.email}</Text> : null}
-          {contact.whatsapp ? <Text style={styles.contactLine}>WhatsApp: {contact.whatsapp}</Text> : null}
+
+          {preferredContactUrl ? (
+            <Pressable style={styles.contactButton} onPress={() => openContactUrl(preferredContactUrl)}>
+              <Text style={styles.contactButtonText}>
+                Contact via {contactMethodLabels[contact.preferredMethod]}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {contact.phone ? (
+            <Pressable onPress={() => openContactUrl(buildPhoneUrl(contact.phone))}>
+              <Text style={styles.contactLineLink}>Phone: {contact.phone}</Text>
+            </Pressable>
+          ) : null}
+          {contact.email ? (
+            <Pressable onPress={() => openContactUrl(buildEmailUrl(contact.email))}>
+              <Text style={styles.contactLineLink}>Email: {contact.email}</Text>
+            </Pressable>
+          ) : null}
+          {contact.whatsapp ? (
+            <Pressable onPress={() => openContactUrl(buildWhatsAppUrl(contact.whatsapp))}>
+              <Text style={styles.contactLineLink}>WhatsApp: {contact.whatsapp}</Text>
+            </Pressable>
+          ) : null}
           {contact.availableHours ? (
             <Text style={styles.contactLine}>Available: {contact.availableHours}</Text>
           ) : null}
@@ -176,7 +209,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
           disabled={isSaved || saving}
         >
           <Text style={[styles.primaryButtonText, isSaved && styles.primaryButtonTextDisabled]}>
-            {saving ? "Saving..." : isSaved ? "Saved" : signedIn ? "Save" : "Sign in to save"}
+            {saving ? "Saving..." : isSaved ? "Saved" : "Save"}
           </Text>
         </Pressable>
         <Pressable style={styles.secondaryButton} onPress={() => requireAuth("InquiryForm")}>
@@ -190,7 +223,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
   );
 }
 
-function CostRow({ label, value, emphasize }) {
+function CostRow({ label, value, emphasize, styles }) {
   return (
     <View style={styles.costRow}>
       <Text style={styles.costLabel}>{label}</Text>
@@ -199,7 +232,8 @@ function CostRow({ label, value, emphasize }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -295,6 +329,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.ink,
   },
+  contactLineLink: {
+    fontSize: 13,
+    color: colors.greenDark,
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+  contactButton: {
+    backgroundColor: colors.greenDark,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginVertical: 4,
+  },
+  contactButtonText: {
+    color: colors.white,
+    fontWeight: "800",
+    fontSize: 14,
+  },
   amenityRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -343,4 +395,4 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontWeight: "700",
   },
-});
+  });

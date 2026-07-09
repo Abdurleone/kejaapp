@@ -31,6 +31,7 @@ import {
   registerUser,
   canAccessView,
   canManageListings,
+  canOpenPropertyDetails,
 } from "../app-utils.js";
 
 const apiBaseUrl = normalizeApiBaseUrl(
@@ -240,11 +241,20 @@ function App() {
           />
         );
       case "propertyDetail":
+        if (!canOpenPropertyDetails(currentUser?.role)) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in with a tenant account to view property details.</p>
+              <button className="primary-button" type="button" onClick={openAuthPanel}>
+                Sign in
+              </button>
+            </div>
+          );
+        }
+
         return (
           <PropertyDetailPage
             propertyId={getPropertyIdFromPath(path)}
-            signedIn={signedIn}
-            onRequireAuth={openAuthPanel}
             apiBaseUrl={apiBaseUrl}
             onBack={() => navigate(getViewPath("discover"))}
           />
@@ -361,7 +371,7 @@ function App() {
           </button>
           <div>
             <h1>KejaApp</h1>
-            {!showSplash && <p>Real rental pages powered by React. API base: {apiBaseUrl}</p>}
+            {!showSplash && <p>Real rental pages powered by React.</p>}
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import { useSettings } from "../../context/SettingsContext.js";
 import PropertyCard from "../../components/PropertyCard.js";
 import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 const listingManagerRoles = ["landlord", "agency"];
 
@@ -15,6 +15,8 @@ export default function WorkspaceScreen() {
   const navigation = useNavigation();
   const { user, signedIn } = useAuth();
   const { apiBaseUrl } = useSettings();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -122,7 +124,8 @@ export default function WorkspaceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -130,4 +133,4 @@ const styles = StyleSheet.create({
   list: {
     padding: 16,
   },
-});
+  });

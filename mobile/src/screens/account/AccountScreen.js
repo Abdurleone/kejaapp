@@ -3,7 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { useNavigation } from "@react-navigation/native";
 import { deleteSavedSearch, fetchSavedSearches } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 function describeSavedSearch(savedSearch) {
   const parts = [];
@@ -23,7 +23,7 @@ function describeSavedSearch(savedSearch) {
   return parts.length > 0 ? parts.join(", ") : "Any listing";
 }
 
-function SavedSearchesCard() {
+function SavedSearchesCard({ styles }) {
   const [savedSearches, setSavedSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -88,6 +88,8 @@ function SavedSearchesCard() {
 export default function AccountScreen() {
   const navigation = useNavigation();
   const { user, signedIn, logout } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const confirmSignOut = () => {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -98,30 +100,30 @@ export default function AccountScreen() {
 
   if (!signedIn) {
     return (
-      <View style={styles.signedOutContainer}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.signedOutContainer}>
         <Text style={styles.title}>Account</Text>
-        <Text style={styles.subtitle}>Sign in to manage your profile and view your activity.</Text>
+        <Text style={styles.subtitle}>Sign in to explore more options.</Text>
         <Pressable style={styles.primaryButton} onPress={() => navigation.navigate("Login")}>
           <Text style={styles.primaryButtonText}>Sign in</Text>
         </Pressable>
         <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate("Register")}>
           <Text style={styles.secondaryButtonText}>Create account</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     );
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
-        <DetailRow label="Name" value={user?.name || "Not set"} />
-        <DetailRow label="Username" value={user?.username || "Not set"} />
-        <DetailRow label="Email" value={user?.email || "Not set"} />
-        <DetailRow label="Role" value={user?.role || "Not set"} />
-        <DetailRow label="Phone" value={user?.phone || "Not set"} />
+        <DetailRow label="Name" value={user?.name || "Not set"} styles={styles} />
+        <DetailRow label="Username" value={user?.username || "Not set"} styles={styles} />
+        <DetailRow label="Email" value={user?.email || "Not set"} styles={styles} />
+        <DetailRow label="Role" value={user?.role || "Not set"} styles={styles} />
+        <DetailRow label="Phone" value={user?.phone || "Not set"} styles={styles} />
       </View>
 
-      {user?.role === "tenant" ? <SavedSearchesCard /> : null}
+      {user?.role === "tenant" ? <SavedSearchesCard styles={styles} /> : null}
 
       <Pressable style={styles.dangerButton} onPress={confirmSignOut}>
         <Text style={styles.dangerButtonText}>Sign out</Text>
@@ -130,7 +132,7 @@ export default function AccountScreen() {
   );
 }
 
-function DetailRow({ label, value }) {
+function DetailRow({ label, value, styles }) {
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -139,118 +141,118 @@ function DetailRow({ label, value }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: 16,
-    gap: 16,
-  },
-  signedOutContainer: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 32,
-    gap: 10,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: colors.ink,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.muted,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-  },
-  detailRow: {
-    gap: 2,
-  },
-  detailLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.muted,
-    textTransform: "uppercase",
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: colors.ink,
-  },
-  subtitleSmall: {
-    fontSize: 13,
-    color: colors.muted,
-  },
-  error: {
-    fontSize: 13,
-    color: colors.red,
-  },
-  savedSearchRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 6,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-  },
-  savedSearchText: {
-    fontSize: 13,
-    color: colors.ink,
-    flexShrink: 1,
-  },
-  removeText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.red,
-  },
-  detailValue: {
-    fontSize: 15,
-    color: colors.ink,
-  },
-  primaryButton: {
-    backgroundColor: colors.greenDark,
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    color: colors.white,
-    fontWeight: "800",
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: colors.ink,
-    fontWeight: "700",
-  },
-  dangerButton: {
-    backgroundColor: colors.red,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  dangerButtonText: {
-    color: colors.white,
-    fontWeight: "800",
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: 16,
+      gap: 16,
+    },
+    signedOutContainer: {
+      flexGrow: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 32,
+      gap: 10,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: colors.ink,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.muted,
+      textAlign: "center",
+      marginBottom: 12,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 16,
+      gap: 12,
+    },
+    detailRow: {
+      gap: 2,
+    },
+    detailLabel: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.muted,
+      textTransform: "uppercase",
+    },
+    cardTitle: {
+      fontSize: 15,
+      fontWeight: "800",
+      color: colors.ink,
+    },
+    subtitleSmall: {
+      fontSize: 13,
+      color: colors.muted,
+    },
+    error: {
+      fontSize: 13,
+      color: colors.red,
+    },
+    savedSearchRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 6,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+    },
+    savedSearchText: {
+      fontSize: 13,
+      color: colors.ink,
+      flexShrink: 1,
+    },
+    removeText: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.red,
+    },
+    detailValue: {
+      fontSize: 15,
+      color: colors.ink,
+    },
+    primaryButton: {
+      backgroundColor: colors.greenDark,
+      borderRadius: 8,
+      paddingVertical: 14,
+      paddingHorizontal: 32,
+      alignItems: "center",
+    },
+    primaryButtonText: {
+      color: colors.white,
+      fontWeight: "800",
+    },
+    secondaryButton: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 8,
+      paddingVertical: 14,
+      paddingHorizontal: 32,
+      alignItems: "center",
+    },
+    secondaryButtonText: {
+      color: colors.ink,
+      fontWeight: "700",
+    },
+    dangerButton: {
+      backgroundColor: colors.red,
+      borderRadius: 8,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    dangerButtonText: {
+      color: colors.white,
+      fontWeight: "800",
+    },
+  });

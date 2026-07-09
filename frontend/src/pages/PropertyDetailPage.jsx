@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import PropertyDetailSkeleton from "../components/PropertyDetailSkeleton.jsx";
 import {
+  buildEmailUrl,
+  buildPhoneUrl,
+  buildWhatsAppUrl,
   createInquiry,
   createViewingRequest,
   fetchFavorites,
   fetchPropertyById,
   formatKes,
   formatRatingSummary,
+  getPreferredContactUrl,
   getPropertyImage,
   saveFavorite,
 } from "../../app-utils.js";
@@ -30,7 +34,7 @@ const minScheduledDateTime = () => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth, apiBaseUrl, onBack }) {
+export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,8 +80,6 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
   }, [propertyId]);
 
   useEffect(() => {
-    if (!signedIn) return;
-
     fetchFavorites()
       .then((favorites) => {
         const saved = favorites.some(
@@ -86,14 +88,9 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
         setIsSaved(saved);
       })
       .catch(() => {});
-  }, [signedIn, propertyId]);
+  }, [propertyId]);
 
   const handleSave = async () => {
-    if (!signedIn) {
-      onRequireAuth();
-      return;
-    }
-
     setSaving(true);
 
     try {
@@ -107,11 +104,6 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
   };
 
   const openForm = (form) => {
-    if (!signedIn) {
-      onRequireAuth();
-      return;
-    }
-
     setActiveForm(form);
   };
 
@@ -200,6 +192,7 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
   const contact = property.contact || {};
   const hasContactInfo = contact.phone || contact.email || contact.whatsapp || contact.availableHours;
   const isScheduled = property.viewingType === "scheduled";
+  const preferredContactUrl = getPreferredContactUrl(contact);
 
   return (
     <div className="view active-view">
@@ -266,19 +259,21 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
               {contact.phone && (
                 <span>
                   <strong>Phone</strong>
-                  {contact.phone}
+                  <a href={buildPhoneUrl(contact.phone)}>{contact.phone}</a>
                 </span>
               )}
               {contact.email && (
                 <span>
                   <strong>Email</strong>
-                  {contact.email}
+                  <a href={buildEmailUrl(contact.email)}>{contact.email}</a>
                 </span>
               )}
               {contact.whatsapp && (
                 <span>
                   <strong>WhatsApp</strong>
-                  {contact.whatsapp}
+                  <a href={buildWhatsAppUrl(contact.whatsapp)} target="_blank" rel="noreferrer">
+                    {contact.whatsapp}
+                  </a>
                 </span>
               )}
               {contact.availableHours && (
@@ -288,6 +283,16 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
                 </span>
               )}
             </div>
+            {preferredContactUrl && (
+              <a
+                className="primary-button contact-cta"
+                href={preferredContactUrl}
+                target={contact.preferredMethod === "whatsapp" ? "_blank" : undefined}
+                rel={contact.preferredMethod === "whatsapp" ? "noreferrer" : undefined}
+              >
+                Contact via {contactMethodLabels[contact.preferredMethod]}
+              </a>
+            )}
           </>
         )}
 
@@ -309,7 +314,7 @@ export default function PropertyDetailPage({ propertyId, signedIn, onRequireAuth
             disabled={isSaved || saving}
             onClick={handleSave}
           >
-            {saving ? "Saving..." : isSaved ? "Saved" : signedIn ? "Save" : "Sign in to save"}
+            {saving ? "Saving..." : isSaved ? "Saved" : "Save"}
           </button>
           <button
             className="secondary-button"

@@ -7,12 +7,14 @@ import { useSettings } from "../../context/SettingsContext.js";
 import PropertyCard from "../../components/PropertyCard.js";
 import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 export default function SavedScreen() {
   const navigation = useNavigation();
   const { signedIn } = useAuth();
   const { apiBaseUrl } = useSettings();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,7 +132,8 @@ export default function SavedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -149,4 +152,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 13,
   },
-});
+  });

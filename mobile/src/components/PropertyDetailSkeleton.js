@@ -1,8 +1,11 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 import Skeleton from "./Skeleton.js";
-import colors from "../theme/colors.js";
+import { useTheme } from "../context/ThemeContext.js";
 
 export default function PropertyDetailSkeleton() {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Skeleton style={styles.image} />
@@ -33,65 +36,66 @@ export default function PropertyDetailSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: 16,
-    gap: 12,
-    paddingBottom: 32,
-  },
-  image: {
-    width: "100%",
-    aspectRatio: 16 / 10,
-    borderRadius: 12,
-  },
-  title: {
-    height: 20,
-    width: "65%",
-  },
-  location: {
-    height: 14,
-    width: "40%",
-  },
-  metaRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  metaItem: {
-    height: 26,
-    width: 72,
-    borderRadius: 8,
-  },
-  line: {
-    height: 14,
-    width: "95%",
-  },
-  lineShort: {
-    height: 14,
-    width: "60%",
-  },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
-    backgroundColor: colors.surface,
-  },
-  sectionRow: {
-    height: 14,
-    width: "100%",
-  },
-  actions: {
-    gap: 8,
-    marginTop: 8,
-  },
-  actionButton: {
-    height: 46,
-    width: "100%",
-    borderRadius: 8,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: 16,
+      gap: 12,
+      paddingBottom: 32,
+    },
+    image: {
+      width: "100%",
+      aspectRatio: 16 / 10,
+      borderRadius: 12,
+    },
+    title: {
+      height: 20,
+      width: "65%",
+    },
+    location: {
+      height: 14,
+      width: "40%",
+    },
+    metaRow: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    metaItem: {
+      height: 26,
+      width: 72,
+      borderRadius: 8,
+    },
+    line: {
+      height: 14,
+      width: "95%",
+    },
+    lineShort: {
+      height: 14,
+      width: "60%",
+    },
+    section: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      gap: 10,
+      backgroundColor: colors.surface,
+    },
+    sectionRow: {
+      height: 14,
+      width: "100%",
+    },
+    actions: {
+      gap: 8,
+      marginTop: 8,
+    },
+    actionButton: {
+      height: 46,
+      width: "100%",
+      borderRadius: 8,
+    },
+  });

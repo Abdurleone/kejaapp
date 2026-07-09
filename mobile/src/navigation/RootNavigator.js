@@ -4,6 +4,7 @@ import MainTabs from "./MainTabs.js";
 import LoginScreen from "../screens/auth/LoginScreen.js";
 import RegisterScreen from "../screens/auth/RegisterScreen.js";
 import LoadingView from "../components/LoadingView.js";
+import ColorModeToggle from "../components/ColorModeToggle.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,12 +21,22 @@ export default function RootNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ presentation: "modal", headerShown: true, title: "Sign in" }}
+        options={{
+          presentation: "modal",
+          headerShown: true,
+          title: "Sign in",
+          headerRight: () => <ColorModeToggle />,
+        }}
       />
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{ presentation: "modal", headerShown: true, title: "Create account" }}
+        options={{
+          presentation: "modal",
+          headerShown: true,
+          title: "Create account",
+          headerRight: () => <ColorModeToggle />,
+        }}
       />
     </Stack.Navigator>
   );

@@ -160,6 +160,11 @@ export const createFeedback = async ({ message }) => {
   return response.data;
 };
 
+export const fetchPublicTestimonials = async () => {
+  const response = await apiFetch("/api/feedback/public", { method: "GET" });
+  return response.data || [];
+};
+
 export const fetchAdminFeedback = async (query = {}) => {
   const response = await apiFetch(`/api/admin/feedback${buildQueryString(query)}`, { method: "GET" });
   return response.data || [];
