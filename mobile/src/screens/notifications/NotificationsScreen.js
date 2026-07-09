@@ -5,11 +5,13 @@ import { fetchNotifications, markNotificationAsRead } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { FeedbackCardSkeletonList } from "../../components/FeedbackCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 export default function NotificationsScreen() {
   const navigation = useNavigation();
   const { signedIn } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -112,14 +114,19 @@ export default function NotificationsScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <NotificationRow notification={item} marking={markingId === item._id} onMarkRead={handleMarkRead} />
+          <NotificationRow
+            notification={item}
+            marking={markingId === item._id}
+            onMarkRead={handleMarkRead}
+            styles={styles}
+          />
         )}
       />
     </View>
   );
 }
 
-function NotificationRow({ notification, marking, onMarkRead }) {
+function NotificationRow({ notification, marking, onMarkRead, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -145,95 +152,96 @@ function NotificationRow({ notification, marking, onMarkRead }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  filterRow: {
-    flexDirection: "row",
-    gap: 8,
-    padding: 16,
-    paddingBottom: 0,
-  },
-  filterButton: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: colors.surface,
-  },
-  filterButtonActive: {
-    backgroundColor: colors.greenDark,
-    borderColor: colors.greenDark,
-  },
-  filterButtonText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.ink,
-  },
-  filterButtonTextActive: {
-    color: colors.white,
-  },
-  list: {
-    padding: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.muted,
-    textAlign: "center",
-    marginTop: 24,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-    marginBottom: 12,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.ink,
-    flexShrink: 1,
-  },
-  cardMessage: {
-    fontSize: 13,
-    color: colors.ink,
-  },
-  cardFooterRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: colors.muted,
-  },
-  markReadText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.greenDark,
-  },
-  badge: {
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.greenDark,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    filterRow: {
+      flexDirection: "row",
+      gap: 8,
+      padding: 16,
+      paddingBottom: 0,
+    },
+    filterButton: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 999,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      backgroundColor: colors.surface,
+    },
+    filterButtonActive: {
+      backgroundColor: colors.greenDark,
+      borderColor: colors.greenDark,
+    },
+    filterButtonText: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.ink,
+    },
+    filterButtonTextActive: {
+      color: colors.white,
+    },
+    list: {
+      padding: 16,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.muted,
+      textAlign: "center",
+      marginTop: 24,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      gap: 6,
+      marginBottom: 12,
+    },
+    cardHeaderRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+    },
+    cardTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.ink,
+      flexShrink: 1,
+    },
+    cardMessage: {
+      fontSize: 13,
+      color: colors.ink,
+    },
+    cardFooterRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 4,
+    },
+    timestamp: {
+      fontSize: 12,
+      color: colors.muted,
+    },
+    markReadText: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.greenDark,
+    },
+    badge: {
+      backgroundColor: colors.surfaceSoft,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    badgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.greenDark,
+    },
+  });

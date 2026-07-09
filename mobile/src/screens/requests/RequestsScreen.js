@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext.js";
 import { RequestCardSkeletonList } from "../../components/RequestCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatStatusLabel } from "../../utils/format.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 const tabs = [
   { key: "inquiries", label: "Inquiries" },
@@ -16,6 +16,8 @@ const tabs = [
 export default function RequestsScreen() {
   const navigation = useNavigation();
   const { signedIn } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [tab, setTab] = useState("inquiries");
   const [inquiries, setInquiries] = useState([]);
   const [viewings, setViewings] = useState([]);
@@ -105,7 +107,11 @@ export default function RequestsScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           renderItem={({ item }) =>
-            tab === "inquiries" ? <InquiryRow inquiry={item} /> : <ViewingRow viewing={item} />
+            tab === "inquiries" ? (
+              <InquiryRow inquiry={item} styles={styles} />
+            ) : (
+              <ViewingRow viewing={item} styles={styles} />
+            )
           }
         />
       )}
@@ -113,12 +119,12 @@ export default function RequestsScreen() {
   );
 }
 
-function InquiryRow({ inquiry }) {
+function InquiryRow({ inquiry, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
         <Text style={styles.cardTitle} numberOfLines={1}>{inquiry.property?.title || "Property"}</Text>
-        <StatusBadge status={inquiry.status} />
+        <StatusBadge status={inquiry.status} styles={styles} />
       </View>
       {inquiry.subject ? <Text style={styles.cardSubject}>{inquiry.subject}</Text> : null}
       <Text style={styles.cardMessage} numberOfLines={3}>{inquiry.message}</Text>
@@ -132,12 +138,12 @@ function InquiryRow({ inquiry }) {
   );
 }
 
-function ViewingRow({ viewing }) {
+function ViewingRow({ viewing, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
         <Text style={styles.cardTitle} numberOfLines={1}>{viewing.property?.title || "Property"}</Text>
-        <StatusBadge status={viewing.status} />
+        <StatusBadge status={viewing.status} styles={styles} />
       </View>
       <Text style={styles.cardMessage}>
         {viewing.requestedDate
@@ -149,7 +155,7 @@ function ViewingRow({ viewing }) {
   );
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, styles }) {
   return (
     <View style={styles.badge}>
       <Text style={styles.badgeText}>{formatStatusLabel(status)}</Text>
@@ -157,96 +163,97 @@ function StatusBadge({ status }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  tabRow: {
-    flexDirection: "row",
-    gap: 8,
-    padding: 16,
-    paddingBottom: 8,
-  },
-  tab: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  tabActive: {
-    backgroundColor: colors.greenDark,
-    borderColor: colors.greenDark,
-  },
-  tabText: {
-    fontWeight: "700",
-    fontSize: 13,
-    color: colors.ink,
-  },
-  tabTextActive: {
-    color: colors.white,
-  },
-  list: {
-    padding: 16,
-    paddingTop: 4,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-    marginBottom: 12,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.ink,
-    flexShrink: 1,
-  },
-  cardSubject: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.greenDark,
-  },
-  cardMessage: {
-    fontSize: 13,
-    color: colors.ink,
-  },
-  badge: {
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.greenDark,
-  },
-  responseBox: {
-    marginTop: 4,
-    backgroundColor: colors.surfaceSoft,
-    borderRadius: 8,
-    padding: 10,
-    gap: 2,
-  },
-  responseLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.muted,
-    textTransform: "uppercase",
-  },
-  responseText: {
-    fontSize: 13,
-    color: colors.ink,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    tabRow: {
+      flexDirection: "row",
+      gap: 8,
+      padding: 16,
+      paddingBottom: 8,
+    },
+    tab: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 999,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    tabActive: {
+      backgroundColor: colors.greenDark,
+      borderColor: colors.greenDark,
+    },
+    tabText: {
+      fontWeight: "700",
+      fontSize: 13,
+      color: colors.ink,
+    },
+    tabTextActive: {
+      color: colors.white,
+    },
+    list: {
+      padding: 16,
+      paddingTop: 4,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      gap: 6,
+      marginBottom: 12,
+    },
+    cardHeaderRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+    },
+    cardTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.ink,
+      flexShrink: 1,
+    },
+    cardSubject: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.greenDark,
+    },
+    cardMessage: {
+      fontSize: 13,
+      color: colors.ink,
+    },
+    badge: {
+      backgroundColor: colors.surfaceSoft,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    badgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.greenDark,
+    },
+    responseBox: {
+      marginTop: 4,
+      backgroundColor: colors.surfaceSoft,
+      borderRadius: 8,
+      padding: 10,
+      gap: 2,
+    },
+    responseLabel: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.muted,
+      textTransform: "uppercase",
+    },
+    responseText: {
+      fontSize: 13,
+      color: colors.ink,
+    },
+  });

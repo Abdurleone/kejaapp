@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { createProperty } from "../../api/index.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const viewingTypes = ["scheduled", "open"];
@@ -79,7 +79,7 @@ const formToPayload = (form) => {
   };
 };
 
-function ChipRow({ options, value, onChange }) {
+function ChipRow({ options, value, onChange, styles }) {
   return (
     <View style={styles.chipRow}>
       {options.map((option) => {
@@ -101,6 +101,8 @@ function ChipRow({ options, value, onChange }) {
 }
 
 export default function PropertyCreateScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -154,7 +156,7 @@ export default function PropertyCreateScreen({ navigation }) {
 
       <View style={styles.field}>
         <Text style={styles.label}>Type</Text>
-        <ChipRow options={listingTypes} value={form.type} onChange={updateField("type")} />
+        <ChipRow options={listingTypes} value={form.type} onChange={updateField("type")} styles={styles} />
       </View>
 
       <View style={styles.row}>
@@ -233,13 +235,13 @@ export default function PropertyCreateScreen({ navigation }) {
       <Text style={styles.sectionTitle}>Viewing</Text>
       <View style={styles.field}>
         <Text style={styles.label}>Viewing type</Text>
-        <ChipRow options={viewingTypes} value={form.viewingType} onChange={updateField("viewingType")} />
+        <ChipRow options={viewingTypes} value={form.viewingType} onChange={updateField("viewingType")} styles={styles} />
       </View>
 
       <Text style={styles.sectionTitle}>Contact</Text>
       <View style={styles.field}>
         <Text style={styles.label}>Preferred method</Text>
-        <ChipRow options={contactMethods} value={form.contactPreferredMethod} onChange={updateField("contactPreferredMethod")} />
+        <ChipRow options={contactMethods} value={form.contactPreferredMethod} onChange={updateField("contactPreferredMethod")} styles={styles} />
       </View>
       <View style={styles.field}>
         <Text style={styles.label}>Phone</Text>
@@ -264,7 +266,8 @@ export default function PropertyCreateScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -349,4 +352,4 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: "800",
   },
-});
+  });

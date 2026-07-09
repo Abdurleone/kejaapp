@@ -1,15 +1,17 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import WorkspaceScreen from "../screens/workspace/WorkspaceScreen.js";
 import PropertyCreateScreen from "../screens/workspace/PropertyCreateScreen.js";
 import { useAuth } from "../context/AuthContext.js";
-import colors from "../theme/colors.js";
+import { useTheme } from "../context/ThemeContext.js";
+import ColorModeToggle from "../components/ColorModeToggle.js";
 
 const Stack = createNativeStackNavigator();
 const listingManagerRoles = ["landlord", "agency"];
 
 export default function WorkspaceStack() {
   const { user, signedIn } = useAuth();
+  const { colors } = useTheme();
   const canManageListings = signedIn && listingManagerRoles.includes(user?.role);
 
   return (
@@ -25,13 +27,16 @@ export default function WorkspaceStack() {
         component={WorkspaceScreen}
         options={({ navigation }) => ({
           title: "Workspace",
-          headerRight: canManageListings
-            ? () => (
+          headerRight: () => (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              {canManageListings ? (
                 <Pressable onPress={() => navigation.navigate("PropertyCreate")} hitSlop={10}>
                   <Text style={{ color: colors.greenDark, fontWeight: "700" }}>New listing</Text>
                 </Pressable>
-              )
-            : undefined,
+              ) : null}
+              <ColorModeToggle />
+            </View>
+          ),
         })}
       />
       <Stack.Screen

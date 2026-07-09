@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { createViewingRequest } from "../../api/index.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 // DateTimePicker has no web implementation; fall back to a plain text input
 // there (used for Expo web verification) while using the native picker on
@@ -27,6 +27,8 @@ const minScheduledDate = () => {
 };
 
 export default function ViewingRequestFormScreen({ route, navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { propertyId, viewingType } = route.params;
   const isScheduled = viewingType === "scheduled";
   const [requestedDate, setRequestedDate] = useState(minScheduledDate());
@@ -145,7 +147,8 @@ export default function ViewingRequestFormScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -222,4 +225,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 12,
   },
-});
+  });

@@ -268,6 +268,12 @@ const properties = [
     bedrooms: 0,
     bathrooms: 1,
     amenities: ["security", "water", "backup power"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=900&q=70",
+        alt: "Compact studio interior",
+      },
+    ],
     listedBy: "agency",
     status: "available",
     viewingType: "open",
@@ -300,6 +306,12 @@ const properties = [
     bedrooms: 4,
     bathrooms: 3,
     amenities: ["garden", "parking", "water storage"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=900&q=70",
+        alt: "Spacious living room",
+      },
+    ],
     listedBy: "owner",
     status: "available",
     viewingType: "scheduled",
@@ -371,6 +383,12 @@ const properties = [
     bedrooms: 4,
     bathrooms: 4,
     amenities: ["security", "garden", "parking", "backup power"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=70",
+        alt: "Townhouse exterior",
+      },
+    ],
     listedBy: "agency",
     ownerEmail: "urban.agency@example.com",
     status: "taken",
@@ -404,6 +422,12 @@ const properties = [
     bedrooms: 2,
     bathrooms: 2,
     amenities: ["parking", "security", "backup power", "borehole water"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=70",
+        alt: "Modern apartment interior",
+      },
+    ],
     listedBy: "agency",
     status: "available",
     viewingType: "scheduled",
@@ -437,6 +461,12 @@ const properties = [
     bedrooms: 3,
     bathrooms: 2,
     amenities: ["garden", "parking", "water storage"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=70",
+        alt: "Family house exterior",
+      },
+    ],
     listedBy: "owner",
     status: "available",
     viewingType: "scheduled",
@@ -469,6 +499,12 @@ const properties = [
     bedrooms: 3,
     bathrooms: 3,
     amenities: ["parking", "security", "garden"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=900&q=70",
+        alt: "Maisonette interior",
+      },
+    ],
     listedBy: "agency",
     ownerEmail: "urban.agency@example.com",
     status: "available",
@@ -502,6 +538,12 @@ const properties = [
     bedrooms: 0,
     bathrooms: 1,
     amenities: ["water", "security"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=900&q=70",
+        alt: "Bedsitter room",
+      },
+    ],
     listedBy: "owner",
     ownerEmail: "mary.landlord@example.com",
     status: "available",
@@ -535,6 +577,12 @@ const properties = [
     bedrooms: 3,
     bathrooms: 2,
     amenities: ["garden", "parking", "water storage", "backup power"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=900&q=70",
+        alt: "Bungalow exterior",
+      },
+    ],
     listedBy: "owner",
     status: "available",
     viewingType: "scheduled",
@@ -567,6 +615,12 @@ const properties = [
     bedrooms: 0,
     bathrooms: 1,
     amenities: ["security", "water"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=70",
+        alt: "Lakeside studio interior",
+      },
+    ],
     listedBy: "agency",
     status: "available",
     viewingType: "open",
@@ -599,6 +653,12 @@ const properties = [
     bedrooms: 1,
     bathrooms: 1,
     amenities: ["water", "security"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=900&q=70",
+        alt: "Bright apartment room",
+      },
+    ],
     listedBy: "owner",
     ownerEmail: "mary.landlord@example.com",
     status: "available",
@@ -632,6 +692,12 @@ const properties = [
     bedrooms: 3,
     bathrooms: 2,
     amenities: ["garden", "parking", "security"],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=70",
+        alt: "Maisonette with large compound",
+      },
+    ],
     listedBy: "agency",
     ownerEmail: "urban.agency@example.com",
     status: "available",

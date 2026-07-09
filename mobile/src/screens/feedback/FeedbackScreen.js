@@ -16,11 +16,13 @@ import { useAuth } from "../../context/AuthContext.js";
 import { FeedbackCardSkeletonList } from "../../components/FeedbackCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatStatusLabel } from "../../utils/format.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 export default function FeedbackScreen() {
   const navigation = useNavigation();
   const { user, signedIn } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const isAdmin = signedIn && user?.role === "admin";
 
   const [feedback, setFeedback] = useState([]);
@@ -95,7 +97,7 @@ export default function FeedbackScreen() {
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ListHeaderComponent={isAdmin ? null : <SubmitFeedbackForm onSubmitted={handleSubmitted} />}
+        ListHeaderComponent={isAdmin ? null : <SubmitFeedbackForm onSubmitted={handleSubmitted} styles={styles} />}
         ListEmptyComponent={
           <Text style={styles.emptyText}>
             {isAdmin ? "No feedback submitted yet." : "You have not submitted any feedback yet."}
@@ -103,9 +105,9 @@ export default function FeedbackScreen() {
         }
         renderItem={({ item }) =>
           isAdmin ? (
-            <AdminFeedbackRow feedback={item} onResponded={handleResponded} />
+            <AdminFeedbackRow feedback={item} onResponded={handleResponded} styles={styles} />
           ) : (
-            <FeedbackRow feedback={item} />
+            <FeedbackRow feedback={item} styles={styles} />
           )
         }
       />
@@ -113,7 +115,7 @@ export default function FeedbackScreen() {
   );
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, styles }) {
   return (
     <View style={styles.badge}>
       <Text style={styles.badgeText}>{formatStatusLabel(status)}</Text>
@@ -121,7 +123,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function SubmitFeedbackForm({ onSubmitted }) {
+function SubmitFeedbackForm({ onSubmitted, styles }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -173,11 +175,11 @@ function SubmitFeedbackForm({ onSubmitted }) {
   );
 }
 
-function FeedbackRow({ feedback }) {
+function FeedbackRow({ feedback, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
-        <StatusBadge status={feedback.status} />
+        <StatusBadge status={feedback.status} styles={styles} />
       </View>
       <Text style={styles.cardMessage}>{feedback.message}</Text>
       {feedback.response?.message ? (
@@ -190,7 +192,7 @@ function FeedbackRow({ feedback }) {
   );
 }
 
-function AdminFeedbackRow({ feedback, onResponded }) {
+function AdminFeedbackRow({ feedback, onResponded, styles }) {
   const [responding, setResponding] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -224,7 +226,7 @@ function AdminFeedbackRow({ feedback, onResponded }) {
         <Text style={styles.cardTitle} numberOfLines={1}>
           {feedback.submitter?.name || "User"} ({formatStatusLabel(feedback.submitter?.role || "")})
         </Text>
-        <StatusBadge status={feedback.status} />
+        <StatusBadge status={feedback.status} styles={styles} />
       </View>
       <Text style={styles.cardMessage}>{feedback.message}</Text>
       {feedback.response?.message ? (
@@ -269,139 +271,140 @@ function AdminFeedbackRow({ feedback, onResponded }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  list: {
-    padding: 16,
-    paddingTop: 4,
-  },
-  formCard: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.muted,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: colors.surface,
-    color: colors.ink,
-  },
-  textArea: {
-    minHeight: 90,
-    textAlignVertical: "top",
-  },
-  error: {
-    color: colors.red,
-    fontSize: 13,
-  },
-  success: {
-    color: colors.greenDark,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  primaryButton: {
-    backgroundColor: colors.greenDark,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    color: colors.white,
-    fontWeight: "800",
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    backgroundColor: colors.surface,
-  },
-  secondaryButtonText: {
-    color: colors.ink,
-    fontWeight: "700",
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.muted,
-    textAlign: "center",
-    marginTop: 24,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-    marginBottom: 12,
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.ink,
-    flexShrink: 1,
-  },
-  cardMessage: {
-    fontSize: 13,
-    color: colors.ink,
-  },
-  badge: {
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.greenDark,
-  },
-  responseBox: {
-    marginTop: 4,
-    backgroundColor: colors.surfaceSoft,
-    borderRadius: 8,
-    padding: 10,
-    gap: 2,
-  },
-  responseLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.muted,
-    textTransform: "uppercase",
-  },
-  responseText: {
-    fontSize: 13,
-    color: colors.ink,
-  },
-  respondForm: {
-    marginTop: 4,
-    gap: 8,
-  },
-  respondActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    list: {
+      padding: 16,
+      paddingTop: 4,
+    },
+    formCard: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      gap: 10,
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.muted,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+      color: colors.ink,
+    },
+    textArea: {
+      minHeight: 90,
+      textAlignVertical: "top",
+    },
+    error: {
+      color: colors.red,
+      fontSize: 13,
+    },
+    success: {
+      color: colors.greenDark,
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    primaryButton: {
+      backgroundColor: colors.greenDark,
+      borderRadius: 8,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    primaryButtonText: {
+      color: colors.white,
+      fontWeight: "800",
+    },
+    secondaryButton: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 8,
+      paddingVertical: 12,
+      alignItems: "center",
+      backgroundColor: colors.surface,
+    },
+    secondaryButtonText: {
+      color: colors.ink,
+      fontWeight: "700",
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.muted,
+      textAlign: "center",
+      marginTop: 24,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      gap: 6,
+      marginBottom: 12,
+    },
+    cardHeaderRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+    },
+    cardTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.ink,
+      flexShrink: 1,
+    },
+    cardMessage: {
+      fontSize: 13,
+      color: colors.ink,
+    },
+    badge: {
+      backgroundColor: colors.surfaceSoft,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    badgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.greenDark,
+    },
+    responseBox: {
+      marginTop: 4,
+      backgroundColor: colors.surfaceSoft,
+      borderRadius: 8,
+      padding: 10,
+      gap: 2,
+    },
+    responseLabel: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.muted,
+      textTransform: "uppercase",
+    },
+    responseText: {
+      fontSize: 13,
+      color: colors.ink,
+    },
+    respondForm: {
+      marginTop: 4,
+      gap: 8,
+    },
+    respondActions: {
+      flexDirection: "row",
+      gap: 8,
+    },
+  });

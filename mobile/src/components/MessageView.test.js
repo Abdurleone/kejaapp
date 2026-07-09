@@ -1,9 +1,12 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import MessageView from "./MessageView.js";
+import { ThemeProvider } from "../context/ThemeContext.js";
+
+const renderWithTheme = (ui) => render(<ThemeProvider>{ui}</ThemeProvider>);
 
 describe("MessageView", () => {
   it("renders title and message text", async () => {
-    const { getByText } = await render(
+    const { getByText } = await renderWithTheme(
       <MessageView title="Sign in required" message="Sign in to continue." />
     );
 
@@ -12,14 +15,14 @@ describe("MessageView", () => {
   });
 
   it("omits the action button when no onAction handler is given", async () => {
-    const { queryByText } = await render(<MessageView title="No results" actionLabel="Retry" />);
+    const { queryByText } = await renderWithTheme(<MessageView title="No results" actionLabel="Retry" />);
 
     expect(queryByText("Retry")).toBeNull();
   });
 
   it("calls onAction when the action button is pressed", async () => {
     const onAction = jest.fn();
-    const { getByText } = await render(
+    const { getByText } = await renderWithTheme(
       <MessageView title="Sign in required" actionLabel="Sign in" onAction={onAction} />
     );
 

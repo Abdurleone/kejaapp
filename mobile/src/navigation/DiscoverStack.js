@@ -3,11 +3,14 @@ import DiscoverScreen from "../screens/discover/DiscoverScreen.js";
 import PropertyDetailScreen from "../screens/discover/PropertyDetailScreen.js";
 import InquiryFormScreen from "../screens/discover/InquiryFormScreen.js";
 import ViewingRequestFormScreen from "../screens/discover/ViewingRequestFormScreen.js";
-import colors from "../theme/colors.js";
+import { useTheme } from "../context/ThemeContext.js";
+import ColorModeToggle from "../components/ColorModeToggle.js";
 
 const Stack = createNativeStackNavigator();
 
 export default function DiscoverStack() {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -16,7 +19,11 @@ export default function DiscoverStack() {
         headerTitleStyle: { fontWeight: "700" },
       }}
     >
-      <Stack.Screen name="DiscoverList" component={DiscoverScreen} options={{ title: "Discover" }} />
+      <Stack.Screen
+        name="DiscoverList"
+        component={DiscoverScreen}
+        options={{ title: "Discover", headerRight: () => <ColorModeToggle /> }}
+      />
       <Stack.Screen name="PropertyDetail" component={PropertyDetailScreen} options={{ title: "Property" }} />
       <Stack.Screen
         name="InquiryForm"
