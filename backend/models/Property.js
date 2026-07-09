@@ -158,6 +158,10 @@ const propertySchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    freshnessNudgeSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

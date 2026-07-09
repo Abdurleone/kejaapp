@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
+import DeviceToken from "../../models/DeviceToken.js";
 import Notification from "../../models/Notification.js";
 import User from "../../models/User.js";
 import UserStatusLog from "../../models/UserStatusLog.js";
@@ -43,6 +44,7 @@ describe("accountModerationService", () => {
       logPayload = payload;
       return payload;
     });
+    mock.method(DeviceToken, "find", async () => []);
     mock.method(Notification, "create", async (payload) => {
       notificationPayload = payload;
       return payload;

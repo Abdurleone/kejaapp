@@ -6,6 +6,7 @@ import {
   logoutUser,
   registerUser,
 } from "../api/index.js";
+import { registerForPushNotifications, unregisterForPushNotifications } from "../services/pushNotifications.js";
 
 const AuthContext = createContext(null);
 
@@ -27,6 +28,7 @@ export function AuthProvider({ children }) {
       try {
         const me = await fetchCurrentUser();
         if (active) setUser(me);
+        registerForPushNotifications();
       } catch {
         // Stored token is stale/invalid; fall through to signed-out state.
       } finally {
@@ -42,16 +44,19 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     const response = await loginUser(credentials);
     setUser(response.user);
+    registerForPushNotifications();
     return response.user;
   };
 
   const register = async (payload) => {
     const response = await registerUser(payload);
     setUser(response.user);
+    registerForPushNotifications();
     return response.user;
   };
 
   const logout = async () => {
+    await unregisterForPushNotifications();
     await logoutUser();
     setUser(null);
   };

@@ -5,15 +5,20 @@ import {
   createApiUrl,
   createFeedback,
   createInquiry,
+  createSavedSearch,
   createViewingRequest,
+  deleteSavedSearch,
   fetchAdminFeedback,
   fetchCurrentUser,
   fetchMyFeedback,
+  fetchNotifications,
   fetchProperties,
   fetchFavorites,
   fetchPublicTestimonials,
+  fetchSavedSearches,
   loginUser,
   logoutUser,
+  markNotificationAsRead,
   registerUser,
   respondToFeedback,
   getAuthToken,
@@ -231,5 +236,74 @@ describe("frontend API helpers", () => {
     const result = await fetchPublicTestimonials();
 
     assert.deepEqual(result, [{ _id: "f1", message: "Great app!" }]);
+  });
+
+  it("fetches notifications, optionally filtered to unread", async () => {
+    let capturedUrl;
+    global.fetch = async (url) => {
+      capturedUrl = url;
+      return jsonResponse({ data: [{ _id: "n1", title: "New inquiry", isRead: false }] });
+    };
+
+    const result = await fetchNotifications({ unread: "true" });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/notifications?unread=true");
+    assert.deepEqual(result, [{ _id: "n1", title: "New inquiry", isRead: false }]);
+  });
+
+  it("creates a saved search", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "s1", lat: -1.29, lng: 36.8, radiusKm: 5 } });
+    };
+
+    const result = await createSavedSearch({ lat: -1.29, lng: 36.8, radiusKm: 5 });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/saved-searches");
+    assert.equal(capturedOptions.method, "POST");
+    assert.deepEqual(JSON.parse(capturedOptions.body), { lat: -1.29, lng: 36.8, radiusKm: 5 });
+    assert.deepEqual(result, { _id: "s1", lat: -1.29, lng: 36.8, radiusKm: 5 });
+  });
+
+  it("fetches the current user's saved searches", async () => {
+    global.fetch = async () => jsonResponse({ data: [{ _id: "s1", county: "Nairobi" }] });
+
+    const result = await fetchSavedSearches();
+
+    assert.deepEqual(result, [{ _id: "s1", county: "Nairobi" }]);
+  });
+
+  it("deletes a saved search", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ message: "Saved search deleted" });
+    };
+
+    await deleteSavedSearch("s1");
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/saved-searches/s1");
+    assert.equal(capturedOptions.method, "DELETE");
+  });
+
+  it("marks a notification as read", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "n1", isRead: true } });
+    };
+
+    const result = await markNotificationAsRead("n1");
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/notifications/n1/read");
+    assert.equal(capturedOptions.method, "PUT");
+    assert.deepEqual(result, { _id: "n1", isRead: true });
   });
 });

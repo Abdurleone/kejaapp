@@ -21,6 +21,9 @@ Implemented:
 - Inquiries: send an inquiry from a property, view your inquiries and any owner response
 - Viewing requests: request a scheduled or open viewing, view your requests and their status
 - Owner/agency Workspace tab: lists the signed-in landlord/agency's own properties (`fetchMyProperties`) and a "New listing" action that opens a create-listing form (`POST /api/properties`); gated so tenants see a sign-in/role message instead. Editing an existing listing and managing images are still web-only.
+- Notifications tab: lists all notifications with an All/Unread filter and a "Mark as read" action per item.
+- Saved searches: a "Save search" action on Discover once a location is set (tenants), and a list to review/remove them on the Account tab.
+- Push notifications: registers/unregisters an Expo push token around sign-in/sign-out; every notification above also arrives as a push notification if the device is registered. Requires a development build to actually receive pushes — Expo Go on Android doesn't support them as of SDK 53+ (see Troubleshooting).
 
 Not yet built (still placeholders on the web frontend too, so this isn't a regression):
 - Editing an existing listing, image management, and the received-inquiries view from the owner workspace (all web-only so far)
@@ -118,6 +121,10 @@ Other options, if you'd rather not run a WSL2-side emulator:
 **Physical device can't reach the API / requests hang or fail**
 
 See [Pointing the app at your backend](#pointing-the-app-at-your-backend) above — `localhost` from a phone refers to the phone itself, not your dev machine. Set the LAN IP via the sign-in screen's API server settings.
+
+**Not receiving push notifications**
+
+Since Expo SDK 53, push notifications don't work in Expo Go on Android at all — you need a development build (`eas build --profile development` or `npx expo run:android`) to test them there. iOS Expo Go and the web preview aren't affected by this specific restriction, though push isn't supported on web regardless (see Core Features above). Also check that an EAS project is configured (`extra.eas.projectId` in `app.json`/`eas.json`) — without it, `registerForPushNotifications()` silently no-ops rather than erroring.
 
 ## Verification notes
 

@@ -11,6 +11,7 @@ const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
 const dashboardSource = await readSource("pages/DashboardPage.jsx");
 const feedbackSource = await readSource("pages/FeedbackPage.jsx");
+const notificationsSource = await readSource("pages/NotificationsPage.jsx");
 const workspaceSource = await readSource("pages/WorkspacePage.jsx");
 const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
 const propertyCreateSource = await readSource("pages/PropertyCreatePage.jsx");
@@ -79,6 +80,20 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /<FeedbackPage currentUser=\{currentUser\}/);
   });
 
+  it("wires the Notifications tab into navigation and view routing", () => {
+    assert.match(appSource, /view: "notifications", label: "Notifications"/);
+    assert.match(appSource, /case "notifications":/);
+    assert.match(appSource, /canAccessView\(currentUser\?\.role, "notifications"\)/);
+    assert.match(appSource, /<NotificationsPage \/>/);
+  });
+
+  it("lists notifications, filters unread, and marks them read", () => {
+    assert.match(notificationsSource, /fetchNotifications\(unreadOnly \? \{ unread: "true" \} : \{\}\)/);
+    assert.match(notificationsSource, /markNotificationAsRead\(notificationId\)/);
+    assert.match(notificationsSource, /className="property-grid compact-grid"/);
+    assert.match(notificationsSource, /!item\.isRead/);
+  });
+
   it("submits feedback and lists the current user's own submissions", () => {
     assert.match(feedbackSource, /fetchMyFeedback\(\)/);
     assert.match(feedbackSource, /createFeedback\(\{ message \}\)/);
@@ -93,6 +108,17 @@ describe("frontend page component contracts", () => {
     assert.match(feedbackSource, /respondToFeedback\(feedbackId, \{ message: responseMessage \}\)/);
     assert.match(feedbackSource, /currentUser\?\.role === "admin"/);
     assert.match(feedbackSource, /"Send response"/);
+  });
+
+  it("lets a signed-in tenant save the current Discover search", () => {
+    assert.match(discoverSource, /createSavedSearch\(\{ lat: coords\.lat, lng: coords\.lng, radiusKm: radius \}\)/);
+    assert.match(discoverSource, /"Save this search"/);
+  });
+
+  it("lists and removes saved searches on the Account page", () => {
+    assert.match(accountSource, /fetchSavedSearches\(\)/);
+    assert.match(accountSource, /deleteSavedSearch\(savedSearchId\)/);
+    assert.match(accountSource, /currentUser\?\.role === "tenant"/);
   });
 
   it("keeps account deletion and landing entry points available", () => {

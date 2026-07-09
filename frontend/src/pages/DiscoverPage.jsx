@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import {
+  createSavedSearch,
   fetchFavorites,
   fetchProperties,
   formatKes,
@@ -19,6 +20,8 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
   const [saveError, setSaveError] = useState("");
   const [coords, setCoords] = useState(null);
   const [radius, setRadius] = useState(5);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [saveSearchMessage, setSaveSearchMessage] = useState("");
 
   const loadProperties = async (lat = null, lng = null, radiusKm = radius) => {
     try {
@@ -114,6 +117,25 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
     }
   };
 
+  const handleSaveSearch = async () => {
+    if (!signedIn) {
+      onRequireAuth();
+      return;
+    }
+
+    setSaveSearchMessage("");
+    setSavingSearch(true);
+
+    try {
+      await createSavedSearch({ lat: coords.lat, lng: coords.lng, radiusKm: radius });
+      setSaveSearchMessage("Saved! We'll notify you when a matching listing appears.");
+    } catch (err) {
+      setSaveSearchMessage(err.message || "Could not save this search.");
+    } finally {
+      setSavingSearch(false);
+    }
+  };
+
   const summary = useMemo(() => summarizeProperties(properties), [properties]);
 
   return (
@@ -137,19 +159,29 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
             Near me
           </button>
           {coords && (
-            <button
-              className="text-button"
-              type="button"
-              onClick={() => {
-                setCoords(null);
-                loadProperties();
-              }}
-            >
-              Clear location
-            </button>
+            <>
+              <button className="secondary-button" type="button" disabled={savingSearch} onClick={handleSaveSearch}>
+                {savingSearch ? "Saving..." : "Save this search"}
+              </button>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => {
+                  setCoords(null);
+                  loadProperties();
+                }}
+              >
+                Clear location
+              </button>
+            </>
           )}
         </div>
       </div>
+      {saveSearchMessage && (
+        <div className="panel notice-panel">
+          <p className="muted-copy">{saveSearchMessage}</p>
+        </div>
+      )}
 
       <div className="header-stats">
         <div>

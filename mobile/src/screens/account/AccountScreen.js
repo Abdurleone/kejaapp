@@ -1,7 +1,89 @@
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { deleteSavedSearch, fetchSavedSearches } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import colors from "../../theme/colors.js";
+
+function describeSavedSearch(savedSearch) {
+  const parts = [];
+
+  if (savedSearch.lat != null && savedSearch.lng != null) {
+    parts.push(`within ${savedSearch.radiusKm || 5}km of a location`);
+  }
+
+  if (savedSearch.county) parts.push(`in ${savedSearch.county}`);
+  if (savedSearch.town) parts.push(`near ${savedSearch.town}`);
+  if (savedSearch.type) parts.push(savedSearch.type);
+  if (savedSearch.bedrooms) parts.push(`${savedSearch.bedrooms}+ bed`);
+  if (savedSearch.minRent || savedSearch.maxRent) {
+    parts.push(`KES ${savedSearch.minRent || 0}-${savedSearch.maxRent || "any"}`);
+  }
+
+  return parts.length > 0 ? parts.join(", ") : "Any listing";
+}
+
+function SavedSearchesCard() {
+  const [savedSearches, setSavedSearches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+
+  const load = useCallback(async () => {
+    setError("");
+
+    try {
+      const data = await fetchSavedSearches();
+      setSavedSearches(data);
+    } catch (err) {
+      setError(err.message || "Failed to load your saved searches.");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  const handleDelete = async (savedSearchId) => {
+    setDeletingId(savedSearchId);
+
+    try {
+      await deleteSavedSearch(savedSearchId);
+      setSavedSearches((current) => current.filter((item) => item._id !== savedSearchId));
+    } catch (err) {
+      setError(err.message || "Could not delete this saved search.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Saved searches</Text>
+      {loading ? (
+        <Text style={styles.subtitleSmall}>Loading...</Text>
+      ) : error ? (
+        <Text style={styles.error}>{error}</Text>
+      ) : savedSearches.length === 0 ? (
+        <Text style={styles.subtitleSmall}>
+          You have no saved searches yet. Save one from the Discover tab's location filters.
+        </Text>
+      ) : (
+        savedSearches.map((savedSearch) => (
+          <View key={savedSearch._id} style={styles.savedSearchRow}>
+            <Text style={styles.savedSearchText}>{describeSavedSearch(savedSearch)}</Text>
+            <Pressable disabled={deletingId === savedSearch._id} onPress={() => handleDelete(savedSearch._id)}>
+              <Text style={styles.removeText}>{deletingId === savedSearch._id ? "Removing..." : "Remove"}</Text>
+            </Pressable>
+          </View>
+        ))
+      )}
+    </View>
+  );
+}
 
 export default function AccountScreen() {
   const navigation = useNavigation();
@@ -30,7 +112,7 @@ export default function AccountScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
         <DetailRow label="Name" value={user?.name || "Not set"} />
         <DetailRow label="Username" value={user?.username || "Not set"} />
@@ -39,10 +121,12 @@ export default function AccountScreen() {
         <DetailRow label="Phone" value={user?.phone || "Not set"} />
       </View>
 
+      {user?.role === "tenant" ? <SavedSearchesCard /> : null}
+
       <Pressable style={styles.dangerButton} onPress={confirmSignOut}>
         <Text style={styles.dangerButtonText}>Sign out</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -59,6 +143,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  content: {
     padding: 16,
     gap: 16,
   },
@@ -97,6 +183,38 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.muted,
     textTransform: "uppercase",
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.ink,
+  },
+  subtitleSmall: {
+    fontSize: 13,
+    color: colors.muted,
+  },
+  error: {
+    fontSize: 13,
+    color: colors.red,
+  },
+  savedSearchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  savedSearchText: {
+    fontSize: 13,
+    color: colors.ink,
+    flexShrink: 1,
+  },
+  removeText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.red,
   },
   detailValue: {
     fontSize: 15,

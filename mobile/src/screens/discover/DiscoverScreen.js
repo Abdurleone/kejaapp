@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
-import { fetchFavorites, fetchProperties, saveFavorite } from "../../api/index.js";
+import { createSavedSearch, fetchFavorites, fetchProperties, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import PropertyCard from "../../components/PropertyCard.js";
@@ -24,6 +24,8 @@ export default function DiscoverScreen({ navigation }) {
   const [locationError, setLocationError] = useState("");
   const [savedIds, setSavedIds] = useState([]);
   const [savingId, setSavingId] = useState(null);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [saveSearchMessage, setSaveSearchMessage] = useState("");
 
   const loadProperties = useCallback(async ({ lat, lng, radiusKm } = {}) => {
     setError("");
@@ -115,6 +117,25 @@ export default function DiscoverScreen({ navigation }) {
     }
   };
 
+  const handleSaveSearch = async () => {
+    if (!signedIn) {
+      navigation.navigate("Login");
+      return;
+    }
+
+    setSaveSearchMessage("");
+    setSavingSearch(true);
+
+    try {
+      await createSavedSearch({ lat: coords.lat, lng: coords.lng, radiusKm: radius });
+      setSaveSearchMessage("Saved! We'll notify you when a matching listing appears.");
+    } catch (err) {
+      setSaveSearchMessage(err.message || "Could not save this search.");
+    } finally {
+      setSavingSearch(false);
+    }
+  };
+
   const handleSave = async (propertyId) => {
     if (!signedIn) {
       navigation.navigate("Login");
@@ -160,9 +181,15 @@ export default function DiscoverScreen({ navigation }) {
         <Pressable style={styles.nearMeButton} onPress={handleNearMe} disabled={locating}>
           <Text style={styles.nearMeButtonText}>{locating ? "Locating..." : "Near me"}</Text>
         </Pressable>
+        {coords ? (
+          <Pressable style={styles.nearMeButton} onPress={handleSaveSearch} disabled={savingSearch}>
+            <Text style={styles.nearMeButtonText}>{savingSearch ? "Saving..." : "Save search"}</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {locationError ? <Text style={styles.inlineError}>{locationError}</Text> : null}
+      {saveSearchMessage ? <Text style={styles.inlineMessage}>{saveSearchMessage}</Text> : null}
 
       {error ? (
         <MessageView
@@ -251,6 +278,12 @@ const styles = StyleSheet.create({
   },
   inlineError: {
     color: colors.red,
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
+  inlineMessage: {
+    color: colors.greenDark,
     fontSize: 12,
     paddingHorizontal: 16,
     paddingBottom: 4,
