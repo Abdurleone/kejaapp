@@ -249,6 +249,11 @@ button:disabled {
   line-height: 1.1;
 }
 
+.contact-cta {
+  margin-top: 10px;
+  width: fit-content;
+}
+
 .tab {
   flex: 0 0 auto;
   background: transparent;

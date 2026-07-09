@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { fetchDashboardSummary } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import DashboardSkeleton from "../../components/DashboardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatStatusLabel } from "../../utils/format.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
+import LandingView from "./LandingView.js";
 
 const roleLabels = {
   tenant: "Tenant",
@@ -15,7 +15,7 @@ const roleLabels = {
   admin: "Admin",
 };
 
-function StatTile({ value, label }) {
+function StatTile({ value, label, styles }) {
   return (
     <View style={styles.tile}>
       <Text style={styles.tileValue}>{value}</Text>
@@ -24,15 +24,21 @@ function StatTile({ value, label }) {
   );
 }
 
-function StatusStatTiles({ counts, suffix }) {
+function StatusStatTiles({ counts, suffix, styles }) {
   return Object.entries(counts).map(([status, count]) => (
-    <StatTile key={`${suffix}-${status}`} value={count} label={`${formatStatusLabel(status)} ${suffix}`} />
+    <StatTile
+      key={`${suffix}-${status}`}
+      value={count}
+      label={`${formatStatusLabel(status)} ${suffix}`}
+      styles={styles}
+    />
   ));
 }
 
 export default function DashboardScreen() {
-  const navigation = useNavigation();
   const { user, signedIn } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,14 +73,7 @@ export default function DashboardScreen() {
   };
 
   if (!signedIn) {
-    return (
-      <MessageView
-        title="Sign in required"
-        message="Sign in to see your dashboard."
-        actionLabel="Sign in"
-        onAction={() => navigation.navigate("Login")}
-      />
-    );
+    return <LandingView />;
   }
 
   if (loading) {
@@ -104,16 +103,16 @@ export default function DashboardScreen() {
       </Text>
 
       <View style={styles.row}>
-        <StatTile value={summary.notifications.unread} label="Unread notifications" />
+        <StatTile value={summary.notifications.unread} label="Unread notifications" styles={styles} />
       </View>
 
       {summary.tenant ? (
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>Your activity</Text>
           <View style={styles.row}>
-            <StatTile value={summary.tenant.savedProperties} label="Saved properties" />
-            <StatusStatTiles counts={summary.tenant.inquiries} suffix="inquiries" />
-            <StatusStatTiles counts={summary.tenant.viewings} suffix="viewings" />
+            <StatTile value={summary.tenant.savedProperties} label="Saved properties" styles={styles} />
+            <StatusStatTiles counts={summary.tenant.inquiries} suffix="inquiries" styles={styles} />
+            <StatusStatTiles counts={summary.tenant.viewings} suffix="viewings" styles={styles} />
           </View>
         </View>
       ) : null}
@@ -122,9 +121,9 @@ export default function DashboardScreen() {
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>Your listings</Text>
           <View style={styles.row}>
-            <StatusStatTiles counts={summary.owner.properties} suffix="properties" />
-            <StatusStatTiles counts={summary.owner.incomingInquiries} suffix="incoming inquiries" />
-            <StatusStatTiles counts={summary.owner.incomingViewings} suffix="incoming viewings" />
+            <StatusStatTiles counts={summary.owner.properties} suffix="properties" styles={styles} />
+            <StatusStatTiles counts={summary.owner.incomingInquiries} suffix="incoming inquiries" styles={styles} />
+            <StatusStatTiles counts={summary.owner.incomingViewings} suffix="incoming viewings" styles={styles} />
           </View>
         </View>
       ) : null}
@@ -145,9 +144,9 @@ export default function DashboardScreen() {
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>Platform moderation</Text>
           <View style={styles.row}>
-            <StatusStatTiles counts={summary.admin.agencyVerifications} suffix="agency verifications" />
-            <StatusStatTiles counts={summary.admin.violations} suffix="violations" />
-            <StatusStatTiles counts={summary.admin.feedback} suffix="feedback" />
+            <StatusStatTiles counts={summary.admin.agencyVerifications} suffix="agency verifications" styles={styles} />
+            <StatusStatTiles counts={summary.admin.violations} suffix="violations" styles={styles} />
+            <StatusStatTiles counts={summary.admin.feedback} suffix="feedback" styles={styles} />
           </View>
         </View>
       ) : null}
@@ -155,7 +154,8 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -214,4 +214,4 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.ink,
   },
-});
+  });

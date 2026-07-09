@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Animated, Easing } from "react-native";
-import colors from "../theme/colors.js";
+import { useTheme } from "../context/ThemeContext.js";
 
 export default function Skeleton({ style }) {
+  const { colors } = useTheme();
   const [opacity] = useState(() => new Animated.Value(0.55));
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext.js";
 import DashboardScreen from "../screens/dashboard/DashboardScreen.js";
 import DiscoverStack from "./DiscoverStack.js";
 import SavedScreen from "../screens/saved/SavedScreen.js";
@@ -8,7 +9,8 @@ import RequestsScreen from "../screens/requests/RequestsScreen.js";
 import NotificationsScreen from "../screens/notifications/NotificationsScreen.js";
 import FeedbackScreen from "../screens/feedback/FeedbackScreen.js";
 import AccountScreen from "../screens/account/AccountScreen.js";
-import colors from "../theme/colors.js";
+import { useTheme } from "../context/ThemeContext.js";
+import ColorModeToggle from "../components/ColorModeToggle.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -23,7 +25,36 @@ const icons = {
   Account: "person-circle",
 };
 
+// Mirrors the per-role nav filtering frontend/app-utils.js does for the web
+// app (roleViewAccess/canAccessView) - anonymous visitors and each signed-in
+// role only see the tabs relevant to them, instead of every tab regardless
+// of whether it applies (which is what made the bar feel cramped with 8
+// tabs for everyone, tenant and landlord alike).
+const roleTabs = {
+  tenant: ["Dashboard", "Discover", "Saved", "Requests", "Notifications", "Feedback", "Account"],
+  landlord: ["Dashboard", "Workspace", "Notifications", "Feedback", "Account"],
+  agency: ["Dashboard", "Workspace", "Notifications", "Feedback", "Account"],
+  admin: ["Dashboard", "Notifications", "Feedback", "Account"],
+};
+
+const anonymousTabs = ["Dashboard", "Discover", "Account"];
+
+const screens = {
+  Dashboard: { component: DashboardScreen },
+  Discover: { component: DiscoverStack, options: { headerShown: false } },
+  Saved: { component: SavedScreen },
+  Workspace: { component: WorkspaceStack, options: { headerShown: false } },
+  Requests: { component: RequestsScreen },
+  Notifications: { component: NotificationsScreen },
+  Feedback: { component: FeedbackScreen },
+  Account: { component: AccountScreen },
+};
+
 export default function MainTabs() {
+  const { user, signedIn } = useAuth();
+  const { colors } = useTheme();
+  const visibleTabs = signedIn ? roleTabs[user?.role] || anonymousTabs : anonymousTabs;
+
   return (
     <Tab.Navigator
       initialRouteName="Dashboard"
@@ -36,16 +67,12 @@ export default function MainTabs() {
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.ink,
         headerTitleStyle: { fontWeight: "700" },
+        headerRight: () => <ColorModeToggle />,
       })}
     >
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Discover" component={DiscoverStack} options={{ headerShown: false }} />
-      <Tab.Screen name="Saved" component={SavedScreen} />
-      <Tab.Screen name="Workspace" component={WorkspaceStack} options={{ headerShown: false }} />
-      <Tab.Screen name="Requests" component={RequestsScreen} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Feedback" component={FeedbackScreen} />
-      <Tab.Screen name="Account" component={AccountScreen} />
+      {visibleTabs.map((name) => (
+        <Tab.Screen key={name} name={name} component={screens[name].component} options={screens[name].options} />
+      ))}
     </Tab.Navigator>
   );
 }

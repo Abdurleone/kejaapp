@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { createInquiry } from "../../api/index.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 const contactPreferences = [
   { value: "in_app", label: "In-app" },
@@ -10,6 +10,8 @@ const contactPreferences = [
 ];
 
 export default function InquiryFormScreen({ route, navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { propertyId } = route.params;
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -97,7 +99,8 @@ export default function InquiryFormScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -187,4 +190,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 12,
   },
-});
+  });

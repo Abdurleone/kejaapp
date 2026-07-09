@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext.js";
-import colors from "../../theme/colors.js";
+import { useTheme } from "../../context/ThemeContext.js";
 
 const roles = [
   { value: "tenant", label: "Tenant" },
@@ -20,6 +20,8 @@ const roles = [
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -161,7 +163,8 @@ export default function RegisterScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   container: {
     padding: 24,
@@ -242,4 +245,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
-});
+  });
