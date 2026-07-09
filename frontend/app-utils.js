@@ -314,6 +314,63 @@ export const respondToFeedback = async (feedbackId, { message }) => {
   return response.data;
 };
 
+const savedSearchesCacheTtlMs = 15000;
+
+export const createSavedSearch = async (payload) => {
+  const response = await apiFetch("/api/saved-searches", {
+    method: "POST",
+    body: payload,
+  });
+  clearRequestCache("savedSearches");
+  return response.data;
+};
+
+export const fetchSavedSearches = async () => {
+  const cacheKey = "savedSearches";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/saved-searches", { method: "GET" });
+  const data = response.data || [];
+  setCached(cacheKey, data, savedSearchesCacheTtlMs);
+  return data;
+};
+
+export const deleteSavedSearch = async (savedSearchId) => {
+  await apiFetch(`/api/saved-searches/${savedSearchId}`, { method: "DELETE" });
+  clearRequestCache("savedSearches");
+};
+
+const notificationsCacheTtlMs = 15000;
+
+export const fetchNotifications = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `notifications:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/notifications${queryString}`, {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, notificationsCacheTtlMs);
+  return data;
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+  const response = await apiFetch(`/api/notifications/${notificationId}/read`, {
+    method: "PUT",
+  });
+  clearRequestCache("notifications");
+  return response.data;
+};
+
 export const fetchPublicTestimonials = async () => {
   const cacheKey = "publicTestimonials";
   const cached = getCached(cacheKey);
@@ -537,10 +594,10 @@ export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
 export const canRegisterRole = (role) => hasRole(role, roleGroups.publicRegistration);
 
 const roleViewAccess = {
-  [roles.tenant]: ["dashboard", "discover", "saved", "feedback", "account"],
-  [roles.landlord]: ["dashboard", "owner", "feedback", "account"],
-  [roles.agency]: ["dashboard", "owner", "feedback", "account"],
-  [roles.admin]: ["dashboard", "admin", "feedback", "account"],
+  [roles.tenant]: ["dashboard", "discover", "saved", "notifications", "feedback", "account"],
+  [roles.landlord]: ["dashboard", "owner", "notifications", "feedback", "account"],
+  [roles.agency]: ["dashboard", "owner", "notifications", "feedback", "account"],
+  [roles.admin]: ["dashboard", "admin", "notifications", "feedback", "account"],
 };
 
 export const canAccessView = (role, view) => {
@@ -577,6 +634,7 @@ const viewPaths = {
   owner: "/owner",
   propertyCreate: "/owner/properties/new",
   admin: "/admin",
+  notifications: "/notifications",
   feedback: "/feedback",
   account: "/account",
   privacy: "/privacy",

@@ -5,6 +5,7 @@ import DiscoverStack from "./DiscoverStack.js";
 import SavedScreen from "../screens/saved/SavedScreen.js";
 import WorkspaceStack from "./WorkspaceStack.js";
 import RequestsScreen from "../screens/requests/RequestsScreen.js";
+import NotificationsScreen from "../screens/notifications/NotificationsScreen.js";
 import FeedbackScreen from "../screens/feedback/FeedbackScreen.js";
 import AccountScreen from "../screens/account/AccountScreen.js";
 import colors from "../theme/colors.js";
@@ -17,6 +18,7 @@ const icons = {
   Saved: "heart",
   Workspace: "briefcase",
   Requests: "chatbubbles",
+  Notifications: "notifications",
   Feedback: "chatbox-ellipses",
   Account: "person-circle",
 };
@@ -41,6 +43,7 @@ export default function MainTabs() {
       <Tab.Screen name="Saved" component={SavedScreen} />
       <Tab.Screen name="Workspace" component={WorkspaceStack} options={{ headerShown: false }} />
       <Tab.Screen name="Requests" component={RequestsScreen} />
+      <Tab.Screen name="Notifications" component={NotificationsScreen} />
       <Tab.Screen name="Feedback" component={FeedbackScreen} />
       <Tab.Screen name="Account" component={AccountScreen} />
     </Tab.Navigator>

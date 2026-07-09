@@ -40,7 +40,8 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 - Reviews and rating aggregation.
 - Agency verification workflow.
 - Admin approval and rejection of agency verifications.
-- User notifications for important listing and account activity.
+- A real notification inbox (web and mobile), plus proactive/scheduled nudges: stale inquiry/viewing-request reminders, upcoming-viewing reminders, post-viewing review prompts, and stale-listing nudges — delivered in-app and as mobile push notifications.
+- Saved location + radius searches for tenants, with an alert when a new listing matches one.
 - Mover and relocation service discovery.
 - Platform feedback from tenants, landlords, and agencies, with admin responses published as public testimonials on the landing page.
 - Sign in with either your email or a username you choose at registration, for users who'd rather not type their email at login.
@@ -174,10 +175,17 @@ Agency verification and admin moderation:
 - Notification triggers for approval and rejection decisions.
 
 Notifications:
-- Notification model and service layer.
-- Protected notification listing.
+- Notification model and service layer, funneling every notification (direct-event and scheduled) through one `createNotification` chokepoint.
+- Protected notification listing, with an `unread=true` filter.
 - Mark notification as read endpoint.
-- Event-triggered notifications for inquiries, reviews, viewings, and agency verification decisions.
+- Event-triggered notifications for inquiries, reviews, viewings, agency verification decisions, feedback responses, and saved-search matches.
+- Scheduled sweeps (`backend/jobs/`, run via `npm run jobs` or the `k8s/backend-cronjob.yaml` CronJob every 15 minutes) for: nudging owners about inquiries/viewing requests unanswered for 48+ hours, reminding both sides of a viewing happening within 24 hours, prompting a review once a viewing's date has passed (and marking it `completed`), and nudging owners about listings live 14+ days with zero inquiries. Each sweep is idempotent (marks what it's already acted on) and safe to run from multiple/overlapping invocations.
+- Device token registration (`DeviceToken` model, upsert/delete endpoints) and best-effort push delivery via Expo's push service (`expo-server-sdk`) for every notification above, for any user with a registered mobile device.
+
+Saved searches:
+- SavedSearch model (location + radius + optional price/type/bedroom/county/town filters) linked to the user who saved it.
+- Protected create, list-mine, and delete endpoints.
+- New-listing matching reuses the same filter-building logic (`backend/utils/propertyFilters.js`) the property list endpoint already used for its own radius/filter query, evaluated against every saved search whenever a property is published.
 
 Trust and safety:
 - Property image fingerprint records for uploaded listing images.
@@ -214,7 +222,7 @@ Developer workflow:
 The web frontend in `frontend/` is a React 19 + Vite single-page app (SPA) with manual routing and real backend API integration.
 
 Frontend architecture:
-- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage, FeedbackPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
+- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage, NotificationsPage, FeedbackPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
 - Global `app-utils.js` for API helpers, formatting, and view logic.
@@ -251,8 +259,13 @@ Frontend API helpers in `app-utils.js`:
 - `fetchPublicTestimonials()` → `GET /api/feedback/public` (no auth required — used on the landing page)
 - `fetchAdminFeedback(query)` → `GET /api/admin/feedback` (admin only)
 - `respondToFeedback(feedbackId, { message })` → `PUT /api/admin/feedback/:id/respond` (admin only)
+- `fetchNotifications(query)` → `GET /api/notifications` (`unread: "true"` to filter)
+- `markNotificationAsRead(notificationId)` → `PUT /api/notifications/:id/read`
+- `createSavedSearch(payload)` → `POST /api/saved-searches`
+- `fetchSavedSearches()` → `GET /api/saved-searches`
+- `deleteSavedSearch(savedSearchId)` → `DELETE /api/saved-searches/:id`
 - All requests include Authorization bearer token if signed in.
-- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, `fetchReceivedInquiries`, `fetchMyFeedback`, and `fetchAdminFeedback` are cached in-memory for 15 seconds to avoid redundant refetches on remount (`fetchPublicTestimonials` for 60 seconds); the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, the feedback caches clear on `createFeedback`/`respondToFeedback`, and the whole cache clears on login, logout, register, and account deletion.
+- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, `fetchReceivedInquiries`, `fetchMyFeedback`, `fetchAdminFeedback`, `fetchNotifications`, and `fetchSavedSearches` are cached in-memory for 15 seconds to avoid redundant refetches on remount (`fetchPublicTestimonials` for 60 seconds); the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, the feedback caches clear on `createFeedback`/`respondToFeedback`, the notifications cache clears on `markNotificationAsRead`, the saved-searches cache clears on `createSavedSearch`/`deleteSavedSearch`, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, mode toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
@@ -270,6 +283,8 @@ Included flows:
 - Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency). Admins cannot create, edit, or view the owner workspace at all — admins moderate accounts, not listings.
 - Admin console (`/admin`) for managing user accounts: search and filter users by role, open a user's account summary (violations, and role-specific activity counts) and status change history, and change an account's status to active, suspended, or banned with a reason, backed by the existing `GET/PUT /api/admin/users*` endpoints.
 - Feedback tab (`/feedback`), visible to every signed-in role: tenants/landlords/agencies get a submit form plus a list of their own past submissions and any admin response; admins instead see every submission and can respond inline, which immediately publishes it as a landing-page testimonial.
+- Notifications tab (`/notifications`), visible to every signed-in role: lists all notifications with an "Unread only" filter and a mark-as-read action per item that persists across reloads.
+- "Save this search" action next to Discover's radius/location controls (tenants only, shown once a location is set), plus a "Saved searches" panel on the Account page to review and remove them.
 - Light and dark mode toggle that persists locally.
 
 Frontend access model:
@@ -581,12 +596,28 @@ Acceptance criteria:
 
 ### Notifications
 
-As a user, I want to receive notifications for important account and listing activity, so that I do not miss updates that need my attention.
+As a user, I want to receive notifications for important account and listing activity — both things that just happened and things I might otherwise miss — so that I do not miss updates that need my attention.
 
 Acceptance criteria:
-- Given I am logged in, when I request my notifications, then I only see notifications that belong to me.
-- Given I mark a notification as read, when the action succeeds, then it no longer appears as unread.
-- Given a relevant event happens, such as agency verification or a property review, then a notification is created.
+- Given I am logged in, when I request my notifications, then I only see notifications that belong to me, with a real inbox to browse them (web: a `Notifications` tab; mobile: a `Notifications` bottom tab), not just an unread count.
+- Given I mark a notification as read, when the action succeeds, then it no longer appears as unread, and this persists across reloads/app restarts.
+- Given I only want to see what's new, when I toggle "Unread only" (web) / the "Unread" filter (mobile), then read notifications are hidden.
+- Given a relevant event happens directly (agency verification, a property review, an inquiry/viewing request/response, a feedback response), then a notification is created immediately.
+- Given a landlord or agency hasn't responded to an inquiry or viewing request within 48 hours, when the scheduled sweep runs, then they get a one-time nudge (no repeat nudges for the same item).
+- Given an approved viewing is happening within the next 24 hours, when the scheduled sweep runs, then both the tenant and the owner get a one-time reminder.
+- Given an approved viewing's date has passed, when the scheduled sweep runs, then the viewing is marked `completed` and the tenant gets a one-time prompt to leave a review — unless they already reviewed that property, in which case the viewing is still marked completed but no prompt is sent.
+- Given a listing has been available for 14+ days with zero inquiries, when the scheduled sweep runs, then its owner gets a one-time nudge to refresh photos or price.
+- Given I've registered a mobile device and I'm signed in, when any of the above create a notification for me, then I also receive it as a push notification (best-effort — a failed push never blocks the underlying action, e.g. submitting an inquiry still succeeds even if my push token is stale).
+
+### Saved Searches
+
+As a tenant, I want to save a Discover search (location + radius today), so that I'm notified when a new listing matches it instead of having to keep re-checking manually.
+
+Acceptance criteria:
+- Given I've set a location and radius on Discover, when I save the search, then it appears in my saved searches (Account page on web, Account tab on mobile).
+- Given I have a saved search, when a landlord/agency publishes a new listing matching it, then I get a notification (and a push notification, if I have a device registered).
+- Given I no longer want a saved search, when I remove it, then it stops matching future listings.
+- Given I am not signed in, when I try to save a search, then I'm prompted to sign in first.
 
 ### Mover Discovery
 
@@ -720,6 +751,21 @@ Notifications:
 ```text
 GET    /api/notifications
 PUT    /api/notifications/:id/read
+```
+
+Saved searches:
+
+```text
+POST   /api/saved-searches
+GET    /api/saved-searches
+DELETE /api/saved-searches/:id
+```
+
+Device tokens (push notifications):
+
+```text
+POST   /api/device-tokens                                    upsert by token
+DELETE /api/device-tokens                                    body: { token }
 ```
 
 Agencies:
@@ -1046,6 +1092,10 @@ Completed:
 - Username login: registration now also assigns every account an opaque, backend-generated username (e.g. `swiftcheetah284` — an adjective, a noun, and a number, never derived from the person's real name, specifically so it doesn't leak identity the way a name-based handle would), and login accepts either the account's email or this username. A one-off `backend/seeders/backfillUsernames.js` script assigns usernames to accounts that predate this feature. Verified against a real database: registered a new account, logged in with the generated username, with the email, and with a mixed-case version of the username (case-insensitive match), confirmed a wrong password still fails, and confirmed the backfill script only touches accounts actually missing a username.
 - Small alignment fixes on the Discover radius/location filters: the web "Radius" control (a stacked label + select) was vertically floating against its shorter neighboring buttons because the shared `.header-actions` row centered items instead of aligning their bottoms; and the mobile "Near me" button didn't share the 44px touch-target height of the radius chips beside it, making it look shorter than its row.
 - Follow-up to username login: users now choose their own username at registration (free text, no character restrictions) instead of receiving an auto-generated one. If the requested username is already taken, registration is rejected with a `409` and up to 3 available alternatives (the requested name plus different random-number suffixes) to pick from instead — both web and mobile show these as clickable/tappable suggestions under the username field. The opaque generator didn't go away: `backend/seeders/backfillUsernames.js` and the demo seeder still use it for accounts with no human to ask. Generalized the backend's `ApiError`/central error handler to carry structured extra data (like `suggestions`) through to the JSON response, and fixed both web and mobile's `apiFetch` helpers, which previously discarded every field but `message` from error responses.
+- Real notification inbox on web (`Notifications` tab, `/notifications`) and mobile (a `Notifications` bottom tab) — `GET /api/notifications`/`PUT /api/notifications/:id/read` existed already, but nothing in either app called them before this; notifications only ever showed up as a bare unread count on the Dashboard.
+- Saved-search alerts: tenants can save a Discover location + radius search (`POST /api/saved-searches`, manage from the Account page/tab); publishing a new listing that matches a saved search now notifies its owner. The matching logic reuses the exact same filter-building/geo-radius code the property list endpoint already used for querying (extracted to `backend/utils/propertyFilters.js` to share it without a circular import between the property controller and the new matching service).
+- Scheduled-jobs infrastructure (`backend/jobs/`, `backend/scripts/runScheduledJobs.js`, `npm run jobs`) plus four time-based notification sweeps, run every 15 minutes via a new Kubernetes `CronJob` (`k8s/backend-cronjob.yaml`) in production or manually elsewhere: nudging landlords/agencies about inquiries and viewing requests left unanswered for 48+ hours, reminding both sides of an approved viewing happening within 24 hours, prompting a tenant for a review once an approved viewing's date has passed (which also flips its status to `completed` — the enum value existed but nothing ever set it before), and nudging owners about listings live for 14+ days with zero inquiries. Deliberately standalone scripts (not an in-process timer) since the backend already runs multiple replicas behind an HPA — an in-process scheduler would fire once per replica and double-send every nudge.
+- Push notifications on mobile via Expo's push service (`expo-notifications` + `expo-server-sdk`, not raw Firebase/FCM — the idiomatic zero-Firebase-project path for an Expo-managed app): registers/unregisters a device's push token around sign-in/sign-out, and the shared `createNotification` chokepoint now best-effort sends a push alongside every in-app notification, so every notification type above (and every one that already existed) gets push for free. In the process, found and removed a fully dead, never-wired-up predecessor: a `fcmTokens` array on the `User` model and a `POST /api/auth/fcm-token` endpoint that only ever wrote to that array and had no Firebase/sending code behind it at all.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
@@ -1055,7 +1105,10 @@ Next:
 - Mobile: expand test coverage beyond the initial API-client/formatter/component tests (screens, navigation, context providers).
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
 - Revisit the `eslint`/`jest` version holds above once `eslint-config-expo`/`eslint-plugin-react`/`jest-expo` publish compatible releases.
-- Clarify whether `README_CLOUD.md`'s GCP Cloud Run/Cloud Storage setup is live or aspirational, and whether the incomplete FCM push-notification endpoint (`POST /api/auth/fcm-token`, no `firebase-admin` wired up) should be finished.
+- Clarify whether `README_CLOUD.md`'s GCP Cloud Run/Cloud Storage setup is live or aspirational.
+- Push notifications only cover mobile (Expo) — web browser push (Web Push/VAPID + service worker) is a different mechanism and out of scope so far. Also, the push-send path only prunes tokens Expo's API rejects immediately at the ticket level; genuinely dead tokens that only fail later (at the receipt level, per Expo's push API) require a separate receipt-polling step that isn't implemented yet.
+- Saved searches only support the location + radius filters Discover's UI already exposes today — extending them to price/type/bedroom filters would need matching UI additions on Discover first.
+- The scheduled-jobs thresholds (48h nudge, 24h reminder, 14-day freshness window) are fixed constants, not configurable.
 
 ## License
 

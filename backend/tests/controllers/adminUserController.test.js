@@ -9,6 +9,7 @@ import {
   updateUserStatus,
 } from "../../controllers/adminUserController.js";
 import AgencyVerification from "../../models/AgencyVerification.js";
+import DeviceToken from "../../models/DeviceToken.js";
 import Favorite from "../../models/Favorite.js";
 import Inquiry from "../../models/Inquiry.js";
 import Notification from "../../models/Notification.js";
@@ -258,6 +259,7 @@ describe("adminUserController", () => {
       logPayload = payload;
       return payload;
     });
+    mock.method(DeviceToken, "find", async () => []);
     mock.method(Notification, "create", async (payload) => {
       notificationPayload = payload;
       return payload;

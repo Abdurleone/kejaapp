@@ -9,6 +9,7 @@ import PropertyEditPage from "./pages/PropertyEditPage.jsx";
 import PropertyCreatePage from "./pages/PropertyCreatePage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import NotificationsPage from "./pages/NotificationsPage.jsx";
 import FeedbackPage from "./pages/FeedbackPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import PrivacyPage from "./pages/PrivacyPage.jsx";
@@ -44,6 +45,7 @@ const navItems = [
   { view: "saved", label: "Saved", path: getViewPath("saved") },
   { view: "owner", label: "Workspace", path: getViewPath("owner") },
   { view: "admin", label: "Admin", path: getViewPath("admin") },
+  { view: "notifications", label: "Notifications", path: getViewPath("notifications") },
   { view: "feedback", label: "Feedback", path: getViewPath("feedback") },
   { view: "account", label: "Account", path: getViewPath("account") },
 ];
@@ -305,6 +307,19 @@ function App() {
         }
 
         return <AdminPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+      case "notifications":
+        if (!signedIn || !canAccessView(currentUser?.role, "notifications")) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in to view your notifications.</p>
+              <button className="primary-button" type="button" onClick={openAuthPanel}>
+                Sign in
+              </button>
+            </div>
+          );
+        }
+
+        return <NotificationsPage />;
       case "feedback":
         if (!signedIn || !canAccessView(currentUser?.role, "feedback")) {
           return (

@@ -8,6 +8,7 @@ import {
   listPublicFeedback,
   respondToFeedback,
 } from "../../controllers/feedbackController.js";
+import DeviceToken from "../../models/DeviceToken.js";
 import Feedback from "../../models/Feedback.js";
 import Notification from "../../models/Notification.js";
 
@@ -125,6 +126,7 @@ describe("feedbackController", () => {
     };
 
     mock.method(Feedback, "findById", async () => feedback);
+    mock.method(DeviceToken, "find", async () => []);
     const notificationCreate = mock.method(Notification, "create", async (payload) => payload);
 
     const req = {

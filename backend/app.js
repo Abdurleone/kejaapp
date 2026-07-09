@@ -12,6 +12,7 @@ import { accessLogStream, nairobiTimestamp } from "./utils/logger.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import deviceTokenRoutes from "./routes/deviceTokenRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
@@ -21,6 +22,7 @@ import moverRoutes from "./routes/moverRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import savedSearchRoutes from "./routes/savedSearchRoutes.js";
 import viewingRoutes from "./routes/viewingRoutes.js";
 
 const app = express();
@@ -74,6 +76,7 @@ app.use("/api/auth", createRateLimiter({
   max: env.authRateLimitMax,
 }), authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/device-tokens", deviceTokenRoutes);
 app.use("/api/docs", docsRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/feedback", feedbackRoutes);
@@ -83,6 +86,7 @@ app.use("/api/movers", moverRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/saved-searches", savedSearchRoutes);
 app.use("/api/viewings", viewingRoutes);
 
 app.use(notFound);
