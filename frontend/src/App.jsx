@@ -14,6 +14,7 @@ import NotificationsPage from "./pages/NotificationsPage.jsx";
 import FeedbackPage from "./pages/FeedbackPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import PrivacyPage from "./pages/PrivacyPage.jsx";
+import TermsPage from "./pages/TermsPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import {
   normalizeApiBaseUrl,
@@ -414,6 +415,8 @@ function App() {
         return <AccountPage currentUser={currentUser} onAccountDeleted={handleAccountDeleted} />;
       case "privacy":
         return <PrivacyPage />;
+      case "terms":
+        return <TermsPage />;
       case "deleteAccount":
         return <DeleteAccountPage />;
       default:
@@ -500,6 +503,9 @@ function App() {
             <footer className="legal-footer">
               <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
                 Privacy
+              </button>
+              <button className="text-button" type="button" onClick={() => navigate(getViewPath("terms"))}>
+                Terms
               </button>
               <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
                 Delete account
