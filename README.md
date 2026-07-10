@@ -903,6 +903,34 @@ KejaApp does not process, track, or mediate payments in the current product scop
 - Centralized error handling.
 - Environment variable validation.
 
+See the [Data Protection Policy](docs/data-protection-policy.md) for how personal data is collected, protected, retained, and deleted, aligned with the Kenya Data Protection Act 2019, GDPR, and ISO/IEC 27001/27701 control themes; the [ISO/IEC 27001 Statement of Applicability](docs/iso27001-statement-of-applicability.md) for a control-by-control self-assessment (gaps included); and the [Incident Response Plan](docs/incident-response-plan.md) for how a security/data incident is actually handled.
+
+## Governance & Policies
+
+Platform ethics and terms:
+- [Code of Ethics](docs/code-of-ethics.md) — the principles governing how KejaApp is built and operated, and how every role is expected to treat other users.
+- [Terms of Service](docs/terms-of-service.md) — the agreement governing account use, listing content, disclaimers, and dispute resolution.
+- [Acceptable Use Policy](docs/acceptable-use-policy.md) — the enforceable list of prohibited content and conduct behind the Code of Ethics.
+- [Dispute Resolution & Complaints Policy](docs/dispute-resolution-policy.md) — what KejaApp does and doesn't mediate, and how to complain about an enforcement decision.
+
+Data protection and privacy:
+- [Data Protection Policy](docs/data-protection-policy.md) — what data is collected, why, how it's secured, and user rights over it.
+- [Cookie Policy](docs/cookie-policy.md) — cookies and local storage used by the web frontend.
+- [Records of Processing Activities](docs/records-of-processing-activities.md) — a GDPR/Kenya-DPA-style register of every processing activity.
+- [Data Protection Impact Assessments](docs/data-protection-impact-assessment.md) — risk assessments for the higher-risk processing activities (mover geolocation, image fingerprinting, admin moderation).
+
+Security and operations:
+- [Incident Response Plan](docs/incident-response-plan.md) — the internal runbook for handling a security/data incident, distinct from [SECURITY.md](SECURITY.md)'s vulnerability-reporting instructions.
+- [ISO/IEC 27001 Statement of Applicability](docs/iso27001-statement-of-applicability.md) — a self-assessment mapping KejaApp's real security controls to the ISO/IEC 27001 Annex A control set, gaps included.
+- [Accessibility Statement](docs/accessibility-statement.md) — what's implemented against WCAG 2.1 AA today, and what isn't yet.
+
+User documentation:
+- [User Manual](docs/user-manual/general-manual.md) — a general guide plus role-specific manuals for [tenants](docs/user-manual/tenant-manual.md), [landlords & agencies](docs/user-manual/landlord-agency-manual.md), [movers](docs/user-manual/mover-manual.md), and [admins](docs/user-manual/admin-manual.md).
+
+Contributor documentation:
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — conduct standard for contributors to this codebase (Contributor Covenant), distinct from the platform-facing Code of Ethics above.
+- [SECURITY.md](SECURITY.md) — how to report a security vulnerability.
+
 ## Project Structure
 
 ```text
@@ -954,6 +982,23 @@ mobile/
 └── README.md
 
 docs/
+├── code-of-ethics.md
+├── terms-of-service.md
+├── acceptable-use-policy.md
+├── dispute-resolution-policy.md
+├── data-protection-policy.md
+├── cookie-policy.md
+├── records-of-processing-activities.md
+├── data-protection-impact-assessment.md
+├── incident-response-plan.md
+├── iso27001-statement-of-applicability.md
+├── accessibility-statement.md
+├── user-manual/
+│   ├── general-manual.md
+│   ├── tenant-manual.md
+│   ├── landlord-agency-manual.md
+│   ├── mover-manual.md
+│   └── admin-manual.md
 ├── devops.md
 └── kejaapp-insomnia.json
 
