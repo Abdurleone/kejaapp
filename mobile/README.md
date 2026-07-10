@@ -15,7 +15,7 @@ If you do have Xcode or Android Studio installed, `npm run ios` / `npm run andro
 
 Implemented:
 - Auth: register, login, sign out, current-user session
-- Role-aware Dashboard: the default tab after sign-in, showing unread notifications plus role-specific summary counts (tenant activity; owner listings for landlord/agency/admin; agency verification status; admin platform-moderation counts) — the first landlord/agency/admin-facing screen on mobile
+- Role-aware Dashboard: the default tab after sign-in, showing unread notifications plus role-specific summary counts (tenant activity; owner listings for landlord/agency/admin; agency verification status; mover verification status and received-request counts; admin platform-moderation counts, including mover verifications) — the first landlord/agency/admin-facing screen on mobile
 - Discover: anonymous property browsing, radius ("Near me") search, property detail
 - Saved favorites: save/unsave, saved list
 - Inquiries: send an inquiry from a property, view your inquiries and any owner response
@@ -23,6 +23,8 @@ Implemented:
 - Owner/agency Workspace tab: lists the signed-in landlord/agency's own properties (`fetchMyProperties`) and a "New listing" action that opens a create-listing form (`POST /api/properties`); gated so tenants see a sign-in/role message instead. Editing an existing listing and managing images are still web-only.
 - Notifications tab: lists all notifications with an All/Unread filter and a "Mark as read" action per item.
 - Saved searches: a "Save search" action on Discover once a location is set (tenants), and a list to review/remove them on the Account tab.
+- Movers tab: a filterable mover directory (service type, county) for tenants/landlords/agencies/anonymous visitors, with a "Request service" action (tenants) and an affiliate add/remove action (landlord/agency); signed-in movers instead see their own profile-status panel plus received tenant requests with accept/decline/complete actions. The property detail screen also shows a "Movers for this move" section (the owner's affiliates plus verified movers nearby) with the same request action.
+- "Verified agency" badge next to a listing's owner on Discover property cards and the property detail screen, once that agency's verification is approved.
 - Push notifications: registers/unregisters an Expo push token around sign-in/sign-out; every notification above also arrives as a push notification if the device is registered. Requires a development build to actually receive pushes — Expo Go on Android doesn't support them as of SDK 53+ (see Troubleshooting).
 - Light/dark mode toggle: an icon-only sun/moon control in the top-right header of every screen (`ThemeContext`, persisted to AsyncStorage) — replaces the old inline "Dark mode" switch that used to live on the Account screen only.
 - Property detail is gated to signed-in tenants: anonymous visitors and non-tenant roles get a "sign in with a tenant account" prompt instead of pricing/contact info; the Discover list itself stays open to everyone. Contact details include one-tap call/email/WhatsApp actions plus a "Contact via {method}" shortcut for the owner's preferred method.
@@ -93,11 +95,11 @@ mobile/
 ├── app.json                 # Expo config (name, icons, bundle ids)
 ├── assets/                  # App icons/splash, generated from frontend/assets/keja-logo.png
 └── src/
-    ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings)
+    ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings, movers)
     ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists, ColorModeToggle)
     ├── context/             # AuthContext (session), SettingsContext (API base URL), ThemeContext (light/dark mode)
-    ├── navigation/           # Root stack, bottom tabs, Discover stack, Workspace stack
-    ├── screens/              # auth/, dashboard/, discover/, saved/, workspace/, requests/, account/
+    ├── navigation/           # Root stack, bottom tabs, Discover stack, Workspace stack, Movers stack
+    ├── screens/              # auth/, dashboard/, discover/, saved/, workspace/, movers/, requests/, account/
     ├── theme/                # Shared color tokens (mirrors frontend/styles.css palette; light + dark variants)
     └── utils/                # Formatting helpers (currency, status labels), contact.js (tel:/mailto:/wa.me link builders)
 ```

@@ -1,4 +1,5 @@
 import httpStatus from "../constants/httpStatus.js";
+import Mover from "../models/Mover.js";
 import Property from "../models/Property.js";
 import { propertyStatuses } from "../models/Property.js";
 import {
@@ -15,7 +16,7 @@ import { invalidateNamespace } from "../middlewares/responseCache.js";
 import { notifyMatchingSavedSearches } from "../services/savedSearchMatchingService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { buildPropertyFilters } from "../utils/propertyFilters.js";
+import { buildPropertyFilters, earthRadiusKm, parseGeoQueryNumber } from "../utils/propertyFilters.js";
 
 const formatPagination = (page, limit, total) => ({
   page,
@@ -70,7 +71,7 @@ const listProperties = asyncHandler(async (req, res) => {
 
   const [properties, total] = await Promise.all([
     Property.find(filters)
-      .populate("owner", "name email role phone")
+      .populate("owner", "name email role phone verified")
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -100,7 +101,7 @@ const listMyProperties = asyncHandler(async (req, res) => {
 
   const [properties, total] = await Promise.all([
     Property.find(filters)
-      .populate("owner", "name email role phone")
+      .populate("owner", "name email role phone verified")
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -128,7 +129,7 @@ const createProperty = asyncHandler(async (req, res) => {
     listedBy: req.body.listedBy || (req.user.role === "agency" ? "agency" : "owner"),
   });
 
-  const populatedProperty = await property.populate("owner", "name email role phone");
+  const populatedProperty = await property.populate("owner", "name email role phone verified");
   await invalidateNamespace("properties");
   await notifyMatchingSavedSearches(populatedProperty);
 
@@ -138,7 +139,7 @@ const createProperty = asyncHandler(async (req, res) => {
 });
 
 const getProperty = asyncHandler(async (req, res) => {
-  const property = await Property.findById(req.params.id).populate("owner", "name email role phone");
+  const property = await Property.findById(req.params.id).populate("owner", "name email role phone verified");
 
   if (!property) {
     throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
@@ -146,6 +147,49 @@ const getProperty = asyncHandler(async (req, res) => {
 
   res.status(httpStatus.OK).json({
     data: attachCostSummary(property),
+  });
+});
+
+const listPropertyMovers = asyncHandler(async (req, res) => {
+  const property = await Property.findById(req.params.id);
+
+  if (!property) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
+  }
+
+  const radiusKm =
+    req.query.radiusKm === undefined ? 10 : parseGeoQueryNumber(req.query.radiusKm, "radiusKm");
+
+  if (radiusKm <= 0 || radiusKm > 100) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "radiusKm must be greater than 0 and less than or equal to 100");
+  }
+
+  const affiliates = await Mover.find({
+    affiliatedOwners: property.owner,
+    verified: true,
+  }).sort("-ratingAverage name");
+
+  const affiliateIds = affiliates.map((mover) => mover._id);
+  const coordinates = property.location?.coordinates?.coordinates;
+
+  let nearby = [];
+
+  if (coordinates?.length === 2) {
+    const [longitude, latitude] = coordinates;
+
+    nearby = await Mover.find({
+      verified: true,
+      _id: { $nin: affiliateIds },
+      "location.coordinates": {
+        $geoWithin: {
+          $centerSphere: [[longitude, latitude], radiusKm / earthRadiusKm],
+        },
+      },
+    }).sort("-ratingAverage name");
+  }
+
+  res.status(httpStatus.OK).json({
+    data: { affiliates, nearby },
   });
 });
 
@@ -160,7 +204,7 @@ const updateProperty = asyncHandler(async (req, res) => {
 
   Object.assign(property, pickPropertyPayload(req.body));
   await property.save();
-  await property.populate("owner", "name email role phone");
+  await property.populate("owner", "name email role phone verified");
   await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
@@ -189,7 +233,7 @@ const addPropertyImage = asyncHandler(async (req, res) => {
     property,
     uploadedBy: req.user._id,
   });
-  await property.populate("owner", "name email role phone");
+  await property.populate("owner", "name email role phone verified");
   await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
@@ -231,7 +275,7 @@ const uploadPropertyImage = asyncHandler(async (req, res) => {
     property,
     uploadedBy: req.user._id,
   });
-  await property.populate("owner", "name email role phone");
+  await property.populate("owner", "name email role phone verified");
   await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
@@ -265,7 +309,7 @@ const removePropertyImage = asyncHandler(async (req, res) => {
     propertyId: property._id,
   });
   await property.save();
-  await property.populate("owner", "name email role phone");
+  await property.populate("owner", "name email role phone verified");
   await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
@@ -298,6 +342,7 @@ export {
   getProperty,
   listMyProperties,
   listProperties,
+  listPropertyMovers,
   removePropertyImage,
   uploadPropertyImage,
   updateProperty,

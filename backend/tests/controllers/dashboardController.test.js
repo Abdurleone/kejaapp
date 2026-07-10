@@ -6,6 +6,8 @@ import AgencyVerification from "../../models/AgencyVerification.js";
 import Favorite from "../../models/Favorite.js";
 import Feedback from "../../models/Feedback.js";
 import Inquiry from "../../models/Inquiry.js";
+import MoverRequest from "../../models/MoverRequest.js";
+import MoverVerification from "../../models/MoverVerification.js";
 import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
 import UserViolation from "../../models/UserViolation.js";
@@ -81,6 +83,31 @@ describe("dashboardController", () => {
     assert.equal(res.body.data.agency.verificationStatus, "approved");
   });
 
+  it("returns mover verification status and received request counts", async () => {
+    mock.method(Notification, "countDocuments", async () => 0);
+    mock.method(MoverVerification, "findOne", () => ({
+      select: async () => ({
+        status: "pending",
+        rejectionReason: null,
+      }),
+    }));
+    mock.method(MoverRequest, "countDocuments", async (filters) => (filters.status === "pending" ? 3 : 0));
+    const req = {
+      user: {
+        _id: new mongoose.Types.ObjectId(),
+        role: "mover",
+      },
+    };
+    const res = createResponse();
+
+    await getDashboardSummary(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.body.data.mover.verificationStatus, "pending");
+    assert.equal(res.body.data.mover.receivedRequests.pending, 3);
+  });
+
   it("returns admin moderation counts", async () => {
     mock.method(Notification, "countDocuments", async () => 0);
     mock.method(Property, "countDocuments", async () => 0);
@@ -88,6 +115,9 @@ describe("dashboardController", () => {
     mock.method(ViewingRequest, "countDocuments", async () => 0);
     mock.method(AgencyVerification, "countDocuments", async (filters) =>
       filters.status === "pending" ? 4 : 0
+    );
+    mock.method(MoverVerification, "countDocuments", async (filters) =>
+      filters.status === "pending" ? 7 : 0
     );
     mock.method(UserViolation, "countDocuments", async (filters) => (filters.status === "open" ? 5 : 0));
     mock.method(Feedback, "countDocuments", async (filters) => (filters.status === "pending" ? 6 : 0));
@@ -104,6 +134,7 @@ describe("dashboardController", () => {
     });
 
     assert.equal(res.body.data.admin.agencyVerifications.pending, 4);
+    assert.equal(res.body.data.admin.moverVerifications.pending, 7);
     assert.equal(res.body.data.admin.violations.open, 5);
     assert.equal(res.body.data.admin.feedback.pending, 6);
     assert.equal(res.body.data.owner, undefined);

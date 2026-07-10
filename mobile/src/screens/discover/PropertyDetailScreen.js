@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { fetchFavorites, fetchProperty, saveFavorite } from "../../api/index.js";
+import { fetchFavorites, fetchProperty, fetchPropertyMovers, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { resolveAssetUrl, useSettings } from "../../context/SettingsContext.js";
 import PropertyDetailSkeleton from "../../components/PropertyDetailSkeleton.js";
 import MessageView from "../../components/MessageView.js";
-import { formatKes, formatRatingSummary } from "../../utils/format.js";
+import { formatKes, formatRatingSummary, formatStatusLabel } from "../../utils/format.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { buildEmailUrl, buildPhoneUrl, buildWhatsAppUrl, getPreferredContactUrl } from "../../utils/contact.js";
 
@@ -32,6 +32,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
   const [error, setError] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [propertyMovers, setPropertyMovers] = useState({ affiliates: [], nearby: [] });
 
   const loadProperty = useCallback(async () => {
     setError("");
@@ -68,6 +69,14 @@ export default function PropertyDetailScreen({ route, navigation }) {
       .catch(() => {});
   }, [canViewDetails, propertyId]);
 
+  useEffect(() => {
+    if (!canViewDetails) return;
+
+    fetchPropertyMovers(propertyId)
+      .then((data) => setPropertyMovers(data))
+      .catch(() => {});
+  }, [canViewDetails, propertyId]);
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -83,6 +92,10 @@ export default function PropertyDetailScreen({ route, navigation }) {
 
   const requireAuth = (screen) => {
     navigation.navigate(screen, { propertyId, viewingType: property?.viewingType });
+  };
+
+  const requestMoverService = (mover) => {
+    navigation.navigate("MoverRequestForm", { propertyId, moverId: mover._id, moverName: mover.name });
   };
 
   if (!canViewDetails) {
@@ -141,6 +154,17 @@ export default function PropertyDetailScreen({ route, navigation }) {
 
       {property.description ? <Text style={styles.description}>{property.description}</Text> : null}
 
+      {property.owner?.name ? (
+        <View style={styles.ownerRow}>
+          <Text style={styles.ownerLine}>Listed by {property.owner.name}</Text>
+          {property.owner.role === "agency" && property.owner.verified ? (
+            <View style={styles.verifiedBadge}>
+              <Text style={styles.verifiedBadgeText}>Verified agency</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cost summary</Text>
         <View style={styles.costGrid}>
@@ -189,6 +213,28 @@ export default function PropertyDetailScreen({ route, navigation }) {
         </View>
       ) : null}
 
+      {propertyMovers.affiliates.length > 0 || propertyMovers.nearby.length > 0 ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Movers for this move</Text>
+          {propertyMovers.affiliates.length > 0 ? (
+            <View style={styles.moverGroup}>
+              <Text style={styles.moverGroupTitle}>Recommended by the owner</Text>
+              {propertyMovers.affiliates.map((mover) => (
+                <MoverRow key={mover._id} mover={mover} styles={styles} onRequest={() => requestMoverService(mover)} />
+              ))}
+            </View>
+          ) : null}
+          {propertyMovers.nearby.length > 0 ? (
+            <View style={styles.moverGroup}>
+              <Text style={styles.moverGroupTitle}>Movers nearby</Text>
+              {propertyMovers.nearby.map((mover) => (
+                <MoverRow key={mover._id} mover={mover} styles={styles} onRequest={() => requestMoverService(mover)} />
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
       {property.amenities?.length ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Amenities</Text>
@@ -228,6 +274,24 @@ function CostRow({ label, value, emphasize, styles }) {
     <View style={styles.costRow}>
       <Text style={styles.costLabel}>{label}</Text>
       <Text style={[styles.costValue, emphasize && styles.costValueEmphasis]}>{value}</Text>
+    </View>
+  );
+}
+
+function MoverRow({ mover, styles, onRequest }) {
+  return (
+    <View style={styles.moverCard}>
+      <Text style={styles.moverName}>{mover.name}</Text>
+      <Text style={styles.contactLine}>
+        {(mover.serviceTypes || []).map((type) => formatStatusLabel(type)).join(", ") || "General moving"}
+      </Text>
+      <View style={styles.costRow}>
+        <Text style={styles.costValueEmphasis}>{formatKes(mover.basePrice)}</Text>
+        <Text style={styles.costLabel}>base price</Text>
+      </View>
+      <Pressable style={styles.secondaryButton} onPress={onRequest}>
+        <Text style={styles.secondaryButtonText}>Request service</Text>
+      </Pressable>
     </View>
   );
 }
@@ -291,6 +355,48 @@ const createStyles = (colors) =>
     fontSize: 14,
     color: colors.ink,
     lineHeight: 20,
+  },
+  ownerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  ownerLine: {
+    fontSize: 13,
+    color: colors.muted,
+  },
+  verifiedBadge: {
+    backgroundColor: colors.surfaceSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  verifiedBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.greenDark,
+  },
+  moverGroup: {
+    gap: 8,
+  },
+  moverGroupTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.muted,
+    textTransform: "uppercase",
+  },
+  moverCard: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 10,
+    padding: 12,
+    gap: 6,
+    backgroundColor: colors.surfaceSoft,
+  },
+  moverName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.ink,
   },
   section: {
     borderWidth: 1,

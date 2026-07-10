@@ -97,6 +97,7 @@ describe("frontend app utilities", () => {
     assert.equal(canRegisterRole("tenant"), true);
     assert.equal(canRegisterRole("landlord"), true);
     assert.equal(canRegisterRole("agency"), true);
+    assert.equal(canRegisterRole("mover"), true);
     assert.equal(canRegisterRole("admin"), false);
   });
 

@@ -242,6 +242,9 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
                       {area}, {county}
                     </p>
                     <p className="property-rating">{formatRatingSummary(property.ratingAverage, property.ratingCount)}</p>
+                    {property.owner?.role === "agency" && property.owner.verified && (
+                      <span className="status-pill status-active verified-badge">Verified agency</span>
+                    )}
                   </div>
                   <div className="cost-row">
                     <strong>{formatKes(rent)}</strong>

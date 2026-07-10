@@ -252,6 +252,134 @@ export const updateAdminUserStatus = async (userId, payload) => {
   return response.data;
 };
 
+const moversCacheTtlMs = 15000;
+const propertyMoversCacheTtlMs = 15000;
+const moverProfileCacheTtlMs = 15000;
+const moverRequestsCacheTtlMs = 15000;
+
+export const fetchMovers = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `movers:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/movers${queryString}`, { method: "GET" });
+  const data = response.data || [];
+  setCached(cacheKey, data, moversCacheTtlMs);
+  return data;
+};
+
+export const fetchMoverById = async (moverId) => {
+  const response = await apiFetch(`/api/movers/${moverId}`, { method: "GET" });
+  return response.data;
+};
+
+export const fetchPropertyMovers = async (propertyId, query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `propertyMovers:${propertyId}:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/properties/${propertyId}/movers${queryString}`, {
+    method: "GET",
+  });
+  const data = response.data || { affiliates: [], nearby: [] };
+  setCached(cacheKey, data, propertyMoversCacheTtlMs);
+  return data;
+};
+
+export const affiliateMover = async (moverId) => {
+  const response = await apiFetch(`/api/movers/${moverId}/affiliate`, { method: "PUT" });
+  clearRequestCache("movers");
+  clearRequestCache("propertyMovers");
+  return response.data;
+};
+
+export const unaffiliateMover = async (moverId) => {
+  const response = await apiFetch(`/api/movers/${moverId}/affiliate`, { method: "DELETE" });
+  clearRequestCache("movers");
+  clearRequestCache("propertyMovers");
+  return response.data;
+};
+
+export const submitMoverProfile = async (payload) => {
+  const response = await apiFetch("/api/movers/profile", {
+    method: "POST",
+    body: payload,
+  });
+  clearRequestCache("moverProfile");
+  clearRequestCache("movers");
+  return response.data;
+};
+
+export const fetchMoverProfileStatus = async () => {
+  const cacheKey = "moverProfile";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/movers/profile", { method: "GET" });
+  setCached(cacheKey, response.data, moverProfileCacheTtlMs);
+  return response.data;
+};
+
+export const createMoverRequest = async ({ mover, property, message, preferredDate }) => {
+  const response = await apiFetch("/api/mover-requests", {
+    method: "POST",
+    body: { mover, property, message, preferredDate },
+  });
+  clearRequestCache("myMoverRequests");
+  return response.data;
+};
+
+export const fetchMyMoverRequests = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `myMoverRequests:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/mover-requests${queryString}`, { method: "GET" });
+  const data = response.data || [];
+  setCached(cacheKey, data, moverRequestsCacheTtlMs);
+  return data;
+};
+
+export const fetchReceivedMoverRequests = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `receivedMoverRequests:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/mover-requests/received${queryString}`, { method: "GET" });
+  const data = response.data || [];
+  setCached(cacheKey, data, moverRequestsCacheTtlMs);
+  return data;
+};
+
+export const updateMoverRequestStatus = async (moverRequestId, { status, response: replyMessage }) => {
+  const result = await apiFetch(`/api/mover-requests/${moverRequestId}/status`, {
+    method: "PUT",
+    body: { status, response: replyMessage },
+  });
+  clearRequestCache("myMoverRequests");
+  clearRequestCache("receivedMoverRequests");
+  return result.data;
+};
+
 export const createInquiry = async ({ property, subject, message, contactPreference }) => {
   const response = await apiFetch("/api/inquiries", {
     method: "POST",
@@ -591,6 +719,7 @@ export const demoAccounts = {
   tenant: "tenant@example.com",
   landlord: "landlord@example.com",
   agency: "agency@example.com",
+  mover: "mover1@example.com",
   admin: "admin@example.com",
 };
 
@@ -600,15 +729,17 @@ export const roles = Object.freeze({
   tenant: "tenant",
   landlord: "landlord",
   agency: "agency",
+  mover: "mover",
   admin: "admin",
 });
 
 export const roleGroups = Object.freeze({
-  publicRegistration: [roles.tenant, roles.landlord, roles.agency],
+  publicRegistration: [roles.tenant, roles.landlord, roles.agency, roles.mover],
   tenantOnly: [roles.tenant],
   listingManagers: [roles.landlord, roles.agency],
   propertyOwners: [roles.landlord, roles.agency],
   agencies: [roles.agency],
+  movers: [roles.mover],
   admins: [roles.admin],
 });
 
@@ -617,9 +748,10 @@ export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
 export const canRegisterRole = (role) => hasRole(role, roleGroups.publicRegistration);
 
 const roleViewAccess = {
-  [roles.tenant]: ["dashboard", "discover", "saved", "notifications", "feedback", "account"],
-  [roles.landlord]: ["dashboard", "owner", "notifications", "feedback", "account"],
-  [roles.agency]: ["dashboard", "owner", "notifications", "feedback", "account"],
+  [roles.tenant]: ["dashboard", "discover", "saved", "movers", "notifications", "feedback", "account"],
+  [roles.landlord]: ["dashboard", "owner", "movers", "notifications", "feedback", "account"],
+  [roles.agency]: ["dashboard", "owner", "movers", "notifications", "feedback", "account"],
+  [roles.mover]: ["dashboard", "movers", "notifications", "feedback", "account"],
   [roles.admin]: ["dashboard", "admin", "notifications", "feedback", "account"],
 };
 
@@ -629,7 +761,7 @@ export const canAccessView = (role, view) => {
   }
 
   if (!role) {
-    return view === "discover";
+    return ["discover", "movers"].includes(view);
   }
 
   return Boolean(roleViewAccess[role]?.includes(view));
@@ -656,6 +788,7 @@ const viewPaths = {
   saved: "/saved",
   owner: "/owner",
   propertyCreate: "/owner/properties/new",
+  movers: "/movers",
   admin: "/admin",
   notifications: "/notifications",
   feedback: "/feedback",

@@ -10,7 +10,18 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["property", "review", "agency", "viewing", "inquiry", "system", "feedback", "saved_search"],
+      enum: [
+        "property",
+        "review",
+        "agency",
+        "viewing",
+        "inquiry",
+        "system",
+        "feedback",
+        "saved_search",
+        "mover",
+        "mover_request",
+      ],
       default: "system",
     },
     title: {

@@ -675,6 +675,26 @@ textarea:focus {
   gap: 12px;
 }
 
+.auth-panel-form fieldset {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.auth-panel-form .checkbox-option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-panel-form .checkbox-option input {
+  width: auto;
+  min-height: 0;
+}
+
 .legal-footer {
   justify-content: center;
   margin-top: 24px;
@@ -714,6 +734,11 @@ textarea:focus {
 .table-panel tbody tr:hover,
 .table-panel tbody tr.selected {
   background: var(--surface-soft);
+}
+
+.verified-badge {
+  margin-left: 8px;
+  vertical-align: middle;
 }
 
 .status-pill.status-suspended {

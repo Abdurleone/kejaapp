@@ -31,6 +31,11 @@ export default function PropertyCard({ property, apiBaseUrl, onPress, isSaved, o
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{property.title || "Rental property"}</Text>
         <Text style={styles.subtitle} numberOfLines={1}>{area}, {county}</Text>
+        {property.owner?.role === "agency" && property.owner.verified ? (
+          <View style={styles.verifiedBadge}>
+            <Text style={styles.verifiedBadgeText}>Verified agency</Text>
+          </View>
+        ) : null}
 
         <View style={styles.costRow}>
           <Text style={styles.price}>{formatKes(rent)}</Text>
@@ -119,6 +124,18 @@ const createStyles = (colors) =>
     subtitle: {
       fontSize: 13,
       color: colors.muted,
+    },
+    verifiedBadge: {
+      alignSelf: "flex-start",
+      backgroundColor: colors.surfaceSoft,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 999,
+    },
+    verifiedBadgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.greenDark,
     },
     costRow: {
       flexDirection: "row",

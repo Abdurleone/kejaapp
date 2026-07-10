@@ -18,7 +18,7 @@ The backend currently includes:-
  - Agency verification
  - Admin moderation
  - Notifications
- - Mover discovery
+ - Movers (accounts, verification, owner affiliates, and tenant service requests)
  - Seed data
  - Tests
  - Insomnia collection for manual API testing.
@@ -44,8 +44,9 @@ A static adaptive web app is available in `frontend/`. A React Native (Expo) mob
 - Admin approval and rejection of agency verifications.
 - A real notification inbox (web and mobile), plus proactive/scheduled nudges: stale inquiry/viewing-request reminders, upcoming-viewing reminders, post-viewing review prompts, and stale-listing nudges — delivered in-app and as mobile push notifications.
 - Saved location + radius searches for tenants, with an alert when a new listing matches one.
-- Mover and relocation service discovery.
-- Platform feedback from tenants, landlords, and agencies, with admin responses published as public testimonials on the landing page.
+- Movers are full accounts (a `mover` role, self-registered like tenant/landlord/agency), going through the same admin verification workflow as agencies. Landlords/agencies can mark specific movers as trusted affiliates; on a property page, tenants see the owner's affiliated movers plus general movers within a configurable radius of that property, and can send a service request directly to a mover, who sees it as a received request they can accept, decline, or complete.
+- A "Verified agency" badge shown to tenants wherever a listing's owner is displayed (Discover cards, property detail), driven by the same admin-approval decision that already exists for agency verification — unverified agencies and all landlords keep listing normally, the badge just doesn't appear until approved.
+- Platform feedback from tenants, landlords, agencies, and movers, with admin responses published as public testimonials on the landing page.
 - Sign in with either your email or a username you choose at registration, for users who'd rather not type their email at login.
 
 ## Tech Stack
@@ -198,7 +199,7 @@ Trust and safety:
 
 Platform feedback:
 - Feedback model linked to the submitting user, with a `pending`/`responded` status and an embedded admin response (message, responder, timestamp).
-- Protected endpoint for tenants, landlords, and agencies to submit feedback (admins cannot submit — they only respond).
+- Protected endpoint for tenants, landlords, agencies, and movers to submit feedback (admins cannot submit — they only respond).
 - Protected endpoint for users to list their own submitted feedback.
 - Admin-only endpoints to list all feedback and respond to a pending item.
 - Responding marks the feedback `responded` and publishes it immediately — no separate publish/unpublish step.
@@ -207,10 +208,15 @@ Platform feedback:
 - Pending feedback count surfaced in the admin dashboard summary, alongside the existing agency-verification and violation counts.
 
 Movers:
-- Mover model.
-- Public mover listing endpoint.
-- Filters for service type, rating, base price, and service area.
-- Demo mover seed data.
+- `mover` is a full user role (self-registers like tenant/landlord/agency); a `Mover` business-directory document links to that account via `Mover.user`, plus a GeoJSON `location.coordinates` (2dsphere-indexed, mirroring `Property`) for proximity search.
+- `MoverVerification` model and admin approve/reject endpoints, an exact structural mirror of the existing agency verification workflow — approval/rejection also syncs the denormalized `Mover.verified` flag so the existing public listing/filter/sort logic needed no changes.
+- Mover profile self-service: signed-in movers upsert their own business listing (name, phone, service types, location, base price, availability) via `GET/POST /api/movers/profile`.
+- Affiliate management: landlords/agencies can add or remove a mover as a trusted affiliate (`Mover.affiliatedOwners`) via `PUT/DELETE /api/movers/:id/affiliate`.
+- `GET /api/properties/:id/movers` — a composite endpoint returning the property owner's affiliated movers plus verified movers within a radius of the property's coordinates (deduplicated, reusing the same `$geoWithin`/`$centerSphere` proximity logic as property search), driving the "movers for this move" section on a property page.
+- `MoverRequest` model and workflow (modeled on `Inquiry`): a tenant requests a specific mover (optionally scoped to a property), the mover receives it and can accept/decline/complete, the tenant can cancel; notifications fire on creation and on every status change.
+- Public mover listing/detail endpoints (`GET /api/movers`, `GET /api/movers/:id`) with filters for service type, county, rating, base price, and proximity (`lat`/`lng`/`radiusKm`).
+- A `verified` flag added to `User` itself (distinct from `Mover.verified`), synced by the existing agency-verification approve/reject endpoints, backing the public "Verified agency" badge shown on listings.
+- Demo mover seed data: 6 movers, each with a real login account, realistic coordinates, and verification records across all three statuses (approved/pending/rejected), plus affiliate relationships with seeded landlord/agency accounts.
 
 Developer workflow:
 - Insomnia collection at `docs/kejaapp-insomnia.json`.
@@ -225,7 +231,7 @@ Developer workflow:
 The web frontend in `frontend/` is a React 19 + Vite single-page app (SPA) with manual routing and real backend API integration.
 
 Frontend architecture:
-- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage, NotificationsPage, FeedbackPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
+- React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage, NotificationsPage, FeedbackPage, MoversPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
 - Global `app-utils.js` for API helpers, formatting, and view logic.
@@ -233,7 +239,7 @@ Frontend architecture:
 
 Authentication and session:
 - Sign-in/sign-up modal overlay in the header with login and register tabs.
-- Role selection (tenant, landlord, agency) during registration.
+- Role selection (tenant, landlord, agency, mover) during registration.
 - Backend JWT bearer token stored in localStorage and sent with all API requests.
 - Backend cookie-based refresh tokens for session management.
 - Sign-out clears token and redirects to discover page.
@@ -267,15 +273,26 @@ Frontend API helpers in `app-utils.js`:
 - `createSavedSearch(payload)` → `POST /api/saved-searches`
 - `fetchSavedSearches()` → `GET /api/saved-searches`
 - `deleteSavedSearch(savedSearchId)` → `DELETE /api/saved-searches/:id`
+- `fetchMovers(filters)` → `GET /api/movers`
+- `fetchMoverById(moverId)` → `GET /api/movers/:id`
+- `fetchPropertyMovers(propertyId, query)` → `GET /api/properties/:id/movers`
+- `submitMoverProfile(payload)` → `POST /api/movers/profile` (mover only)
+- `fetchMoverProfileStatus()` → `GET /api/movers/profile` (mover only)
+- `affiliateMover(moverId)` / `unaffiliateMover(moverId)` → `PUT`/`DELETE /api/movers/:id/affiliate` (landlord/agency only)
+- `createMoverRequest({ mover, property, message, preferredDate })` → `POST /api/mover-requests` (tenant only)
+- `fetchMyMoverRequests()` / `fetchReceivedMoverRequests()` → `GET /api/mover-requests` (tenant) / `GET /api/mover-requests/received` (mover)
+- `updateMoverRequestStatus(moverRequestId, { status, response })` → `PUT /api/mover-requests/:id/status`
 - All requests include Authorization bearer token if signed in.
-- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, `fetchReceivedInquiries`, `fetchMyFeedback`, `fetchAdminFeedback`, `fetchNotifications`, and `fetchSavedSearches` are cached in-memory for 15 seconds to avoid redundant refetches on remount (`fetchPublicTestimonials` for 60 seconds); the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, the feedback caches clear on `createFeedback`/`respondToFeedback`, the notifications cache clears on `markNotificationAsRead`, the saved-searches cache clears on `createSavedSearch`/`deleteSavedSearch`, and the whole cache clears on login, logout, register, and account deletion.
+- `fetchProperties`, `fetchPropertyById`, `fetchFavorites`, `fetchMyProperties`, `fetchReceivedInquiries`, `fetchMyFeedback`, `fetchAdminFeedback`, `fetchNotifications`, `fetchSavedSearches`, `fetchMovers`, `fetchPropertyMovers`, `fetchMoverProfileStatus`, `fetchMyMoverRequests`, and `fetchReceivedMoverRequests` are cached in-memory for 15 seconds to avoid redundant refetches on remount (`fetchPublicTestimonials` for 60 seconds); the favorites cache clears on save/remove, the property/my-properties caches clear on `updateProperty`, the feedback caches clear on `createFeedback`/`respondToFeedback`, the notifications cache clears on `markNotificationAsRead`, the saved-searches cache clears on `createSavedSearch`/`deleteSavedSearch`, the movers/property-movers caches clear on `affiliateMover`/`unaffiliateMover`, the mover-profile cache clears on `submitMoverProfile`, the mover-request caches clear on `createMoverRequest`/`updateMoverRequestStatus`, and the whole cache clears on login, logout, register, and account deletion.
 
 Included flows:
 - Brand-gradient landing hero (built from the app's own theme colors, not a stock photo) with a visible header (logo, mode toggle, sign in) and a single call-to-action, plus anonymous listing search before authentication.
 - Testimonials section on the landing page, populated from admin-responded platform feedback (`GET /api/feedback/public`) — hidden entirely when there are none yet, so it never shows an empty/error state to signed-out visitors.
-- Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency; agency verification status; admin platform-moderation counts). Admins do not get an owner listings section, since admins manage users, not listings. Backed by `GET /api/dashboard/summary`.
+- Role-aware Dashboard (`/dashboard`) — the default landing view for every signed-in role right after sign-in, showing unread notifications for everyone plus role-specific sections (tenant activity; owner listings for landlord/agency; agency verification status; mover verification status and received-request counts; admin platform-moderation counts, now including mover verifications). Admins do not get an owner listings section, since admins manage users, not listings. Backed by `GET /api/dashboard/summary`.
 - Anonymous property discovery with radius search and gated save actions.
-- Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, and inline forms to send an inquiry or request a viewing (matching the mobile app's flow).
+- Property detail page (`/property/:id`) reached via "Details" from Discover or Saved — full description, cost summary, contact info, amenities, a "Movers for this move" section (the owner's affiliated movers plus verified movers nearby, each with an inline "Request service" form), and inline forms to send an inquiry or request a viewing (matching the mobile app's flow). Also shows the listing owner's name and, for agencies, a "Verified agency" badge once approved.
+- Discover property cards show the same "Verified agency" badge next to an agency-owned listing, once that agency's verification is approved.
+- Movers tab (`/movers`) — for tenants/landlords/agencies/anonymous visitors, a filterable directory of mover businesses (service type, county, rating) with a "Request service" action per card (tenants) and an "Add/remove affiliate" action (landlords/agencies); for signed-in movers, their own profile-status panel (edit business details, see verification status) plus a list of received tenant requests with accept/decline/complete actions.
 - Adaptive property cards, listing insights, skeleton loading states (shape-matching placeholders for Discover/Saved/Workspace/Dashboard/property detail, not spinners or "Loading..." text; respects `prefers-reduced-motion`), error states, and empty states.
 - Login and registration with form validation.
 - Role-aware navigation so tenants, owners, agencies, and admins only see the views they can access.
@@ -295,6 +312,7 @@ Frontend access model:
 - Tenants can search homes, save listings after signing in, and manage saved listings.
 - Landlords and agencies can access the owner workspace placeholder.
 - Admins can access the admin console to manage user accounts. Admins cannot access the owner workspace and have no listing creation, editing, or viewing capability anywhere in the app or API.
+- Movers see their own profile/received-requests dashboard on the Movers tab instead of the directory everyone else sees there.
 - Visitors must sign in or sign up before accessing saved listings or saving homes.
 - Tenants do not see owner workspace navigation.
 - Non-admin users do not see admin console navigation.
@@ -589,15 +607,16 @@ Acceptance criteria:
 - Given I am logged in as an agency, when I submit valid verification details and documents, then my verification request is saved for admin review.
 - Given I already have a pending or approved verification, when I submit again, then the API prevents duplicate active requests.
 - Given an admin approves or rejects my request, when I check my verification status, then I can see the latest decision and reason if rejected.
+- Given my verification is approved, when a tenant views one of my listings (Discover card or property detail), then they see a "Verified agency" badge next to my name. Given I'm not yet verified (or I'm a landlord, who doesn't go through this workflow), then no badge appears and my listings otherwise work exactly the same — verification is a trust signal, not a listing gate.
 
 ### Admin Moderation
 
-As an admin, I want to review agency verification requests, so that only trusted agencies are marked as verified.
+As an admin, I want to review agency and mover verification requests, so that only trusted businesses are marked as verified.
 
 Acceptance criteria:
-- Given I am logged in as an admin, when I list agency verification requests, then I can view pending, approved, and rejected requests.
-- Given I approve a request, when the action succeeds, then the agency is marked approved and receives a notification.
-- Given I reject a request, when I provide a reason, then the agency is marked rejected and receives the reason in a notification.
+- Given I am logged in as an admin, when I list agency or mover verification requests, then I can view pending, approved, and rejected requests for each.
+- Given I approve a request, when the action succeeds, then the agency/mover is marked approved and receives a notification.
+- Given I reject a request, when I provide a reason, then the agency/mover is marked rejected and receives the reason in a notification.
 
 ### Notifications
 
@@ -629,15 +648,28 @@ Acceptance criteria:
 As a tenant, I want to browse mover and relocation services, so that I can plan my move after finding a home.
 
 Acceptance criteria:
-- Given I view movers, when I filter by service type, price, or rating, then I only see matching mover providers.
-- Given movers are returned, when I inspect the list, then I can see provider details, service areas, rating, and base price.
+- Given I view movers, when I filter by service type, county, or rating, then I only see matching mover providers.
+- Given movers are returned, when I inspect the list, then I can see provider details, service areas, rating, verification status, and base price.
+- Given I open a property's detail page, when it has an owner-affiliated mover or verified movers within its proximity radius, then I see them grouped as "Recommended by the owner" and "Movers nearby" without duplicates between the two lists.
+
+### Mover Accounts, Affiliates, and Service Requests
+
+As a moving company, I want to create an account, get verified, and hear from tenants who need my services, so that I can run my business through the platform instead of just being listed in it.
+
+Acceptance criteria:
+- Given I register with the `mover` role, when I submit my business profile (name, phone, service types, location, base price), then it's saved to my account and immediately visible in the public mover directory, whether or not I'm verified yet.
+- Given I submit verification details as a mover, when an admin reviews them, the workflow matches agency verification exactly: pending until reviewed, approved/rejected with a reason, and a notification either way. My listing keeps working the whole time — verification adds a badge, it doesn't gate my ability to operate.
+- Given I am a landlord or agency, when I mark a mover as an affiliate (or remove one), then that mover shows up (or stops showing up) under "Recommended by the owner" on my properties' detail pages for every tenant who views them.
+- Given I am a tenant, when I send a service request to a mover (optionally from a specific property page), then the mover receives it and I can see it pending.
+- Given I am the mover who received a request, when I accept, decline, or complete it (optionally with a response message), then the tenant is notified of the new status. Given I am the tenant, I can also cancel my own pending request.
+- Given I am a mover, when I check my Dashboard, then I see my verification status and a breakdown of received requests by status.
 
 ### Platform Feedback
 
-As a tenant, landlord, or agency, I want to tell KejaApp how the platform helped me, and have an admin respond, so that my experience can be shared as a testimonial for future users.
+As a tenant, landlord, agency, or mover, I want to tell KejaApp how the platform helped me, and have an admin respond, so that my experience can be shared as a testimonial for future users.
 
 Acceptance criteria:
-- Given I am a signed-in tenant, landlord, or agency, when I submit feedback, then it is saved as pending and I can see it in my own feedback list.
+- Given I am a signed-in tenant, landlord, agency, or mover, when I submit feedback, then it is saved as pending and I can see it in my own feedback list.
 - Given I am an admin, when I try to submit feedback, then the API rejects the request — admins only respond to feedback, they don't submit it.
 - Given I am an admin, when I list all feedback, then I can see every submission regardless of who sent it.
 - Given I am an admin, when I respond to a pending item, then it becomes `responded`, the submitter is notified, and it becomes publicly visible as a testimonial.
@@ -783,7 +815,7 @@ GET    /api/agencies/status
 Feedback:
 
 ```text
-POST   /api/feedback                                        tenant, landlord, agency
+POST   /api/feedback                                        tenant, landlord, agency, mover
 GET    /api/feedback/mine
 GET    /api/feedback/public                                  no auth required
 ```
@@ -800,6 +832,9 @@ GET    /api/admin/reviews
 GET    /api/admin/agencies/verifications
 PUT    /api/admin/agencies/verifications/:id/approve
 PUT    /api/admin/agencies/verifications/:id/reject
+GET    /api/admin/movers/verifications
+PUT    /api/admin/movers/verifications/:id/approve
+PUT    /api/admin/movers/verifications/:id/reject
 GET    /api/admin/violations
 PUT    /api/admin/violations/:id/status
 GET    /api/admin/feedback
@@ -810,6 +845,22 @@ Movers:
 
 ```text
 GET    /api/movers
+GET    /api/movers?lat=-1.2921&lng=36.782&radiusKm=10
+GET    /api/movers/profile                                   mover (own profile)
+POST   /api/movers/profile                                    mover (upsert own profile)
+GET    /api/movers/:id
+PUT    /api/movers/:id/affiliate                               landlord, agency
+DELETE /api/movers/:id/affiliate                               landlord, agency
+GET    /api/properties/:id/movers                              affiliates + nearby, no auth required
+```
+
+Mover requests:
+
+```text
+GET    /api/mover-requests                                     tenant (their own sent requests)
+POST   /api/mover-requests                                     tenant
+GET    /api/mover-requests/received                            mover (across all requests to them)
+PUT    /api/mover-requests/:id/status                          tenant (cancel only) or the receiving mover
 ```
 
 ## Business Logic
@@ -822,17 +873,19 @@ GET    /api/movers
 - Property image URL and alt text management.
 - Property image fingerprinting and duplicate image violation creation.
 - Listing-specific owner and agency contact preferences.
-- Role-aware dashboard summary counts for tenants, owners, agencies, and admins.
+- Role-aware dashboard summary counts for tenants, owners, agencies, movers, and admins.
 - Admin account moderation notifications for restored, suspended, and banned users.
 - Automatic violation threshold enforcement for repeated suspicious listing behavior.
 - Saved property list enrichment with property cost summaries.
 - Property inquiry and owner response workflow.
 - Review aggregation for property ratings.
 - Scheduled and open viewing request workflow.
-- Notification triggers for inquiries, reviews, viewings, and agency verification decisions.
-- Agency verification approval and rejection workflow.
+- Notification triggers for inquiries, reviews, viewings, agency/mover verification decisions, and mover service requests.
+- Agency and mover verification approval and rejection workflow, syncing a public-facing `verified` flag on the account/listing.
+- Mover-affiliate management and property-proximity mover matching, reusing the same geo-radius filtering as property search.
+- Mover service request workflow (create, accept/decline/complete, cancel) between tenants and movers.
 - MongoDB connection health reporting.
-- TTL response caching for public property and mover listings (in-memory by default, Redis-backed across instances when `REDIS_URL` is set), invalidated on property writes.
+- TTL response caching for public property and mover listings (in-memory by default, Redis-backed across instances when `REDIS_URL` is set), invalidated on property/mover writes.
 - Platform feedback becomes a public testimonial the moment an admin responds — the public feedback list's response cache is invalidated on that same write so it appears immediately rather than waiting out the cache TTL.
 - User-chosen usernames at registration, with availability checking and up to 3 collision-safe alternative suggestions on conflict; the same opaque-username generator is reused by the one-off backfill script for pre-existing accounts.
 
@@ -1104,6 +1157,8 @@ Completed:
 - Seeded demo images for the 11 properties that had none, added an explicit "View details" link on mobile property cards (previously the only way in was tapping the whole card), and added one-tap call/email/WhatsApp contact actions to the property detail view on both web and mobile — a "Contact via {method}" button plus individually-tappable phone/email/WhatsApp lines, built from the owner's preferred contact method.
 - Added a mobile light/dark mode toggle (`ThemeContext`, persisted via AsyncStorage) — mobile never had one before, only a single fixed palette. It's an icon-only sun/moon control in the top-right header of every screen (Login, Register, Dashboard, Discover, Saved, Workspace, Requests, Notifications, Feedback, Account), replacing the old inline "Dark mode" switch that only lived on the Account screen. Also redesigned the mobile Sign In screen with a branded gradient hero matching the landing page, hid the dev-only "Show API server settings" toggle behind `__DEV__` so production builds never expose it, and fixed the mobile landing page's gradient background not filling the screen on short content (now sized to the device's actual window height).
 - Gated full property details (pricing, contact info, amenities) behind tenant sign-in on both platforms, using an existing-but-previously-unwired `canOpenPropertyDetails` helper — anonymous visitors and non-tenant roles now see a "sign in with a tenant account" prompt instead, while the Discover list itself stays public. Also removed the literal API base URL from the web frontend's footer tagline, so backend wiring is never shown to end users.
+- Turned movers from a static public directory into full accounts: a new `mover` role (self-registers like tenant/landlord/agency), a `MoverVerification` workflow that's an exact structural mirror of agency verification (including the admin approve/reject endpoints and `Mover.verified` sync), landlord/agency-managed affiliates (`Mover.affiliatedOwners`), a new `MoverRequest` model/workflow modeled on `Inquiry` (tenant sends a request, mover accepts/declines/completes, tenant can cancel, notifications both ways), and a new `GET /api/properties/:id/movers` composite endpoint (owner's affiliates + verified movers within the property's proximity radius, deduplicated) that drives a new "Movers for this move" section on the property detail page on both web and mobile. Shipped end-to-end on backend, web, and mobile in one pass, plus seed data (6 movers, each a real account, spanning all three verification statuses and two affiliate relationships).
+- Added a public "Verified agency" badge, shown next to a listing's owner on Discover cards and the property detail page (web and mobile) once that agency's verification is approved. Required adding a `verified` flag to `User` itself (previously only `AgencyVerification` tracked status, with no denormalized flag the way `Mover.verified` already had one) — the existing agency approve/reject endpoints now sync it, mirroring the pattern already used for movers.
 
 Next:
 - Keep payments off-platform unless the product scope changes later.
