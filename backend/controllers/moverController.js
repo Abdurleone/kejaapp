@@ -1,9 +1,23 @@
 import httpStatus from "../constants/httpStatus.js";
+import { roles } from "../constants/rbac.js";
 import Mover from "../models/Mover.js";
+import { invalidateNamespace } from "../middlewares/responseCache.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { earthRadiusKm, parseGeoQueryNumber } from "../utils/propertyFilters.js";
 
 const serviceTypes = ["local", "long_distance", "packing", "storage", "office", "furniture"];
+
+const moverProfileFields = ["name", "phone", "email", "serviceTypes", "location", "basePrice", "isAvailable"];
+
+const pickMoverProfilePayload = (body) =>
+  moverProfileFields.reduce((payload, field) => {
+    if (body[field] !== undefined) {
+      payload[field] = body[field];
+    }
+
+    return payload;
+  }, {});
 
 const formatPagination = (page, limit, total) => ({
   page,
@@ -69,6 +83,34 @@ const buildMoverFilters = (query) => {
     filters.$text = { $search: query.search };
   }
 
+  if (query.lat !== undefined || query.lng !== undefined || query.radiusKm !== undefined) {
+    if (query.lat === undefined || query.lng === undefined) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "lat and lng are required for radius search");
+    }
+
+    const latitude = parseGeoQueryNumber(query.lat, "lat");
+    const longitude = parseGeoQueryNumber(query.lng, "lng");
+    const radiusKm = query.radiusKm === undefined ? 10 : parseGeoQueryNumber(query.radiusKm, "radiusKm");
+
+    if (latitude < -90 || latitude > 90) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "lat must be between -90 and 90");
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "lng must be between -180 and 180");
+    }
+
+    if (radiusKm <= 0 || radiusKm > 100) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "radiusKm must be greater than 0 and less than or equal to 100");
+    }
+
+    filters["location.coordinates"] = {
+      $geoWithin: {
+        $centerSphere: [[longitude, latitude], radiusKm / earthRadiusKm],
+      },
+    };
+  }
+
   return filters;
 };
 
@@ -90,4 +132,101 @@ const listMovers = asyncHandler(async (req, res) => {
   });
 });
 
-export { listMovers };
+const getMover = asyncHandler(async (req, res) => {
+  const mover = await Mover.findById(req.params.id);
+
+  if (!mover) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Mover not found");
+  }
+
+  res.status(httpStatus.OK).json({
+    data: mover,
+  });
+});
+
+const submitMoverProfile = asyncHandler(async (req, res) => {
+  if (req.user.role !== roles.mover) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Only mover accounts can manage a mover profile");
+  }
+
+  const mover = await Mover.findOneAndUpdate(
+    { user: req.user._id },
+    {
+      ...pickMoverProfilePayload(req.body),
+      user: req.user._id,
+    },
+    {
+      returnDocument: "after",
+      runValidators: true,
+      setDefaultsOnInsert: true,
+      upsert: true,
+    }
+  );
+
+  await invalidateNamespace("movers");
+
+  res.status(httpStatus.OK).json({
+    data: mover,
+  });
+});
+
+const getMoverProfile = asyncHandler(async (req, res) => {
+  const mover = await Mover.findOne({ user: req.user._id });
+
+  if (!mover) {
+    res.status(httpStatus.OK).json({
+      data: { status: "not_submitted" },
+    });
+    return;
+  }
+
+  res.status(httpStatus.OK).json({
+    data: mover,
+  });
+});
+
+const affiliateMover = asyncHandler(async (req, res) => {
+  const mover = await Mover.findByIdAndUpdate(
+    req.params.id,
+    { $addToSet: { affiliatedOwners: req.user._id } },
+    { new: true }
+  );
+
+  if (!mover) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Mover not found");
+  }
+
+  await invalidateNamespace("movers");
+
+  res.status(httpStatus.OK).json({
+    data: mover,
+  });
+});
+
+const unaffiliateMover = asyncHandler(async (req, res) => {
+  const mover = await Mover.findByIdAndUpdate(
+    req.params.id,
+    { $pull: { affiliatedOwners: req.user._id } },
+    { new: true }
+  );
+
+  if (!mover) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Mover not found");
+  }
+
+  await invalidateNamespace("movers");
+
+  res.status(httpStatus.OK).json({
+    data: mover,
+  });
+});
+
+export {
+  affiliateMover,
+  buildMoverFilters,
+  getMover,
+  getMoverProfile,
+  listMovers,
+  submitMoverProfile,
+  unaffiliateMover,
+};

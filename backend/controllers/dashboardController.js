@@ -2,6 +2,8 @@ import AgencyVerification from "../models/AgencyVerification.js";
 import Favorite from "../models/Favorite.js";
 import Feedback, { feedbackStatuses } from "../models/Feedback.js";
 import Inquiry from "../models/Inquiry.js";
+import MoverRequest, { moverRequestStatuses } from "../models/MoverRequest.js";
+import MoverVerification from "../models/MoverVerification.js";
 import Notification from "../models/Notification.js";
 import Property from "../models/Property.js";
 import UserViolation from "../models/UserViolation.js";
@@ -72,9 +74,24 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     };
   }
 
+  if (req.user.role === "mover") {
+    const verification = await MoverVerification.findOne({ user: userId }).select("status rejectionReason");
+
+    summary.mover = {
+      verificationStatus: verification?.status || "not_submitted",
+      rejectionReason: verification?.rejectionReason || null,
+      receivedRequests: await countByStatus(MoverRequest, { moverAccount: userId }, moverRequestStatuses),
+    };
+  }
+
   if (req.user.role === "admin") {
     summary.admin = {
       agencyVerifications: await countByStatus(AgencyVerification, {}, [
+        "pending",
+        "approved",
+        "rejected",
+      ]),
+      moverVerifications: await countByStatus(MoverVerification, {}, [
         "pending",
         "approved",
         "rejected",

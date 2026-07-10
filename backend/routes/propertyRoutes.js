@@ -7,6 +7,7 @@ import {
   getProperty,
   listMyProperties,
   listProperties,
+  listPropertyMovers,
   removePropertyImage,
   uploadPropertyImage,
   updateProperty,
@@ -34,6 +35,15 @@ const cachePropertyResponses = cacheResponse({
   ttlMs: env.propertiesCacheTtlMs,
 });
 
+// Uses the "movers" cache namespace (not "properties") since this endpoint's
+// content is driven by mover affiliation/verification changes, not property
+// edits — keeps it invalidated by the same moverController mutations that
+// invalidate the movers list/detail cache.
+const cacheMoverResponses = cacheResponse({
+  namespace: "movers",
+  ttlMs: env.moversCacheTtlMs,
+});
+
 router
   .route("/")
   .get(cachePropertyResponses, listProperties)
@@ -49,6 +59,7 @@ router.post("/costs/calculate", validateRequest(costCalculationSchema), calculat
 router.get("/mine", protect, authorize(...roleGroups.listingManagers), listMyProperties);
 
 router.get("/:id/inquiries", protect, authorize(...roleGroups.listingManagers), listPropertyInquiries);
+router.get("/:id/movers", cacheMoverResponses, listPropertyMovers);
 router.get("/:id/reviews", listPropertyReviews);
 router.get("/:id/viewings", protect, authorize(...roleGroups.listingManagers), listPropertyViewingRequests);
 router.post(

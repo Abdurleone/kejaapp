@@ -5,6 +5,7 @@ import DashboardScreen from "../screens/dashboard/DashboardScreen.js";
 import DiscoverStack from "./DiscoverStack.js";
 import SavedScreen from "../screens/saved/SavedScreen.js";
 import WorkspaceStack from "./WorkspaceStack.js";
+import MoversStack from "./MoversStack.js";
 import RequestsScreen from "../screens/requests/RequestsScreen.js";
 import NotificationsScreen from "../screens/notifications/NotificationsScreen.js";
 import FeedbackScreen from "../screens/feedback/FeedbackScreen.js";
@@ -19,6 +20,7 @@ const icons = {
   Discover: "search",
   Saved: "heart",
   Workspace: "briefcase",
+  Movers: "car",
   Requests: "chatbubbles",
   Notifications: "notifications",
   Feedback: "chatbox-ellipses",
@@ -31,19 +33,21 @@ const icons = {
 // of whether it applies (which is what made the bar feel cramped with 8
 // tabs for everyone, tenant and landlord alike).
 const roleTabs = {
-  tenant: ["Dashboard", "Discover", "Saved", "Requests", "Notifications", "Feedback", "Account"],
-  landlord: ["Dashboard", "Workspace", "Notifications", "Feedback", "Account"],
-  agency: ["Dashboard", "Workspace", "Notifications", "Feedback", "Account"],
+  tenant: ["Dashboard", "Discover", "Saved", "Movers", "Requests", "Notifications", "Feedback", "Account"],
+  landlord: ["Dashboard", "Workspace", "Movers", "Notifications", "Feedback", "Account"],
+  agency: ["Dashboard", "Workspace", "Movers", "Notifications", "Feedback", "Account"],
+  mover: ["Dashboard", "Movers", "Notifications", "Feedback", "Account"],
   admin: ["Dashboard", "Notifications", "Feedback", "Account"],
 };
 
-const anonymousTabs = ["Dashboard", "Discover", "Account"];
+const anonymousTabs = ["Dashboard", "Discover", "Movers", "Account"];
 
 const screens = {
   Dashboard: { component: DashboardScreen },
   Discover: { component: DiscoverStack, options: { headerShown: false } },
   Saved: { component: SavedScreen },
   Workspace: { component: WorkspaceStack, options: { headerShown: false } },
+  Movers: { component: MoversStack, options: { headerShown: false } },
   Requests: { component: RequestsScreen },
   Notifications: { component: NotificationsScreen },
   Feedback: { component: FeedbackScreen },

@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import {
   agencyVerifications,
   inquiries,
+  movers,
+  moverVerifications,
   properties,
   users,
   viewingRequests,
@@ -59,6 +61,40 @@ describe("seedDemoData", () => {
     assert.equal(userEmails.includes("agency@example.com"), true);
     assert.equal(userEmails.includes("urban.agency@example.com"), true);
     assert.equal(userEmails.includes("rejected.agency@example.com"), true);
+  });
+
+  it("includes a mover user account and linked profile for each demo mover", () => {
+    const moverRoleEmails = users.filter((user) => user.role === "mover").map((user) => user.email);
+
+    assert.equal(movers.length >= 6, true);
+    assert.equal(
+      movers.every((mover) => moverRoleEmails.includes(mover.userEmail)),
+      true
+    );
+    assert.equal(
+      movers.every((mover) => mover.location.coordinates?.coordinates?.length === 2),
+      true
+    );
+  });
+
+  it("affiliates at least one mover with a landlord or agency owner", () => {
+    assert.equal(
+      movers.some((mover) => mover.affiliatedOwnerEmails?.includes("agency@example.com")),
+      true
+    );
+  });
+
+  it("includes mover verification records covering every status", () => {
+    const statuses = new Set(moverVerifications.map((verification) => verification.status));
+    const userEmails = moverVerifications.map((verification) => verification.userEmail);
+
+    assert.equal(statuses.has("pending"), true);
+    assert.equal(statuses.has("approved"), true);
+    assert.equal(statuses.has("rejected"), true);
+    assert.equal(
+      movers.every((mover) => userEmails.includes(mover.userEmail)),
+      true
+    );
   });
 
   it("includes tenant inquiry records for workflow testing", () => {

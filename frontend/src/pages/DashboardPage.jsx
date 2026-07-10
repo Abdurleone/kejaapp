@@ -6,6 +6,7 @@ const roleLabels = {
   tenant: "Tenant",
   landlord: "Landlord",
   agency: "Agency",
+  mover: "Mover",
   admin: "Admin",
 };
 
@@ -111,11 +112,25 @@ export default function DashboardPage({ currentUser }) {
             </div>
           )}
 
+          {summary.mover && (
+            <div className="panel stack">
+              <h3>Mover verification</h3>
+              <p className="muted-copy">
+                Status: <strong>{formatStatusLabel(summary.mover.verificationStatus)}</strong>
+              </p>
+              {summary.mover.rejectionReason && <p className="muted-copy">{summary.mover.rejectionReason}</p>}
+              <div className="stat-grid">
+                <StatusStatTiles counts={summary.mover.receivedRequests} suffix="requests" />
+              </div>
+            </div>
+          )}
+
           {summary.admin && (
             <div className="panel stack">
               <h3>Platform moderation</h3>
               <div className="stat-grid">
                 <StatusStatTiles counts={summary.admin.agencyVerifications} suffix="agency verifications" />
+                <StatusStatTiles counts={summary.admin.moverVerifications} suffix="mover verifications" />
                 <StatusStatTiles counts={summary.admin.violations} suffix="violations" />
                 <StatusStatTiles counts={summary.admin.feedback} suffix="feedback" />
               </div>

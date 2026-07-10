@@ -4,6 +4,7 @@ import connectDB, { disconnectDB } from "../config/db.js";
 import AgencyVerification from "../models/AgencyVerification.js";
 import Inquiry from "../models/Inquiry.js";
 import Mover from "../models/Mover.js";
+import MoverVerification from "../models/MoverVerification.js";
 import Property from "../models/Property.js";
 import Review from "../models/Review.js";
 import User from "../models/User.js";
@@ -82,10 +83,53 @@ const users = [
     role: "admin",
     phone: "+254722000000",
   },
+  {
+    name: "SwiftMove Nairobi Operator",
+    email: "mover1@example.com",
+    password: "password123",
+    role: "mover",
+    phone: "+254722000001",
+  },
+  {
+    name: "Rift Relocations Operator",
+    email: "mover2@example.com",
+    password: "password123",
+    role: "mover",
+    phone: "+254733000002",
+  },
+  {
+    name: "Coastal Movers Operator",
+    email: "mover3@example.com",
+    password: "password123",
+    role: "mover",
+    phone: "+254744000003",
+  },
+  {
+    name: "Lakeview Relocations Operator",
+    email: "mover4@example.com",
+    password: "password123",
+    role: "mover",
+    phone: "+254755000004",
+  },
+  {
+    name: "Highlands Movers Operator",
+    email: "mover5@example.com",
+    password: "password123",
+    role: "mover",
+    phone: "+254766000005",
+  },
+  {
+    name: "Metro Movers Operator",
+    email: "mover6@example.com",
+    password: "password123",
+    role: "mover",
+    phone: "+254777000006",
+  },
 ];
 
 const movers = [
   {
+    userEmail: "mover1@example.com",
     name: "SwiftMove Nairobi",
     phone: "+254722000001",
     email: "hello@swiftmove.example",
@@ -94,13 +138,18 @@ const movers = [
       county: "Nairobi",
       town: "Nairobi",
       areasServed: ["Kilimani", "Westlands", "Kileleshwa", "Lavington"],
+      coordinates: {
+        type: "Point",
+        coordinates: [36.782, -1.2921],
+      },
     },
     basePrice: 3500,
     ratingAverage: 4.7,
     ratingCount: 38,
-    verified: true,
+    affiliatedOwnerEmails: ["agency@example.com"],
   },
   {
+    userEmail: "mover2@example.com",
     name: "Rift Relocations",
     phone: "+254733000002",
     email: "bookings@riftrelocations.example",
@@ -109,13 +158,18 @@ const movers = [
       county: "Nakuru",
       town: "Nakuru",
       areasServed: ["Nakuru", "Naivasha", "Eldoret", "Nairobi"],
+      coordinates: {
+        type: "Point",
+        coordinates: [36.08, -0.3031],
+      },
     },
     basePrice: 12000,
     ratingAverage: 4.4,
     ratingCount: 21,
-    verified: true,
+    affiliatedOwnerEmails: ["landlord@example.com"],
   },
   {
+    userEmail: "mover3@example.com",
     name: "Coastal Movers Mombasa",
     phone: "+254744000003",
     email: "info@coastalmovers.example",
@@ -124,13 +178,17 @@ const movers = [
       county: "Mombasa",
       town: "Mombasa",
       areasServed: ["Nyali", "Mombasa Island", "Bamburi"],
+      coordinates: {
+        type: "Point",
+        coordinates: [39.7124, -4.0198],
+      },
     },
     basePrice: 5000,
     ratingAverage: 4.6,
     ratingCount: 27,
-    verified: true,
   },
   {
+    userEmail: "mover4@example.com",
     name: "Lakeview Relocations Kisumu",
     phone: "+254755000004",
     email: "hello@lakeviewrelocations.example",
@@ -139,11 +197,52 @@ const movers = [
       county: "Kisumu",
       town: "Kisumu",
       areasServed: ["Milimani", "Kisumu Central", "Nyalenda"],
+      coordinates: {
+        type: "Point",
+        coordinates: [34.768, -0.0917],
+      },
     },
     basePrice: 4500,
     ratingAverage: 4.3,
     ratingCount: 14,
-    verified: false,
+  },
+  {
+    userEmail: "mover5@example.com",
+    name: "Highlands Movers Eldoret",
+    phone: "+254766000005",
+    email: "hello@highlandsmovers.example",
+    serviceTypes: ["local", "long_distance", "office"],
+    location: {
+      county: "Uasin Gishu",
+      town: "Eldoret",
+      areasServed: ["Eldoret", "Elgon View", "Langas"],
+      coordinates: {
+        type: "Point",
+        coordinates: [35.2698, 0.5143],
+      },
+    },
+    basePrice: 8000,
+    ratingAverage: 4.1,
+    ratingCount: 9,
+  },
+  {
+    userEmail: "mover6@example.com",
+    name: "Metro Movers Thika",
+    phone: "+254777000006",
+    email: "hello@metromovers.example",
+    serviceTypes: ["local", "packing", "storage", "furniture"],
+    location: {
+      county: "Kiambu",
+      town: "Thika",
+      areasServed: ["Thika", "Makongeni", "Nairobi"],
+      coordinates: {
+        type: "Point",
+        coordinates: [37.0693, -1.0332],
+      },
+    },
+    basePrice: 3000,
+    ratingAverage: 3.9,
+    ratingCount: 5,
   },
 ];
 
@@ -203,6 +302,105 @@ const agencyVerifications = [
     status: "rejected",
     reviewedByEmail: "admin@example.com",
     rejectionReason: "Registration document could not be verified.",
+  },
+];
+
+const moverVerifications = [
+  {
+    userEmail: "mover1@example.com",
+    businessName: "SwiftMove Nairobi",
+    registrationNumber: "BN-200001",
+    businessEmail: "hello@swiftmove.example",
+    businessPhone: "+254722000001",
+    officeAddress: "Kilimani, Nairobi",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/swiftmove-registration.pdf",
+      },
+    ],
+    status: "approved",
+    reviewedByEmail: "admin@example.com",
+  },
+  {
+    userEmail: "mover2@example.com",
+    businessName: "Rift Relocations",
+    registrationNumber: "BN-200002",
+    businessEmail: "bookings@riftrelocations.example",
+    businessPhone: "+254733000002",
+    officeAddress: "Nakuru Town, Nakuru",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/riftrelocations-registration.pdf",
+      },
+    ],
+    status: "approved",
+    reviewedByEmail: "admin@example.com",
+  },
+  {
+    userEmail: "mover3@example.com",
+    businessName: "Coastal Movers Mombasa",
+    registrationNumber: "BN-200003",
+    businessEmail: "info@coastalmovers.example",
+    businessPhone: "+254744000003",
+    officeAddress: "Nyali, Mombasa",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/coastalmovers-registration.pdf",
+      },
+    ],
+    status: "approved",
+    reviewedByEmail: "admin@example.com",
+  },
+  {
+    userEmail: "mover4@example.com",
+    businessName: "Lakeview Relocations Kisumu",
+    registrationNumber: "BN-200004",
+    businessEmail: "hello@lakeviewrelocations.example",
+    businessPhone: "+254755000004",
+    officeAddress: "Milimani, Kisumu",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/lakeviewrelocations-registration.pdf",
+      },
+    ],
+    status: "pending",
+  },
+  {
+    userEmail: "mover5@example.com",
+    businessName: "Highlands Movers Eldoret",
+    registrationNumber: "BN-200005",
+    businessEmail: "hello@highlandsmovers.example",
+    businessPhone: "+254766000005",
+    officeAddress: "Elgon View, Eldoret",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/highlandsmovers-registration.pdf",
+      },
+    ],
+    status: "approved",
+    reviewedByEmail: "admin@example.com",
+  },
+  {
+    userEmail: "mover6@example.com",
+    businessName: "Metro Movers Thika",
+    registrationNumber: "BN-200006",
+    businessEmail: "hello@metromovers.example",
+    businessPhone: "+254777000006",
+    officeAddress: "Makongeni, Thika",
+    documents: [
+      {
+        type: "business_registration",
+        url: "https://example.com/metromovers-registration.pdf",
+      },
+    ],
+    status: "rejected",
+    reviewedByEmail: "admin@example.com",
+    rejectionReason: "Business registration document could not be verified.",
   },
 ];
 
@@ -866,11 +1064,19 @@ const upsertUsers = async () => {
   return savedUsers;
 };
 
-const upsertMovers = async () => {
+const upsertMovers = async (savedUsers) => {
   for (const mover of movers) {
+    const { userEmail, affiliatedOwnerEmails, ...moverData } = mover;
+    const user = savedUsers[userEmail];
+    const affiliatedOwners = (affiliatedOwnerEmails || []).map((email) => savedUsers[email]._id);
+
     await Mover.findOneAndUpdate(
       { name: mover.name },
-      mover,
+      {
+        ...moverData,
+        user: user._id,
+        affiliatedOwners,
+      },
       {
         returnDocument: "after",
         runValidators: true,
@@ -878,6 +1084,33 @@ const upsertMovers = async () => {
         upsert: true,
       }
     );
+  }
+};
+
+const upsertMoverVerifications = async (savedUsers) => {
+  for (const verification of moverVerifications) {
+    const user = savedUsers[verification.userEmail];
+    const reviewedBy = verification.reviewedByEmail ? savedUsers[verification.reviewedByEmail] : null;
+    const { reviewedByEmail, userEmail, ...verificationData } = verification;
+
+    await MoverVerification.findOneAndUpdate(
+      { user: user._id },
+      {
+        ...verificationData,
+        user: user._id,
+        reviewedBy: reviewedBy?._id || null,
+        reviewedAt: verification.status === "approved" || verification.status === "rejected" ? new Date() : null,
+        rejectionReason: verification.status === "rejected" ? verification.rejectionReason : undefined,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        setDefaultsOnInsert: true,
+        upsert: true,
+      }
+    );
+
+    await Mover.findOneAndUpdate({ user: user._id }, { verified: verification.status === "approved" });
   }
 };
 
@@ -903,6 +1136,8 @@ const upsertAgencyVerifications = async (savedUsers) => {
         upsert: true,
       }
     );
+
+    await User.findByIdAndUpdate(user._id, { verified: verification.status === "approved" });
   }
 };
 
@@ -1053,7 +1288,8 @@ const seedDemoData = async () => {
     await connectDB();
 
     const savedUsers = await upsertUsers();
-    await upsertMovers();
+    await upsertMovers(savedUsers);
+    await upsertMoverVerifications(savedUsers);
     await upsertAgencyVerifications(savedUsers);
     const savedProperties = await upsertProperties(savedUsers);
     await upsertInquiries(savedUsers, savedProperties);
@@ -1079,6 +1315,7 @@ export {
   agencyVerifications,
   inquiries,
   movers,
+  moverVerifications,
   properties,
   seedDemoData,
   users,

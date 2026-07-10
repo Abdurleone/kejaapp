@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema(
     accountStatusUpdatedAt: {
       type: Date,
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

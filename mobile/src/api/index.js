@@ -109,6 +109,66 @@ export const createViewingRequest = async ({ property, requestedDate, message })
   return response.data;
 };
 
+// --- Movers ---
+
+export const fetchMovers = async (query = {}) => {
+  const response = await apiFetch(`/api/movers${buildQueryString(query)}`, { method: "GET" });
+  return response.data || [];
+};
+
+export const fetchMoverById = async (moverId) => {
+  const response = await apiFetch(`/api/movers/${moverId}`, { method: "GET" });
+  return response.data;
+};
+
+export const fetchPropertyMovers = async (propertyId, query = {}) => {
+  const response = await apiFetch(`/api/properties/${propertyId}/movers${buildQueryString(query)}`, {
+    method: "GET",
+  });
+  return response.data || { affiliates: [], nearby: [] };
+};
+
+export const affiliateMover = async (moverId) => {
+  const response = await apiFetch(`/api/movers/${moverId}/affiliate`, { method: "PUT" });
+  return response.data;
+};
+
+export const unaffiliateMover = async (moverId) => {
+  const response = await apiFetch(`/api/movers/${moverId}/affiliate`, { method: "DELETE" });
+  return response.data;
+};
+
+export const submitMoverProfile = async (payload) => {
+  const response = await apiFetch("/api/movers/profile", { method: "POST", body: payload });
+  return response.data;
+};
+
+export const fetchMoverProfileStatus = async () => {
+  const response = await apiFetch("/api/movers/profile", { method: "GET" });
+  return response.data;
+};
+
+export const createMoverRequest = async ({ mover, property, message, preferredDate }) => {
+  const response = await apiFetch("/api/mover-requests", {
+    method: "POST",
+    body: { mover, property, message, preferredDate },
+  });
+  return response.data;
+};
+
+export const fetchReceivedMoverRequests = async (query = {}) => {
+  const response = await apiFetch(`/api/mover-requests/received${buildQueryString(query)}`, { method: "GET" });
+  return response.data || [];
+};
+
+export const updateMoverRequestStatus = async (moverRequestId, { status, response: replyMessage }) => {
+  const result = await apiFetch(`/api/mover-requests/${moverRequestId}/status`, {
+    method: "PUT",
+    body: { status, response: replyMessage },
+  });
+  return result.data;
+};
+
 // --- Saved searches ---
 
 export const createSavedSearch = async (payload) => {

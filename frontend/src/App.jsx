@@ -8,6 +8,7 @@ import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
 import PropertyEditPage from "./pages/PropertyEditPage.jsx";
 import PropertyCreatePage from "./pages/PropertyCreatePage.jsx";
 import WorkspacePage from "./pages/WorkspacePage.jsx";
+import MoversPage from "./pages/MoversPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import NotificationsPage from "./pages/NotificationsPage.jsx";
 import FeedbackPage from "./pages/FeedbackPage.jsx";
@@ -45,6 +46,7 @@ const navItems = [
   { view: "discover", label: "Discover", path: getViewPath("discover") },
   { view: "saved", label: "Saved", path: getViewPath("saved") },
   { view: "owner", label: "Workspace", path: getViewPath("owner") },
+  { view: "movers", label: "Movers", path: getViewPath("movers") },
   { view: "admin", label: "Admin", path: getViewPath("admin") },
   { view: "notifications", label: "Notifications", path: getViewPath("notifications") },
   { view: "feedback", label: "Feedback", path: getViewPath("feedback") },
@@ -307,6 +309,8 @@ function App() {
             onCreateProperty={() => navigate(getPropertyCreatePath())}
           />
         );
+      case "movers":
+        return <MoversPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
       case "admin":
         if (!signedIn || !canAccessView(currentUser?.role, "admin")) {
           return (
@@ -507,6 +511,7 @@ function App() {
                         <option value="tenant">Tenant</option>
                         <option value="landlord">Landlord</option>
                         <option value="agency">Agency</option>
+                        <option value="mover">Mover</option>
                       </select>
                     </label>
                   </>

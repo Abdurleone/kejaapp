@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const moverSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      unique: true,
+      sparse: true,
+    },
     name: {
       type: String,
       required: true,
@@ -38,6 +44,16 @@ const moverSchema = new mongoose.Schema(
           trim: true,
         },
       ],
+      coordinates: {
+        type: {
+          type: String,
+          enum: ["Point"],
+        },
+        coordinates: {
+          type: [Number],
+          default: undefined,
+        },
+      },
     },
     basePrice: {
       type: Number,
@@ -63,6 +79,12 @@ const moverSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    affiliatedOwners: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
@@ -71,6 +93,8 @@ const moverSchema = new mongoose.Schema(
 
 moverSchema.index({ name: "text", "location.town": "text", "location.areasServed": "text" });
 moverSchema.index({ serviceTypes: 1, isAvailable: 1, verified: 1 });
+moverSchema.index({ "location.coordinates": "2dsphere" });
+moverSchema.index({ affiliatedOwners: 1 });
 
 const Mover = mongoose.model("Mover", moverSchema);
 
