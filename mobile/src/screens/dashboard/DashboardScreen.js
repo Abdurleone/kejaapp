@@ -12,6 +12,7 @@ const roleLabels = {
   tenant: "Tenant",
   landlord: "Landlord",
   agency: "Agency",
+  mover: "Mover",
   admin: "Admin",
 };
 
@@ -140,11 +141,27 @@ export default function DashboardScreen() {
         </View>
       ) : null}
 
+      {summary.mover ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Mover verification</Text>
+          <Text style={styles.muted}>
+            Status: <Text style={styles.strong}>{formatStatusLabel(summary.mover.verificationStatus)}</Text>
+          </Text>
+          {summary.mover.rejectionReason ? (
+            <Text style={styles.muted}>{summary.mover.rejectionReason}</Text>
+          ) : null}
+          <View style={styles.row}>
+            <StatusStatTiles counts={summary.mover.receivedRequests} suffix="requests" styles={styles} />
+          </View>
+        </View>
+      ) : null}
+
       {summary.admin ? (
         <View style={styles.panel}>
           <Text style={styles.panelTitle}>Platform moderation</Text>
           <View style={styles.row}>
             <StatusStatTiles counts={summary.admin.agencyVerifications} suffix="agency verifications" styles={styles} />
+            <StatusStatTiles counts={summary.admin.moverVerifications} suffix="mover verifications" styles={styles} />
             <StatusStatTiles counts={summary.admin.violations} suffix="violations" styles={styles} />
             <StatusStatTiles counts={summary.admin.feedback} suffix="feedback" styles={styles} />
           </View>

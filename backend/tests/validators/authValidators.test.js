@@ -9,7 +9,7 @@ import {
 
 describe("authValidators", () => {
   it("allows only public roles during registration", () => {
-    assert.deepEqual(registerUserSchema.role.enum, ["tenant", "landlord", "agency"]);
+    assert.deepEqual(registerUserSchema.role.enum, ["tenant", "landlord", "agency", "mover"]);
   });
 
   it("does not allow profile role or email updates", () => {

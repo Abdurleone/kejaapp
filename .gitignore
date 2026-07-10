@@ -1,5 +1,6 @@
 node_modules/
 .env
+docker-compose.override.yml
 k8s/backend-secret.yaml
 .DS_Store
 npm-debug.log*

@@ -1,19 +1,19 @@
 import httpStatus from "../constants/httpStatus.js";
-import AgencyVerification from "../models/AgencyVerification.js";
-import User from "../models/User.js";
+import Mover from "../models/Mover.js";
+import MoverVerification from "../models/MoverVerification.js";
 import { invalidateNamespace } from "../middlewares/responseCache.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { notifyAgencyVerificationDecision } from "../services/notificationService.js";
+import { notifyMoverVerificationDecision } from "../services/notificationService.js";
 
-const listAgencyVerifications = asyncHandler(async (req, res) => {
+const listMoverVerifications = asyncHandler(async (req, res) => {
   const filters = {};
 
   if (req.query.status) {
     filters.status = req.query.status;
   }
 
-  const verifications = await AgencyVerification.find(filters)
+  const verifications = await MoverVerification.find(filters)
     .populate("user", "name email role phone")
     .populate("reviewedBy", "name email role")
     .sort("-createdAt");
@@ -23,11 +23,11 @@ const listAgencyVerifications = asyncHandler(async (req, res) => {
   });
 });
 
-const approveAgencyVerification = asyncHandler(async (req, res) => {
-  const verification = await AgencyVerification.findById(req.params.id);
+const approveMoverVerification = asyncHandler(async (req, res) => {
+  const verification = await MoverVerification.findById(req.params.id);
 
   if (!verification) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Agency verification not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Mover verification not found");
   }
 
   verification.status = "approved";
@@ -36,9 +36,9 @@ const approveAgencyVerification = asyncHandler(async (req, res) => {
   verification.rejectionReason = undefined;
 
   await verification.save();
-  await User.findByIdAndUpdate(verification.user, { verified: true });
-  await invalidateNamespace("properties");
-  await notifyAgencyVerificationDecision(verification);
+  await Mover.findOneAndUpdate({ user: verification.user }, { verified: true });
+  await invalidateNamespace("movers");
+  await notifyMoverVerificationDecision(verification);
   await verification.populate("user", "name email role phone");
   await verification.populate("reviewedBy", "name email role");
 
@@ -47,11 +47,11 @@ const approveAgencyVerification = asyncHandler(async (req, res) => {
   });
 });
 
-const rejectAgencyVerification = asyncHandler(async (req, res) => {
-  const verification = await AgencyVerification.findById(req.params.id);
+const rejectMoverVerification = asyncHandler(async (req, res) => {
+  const verification = await MoverVerification.findById(req.params.id);
 
   if (!verification) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Agency verification not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Mover verification not found");
   }
 
   verification.status = "rejected";
@@ -60,9 +60,9 @@ const rejectAgencyVerification = asyncHandler(async (req, res) => {
   verification.rejectionReason = req.body.reason;
 
   await verification.save();
-  await User.findByIdAndUpdate(verification.user, { verified: false });
-  await invalidateNamespace("properties");
-  await notifyAgencyVerificationDecision(verification);
+  await Mover.findOneAndUpdate({ user: verification.user }, { verified: false });
+  await invalidateNamespace("movers");
+  await notifyMoverVerificationDecision(verification);
   await verification.populate("user", "name email role phone");
   await verification.populate("reviewedBy", "name email role");
 
@@ -72,7 +72,7 @@ const rejectAgencyVerification = asyncHandler(async (req, res) => {
 });
 
 export {
-  approveAgencyVerification,
-  listAgencyVerifications,
-  rejectAgencyVerification,
+  approveMoverVerification,
+  listMoverVerifications,
+  rejectMoverVerification,
 };

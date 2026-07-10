@@ -102,6 +102,49 @@ const notifyPropertyInquiryResponded = (inquiry) =>
     },
   });
 
+const notifyMoverVerificationDecision = (verification) => {
+  const approved = verification.status === "approved";
+
+  return createNotification({
+    user: verification.user,
+    type: "mover",
+    title: approved ? "Mover verification approved" : "Mover verification rejected",
+    message: approved
+      ? "Your mover verification has been approved."
+      : verification.rejectionReason || "Your mover verification was rejected.",
+    data: {
+      moverVerification: verification._id,
+      status: verification.status,
+    },
+  });
+};
+
+const notifyMoverRequestCreated = ({ mover, moverRequest }) =>
+  createNotification({
+    user: mover.user,
+    type: "mover_request",
+    title: "New moving service request",
+    message: `${mover.name} received a new service request.`,
+    data: {
+      mover: mover._id,
+      moverRequest: moverRequest._id,
+      status: moverRequest.status,
+    },
+  });
+
+const notifyMoverRequestStatusChanged = (moverRequest) =>
+  createNotification({
+    user: moverRequest.tenant._id || moverRequest.tenant,
+    type: "mover_request",
+    title: "Mover request updated",
+    message: `Your mover request was ${moverRequest.status}.`,
+    data: {
+      mover: moverRequest.mover._id || moverRequest.mover,
+      moverRequest: moverRequest._id,
+      status: moverRequest.status,
+    },
+  });
+
 const notifyFeedbackResponded = (feedback) =>
   createNotification({
     user: feedback.submitter._id || feedback.submitter,
@@ -230,6 +273,9 @@ export {
   createNotification,
   notifyAgencyVerificationDecision,
   notifyFeedbackResponded,
+  notifyMoverRequestCreated,
+  notifyMoverRequestStatusChanged,
+  notifyMoverVerificationDecision,
   notifyPropertyInquiryCreated,
   notifyPropertyInquiryResponded,
   notifyPropertyReviewCreated,

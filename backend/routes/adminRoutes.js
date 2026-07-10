@@ -5,6 +5,11 @@ import {
   rejectAgencyVerification,
 } from "../controllers/adminAgencyController.js";
 import {
+  approveMoverVerification,
+  listMoverVerifications,
+  rejectMoverVerification,
+} from "../controllers/adminMoverController.js";
+import {
   getUser,
   getUserSummary,
   listUserStatusHistory,
@@ -28,6 +33,7 @@ import {
   rejectAgencyVerificationSchema,
   updateUserStatusSchema,
 } from "../validators/adminValidators.js";
+import { rejectMoverVerificationSchema } from "../validators/moverValidators.js";
 import { updateViolationStatusSchema } from "../validators/violationValidators.js";
 import { respondToFeedbackSchema } from "../validators/feedbackValidators.js";
 
@@ -47,6 +53,13 @@ router.put(
   "/agencies/verifications/:id/reject",
   validateRequest(rejectAgencyVerificationSchema),
   rejectAgencyVerification
+);
+router.get("/movers/verifications", listMoverVerifications);
+router.put("/movers/verifications/:id/approve", approveMoverVerification);
+router.put(
+  "/movers/verifications/:id/reject",
+  validateRequest(rejectMoverVerificationSchema),
+  rejectMoverVerification
 );
 router.get("/violations", listViolations);
 router.put(

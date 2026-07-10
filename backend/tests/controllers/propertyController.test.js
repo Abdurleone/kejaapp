@@ -5,8 +5,10 @@ import {
   addPropertyImage,
   listMyProperties,
   listProperties,
+  listPropertyMovers,
   removePropertyImage,
 } from "../../controllers/propertyController.js";
+import Mover from "../../models/Mover.js";
 import Property from "../../models/Property.js";
 
 const createResponse = () => ({
@@ -302,5 +304,85 @@ describe("propertyController", () => {
 
     assert.equal(nextError.statusCode, 404);
     assert.equal(nextError.message, "Property image not found");
+  });
+
+  it("returns not found when listing movers for a missing property", async () => {
+    mock.method(Property, "findById", async () => null);
+    const req = { params: { id: new mongoose.Types.ObjectId().toString() }, query: {} };
+    const res = createResponse();
+    let nextError;
+
+    await listPropertyMovers(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 404);
+    assert.equal(nextError.message, "Property not found");
+  });
+
+  it("returns affiliate and nearby movers for a property, excluding duplicates", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: ownerId,
+      location: {
+        coordinates: {
+          type: "Point",
+          coordinates: [36.782, -1.2921],
+        },
+      },
+    };
+    mock.method(Property, "findById", async () => property);
+
+    const affiliateMover = { _id: new mongoose.Types.ObjectId(), name: "Affiliate Movers" };
+    const nearbyMover = { _id: new mongoose.Types.ObjectId(), name: "Nearby Movers" };
+    let secondCallFilters;
+    let callCount = 0;
+
+    mock.method(Mover, "find", (filters) => {
+      callCount += 1;
+
+      if (callCount === 1) {
+        assert.deepEqual(filters, { affiliatedOwners: ownerId, verified: true });
+        return { sort: async () => [affiliateMover] };
+      }
+
+      secondCallFilters = filters;
+      return { sort: async () => [nearbyMover] };
+    });
+
+    const req = { params: { id: property._id.toString() }, query: {} };
+    const res = createResponse();
+
+    await listPropertyMovers(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body.data.affiliates, [affiliateMover]);
+    assert.deepEqual(res.body.data.nearby, [nearbyMover]);
+    assert.equal(secondCallFilters.verified, true);
+    assert.deepEqual(secondCallFilters._id.$nin, [affiliateMover._id]);
+    assert.ok(secondCallFilters["location.coordinates"].$geoWithin.$centerSphere);
+  });
+
+  it("returns no nearby movers when the property has no coordinates", async () => {
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: new mongoose.Types.ObjectId(),
+      location: {},
+    };
+    mock.method(Property, "findById", async () => property);
+    mock.method(Mover, "find", () => ({ sort: async () => [] }));
+
+    const req = { params: { id: property._id.toString() }, query: {} };
+    const res = createResponse();
+
+    await listPropertyMovers(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body.data.nearby, []);
   });
 });

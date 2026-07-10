@@ -16,6 +16,7 @@ const roles = [
   { value: "tenant", label: "Tenant" },
   { value: "landlord", label: "Landlord" },
   { value: "agency", label: "Agency" },
+  { value: "mover", label: "Mover" },
 ];
 
 export default function RegisterScreen({ navigation }) {

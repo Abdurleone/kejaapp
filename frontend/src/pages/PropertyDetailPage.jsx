@@ -5,11 +5,14 @@ import {
   buildPhoneUrl,
   buildWhatsAppUrl,
   createInquiry,
+  createMoverRequest,
   createViewingRequest,
   fetchFavorites,
   fetchPropertyById,
+  fetchPropertyMovers,
   formatKes,
   formatRatingSummary,
+  formatStatusLabel,
   getPreferredContactUrl,
   getPropertyImage,
   saveFavorite,
@@ -55,6 +58,14 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   const [viewingSubmitting, setViewingSubmitting] = useState(false);
   const [viewingSent, setViewingSent] = useState(false);
 
+  const [propertyMovers, setPropertyMovers] = useState({ affiliates: [], nearby: [] });
+  const [moverRequestFormId, setMoverRequestFormId] = useState(null);
+  const [moverMessage, setMoverMessage] = useState("");
+  const [moverPreferredDate, setMoverPreferredDate] = useState("");
+  const [moverError, setMoverError] = useState("");
+  const [moverSubmitting, setMoverSubmitting] = useState(false);
+  const [moverSentId, setMoverSentId] = useState(null);
+
   useEffect(() => {
     let active = true;
 
@@ -90,6 +101,20 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
       .catch(() => {});
   }, [propertyId]);
 
+  useEffect(() => {
+    let active = true;
+
+    fetchPropertyMovers(propertyId)
+      .then((data) => {
+        if (active) setPropertyMovers(data);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [propertyId]);
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -105,6 +130,35 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
 
   const openForm = (form) => {
     setActiveForm(form);
+  };
+
+  const handleMoverRequestSubmit = async (event, moverId) => {
+    event.preventDefault();
+    setMoverError("");
+
+    if (!moverMessage.trim()) {
+      setMoverError("Message is required.");
+      return;
+    }
+
+    setMoverSubmitting(true);
+
+    try {
+      await createMoverRequest({
+        mover: moverId,
+        property: propertyId,
+        message: moverMessage.trim(),
+        preferredDate: moverPreferredDate || undefined,
+      });
+      setMoverSentId(moverId);
+      setMoverRequestFormId(null);
+      setMoverMessage("");
+      setMoverPreferredDate("");
+    } catch (err) {
+      setMoverError(err.message || "Could not send your mover request.");
+    } finally {
+      setMoverSubmitting(false);
+    }
   };
 
   const handleInquirySubmit = async (event) => {
@@ -193,6 +247,77 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   const hasContactInfo = contact.phone || contact.email || contact.whatsapp || contact.availableHours;
   const isScheduled = property.viewingType === "scheduled";
   const preferredContactUrl = getPreferredContactUrl(contact);
+  const hasMovers = propertyMovers.affiliates.length > 0 || propertyMovers.nearby.length > 0;
+
+  const renderMoverCard = (mover) => (
+    <article className="property-card" key={mover._id}>
+      <div className="property-body">
+        <h3 className="property-title">{mover.name}</h3>
+        <p className="muted-copy">
+          {(mover.serviceTypes || []).map((type) => formatStatusLabel(type)).join(", ") || "General moving"}
+        </p>
+        <div className="cost-row">
+          <strong>{formatKes(mover.basePrice)}</strong>
+          <span>base price</span>
+        </div>
+        {moverSentId === mover._id ? (
+          <p className="muted-copy">Request sent — the mover will respond soon.</p>
+        ) : moverRequestFormId === mover._id ? (
+          <form className="auth-panel-form" onSubmit={(event) => handleMoverRequestSubmit(event, mover._id)}>
+            <label>
+              Message
+              <textarea
+                rows={2}
+                value={moverMessage}
+                onChange={(event) => setMoverMessage(event.target.value)}
+                maxLength={1000}
+                required
+              />
+            </label>
+            <label>
+              Preferred date (optional)
+              <input
+                type="date"
+                value={moverPreferredDate}
+                onChange={(event) => setMoverPreferredDate(event.target.value)}
+              />
+            </label>
+            {moverError && <p className="error-text">{moverError}</p>}
+            <div className="form-actions">
+              <button className="primary-button" type="submit" disabled={moverSubmitting}>
+                {moverSubmitting ? "Sending..." : "Send request"}
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => {
+                  setMoverRequestFormId(null);
+                  setMoverError("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="card-actions">
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => {
+                setMoverRequestFormId(mover._id);
+                setMoverMessage("");
+                setMoverPreferredDate("");
+                setMoverError("");
+              }}
+            >
+              Request service
+            </button>
+          </div>
+        )}
+      </div>
+    </article>
+  );
 
   return (
     <div className="view active-view">
@@ -247,6 +372,15 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
             {formatKes(cost.upfrontTotal)}
           </span>
         </div>
+
+        {property.owner?.name && (
+          <p className="muted-copy owner-line">
+            Listed by <strong>{property.owner.name}</strong>
+            {property.owner.role === "agency" && property.owner.verified && (
+              <span className="status-pill status-active verified-badge">Verified agency</span>
+            )}
+          </p>
+        )}
 
         {hasContactInfo && (
           <>
@@ -304,6 +438,26 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
                 <span key={amenity}>{amenity}</span>
               ))}
             </div>
+          </>
+        )}
+
+        {hasMovers && (
+          <>
+            <h3>Movers for this move</h3>
+            {propertyMovers.affiliates.length > 0 && (
+              <>
+                <h4>Recommended by the owner</h4>
+                <div className="property-grid compact-grid">
+                  {propertyMovers.affiliates.map(renderMoverCard)}
+                </div>
+              </>
+            )}
+            {propertyMovers.nearby.length > 0 && (
+              <>
+                <h4>Movers nearby</h4>
+                <div className="property-grid compact-grid">{propertyMovers.nearby.map(renderMoverCard)}</div>
+              </>
+            )}
           </>
         )}
 
