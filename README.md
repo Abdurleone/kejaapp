@@ -1069,7 +1069,7 @@ npm run seed
 
 Seeded properties span 9 counties — Nairobi (Kilimani, Westlands, Kileleshwa, Lavington), Nakuru (Milimani, Naivasha), Mombasa (Nyali), Kisumu (Milimani), Uasin Gishu (Eldoret), Kiambu (Thika), Nyeri, Machakos, and Kakamega — useful for exercising radius/"near me" search across realistic real-world distances rather than just Nairobi-local ones.
 
-Seeded movers now also cover Mombasa and Kisumu, alongside the existing Nairobi and Nakuru-based movers, matching the wider property coverage.
+Seeded movers now also cover Mombasa, Kisumu, Uasin Gishu, and Kiambu, alongside the existing Nairobi and Nakuru-based movers, matching the wider property coverage — each is a full account (not just a directory listing), with a mix of verification statuses and two affiliated with a seeded landlord/agency.
 
 Demo login accounts all use `password123`. Each can also sign in with its username instead of its email — these were assigned by the opaque-username generator (the same one the seeder and `backfillUsernames.js` use for accounts with no one to ask), not hand-picked, and are stable across reseeds (the seeder only assigns one the first time an account is created). New registrations through the actual UI instead let the user choose their own.
 
@@ -1081,6 +1081,12 @@ mary.landlord@example.com   -> tidystream8373
 agency@example.com          -> crimsonsavanna9698
 urban.agency@example.com    -> fairjungle5360
 rejected.agency@example.com -> nimblelagoon9265
+mover1@example.com          -> sleekpeak1396
+mover2@example.com          -> tidyember8957
+mover3@example.com          -> luckyjasper3361
+mover4@example.com          -> goldenivory1225
+mover5@example.com          -> boldcanyon8855
+mover6@example.com          -> brightmeadow6139
 admin@example.com           -> primeprairie2890
 ```
 
@@ -1090,6 +1096,17 @@ Seeded agency verification records:
 agency@example.com -> pending
 urban.agency@example.com -> approved
 rejected.agency@example.com -> rejected
+```
+
+Seeded mover verification records:
+
+```text
+mover1@example.com -> SwiftMove Nairobi (Nairobi)              -> approved, affiliated with agency@example.com
+mover2@example.com -> Rift Relocations (Nakuru)                -> approved, affiliated with landlord@example.com
+mover3@example.com -> Coastal Movers Mombasa (Mombasa)          -> approved
+mover4@example.com -> Lakeview Relocations Kisumu (Kisumu)      -> pending
+mover5@example.com -> Highlands Movers Eldoret (Uasin Gishu)    -> approved
+mover6@example.com -> Metro Movers Thika (Kiambu)               -> rejected
 ```
 
 Seeded tenant workflow records:
