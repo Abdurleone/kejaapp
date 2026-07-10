@@ -27,12 +27,14 @@ import {
   getViewPath,
   getDefaultViewForRole,
   fetchCurrentUser,
+  fetchDashboardSummary,
   loginUser,
   logoutUser,
   registerUser,
   canAccessView,
   canManageListings,
   canOpenPropertyDetails,
+  canSearchListings,
 } from "../app-utils.js";
 
 const apiBaseUrl = normalizeApiBaseUrl(
@@ -71,6 +73,7 @@ function App() {
     role: "tenant",
   });
   const [usernameSuggestions, setUsernameSuggestions] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     document.documentElement.dataset.colorMode = colorMode;
@@ -127,6 +130,40 @@ function App() {
 
   const view = useMemo(() => resolveViewFromPath(path), [path]);
   const showSplash = shouldShowSplash({ isSignedIn: signedIn, path });
+
+  useEffect(() => {
+    if (!signedIn) {
+      // Nothing was started while signed out, so there's nothing to tear down —
+      // `displayedUnreadCount` below already renders 0 in this case.
+      return;
+    }
+
+    let active = true;
+
+    const refreshUnreadCount = async () => {
+      try {
+        const summary = await fetchDashboardSummary();
+        if (active) setUnreadCount(summary.notifications?.unread || 0);
+      } catch {
+        // Non-fatal: the badge just keeps its last known value until the next refresh.
+      }
+    };
+
+    refreshUnreadCount();
+    // Polling rather than a push mechanism (no websockets in this app) — good enough
+    // for a bell badge that only needs to notice new activity within ~30s.
+    const intervalId = setInterval(refreshUnreadCount, 30000);
+
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+    };
+  }, [signedIn]);
+
+  // Opening the Notifications tab is what "clears" the bell — NotificationsPage marks
+  // everything read server-side; deriving both cases here clears the badge
+  // immediately (signed-out and "already looking at it") with no extra effect/state.
+  const displayedUnreadCount = signedIn && view !== "notifications" ? unreadCount : 0;
 
   const openAuthPanel = () => {
     setAuthMode("login");
@@ -215,6 +252,17 @@ function App() {
 
         return <DashboardPage currentUser={currentUser} />;
       case "discover":
+        if (!canSearchListings(currentUser?.role)) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">
+                Browsing available listings is for tenants only. Landlords and agencies manage their own
+                listings from the Workspace tab, and movers work from the Movers tab.
+              </p>
+            </div>
+          );
+        }
+
         return (
           <DiscoverPage
             signedIn={signedIn}
@@ -246,10 +294,16 @@ function App() {
         if (!canOpenPropertyDetails(currentUser?.role)) {
           return (
             <div className="panel">
-              <p className="muted-copy">Sign in with a tenant account to view property details.</p>
-              <button className="primary-button" type="button" onClick={openAuthPanel}>
-                Sign in
-              </button>
+              <p className="muted-copy">
+                {currentUser?.role === "mover"
+                  ? "As a transportation facilitator, you work from service requests and notifications, not individual property listings."
+                  : "Sign in to view full property details and contact the owner."}
+              </p>
+              {!currentUser && (
+                <button className="primary-button" type="button" onClick={openAuthPanel}>
+                  Sign in
+                </button>
+              )}
             </div>
           );
         }
@@ -258,6 +312,7 @@ function App() {
           <PropertyDetailPage
             propertyId={getPropertyIdFromPath(path)}
             apiBaseUrl={apiBaseUrl}
+            currentUser={currentUser}
             onBack={() => navigate(getViewPath("discover"))}
           />
         );
@@ -423,7 +478,21 @@ function App() {
                   className={`tab ${view === item.view ? "active" : ""}`}
                   onClick={() => navigate(item.path)}
                 >
-                  {item.label}
+                  {item.view === "notifications" ? (
+                    <>
+                      <span aria-hidden="true">🔔</span> {item.label}
+                      {displayedUnreadCount > 0 && (
+                        <span
+                          className="notification-badge"
+                          aria-label={`${displayedUnreadCount} unread notifications`}
+                        >
+                          {displayedUnreadCount > 99 ? "99+" : displayedUnreadCount}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    item.label
+                  )}
                 </button>
               ))}
             </div>

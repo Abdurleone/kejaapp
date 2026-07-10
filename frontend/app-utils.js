@@ -331,14 +331,31 @@ export const fetchMoverProfileStatus = async () => {
   return response.data;
 };
 
-export const createMoverRequest = async ({ mover, property, message, preferredDate }) => {
+export const createMoverRequest = async ({ mover, property, message, preferredDate, pickupLat, pickupLng }) => {
   const response = await apiFetch("/api/mover-requests", {
     method: "POST",
-    body: { mover, property, message, preferredDate },
+    body: { mover, property, message, preferredDate, pickupLat, pickupLng },
   });
   clearRequestCache("myMoverRequests");
   return response.data;
 };
+
+// Best-effort: resolves with {lat, lng} from the browser's geolocation, or null if
+// unsupported/denied/timed out. Callers should treat pickup coordinates as optional —
+// a mover request is still valid without them, it just won't show a pickup distance.
+export const getCurrentPositionOrNull = () =>
+  new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+      () => resolve(null),
+      { timeout: 8000 },
+    );
+  });
 
 export const fetchMyMoverRequests = async (query = {}) => {
   const queryString = buildQueryString(query);
@@ -496,6 +513,16 @@ export const markNotificationAsRead = async (notificationId) => {
     method: "PUT",
   });
   clearRequestCache("notifications");
+  clearRequestCache("dashboardSummary");
+  return response.data;
+};
+
+export const markAllNotificationsAsRead = async () => {
+  const response = await apiFetch("/api/notifications/read-all", {
+    method: "PUT",
+  });
+  clearRequestCache("notifications");
+  clearRequestCache("dashboardSummary");
   return response.data;
 };
 
@@ -775,7 +802,13 @@ export const canManageListings = (role) => hasRole(role, roleGroups.listingManag
 
 export const canSearchListings = (role) => !role || hasRole(role, roleGroups.tenantOnly);
 
-export const canOpenPropertyDetails = (role) => hasRole(role, roleGroups.tenantOnly);
+// Full property details require signing in as anything other than a mover — movers
+// work from requests/notifications, not the listings themselves (see roleViewAccess),
+// so they're excluded even if they land on a detail page directly. Every other
+// signed-in role (tenant/landlord/agency/admin) is let through so a landlord/agency
+// who lands on a detail page directly doesn't see a confusing "sign in as a tenant"
+// message; only anonymous visitors are gated.
+export const canOpenPropertyDetails = (role) => Boolean(role) && !hasRole(role, roleGroups.movers);
 
 export const shouldShowSplash = ({ isSignedIn, path = "/" }) => {
   const normalizedPath = String(path || "/").replace(/\/$/, "") || "/";

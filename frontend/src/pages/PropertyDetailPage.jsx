@@ -4,6 +4,7 @@ import {
   buildEmailUrl,
   buildPhoneUrl,
   buildWhatsAppUrl,
+  canManageListings,
   createInquiry,
   createMoverRequest,
   createViewingRequest,
@@ -13,6 +14,7 @@ import {
   formatKes,
   formatRatingSummary,
   formatStatusLabel,
+  getCurrentPositionOrNull,
   getPreferredContactUrl,
   getPropertyImage,
   saveFavorite,
@@ -37,7 +39,7 @@ const minScheduledDateTime = () => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
+export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack, currentUser }) {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -144,11 +146,14 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
     setMoverSubmitting(true);
 
     try {
+      const position = await getCurrentPositionOrNull();
       await createMoverRequest({
         mover: moverId,
         property: propertyId,
         message: moverMessage.trim(),
         preferredDate: moverPreferredDate || undefined,
+        pickupLat: position?.lat,
+        pickupLng: position?.lng,
       });
       setMoverSentId(moverId);
       setMoverRequestFormId(null);
@@ -236,6 +241,25 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
           <p className="error-text">{error || "Property not found."}</p>
           <button className="secondary-button" type="button" onClick={onBack}>
             Back to Discover
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Landlords/agencies manage only their own listings (via Workspace) — they shouldn't
+  // see other owners' listings here either, not just be blocked from browsing the list.
+  const isOwnListing = String(property.owner?._id) === String(currentUser?._id);
+
+  if (canManageListings(currentUser?.role) && !isOwnListing) {
+    return (
+      <div className="view active-view">
+        <div className="panel">
+          <p className="muted-copy">
+            You can only view full details for your own listings. Manage them from the Workspace tab.
+          </p>
+          <button className="secondary-button" type="button" onClick={onBack}>
+            Back
           </button>
         </div>
       </div>

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { createMoverRequest } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { getCurrentPositionOrNull } from "../../utils/location.js";
 
 export default function MoverRequestFormScreen({ route, navigation }) {
   const { colors } = useTheme();
@@ -33,11 +34,14 @@ export default function MoverRequestFormScreen({ route, navigation }) {
     setSubmitting(true);
 
     try {
+      const position = await getCurrentPositionOrNull();
       await createMoverRequest({
         mover: moverId,
         property: propertyId,
         message: message.trim(),
         preferredDate: preferredDate || undefined,
+        pickupLat: position?.lat,
+        pickupLng: position?.lng,
       });
       setSent(true);
     } catch (err) {

@@ -7,6 +7,7 @@ import {
 } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { haversineDistanceKm } from "../utils/propertyFilters.js";
 
 const populatePaths = [
   { path: "mover", select: "name phone email serviceTypes location basePrice ratingAverage" },
@@ -17,6 +18,22 @@ const populatePaths = [
 ];
 
 const populateMoverRequest = (query) => query.populate(populatePaths);
+
+// Attaches a computed pickup-to-dropoff distance for the mover's benefit, rather than
+// storing it, so it stays correct if the destination property's location ever changes.
+// Left untouched (no `distanceKm` key added) when either point is unavailable, so plain
+// mocked objects in tests compare equal without needing a `.toObject()` method.
+const attachDistanceKm = (moverRequest) => {
+  const plain = typeof moverRequest.toObject === "function" ? moverRequest.toObject() : moverRequest;
+  const pickupCoordinates = plain.pickupLocation?.coordinates;
+  const dropoffCoordinates = plain.property?.location?.coordinates?.coordinates;
+
+  if (pickupCoordinates?.length === 2 && dropoffCoordinates?.length === 2) {
+    return { ...plain, distanceKm: Number(haversineDistanceKm(pickupCoordinates, dropoffCoordinates).toFixed(1)) };
+  }
+
+  return plain;
+};
 
 const createMoverRequest = asyncHandler(async (req, res) => {
   const mover = await Mover.findById(req.body.mover);
@@ -29,6 +46,8 @@ const createMoverRequest = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "This mover does not have an active account yet");
   }
 
+  const hasPickupCoordinates = req.body.pickupLat !== undefined && req.body.pickupLng !== undefined;
+
   const moverRequest = await MoverRequest.create({
     mover: mover._id,
     moverAccount: mover.user,
@@ -36,13 +55,16 @@ const createMoverRequest = asyncHandler(async (req, res) => {
     property: req.body.property || null,
     message: req.body.message,
     preferredDate: req.body.preferredDate,
+    pickupLocation: hasPickupCoordinates
+      ? { type: "Point", coordinates: [req.body.pickupLng, req.body.pickupLat] }
+      : undefined,
   });
 
   await populateMoverRequest(moverRequest);
   await notifyMoverRequestCreated({ mover, moverRequest });
 
   res.status(httpStatus.CREATED).json({
-    data: moverRequest,
+    data: attachDistanceKm(moverRequest),
   });
 });
 
@@ -56,7 +78,7 @@ const listMyMoverRequests = asyncHandler(async (req, res) => {
   );
 
   res.status(httpStatus.OK).json({
-    data: moverRequests,
+    data: moverRequests.map(attachDistanceKm),
   });
 });
 
@@ -70,7 +92,7 @@ const listReceivedMoverRequests = asyncHandler(async (req, res) => {
   const moverRequests = await populateMoverRequest(MoverRequest.find(filters).sort("-createdAt"));
 
   res.status(httpStatus.OK).json({
-    data: moverRequests,
+    data: moverRequests.map(attachDistanceKm),
   });
 });
 
@@ -102,7 +124,7 @@ const updateMoverRequestStatus = asyncHandler(async (req, res) => {
   await notifyMoverRequestStatusChanged(moverRequest);
 
   res.status(httpStatus.OK).json({
-    data: moverRequest,
+    data: attachDistanceKm(moverRequest),
   });
 });
 

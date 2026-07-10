@@ -114,4 +114,15 @@ const buildPropertyFilters = (query) => {
   return filters;
 };
 
-export { buildPropertyFilters, earthRadiusKm, parseGeoQueryNumber };
+const haversineDistanceKm = ([lng1, lat1], [lng2, lat2]) => {
+  const toRadians = (degrees) => (degrees * Math.PI) / 180;
+  const deltaLat = toRadians(lat2 - lat1);
+  const deltaLng = toRadians(lng2 - lng1);
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(deltaLng / 2) ** 2;
+
+  return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
+};
+
+export { buildPropertyFilters, earthRadiusKm, haversineDistanceKm, parseGeoQueryNumber };

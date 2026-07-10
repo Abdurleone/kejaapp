@@ -157,6 +157,60 @@ describe("moverRequestController", () => {
     assert.equal(nextError.message, "Not authorized to cancel this mover request");
   });
 
+  it("computes a pickup-to-dropoff distance when both points are available", async () => {
+    // Nairobi CBD -> Nairobi CBD ~11km north (Kiambu Rd area), roughly 12km apart.
+    const expectedData = [
+      {
+        status: "pending",
+        pickupLocation: { type: "Point", coordinates: [36.8219, -1.2921] },
+        property: { title: "Modern Kilimani Apartment", location: { coordinates: { coordinates: [36.8172, -1.3833] } } },
+      },
+    ];
+    const query = {
+      sort() {
+        return this;
+      },
+      populate() {
+        return expectedData;
+      },
+    };
+    const tenantId = new mongoose.Types.ObjectId();
+    mock.method(MoverRequest, "find", () => query);
+    const req = { query: {}, user: { _id: tenantId } };
+    const res = createResponse();
+
+    await listMyMoverRequests(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.body.data.length, 1);
+    assert.ok(res.body.data[0].distanceKm > 0);
+    assert.ok(res.body.data[0].distanceKm < 15);
+  });
+
+  it("omits distanceKm when the request has no pickup location", async () => {
+    const expectedData = [
+      { status: "pending", property: { title: "Modern Kilimani Apartment", location: { coordinates: { coordinates: [36.8172, -1.3833] } } } },
+    ];
+    const query = {
+      sort() {
+        return this;
+      },
+      populate() {
+        return expectedData;
+      },
+    };
+    mock.method(MoverRequest, "find", () => query);
+    const req = { query: {}, user: { _id: new mongoose.Types.ObjectId() } };
+    const res = createResponse();
+
+    await listMyMoverRequests(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.body.data[0].distanceKm, undefined);
+  });
+
   it("rejects an accept/decline attempt from anyone other than the mover", async () => {
     const tenantId = new mongoose.Types.ObjectId();
     mock.method(MoverRequest, "findById", async () => ({
