@@ -401,6 +401,9 @@ function MoverRequestRow({ request, onStatusChange, styles }) {
         </View>
       </View>
       {request.property?.title ? <Text style={styles.cardSubtitle}>Re: {request.property.title}</Text> : null}
+      {request.distanceKm !== undefined ? (
+        <Text style={styles.cardSubtitle}>Pickup to drop-off: ~{request.distanceKm} km</Text>
+      ) : null}
       <Text style={styles.cardMessage}>{request.message}</Text>
       {request.preferredDate ? (
         <Text style={styles.cardSubtitle}>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { fetchNotifications, markNotificationAsRead } from "../../api/index.js";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { FeedbackCardSkeletonList } from "../../components/FeedbackCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
@@ -46,6 +46,19 @@ export default function NotificationsScreen() {
     await load();
     setRefreshing(false);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!signedIn) return;
+
+      // Opening this tab is what clears the bottom-tab badge — the list above still
+      // reflects whatever was unread at the moment it loaded, so "New" pills for this
+      // visit aren't affected by this running in the background.
+      markAllNotificationsAsRead().catch(() => {
+        // Non-fatal: the badge will just resync on its next poll instead.
+      });
+    }, [signedIn]),
+  );
 
   const handleMarkRead = async (notificationId) => {
     setMarkingId(notificationId);

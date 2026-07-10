@@ -8,6 +8,7 @@ import {
   fetchReceivedMoverRequests,
   formatStatusLabel,
   formatKes,
+  getCurrentPositionOrNull,
   statusTone,
   submitMoverProfile,
   unaffiliateMover,
@@ -36,10 +37,13 @@ function MoverRequestForm({ moverId, onCancel, onSent }) {
     setSubmitting(true);
 
     try {
+      const position = await getCurrentPositionOrNull();
       await createMoverRequest({
         mover: moverId,
         message: message.trim(),
         preferredDate: preferredDate || undefined,
+        pickupLat: position?.lat,
+        pickupLng: position?.lng,
       });
       onSent();
     } catch (err) {
@@ -494,6 +498,9 @@ function MoverRequestRow({ request, onStatusChange }) {
           <span className={`status-pill ${statusTone(request.status)}`}>{formatStatusLabel(request.status)}</span>
         </div>
         {request.property?.title && <p className="muted-copy">Re: {request.property.title}</p>}
+        {request.distanceKm !== undefined && (
+          <p className="muted-copy">Pickup to drop-off: ~{request.distanceKm} km</p>
+        )}
         <p>{request.message}</p>
         {request.preferredDate && (
           <p className="muted-copy">Preferred date: {new Date(request.preferredDate).toLocaleDateString()}</p>

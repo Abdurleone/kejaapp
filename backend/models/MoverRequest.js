@@ -27,6 +27,20 @@ const moverRequestSchema = new mongoose.Schema(
       ref: "Property",
       default: null,
     },
+    // Tenant's move-from point, captured client-side (device geolocation) when the
+    // request is sent — distinct from `property`, which is the move-to listing.
+    // Optional: if the tenant doesn't grant location access, the request still works,
+    // it just can't show the mover a pickup-to-dropoff distance.
+    pickupLocation: {
+      type: {
+        type: String,
+        enum: ["Point"],
+      },
+      coordinates: {
+        type: [Number],
+        default: undefined,
+      },
+    },
     message: {
       type: String,
       trim: true,
