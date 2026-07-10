@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { fetchDashboardSummary } from "../api/index.js";
 import { useAuth } from "../context/AuthContext.js";
 import DashboardScreen from "../screens/dashboard/DashboardScreen.js";
 import DiscoverStack from "./DiscoverStack.js";
@@ -58,6 +60,35 @@ export default function MainTabs() {
   const { user, signedIn } = useAuth();
   const { colors } = useTheme();
   const visibleTabs = signedIn ? roleTabs[user?.role] || anonymousTabs : anonymousTabs;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!signedIn) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let active = true;
+
+    const refreshUnreadCount = async () => {
+      try {
+        const summary = await fetchDashboardSummary();
+        if (active) setUnreadCount(summary.notifications?.unread || 0);
+      } catch {
+        // Non-fatal: the badge just keeps its last known value until the next refresh.
+      }
+    };
+
+    refreshUnreadCount();
+    // Polling rather than a push mechanism (no websockets in this app) — good enough
+    // for a bell badge that only needs to notice new activity within ~30s.
+    const intervalId = setInterval(refreshUnreadCount, 30000);
+
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+    };
+  }, [signedIn]);
 
   return (
     <Tab.Navigator
@@ -75,7 +106,27 @@ export default function MainTabs() {
       })}
     >
       {visibleTabs.map((name) => (
-        <Tab.Screen key={name} name={name} component={screens[name].component} options={screens[name].options} />
+        <Tab.Screen
+          key={name}
+          name={name}
+          component={screens[name].component}
+          options={{
+            ...screens[name].options,
+            ...(name === "Notifications" && unreadCount > 0
+              ? { tabBarBadge: unreadCount > 99 ? "99+" : unreadCount }
+              : {}),
+          }}
+          listeners={
+            name === "Notifications"
+              ? {
+                  // Tapping the tab is what "clears" the bell — NotificationsScreen
+                  // marks everything read server-side; this clears the badge
+                  // immediately instead of waiting on the next poll.
+                  tabPress: () => setUnreadCount(0),
+                }
+              : undefined
+          }
+        />
       ))}
     </Tab.Navigator>
   );

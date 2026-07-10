@@ -148,10 +148,10 @@ export const fetchMoverProfileStatus = async () => {
   return response.data;
 };
 
-export const createMoverRequest = async ({ mover, property, message, preferredDate }) => {
+export const createMoverRequest = async ({ mover, property, message, preferredDate, pickupLat, pickupLng }) => {
   const response = await apiFetch("/api/mover-requests", {
     method: "POST",
-    body: { mover, property, message, preferredDate },
+    body: { mover, property, message, preferredDate, pickupLat, pickupLng },
   });
   return response.data;
 };
@@ -205,6 +205,11 @@ export const fetchNotifications = async (query = {}) => {
 
 export const markNotificationAsRead = async (notificationId) => {
   const response = await apiFetch(`/api/notifications/${notificationId}/read`, { method: "PUT" });
+  return response.data;
+};
+
+export const markAllNotificationsAsRead = async () => {
+  const response = await apiFetch("/api/notifications/read-all", { method: "PUT" });
   return response.data;
 };
 

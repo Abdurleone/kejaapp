@@ -39,4 +39,12 @@ const markNotificationRead = asyncHandler(async (req, res) => {
   });
 });
 
-export { listNotifications, markNotificationRead };
+const markAllNotificationsRead = asyncHandler(async (req, res) => {
+  await Notification.updateMany({ user: req.user._id, readAt: null }, { readAt: new Date() });
+
+  res.status(httpStatus.OK).json({
+    data: { unread: 0 },
+  });
+});
+
+export { listNotifications, markAllNotificationsRead, markNotificationRead };

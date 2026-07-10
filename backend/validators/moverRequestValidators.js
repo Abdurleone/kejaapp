@@ -10,6 +10,10 @@ const validateLength = (field, maxLength) => (value) => {
   return null;
 };
 
+const validateLatitude = (value) => (value < -90 || value > 90 ? "pickupLat must be between -90 and 90" : null);
+const validateLongitude = (value) =>
+  value < -180 || value > 180 ? "pickupLng must be between -180 and 180" : null;
+
 const createMoverRequestSchema = {
   mover: {
     required: true,
@@ -33,6 +37,14 @@ const createMoverRequestSchema = {
 
       return null;
     },
+  },
+  pickupLat: {
+    type: "number",
+    validate: validateLatitude,
+  },
+  pickupLng: {
+    type: "number",
+    validate: validateLongitude,
   },
 };
 

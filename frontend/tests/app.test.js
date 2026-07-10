@@ -171,7 +171,8 @@ describe("frontend app utilities", () => {
     assert.equal(canUseTenantPropertyActions("landlord"), false);
     assert.equal(canOpenPropertyDetails(undefined), false);
     assert.equal(canOpenPropertyDetails("tenant"), true);
-    assert.equal(canOpenPropertyDetails("landlord"), false);
+    assert.equal(canOpenPropertyDetails("landlord"), true);
+    assert.equal(canOpenPropertyDetails("mover"), false);
     assert.equal(canManageListings("tenant"), false);
     assert.equal(canManageListings("agency"), true);
     assert.equal(canManageListings("admin"), false);

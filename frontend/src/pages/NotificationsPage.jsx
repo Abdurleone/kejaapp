@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchNotifications, markNotificationAsRead } from "../../app-utils.js";
+import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "../../app-utils.js";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
@@ -32,6 +32,15 @@ export default function NotificationsPage() {
       active = false;
     };
   }, [retryKey, unreadOnly]);
+
+  useEffect(() => {
+    // Opening this page is what clears the notification bell in the header — the
+    // list above still reflects whatever was unread at the moment it loaded, so
+    // "New" pills for this visit aren't affected by this running in the background.
+    markAllNotificationsAsRead().catch(() => {
+      // Non-fatal: the bell will just resync on its next poll instead.
+    });
+  }, []);
 
   const handleMarkRead = async (notificationId) => {
     setMarkingId(notificationId);

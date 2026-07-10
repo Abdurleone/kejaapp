@@ -23,7 +23,11 @@ const openContactUrl = (url) => {
 export default function PropertyDetailScreen({ route, navigation }) {
   const { propertyId } = route.params;
   const { signedIn, user } = useAuth();
-  const canViewDetails = signedIn && user?.role === "tenant";
+  // Full details require signing in as anything other than a mover — movers work from
+  // requests/notifications, not the listings themselves. Every other signed-in role
+  // (tenant/landlord/agency/admin) is let through so landing here directly doesn't show
+  // a confusing "sign in as a tenant" message; only anonymous visitors are gated.
+  const canViewDetails = signedIn && user?.role !== "mover";
   const { apiBaseUrl } = useSettings();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -99,10 +103,15 @@ export default function PropertyDetailScreen({ route, navigation }) {
   };
 
   if (!canViewDetails) {
-    return (
+    return user?.role === "mover" ? (
       <MessageView
-        title="Sign in as a tenant"
-        message="Sign in with a tenant account to view full property details and contact the owner."
+        title="Not available for movers"
+        message="As a transportation facilitator, you work from service requests and notifications, not individual property listings."
+      />
+    ) : (
+      <MessageView
+        title="Sign in to continue"
+        message="Sign in to view full property details and contact the owner."
         actionLabel="Sign in"
         onAction={() => navigation.navigate("Login")}
       />
@@ -120,6 +129,20 @@ export default function PropertyDetailScreen({ route, navigation }) {
         message={error || "Property not found."}
         actionLabel={error ? "Retry" : undefined}
         onAction={error ? loadProperty : undefined}
+      />
+    );
+  }
+
+  // Landlords/agencies manage only their own listings (via Workspace) — they shouldn't
+  // see other owners' listings here either, not just be blocked from browsing Discover.
+  const isListingManager = user?.role === "landlord" || user?.role === "agency";
+  const isOwnListing = String(property.owner?._id) === String(user?._id);
+
+  if (isListingManager && !isOwnListing) {
+    return (
+      <MessageView
+        title="Not your listing"
+        message="You can only view full details for your own listings. Manage them from the Workspace tab."
       />
     );
   }
