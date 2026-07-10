@@ -2,12 +2,18 @@ import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
 import AgencyVerification from "../models/AgencyVerification.js";
 import AuthSession from "../models/AuthSession.js";
+import DeviceToken from "../models/DeviceToken.js";
 import Favorite from "../models/Favorite.js";
+import Feedback from "../models/Feedback.js";
 import Inquiry from "../models/Inquiry.js";
+import Mover from "../models/Mover.js";
+import MoverRequest from "../models/MoverRequest.js";
+import MoverVerification from "../models/MoverVerification.js";
 import Notification from "../models/Notification.js";
 import Property from "../models/Property.js";
 import PropertyImageFingerprint from "../models/PropertyImageFingerprint.js";
 import Review from "../models/Review.js";
+import SavedSearch from "../models/SavedSearch.js";
 import User from "../models/User.js";
 import UserStatusLog from "../models/UserStatusLog.js";
 import UserViolation from "../models/UserViolation.js";
@@ -295,6 +301,33 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
       ],
     }),
     Property.deleteMany({ owner: userId }),
+    Mover.deleteMany({ user: userId }),
+    Mover.updateMany(
+      { affiliatedOwners: userId },
+      { $pull: { affiliatedOwners: userId } }
+    ),
+    MoverVerification.deleteMany({
+      $or: [
+        { user: userId },
+        { reviewedBy: userId },
+      ],
+    }),
+    MoverRequest.deleteMany({
+      $or: [
+        { tenant: userId },
+        { moverAccount: userId },
+        { respondedBy: userId },
+        { property: { $in: ownedPropertyIds } },
+      ],
+    }),
+    Feedback.deleteMany({
+      $or: [
+        { submitter: userId },
+        { "response.respondedBy": userId },
+      ],
+    }),
+    SavedSearch.deleteMany({ user: userId }),
+    DeviceToken.deleteMany({ user: userId }),
   ]);
 
   await user.deleteOne();

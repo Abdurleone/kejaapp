@@ -3,13 +3,30 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   changePassword,
+  deleteCurrentUser,
   loginUser,
   refreshAccessToken,
   registerUser,
   updateCurrentUser,
 } from "../../controllers/authController.js";
+import AgencyVerification from "../../models/AgencyVerification.js";
 import AuthSession from "../../models/AuthSession.js";
+import DeviceToken from "../../models/DeviceToken.js";
+import Favorite from "../../models/Favorite.js";
+import Feedback from "../../models/Feedback.js";
+import Inquiry from "../../models/Inquiry.js";
+import Mover from "../../models/Mover.js";
+import MoverRequest from "../../models/MoverRequest.js";
+import MoverVerification from "../../models/MoverVerification.js";
+import Notification from "../../models/Notification.js";
+import Property from "../../models/Property.js";
+import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
+import Review from "../../models/Review.js";
+import SavedSearch from "../../models/SavedSearch.js";
 import User from "../../models/User.js";
+import UserStatusLog from "../../models/UserStatusLog.js";
+import UserViolation from "../../models/UserViolation.js";
+import ViewingRequest from "../../models/ViewingRequest.js";
 import { hashToken } from "../../utils/tokens.js";
 
 const createResponse = () => ({
@@ -88,6 +105,79 @@ describe("authController", () => {
     assert.equal(res.body.user.phone, "+254711000000");
     assert.equal(res.body.user.email, "old@example.com");
     assert.equal(res.body.user.role, "tenant");
+  });
+
+  it("deletes mover, feedback, saved-search, and device-token data along with the account", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      async deleteOne() {},
+    };
+
+    mock.method(User, "findById", async () => user);
+    mock.method(Property, "find", () => ({
+      select: async () => [],
+    }));
+
+    const deleteManyCalls = {};
+    const trackDeleteMany = (Model, name) => {
+      mock.method(Model, "deleteMany", async (filter) => {
+        deleteManyCalls[name] = filter;
+        return { deletedCount: 0 };
+      });
+    };
+
+    trackDeleteMany(AuthSession, "AuthSession");
+    trackDeleteMany(Favorite, "Favorite");
+    trackDeleteMany(Inquiry, "Inquiry");
+    trackDeleteMany(ViewingRequest, "ViewingRequest");
+    trackDeleteMany(Review, "Review");
+    trackDeleteMany(Notification, "Notification");
+    trackDeleteMany(AgencyVerification, "AgencyVerification");
+    trackDeleteMany(PropertyImageFingerprint, "PropertyImageFingerprint");
+    trackDeleteMany(UserViolation, "UserViolation");
+    trackDeleteMany(UserStatusLog, "UserStatusLog");
+    trackDeleteMany(Property, "Property");
+    trackDeleteMany(Mover, "Mover");
+    trackDeleteMany(MoverVerification, "MoverVerification");
+    trackDeleteMany(MoverRequest, "MoverRequest");
+    trackDeleteMany(Feedback, "Feedback");
+    trackDeleteMany(SavedSearch, "SavedSearch");
+    trackDeleteMany(DeviceToken, "DeviceToken");
+
+    let moverAffiliateUpdate;
+    mock.method(Mover, "updateMany", async (filter, update) => {
+      moverAffiliateUpdate = { filter, update };
+      return { modifiedCount: 0 };
+    });
+
+    const req = { user: { _id: userId } };
+    const res = createResponse();
+
+    await deleteCurrentUser(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(deleteManyCalls.Mover, { user: userId });
+    assert.deepEqual(deleteManyCalls.MoverVerification, {
+      $or: [{ user: userId }, { reviewedBy: userId }],
+    });
+    assert.deepEqual(deleteManyCalls.MoverRequest, {
+      $or: [
+        { tenant: userId },
+        { moverAccount: userId },
+        { respondedBy: userId },
+        { property: { $in: [] } },
+      ],
+    });
+    assert.deepEqual(deleteManyCalls.Feedback, {
+      $or: [{ submitter: userId }, { "response.respondedBy": userId }],
+    });
+    assert.deepEqual(deleteManyCalls.SavedSearch, { user: userId });
+    assert.deepEqual(deleteManyCalls.DeviceToken, { user: userId });
+    assert.deepEqual(moverAffiliateUpdate.filter, { affiliatedOwners: userId });
+    assert.deepEqual(moverAffiliateUpdate.update, { $pull: { affiliatedOwners: userId } });
   });
 
   it("rejects password changes with the wrong current password", async () => {

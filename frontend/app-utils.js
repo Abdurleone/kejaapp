@@ -783,7 +783,7 @@ const roleViewAccess = {
 };
 
 export const canAccessView = (role, view) => {
-  if (["privacy", "deleteAccount"].includes(view)) {
+  if (["privacy", "terms", "deleteAccount"].includes(view)) {
     return true;
   }
 
@@ -827,6 +827,7 @@ const viewPaths = {
   feedback: "/feedback",
   account: "/account",
   privacy: "/privacy",
+  terms: "/terms",
   deleteAccount: "/delete-account",
 };
 
