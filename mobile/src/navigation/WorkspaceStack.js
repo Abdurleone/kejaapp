@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Pressable, Text, View } from "react-native";
 import WorkspaceScreen from "../screens/workspace/WorkspaceScreen.js";
 import PropertyCreateScreen from "../screens/workspace/PropertyCreateScreen.js";
+import PropertyEditScreen from "../screens/workspace/PropertyEditScreen.js";
 import { useAuth } from "../context/AuthContext.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
@@ -44,6 +45,7 @@ export default function WorkspaceStack() {
         component={PropertyCreateScreen}
         options={{ title: "New listing", presentation: "modal" }}
       />
+      <Stack.Screen name="PropertyEdit" component={PropertyEditScreen} options={{ title: "Edit listing" }} />
     </Stack.Navigator>
   );
 }

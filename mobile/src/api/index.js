@@ -109,6 +109,19 @@ export const createInquiry = async ({ property, subject, message, contactPrefere
   return response.data;
 };
 
+export const fetchReceivedInquiries = async (query = {}) => {
+  const response = await apiFetch(`/api/inquiries/received${buildQueryString(query)}`, { method: "GET" });
+  return { inquiries: response.data || [], pagination: response.pagination };
+};
+
+export const respondToInquiry = async (inquiryId, { status, response: replyMessage }) => {
+  const result = await apiFetch(`/api/inquiries/${inquiryId}`, {
+    method: "PUT",
+    body: { status, response: replyMessage },
+  });
+  return result.data;
+};
+
 // --- Viewing requests ---
 
 export const fetchViewingRequests = async (query = {}) => {
