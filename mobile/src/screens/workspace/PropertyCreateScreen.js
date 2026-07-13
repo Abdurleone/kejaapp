@@ -14,73 +14,15 @@ import {
 import { createProperty, uploadPropertyImage } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { pickImagesOrEmpty } from "../../utils/imagePicker.js";
-
-const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
-const viewingTypes = ["scheduled", "open"];
-const contactMethods = [
-  { value: "inquiry", label: "In-app inquiry" },
-  { value: "phone", label: "Phone" },
-  { value: "email", label: "Email" },
-  { value: "whatsapp", label: "WhatsApp" },
-];
-
-const emptyForm = {
-  title: "",
-  description: "",
-  type: "apartment",
-  viewingType: "scheduled",
-  rent: "",
-  deposit: "",
-  agencyFee: "",
-  county: "",
-  town: "",
-  area: "",
-  bedrooms: "",
-  bathrooms: "",
-  amenities: "",
-  contactPreferredMethod: "inquiry",
-  contactPhone: "",
-  contactEmail: "",
-  contactWhatsapp: "",
-};
-
-const formToPayload = (form) => {
-  const contact = {
-    preferredMethod: form.contactPreferredMethod,
-    phone: form.contactPhone.trim(),
-    whatsapp: form.contactWhatsapp.trim(),
-  };
-
-  // The backend rejects an empty-string contact.email (fails its format
-  // check), so only include it when the landlord actually entered one.
-  if (form.contactEmail.trim()) {
-    contact.email = form.contactEmail.trim();
-  }
-
-  return {
-    title: form.title.trim(),
-    description: form.description.trim(),
-    type: form.type,
-    viewingType: form.viewingType,
-    price: {
-      rent: Number(form.rent) || 0,
-      deposit: Number(form.deposit) || 0,
-      agencyFee: Number(form.agencyFee) || 0,
-    },
-    location: {
-      county: form.county.trim(),
-      town: form.town.trim(),
-      area: form.area.trim(),
-    },
-    bedrooms: Number(form.bedrooms) || 0,
-    bathrooms: Number(form.bathrooms) || 0,
-    amenities: form.amenities
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean),
-    contact,
-  };
-};
+import {
+  contactMethods,
+  emptyPropertyForm,
+  formToPropertyPayload,
+  listingTypes,
+  propertyStatuses,
+  validatePropertyForm,
+  viewingTypes,
+} from "./propertyForm.js";
 
 function ChipRow({ options, value, onChange, styles }) {
   return (
@@ -106,7 +48,7 @@ function ChipRow({ options, value, onChange, styles }) {
 export default function PropertyCreateScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyPropertyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   // Photos are picked here but can't actually be uploaded until the property
@@ -138,20 +80,16 @@ export default function PropertyCreateScreen({ navigation }) {
   const handleSubmit = async () => {
     setError("");
 
-    if (!form.title.trim() || form.title.trim().length < 3) {
-      setError("Title must be at least 3 characters.");
-      return;
-    }
-
-    if (form.rent === "" || Number(form.rent) < 0) {
-      setError("Monthly rent is required and must be 0 or more.");
+    const validationError = validatePropertyForm(form);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const created = await createProperty(formToPayload(form));
+      const created = await createProperty(formToPropertyPayload(form));
 
       // Best-effort: the listing itself is already created at this point, so
       // a photo failing to upload shouldn't block navigating away - it can
@@ -199,6 +137,11 @@ export default function PropertyCreateScreen({ navigation }) {
       <View style={styles.field}>
         <Text style={styles.label}>Type</Text>
         <ChipRow options={listingTypes} value={form.type} onChange={updateField("type")} styles={styles} />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Status</Text>
+        <ChipRow options={propertyStatuses} value={form.status} onChange={updateField("status")} styles={styles} />
       </View>
 
       <View style={styles.row}>
@@ -302,6 +245,17 @@ export default function PropertyCreateScreen({ navigation }) {
         <Text style={styles.label}>Viewing type</Text>
         <ChipRow options={viewingTypes} value={form.viewingType} onChange={updateField("viewingType")} styles={styles} />
       </View>
+      <View style={styles.field}>
+        <Text style={styles.label}>Viewing instructions</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={form.viewingInstructions}
+          onChangeText={updateField("viewingInstructions")}
+          multiline
+          numberOfLines={3}
+          maxLength={1000}
+        />
+      </View>
 
       <Text style={styles.sectionTitle}>Contact</Text>
       <View style={styles.field}>
@@ -319,6 +273,26 @@ export default function PropertyCreateScreen({ navigation }) {
       <View style={styles.field}>
         <Text style={styles.label}>WhatsApp</Text>
         <TextInput style={styles.input} value={form.contactWhatsapp} onChangeText={updateField("contactWhatsapp")} />
+      </View>
+      <View style={styles.field}>
+        <Text style={styles.label}>Available hours</Text>
+        <TextInput
+          style={styles.input}
+          value={form.contactAvailableHours}
+          onChangeText={updateField("contactAvailableHours")}
+          placeholder="e.g. 8am - 6pm daily"
+        />
+      </View>
+      <View style={styles.field}>
+        <Text style={styles.label}>Contact notes</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={form.contactNotes}
+          onChangeText={updateField("contactNotes")}
+          multiline
+          numberOfLines={2}
+          maxLength={500}
+        />
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
