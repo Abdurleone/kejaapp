@@ -39,13 +39,11 @@ describe("frontend page component contracts", () => {
     assert.match(discoverSource, /No rentals found/);
   });
 
-  it("gates saving behind authentication and reflects saved state", () => {
-    assert.match(discoverSource, /if \(!signedIn\)\s*{\s*onRequireAuth\(\);/s);
-    assert.match(discoverSource, /savingPropertyId === propertyId \? "Saving\.\.\."/);
-    assert.match(discoverSource, /isSaved \? "Saved"/);
-    assert.match(discoverSource, /"Sign in to save"/);
-    assert.match(discoverSource, /disabled=\{isSaved \|\| savingPropertyId === propertyId\}/);
-  });
+  // Auth-gated saving, the Saving.../Saved/disabled states, and the
+  // signed-out "Sign in to save" label are now covered by real render +
+  // interaction tests in discover-page.render.test.jsx, which click the
+  // actual buttons and assert on saveFavorite/onRequireAuth being called -
+  // not just that these strings exist somewhere in the source.
 
   it("keeps saved listings connected to the favorites API", () => {
     assert.match(savedSource, /fetchFavorites\(\)/);
