@@ -25,7 +25,7 @@ const showcase = [
 
 // Mirrors frontend/src/pages/LandingPage.jsx so signed-out visitors get the
 // same pitch on mobile as they do on the web app: one full-page dark gradient
-// (with a faint logo watermark) behind the hero, showcase and testimonials,
+// (with a large centered logo) behind the hero, showcase and testimonials,
 // rather than a gradient card sitting on a plain page background.
 export default function LandingView() {
   const navigation = useNavigation();
@@ -59,12 +59,23 @@ export default function LandingView() {
         style={StyleSheet.absoluteFillObject}
       />
       <View style={styles.hero}>
-        <Image
-          source={require("../../../assets/keja-logo.png")}
-          style={styles.watermark}
-          resizeMode="contain"
-        />
+        <View style={styles.logoWrap}>
+          <Image
+            // icon.png is the same artwork as keja-logo.png at 1024x1024
+            // instead of 128x128 - needed here since the watermark renders
+            // much larger than the source logo file, which blurred badly
+            // when upscaled 8x.
+            source={require("../../../assets/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
+        {/* A normal (non-absolute) flow child starting at the same top edge
+            as logoWrap below, so the copy is guaranteed to sit embedded on
+            top of the watermark's band instead of stacking below it - and
+            hero's height still grows naturally to fit all the copy, so
+            nothing overflows into the showcase section underneath. */}
         <Text style={styles.headline}>Find the right home in Nairobi and beyond.</Text>
         <Text style={styles.subtext}>
           KejaApp helps you discover verified rentals, save favorites, and manage requests from
@@ -125,15 +136,23 @@ const createStyles = (colors, windowHeight) =>
     paddingBottom: 40,
     gap: 24,
   },
-  watermark: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.14,
-  },
   hero: {
     position: "relative",
-    minHeight: 380,
-    justifyContent: "center",
     gap: 18,
+  },
+  logoWrap: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 340,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: 340,
+    height: 340,
+    opacity: 0.22,
   },
   headline: {
     fontSize: 32,

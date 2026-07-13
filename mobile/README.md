@@ -18,9 +18,9 @@ Implemented:
 - Role-aware Dashboard: the default tab after sign-in, showing unread notifications plus role-specific summary counts (tenant activity; owner listings for landlord/agency/admin; agency verification status; mover verification status and received-request counts; admin platform-moderation counts, including mover verifications) — the first landlord/agency/admin-facing screen on mobile
 - Discover: anonymous property browsing, radius ("Near me") search, property detail
 - Saved favorites: save/unsave, saved list
-- Inquiries: send an inquiry from a property, view your inquiries and any owner response
-- Viewing requests: request a scheduled or open viewing, view your requests and their status
-- Owner/agency Workspace tab: lists the signed-in landlord/agency's own properties (`fetchMyProperties`) and a "New listing" action that opens a create-listing form (`POST /api/properties`); gated so tenants see a sign-in/role message instead. Editing an existing listing and managing images are still web-only.
+- Inquiries: send an inquiry from a property, view your inquiries (infinite-scroll paginated) and any owner response
+- Viewing requests: request a scheduled or open viewing, view your requests (infinite-scroll paginated) and their status
+- Owner/agency Workspace tab: lists the signed-in landlord/agency's own properties (`fetchMyProperties`, infinite-scroll paginated) and a "New listing" action that opens a create-listing form (`POST /api/properties`); gated so tenants see a sign-in/role message instead. The create form lets you select photos (multi-select via `expo-image-picker`, previewed locally) as part of the same submit — they're uploaded right after the property is created. Editing an existing listing (and its photos) afterward, and the received-inquiries view, are still web-only.
 - Notifications tab: lists all notifications with an All/Unread filter and a "Mark as read" action per item.
 - Saved searches: a "Save search" action on Discover once a location is set (tenants), and a list to review/remove them on the Account tab.
 - Movers tab: a filterable mover directory (service type, county) for tenants/landlords/agencies/anonymous visitors, with a "Request service" action (tenants) and an affiliate add/remove action (landlord/agency); signed-in movers instead see their own profile-status panel plus received tenant requests with accept/decline/complete actions. The property detail screen also shows a "Movers for this move" section (the owner's affiliates plus verified movers nearby) with the same request action.
@@ -31,7 +31,7 @@ Implemented:
 - Sign In screen has a branded gradient hero matching the landing page; the "Show API server settings" toggle is hidden in production builds (only visible in development, via `__DEV__`).
 
 Not yet built (still placeholders on the web frontend too, so this isn't a regression):
-- Editing an existing listing, image management, and the received-inquiries view from the owner workspace (all web-only so far)
+- Editing an existing listing (and managing its photos afterward), and the received-inquiries view from the owner workspace (both web-only so far — mobile can add photos at creation time, just not edit a listing afterward)
 - Admin moderation console
 - Property reviews UI (the backend supports it; the property detail screen shows the rating summary but not a review list/composer yet)
 

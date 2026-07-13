@@ -1,5 +1,7 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,8 +11,9 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { createProperty } from "../../api/index.js";
+import { createProperty, uploadPropertyImage } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { pickImagesOrEmpty } from "../../utils/imagePicker.js";
 
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const viewingTypes = ["scheduled", "open"];
@@ -106,8 +109,31 @@ export default function PropertyCreateScreen({ navigation }) {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Photos are picked here but can't actually be uploaded until the property
+  // exists server-side, so they're staged locally (previewed from their
+  // on-device uri) and uploaded right after createProperty succeeds - the
+  // form still reads as one page/one submit to the user.
+  const [pendingPhotos, setPendingPhotos] = useState([]);
+  const [pickingPhotos, setPickingPhotos] = useState(false);
 
   const updateField = (field) => (value) => setForm((current) => ({ ...current, [field]: value }));
+
+  const handleAddPhotos = async () => {
+    setPickingPhotos(true);
+
+    try {
+      const picked = await pickImagesOrEmpty();
+      if (picked.length) {
+        setPendingPhotos((current) => [...current, ...picked]);
+      }
+    } finally {
+      setPickingPhotos(false);
+    }
+  };
+
+  const handleRemovePendingPhoto = (uri) => {
+    setPendingPhotos((current) => current.filter((photo) => photo.uri !== uri));
+  };
 
   const handleSubmit = async () => {
     setError("");
@@ -125,7 +151,23 @@ export default function PropertyCreateScreen({ navigation }) {
     setSubmitting(true);
 
     try {
-      await createProperty(formToPayload(form));
+      const created = await createProperty(formToPayload(form));
+
+      // Best-effort: the listing itself is already created at this point, so
+      // a photo failing to upload shouldn't block navigating away - it can
+      // still be added later from the workspace.
+      for (const photo of pendingPhotos) {
+        try {
+          await uploadPropertyImage(created._id, {
+            fileName: photo.fileName,
+            mimeType: photo.mimeType,
+            data: photo.base64,
+          });
+        } catch {
+          // Ignored - see comment above.
+        }
+      }
+
       navigation.goBack();
     } catch (err) {
       setError(err.message || "Could not create this listing.");
@@ -189,6 +231,29 @@ export default function PropertyCreateScreen({ navigation }) {
           placeholder="Parking, Wifi, Borehole"
         />
       </View>
+
+      <Text style={styles.sectionTitle}>Photos</Text>
+      {pendingPhotos.length > 0 ? (
+        <View style={styles.photoGrid}>
+          {pendingPhotos.map((photo) => (
+            <View style={styles.photoThumb} key={photo.uri}>
+              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+              <Pressable style={styles.photoRemoveButton} onPress={() => handleRemovePendingPhoto(photo.uri)}>
+                <Text style={styles.photoRemoveButtonText}>Remove</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.label}>No photos selected yet.</Text>
+      )}
+      <Pressable style={styles.secondaryButton} onPress={handleAddPhotos} disabled={pickingPhotos}>
+        {pickingPhotos ? (
+          <ActivityIndicator color={colors.greenDark} />
+        ) : (
+          <Text style={styles.secondaryButtonText}>Select photos</Text>
+        )}
+      </Pressable>
 
       <Text style={styles.sectionTitle}>Cost</Text>
       <View style={styles.field}>
@@ -351,5 +416,42 @@ const createStyles = (colors) =>
   primaryButtonText: {
     color: colors.white,
     fontWeight: "800",
+  },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: colors.greenDark,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    color: colors.greenDark,
+    fontWeight: "800",
+  },
+  photoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  photoThumb: {
+    width: "47%",
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: colors.surface,
+  },
+  photoImage: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+  },
+  photoRemoveButton: {
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  photoRemoveButtonText: {
+    color: colors.red,
+    fontWeight: "700",
+    fontSize: 13,
   },
   });

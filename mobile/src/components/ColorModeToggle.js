@@ -5,7 +5,7 @@ import { useTheme } from "../context/ThemeContext.js";
 // Icon-only color-mode switch, mirroring the web app's sun/moon toggle but
 // as a single tap target (mobile header space is tighter than a segmented
 // control) rather than wording like "Dark mode".
-export default function ColorModeToggle() {
+export default function ColorModeToggle({ color }) {
   const { colorMode, toggleColorMode, colors } = useTheme();
 
   return (
@@ -19,7 +19,7 @@ export default function ColorModeToggle() {
       <Ionicons
         name={colorMode === "dark" ? "moon" : "sunny"}
         size={20}
-        color={colors.greenDark}
+        color={color || colors.greenDark}
       />
     </Pressable>
   );
