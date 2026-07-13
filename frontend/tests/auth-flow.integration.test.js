@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
-import { describe, it } from "./helpers/nodeTestCompat.js";
+import { before, describe, it } from "./helpers/nodeTestCompat.js";
+import { apiFetch, getAuthToken, setAuthToken } from "../app-utils.js";
 
 /**
  * End-to-end auth flow integration test
- * 
+ *
  * Tests the complete authentication journey:
  * 1. Register a new user with role selection
  * 2. Login with credentials
  * 3. Fetch current user after login
  * 4. Logout and verify token is cleared
  * 5. Save/remove favorites as authenticated user
+ *
+ * Uses the real apiFetch/setAuthToken from app-utils.js (not a
+ * reimplementation) against a live backend, so a regression in the actual
+ * fetch wrapper - not just an approximation of it - fails this test.
  */
 
 const TEST_API_BASE = "http://localhost:5000";
@@ -22,45 +27,22 @@ const testUser = {
   role: "tenant",
 };
 
-let authToken = null;
-
-const apiFetch = async (path, options = {}) => {
-  const url = `${TEST_API_BASE}${path}`;
-  const headers = new Headers(options.headers || {});
-
-  if (authToken) {
-    headers.set("Authorization", `Bearer ${authToken}`);
-  }
-
-  if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const response = await fetch(url, {
-    credentials: "include",
-    ...options,
-    headers,
-    body: options.body && !(options.body instanceof FormData) ? JSON.stringify(options.body) : options.body,
-  });
-
-  let payload;
-  try {
-    payload = await response.json();
-  } catch {
-    payload = {};
-  }
-
-  if (!response.ok) {
-    const message = payload?.message || payload?.error || `API request failed: ${response.status}`;
-    throw new Error(message);
-  }
-
-  return payload;
-};
-
 const shouldRunAuthE2E = process.env.RUN_AUTH_E2E === "true";
 
 describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
+  before(() => {
+    // Real in-memory localStorage so apiFetch's internal getAuthToken/
+    // setAuthToken calls (and its keja_base_url lookup) round-trip
+    // correctly, matching the api-helpers.test.js convention.
+    const store = new Map([["keja_base_url", TEST_API_BASE]]);
+    global.localStorage = {
+      getItem: (key) => (store.has(key) ? store.get(key) : null),
+      setItem: (key, value) => store.set(key, value),
+      removeItem: (key) => store.delete(key),
+      clear: () => store.clear(),
+    };
+  });
+
   it("registers a new user with tenant role", async () => {
     const response = await apiFetch("/api/auth/register", {
       method: "POST",
@@ -72,11 +54,11 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
     assert.equal(response.user.email, testUser.email, "User email should match");
     assert.equal(response.user.role, testUser.role, "User role should match");
 
-    authToken = response.token;
+    setAuthToken(response.token);
   });
 
   it("fetches current user with bearer token", async () => {
-    assert.ok(authToken, "Must have auth token from registration");
+    assert.ok(getAuthToken(), "Must have auth token from registration");
 
     const response = await apiFetch("/api/auth/me", {
       method: "GET",
@@ -100,7 +82,7 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
     assert.ok(response.user, "Should return user object");
     assert.equal(response.user.email, testUser.email, "User email should match");
 
-    authToken = response.token;
+    setAuthToken(response.token);
   });
 
   it("saves a property as favorite", async () => {
@@ -187,7 +169,7 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
   });
 
   it("prevents access to protected routes without token", async () => {
-    authToken = null;
+    setAuthToken(null);
 
     try {
       await apiFetch("/api/auth/me", {
