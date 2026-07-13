@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import { deleteCurrentAccount, deleteSavedSearch, fetchSavedSearches } from "../../app-utils.js";
 
 function describeSavedSearch(savedSearch) {
@@ -103,7 +104,8 @@ function SavedSearchesPanel() {
   );
 }
 
-export default function AccountPage({ currentUser, onAccountDeleted }) {
+export default function AccountPage({ onAccountDeleted }) {
+  const { currentUser } = useAuth();
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

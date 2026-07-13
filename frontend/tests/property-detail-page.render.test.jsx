@@ -1,7 +1,8 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PropertyDetailPage from "../src/pages/PropertyDetailPage.jsx";
+import { renderWithAuth } from "./helpers/renderWithAuth.jsx";
 
 const { fetchPropertyById, fetchFavorites, fetchPropertyMovers, saveFavorite, createInquiry } = vi.hoisted(() => ({
   fetchPropertyById: vi.fn(),
@@ -35,13 +36,9 @@ const renderDetailPage = (props = {}) => {
   fetchPropertyMovers.mockResolvedValue(props.movers ?? noMovers);
   fetchPropertyById.mockResolvedValue(props.property ?? sampleProperty);
 
-  return render(
-    <PropertyDetailPage
-      propertyId="prop-1"
-      apiBaseUrl="http://localhost:5000"
-      onBack={props.onBack ?? vi.fn()}
-      currentUser={props.currentUser ?? null}
-    />
+  return renderWithAuth(
+    <PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={props.onBack ?? vi.fn()} />,
+    { currentUser: props.currentUser ?? null }
   );
 };
 
@@ -61,8 +58,8 @@ describe("PropertyDetailPage", () => {
     fetchFavorites.mockResolvedValue([]);
     fetchPropertyMovers.mockResolvedValue(noMovers);
 
-    const { container } = render(
-      <PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={vi.fn()} currentUser={null} />
+    const { container } = renderWithAuth(
+      <PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={vi.fn()} />
     );
 
     expect(container.querySelector(".property-detail-skeleton, [class*='skeleton']")).not.toBeNull();
@@ -75,9 +72,7 @@ describe("PropertyDetailPage", () => {
     const onBack = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={onBack} currentUser={null} />
-    );
+    renderWithAuth(<PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={onBack} />);
 
     expect(await screen.findByText("Property not found")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Back to Discover" }));
