@@ -294,6 +294,24 @@ export const updateAdminUserStatus = async (userId, payload) => {
   return response.data;
 };
 
+const adminReviewsCacheTtlMs = 15000;
+
+export const fetchAdminReviews = async () => {
+  const cacheKey = "adminReviews:";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/admin/reviews", {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, adminReviewsCacheTtlMs);
+  return data;
+};
+
 const moversCacheTtlMs = 15000;
 const propertyMoversCacheTtlMs = 15000;
 const moverProfileCacheTtlMs = 15000;

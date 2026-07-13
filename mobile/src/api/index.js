@@ -270,3 +270,30 @@ export const respondToFeedback = async (feedbackId, { message }) => {
   });
   return response.data;
 };
+
+// --- Admin ---
+
+export const fetchAdminUsers = async (query = {}) => {
+  const response = await apiFetch(`/api/admin/users${buildQueryString(query)}`, { method: "GET" });
+  return { users: response.data || [], pagination: response.pagination };
+};
+
+export const fetchAdminUserSummary = async (userId) => {
+  const response = await apiFetch(`/api/admin/users/${userId}/summary`, { method: "GET" });
+  return response.data;
+};
+
+export const fetchAdminUserStatusHistory = async (userId) => {
+  const response = await apiFetch(`/api/admin/users/${userId}/status-history`, { method: "GET" });
+  return response.data || [];
+};
+
+export const updateAdminUserStatus = async (userId, payload) => {
+  const response = await apiFetch(`/api/admin/users/${userId}/status`, { method: "PUT", body: payload });
+  return response.data;
+};
+
+export const fetchAdminReviews = async () => {
+  const response = await apiFetch("/api/admin/reviews", { method: "GET" });
+  return response.data || [];
+};
