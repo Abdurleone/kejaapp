@@ -94,14 +94,23 @@ mobile/
 ├── app.json                 # Expo config (name, icons, bundle ids)
 ├── assets/                  # App icons/splash, generated from frontend/assets/keja-logo.png
 └── src/
-    ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings, movers)
+    ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings, movers, admin)
     ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists, ColorModeToggle)
     ├── context/             # AuthContext (session), SettingsContext (API base URL), ThemeContext (light/dark mode)
-    ├── navigation/           # Root stack, bottom tabs, Discover stack, Workspace stack, Movers stack
-    ├── screens/              # auth/, dashboard/, discover/, saved/, workspace/, movers/, requests/, account/
+    ├── navigation/           # Root stack, bottom tabs (roleTabs.js), Discover/Workspace/Movers/Admin stacks
+    ├── screens/              # auth/, dashboard/, discover/, saved/, workspace/, movers/, requests/, account/, admin/
     ├── theme/                # Shared color tokens (mirrors frontend/styles.css palette; light + dark variants)
     └── utils/                # Formatting helpers (currency, status labels), contact.js (tel:/mailto:/wa.me link builders)
 ```
+
+## Testing
+
+`npm test` (Jest + React Native Testing Library, `jest-expo` preset). Alongside the original API-client/formatter/component tests, there's now coverage for:
+- Pure-function modules: `screens/workspace/propertyForm.js`, `navigation/roleTabs.js`.
+- Context providers: `ThemeContext`, `SettingsContext` (plus its standalone `resolveAssetUrl` helper), `AuthContext` (session restore, login/register/logout, push-registration wiring) — each with a small test-consumer component rather than mocking React internals.
+- Screens (RNTL render tests, with `../api/index.js` and the relevant context hooks mocked): `SavedScreen`, `PropertyEditScreen`, `AdminScreen`, `WorkspaceScreen`.
+
+This still isn't exhaustive coverage of every screen (Dashboard, Discover, Movers, Notifications, Feedback, Account, and Requests remain untested) — see the root README's Roadmap for what's next.
 
 ## Troubleshooting
 
