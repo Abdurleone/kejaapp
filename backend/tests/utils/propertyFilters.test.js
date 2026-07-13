@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildPropertyFilters } from "../../utils/propertyFilters.js";
+import { buildPropertyFilters, escapeRegExp } from "../../utils/propertyFilters.js";
 
 describe("buildPropertyFilters", () => {
   it("defaults to available listings with no other filters", () => {
@@ -65,5 +65,30 @@ describe("buildPropertyFilters", () => {
     assert.equal(filters.type, "apartment");
     assert.deepEqual(filters.bedrooms, { $gte: 3 });
     assert.deepEqual(filters["price.rent"], { $gte: 5000 });
+  });
+
+  it("escapes regex metacharacters in county/town/area so they match literally", () => {
+    const filters = buildPropertyFilters({ county: "Nairobi (Central)", town: "a.*b", area: "c+d" });
+    assert.equal(filters["location.county"].source, "Nairobi \\(Central\\)");
+    assert.equal(filters["location.town"].source, "a\\.\\*b");
+    assert.equal(filters["location.area"].source, "c\\+d");
+  });
+
+  it("does not choke on a pathological regex-like county value (ReDoS guard)", () => {
+    const pathological = "(a+)+$";
+    const start = Date.now();
+    const filters = buildPropertyFilters({ county: pathological });
+    assert.ok(Date.now() - start < 50);
+    assert.equal(filters["location.county"].test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!"), false);
+  });
+});
+
+describe("escapeRegExp", () => {
+  it("escapes every regex metacharacter", () => {
+    assert.equal(escapeRegExp(".*+?^${}()|[]\\"), "\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\");
+  });
+
+  it("leaves plain alphanumeric text untouched", () => {
+    assert.equal(escapeRegExp("Nairobi West 2"), "Nairobi West 2");
   });
 });
