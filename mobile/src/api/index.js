@@ -55,7 +55,7 @@ export const fetchPropertyReviews = async (propertyId) => {
 
 export const fetchMyProperties = async (query = {}) => {
   const response = await apiFetch(`/api/properties/mine${buildQueryString(query)}`, { method: "GET" });
-  return response.data || [];
+  return { properties: response.data || [], pagination: response.pagination };
 };
 
 export const createProperty = async (payload) => {
@@ -81,9 +81,9 @@ export const removeFavorite = async (propertyId) => {
 
 // --- Inquiries ---
 
-export const fetchInquiries = async () => {
-  const response = await apiFetch("/api/inquiries", { method: "GET" });
-  return response.data || [];
+export const fetchInquiries = async (query = {}) => {
+  const response = await apiFetch(`/api/inquiries${buildQueryString(query)}`, { method: "GET" });
+  return { inquiries: response.data || [], pagination: response.pagination };
 };
 
 export const createInquiry = async ({ property, subject, message, contactPreference }) => {
@@ -96,9 +96,9 @@ export const createInquiry = async ({ property, subject, message, contactPrefere
 
 // --- Viewing requests ---
 
-export const fetchViewingRequests = async () => {
-  const response = await apiFetch("/api/viewings", { method: "GET" });
-  return response.data || [];
+export const fetchViewingRequests = async (query = {}) => {
+  const response = await apiFetch(`/api/viewings${buildQueryString(query)}`, { method: "GET" });
+  return { viewingRequests: response.data || [], pagination: response.pagination };
 };
 
 export const createViewingRequest = async ({ property, requestedDate, message }) => {

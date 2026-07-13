@@ -7,6 +7,7 @@ import {
 } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 
 const populateInquiry = (query) =>
   query
@@ -56,30 +57,37 @@ const createInquiry = asyncHandler(async (req, res) => {
 });
 
 const listMyInquiries = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const statusFilter = req.query.status ? { status: req.query.status } : {};
-  const inquiries = await populateInquiry(
-    Inquiry.find({
-      sender: req.user._id,
-      ...statusFilter,
-    }).sort("-createdAt")
-  );
+  const filters = { sender: req.user._id, ...statusFilter };
+
+  const [inquiries, total] = await Promise.all([
+    populateInquiry(Inquiry.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    Inquiry.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: inquiries,
+    pagination: formatPagination(page, limit, total),
   });
 });
 
 const listReceivedInquiries = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const filters = { owner: req.user._id };
 
   if (req.query.status) {
     filters.status = req.query.status;
   }
 
-  const inquiries = await populateInquiry(Inquiry.find(filters).sort("-createdAt"));
+  const [inquiries, total] = await Promise.all([
+    populateInquiry(Inquiry.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    Inquiry.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: inquiries,
+    pagination: formatPagination(page, limit, total),
   });
 });
 
@@ -96,16 +104,18 @@ const listPropertyInquiries = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to view inquiries for this property");
   }
 
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const statusFilter = req.query.status ? { status: req.query.status } : {};
-  const inquiries = await populateInquiry(
-    Inquiry.find({
-      property: property._id,
-      ...statusFilter,
-    }).sort("-createdAt")
-  );
+  const filters = { property: property._id, ...statusFilter };
+
+  const [inquiries, total] = await Promise.all([
+    populateInquiry(Inquiry.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    Inquiry.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: inquiries,
+    pagination: formatPagination(page, limit, total),
   });
 });
 

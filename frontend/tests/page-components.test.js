@@ -160,7 +160,7 @@ describe("frontend page component contracts", () => {
   });
 
   it("lets landlords open an edit action from their workspace listings", () => {
-    assert.match(workspaceSource, /fetchMyProperties\(\)/);
+    assert.match(workspaceSource, /fetchMyProperties\(\{ page: propertiesPage \}\)/);
     assert.match(workspaceSource, /onEditProperty\(property\._id\)/);
     assert.match(workspaceSource, /className="card-actions"/);
   });

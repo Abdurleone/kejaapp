@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it, before } from "./helpers/nodeTestCompat.js";
 import {
+  addPropertyImage,
   apiFetch,
   createApiUrl,
   createFeedback,
@@ -20,7 +21,10 @@ import {
   logoutUser,
   markNotificationAsRead,
   registerUser,
+  removePropertyImage,
   respondToFeedback,
+  respondToInquiry,
+  uploadPropertyImage,
   getAuthToken,
   setAuthToken,
 } from "../app-utils.js";
@@ -305,5 +309,85 @@ describe("frontend API helpers", () => {
     assert.equal(capturedUrl, "http://localhost:5000/api/notifications/n1/read");
     assert.equal(capturedOptions.method, "PUT");
     assert.deepEqual(result, { _id: "n1", isRead: true });
+  });
+
+  it("adds a property image by URL and surfaces the image review status", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({
+        data: { _id: "p1", images: [{ _id: "img1", url: "https://example.com/a.jpg" }] },
+        imageReview: { status: "suspicious", violation: "v1" },
+      });
+    };
+
+    const result = await addPropertyImage("p1", { url: "https://example.com/a.jpg" });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/properties/p1/images");
+    assert.equal(capturedOptions.method, "POST");
+    assert.deepEqual(JSON.parse(capturedOptions.body), { url: "https://example.com/a.jpg" });
+    assert.equal(result.data._id, "p1");
+    assert.equal(result.imageReview.status, "suspicious");
+  });
+
+  it("uploads a base64 property image", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({
+        data: { _id: "p1", images: [{ _id: "img1", url: "/uploads/properties/img1.jpg" }] },
+        imageReview: { status: "clear", violation: null },
+      });
+    };
+
+    const result = await uploadPropertyImage("p1", {
+      fileName: "home.jpg",
+      mimeType: "image/jpeg",
+      data: "data:image/jpeg;base64,AAAA",
+    });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/properties/p1/images/upload");
+    assert.equal(capturedOptions.method, "POST");
+    assert.equal(result.imageReview.status, "clear");
+  });
+
+  it("removes a property image", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "p1", images: [] } });
+    };
+
+    const result = await removePropertyImage("p1", "img1");
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/properties/p1/images/img1");
+    assert.equal(capturedOptions.method, "DELETE");
+    assert.deepEqual(result, { _id: "p1", images: [] });
+  });
+
+  it("responds to a received inquiry", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ data: { _id: "i1", status: "responded", response: "Sure, it's available." } });
+    };
+
+    const result = await respondToInquiry("i1", { status: "responded", response: "Sure, it's available." });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/inquiries/i1");
+    assert.equal(capturedOptions.method, "PUT");
+    assert.deepEqual(JSON.parse(capturedOptions.body), {
+      status: "responded",
+      response: "Sure, it's available.",
+    });
+    assert.deepEqual(result, { _id: "i1", status: "responded", response: "Sure, it's available." });
   });
 });

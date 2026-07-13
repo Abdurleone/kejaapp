@@ -7,6 +7,7 @@ import {
 } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 
 const activeViewingStatuses = ["pending", "approved"];
 
@@ -76,16 +77,18 @@ const createViewingRequest = asyncHandler(async (req, res) => {
 });
 
 const listMyViewingRequests = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const statusFilter = req.query.status ? { status: req.query.status } : {};
-  const viewingRequests = await populateViewingRequest(
-    ViewingRequest.find({
-      requester: req.user._id,
-      ...statusFilter,
-    }).sort("-createdAt")
-  );
+  const filters = { requester: req.user._id, ...statusFilter };
+
+  const [viewingRequests, total] = await Promise.all([
+    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    ViewingRequest.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: viewingRequests,
+    pagination: formatPagination(page, limit, total),
   });
 });
 
@@ -98,16 +101,18 @@ const listPropertyViewingRequests = asyncHandler(async (req, res) => {
 
   ensurePropertyManager(property, req.user);
 
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const statusFilter = req.query.status ? { status: req.query.status } : {};
-  const viewingRequests = await populateViewingRequest(
-    ViewingRequest.find({
-      property: property._id,
-      ...statusFilter,
-    }).sort("-createdAt")
-  );
+  const filters = { property: property._id, ...statusFilter };
+
+  const [viewingRequests, total] = await Promise.all([
+    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    ViewingRequest.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: viewingRequests,
+    pagination: formatPagination(page, limit, total),
   });
 });
 
