@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   createSavedSearch,
   fetchFavorites,
@@ -14,7 +15,8 @@ import {
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const bedroomOptions = [1, 2, 3, 4, 5];
 
-export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }) {
+export default function DiscoverPage({ onOpenProperty }) {
+  const { signedIn, openAuthPanel: onRequireAuth } = useAuth();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

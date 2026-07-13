@@ -72,7 +72,7 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /view: "feedback", label: "Feedback"/);
     assert.match(appSource, /case "feedback":/);
     assert.match(appSource, /canAccessView\(currentUser\?\.role, "feedback"\)/);
-    assert.match(appSource, /<FeedbackPage currentUser=\{currentUser\}/);
+    assert.match(appSource, /<FeedbackPage \/>/);
   });
 
   it("wires the Notifications tab into navigation and view routing", () => {

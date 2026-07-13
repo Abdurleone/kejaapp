@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import kejaLogo from "../assets/keja-logo.png";
 import AuthModal from "./components/AuthModal.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import DiscoverPage from "./pages/DiscoverPage.jsx";
@@ -200,7 +201,7 @@ function App() {
           );
         }
 
-        return <DashboardPage currentUser={currentUser} />;
+        return <DashboardPage />;
       case "discover":
         if (!canSearchListings(currentUser?.role)) {
           return (
@@ -213,14 +214,7 @@ function App() {
           );
         }
 
-        return (
-          <DiscoverPage
-            signedIn={signedIn}
-            onRequireAuth={openAuthPanel}
-            currentUser={currentUser}
-            onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))}
-          />
-        );
+        return <DiscoverPage onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))} />;
       case "saved":
         if (!signedIn) {
           return (
@@ -233,13 +227,7 @@ function App() {
           );
         }
 
-        return (
-          <SavedPage
-            signedIn={signedIn}
-            onRequireAuth={openAuthPanel}
-            onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))}
-          />
-        );
+        return <SavedPage onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))} />;
       case "propertyDetail":
         if (!canOpenPropertyDetails(currentUser?.role)) {
           return (
@@ -262,7 +250,6 @@ function App() {
           <PropertyDetailPage
             propertyId={getPropertyIdFromPath(path)}
             apiBaseUrl={apiBaseUrl}
-            currentUser={currentUser}
             onBack={() => navigate(getViewPath("discover"))}
           />
         );
@@ -308,15 +295,12 @@ function App() {
 
         return (
           <WorkspacePage
-            signedIn={signedIn}
-            onRequireAuth={openAuthPanel}
-            currentUser={currentUser}
             onEditProperty={(propertyId) => navigate(getPropertyEditPath(propertyId))}
             onCreateProperty={() => navigate(getPropertyCreatePath())}
           />
         );
       case "movers":
-        return <MoversPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+        return <MoversPage />;
       case "admin":
         if (!signedIn || !canAccessView(currentUser?.role, "admin")) {
           return (
@@ -326,7 +310,7 @@ function App() {
           );
         }
 
-        return <AdminPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+        return <AdminPage />;
       case "notifications":
         if (!signedIn || !canAccessView(currentUser?.role, "notifications")) {
           return (
@@ -349,7 +333,7 @@ function App() {
           );
         }
 
-        return <FeedbackPage currentUser={currentUser} />;
+        return <FeedbackPage />;
       case "account":
         if (!signedIn) {
           return (
@@ -362,7 +346,7 @@ function App() {
           );
         }
 
-        return <AccountPage currentUser={currentUser} onAccountDeleted={handleAccountDeleted} />;
+        return <AccountPage onAccountDeleted={handleAccountDeleted} />;
       case "privacy":
         return <PrivacyPage />;
       case "terms":
@@ -370,102 +354,104 @@ function App() {
       case "deleteAccount":
         return <DeleteAccountPage />;
       default:
-        return <DiscoverPage signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
+        return <DiscoverPage />;
     }
   };
 
   return (
-    <div className="app-shell">
-      <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
-        <div className="brand-block">
-          <button type="button" className="brand-mark-button" onClick={() => navigate("/")} aria-label="Go to homepage">
-            <img className="brand-mark" src={kejaLogo} alt="" />
-          </button>
-          <div>
-            <h1>KejaApp</h1>
-            {!showSplash && <p>Real rental pages powered by React.</p>}
-          </div>
-        </div>
-
-        <div className="header-actions">
-          <div className="mode-toggle" role="radiogroup" aria-label="Color mode">
-            {["light", "dark"].map((mode) => (
-              <label key={mode} className={`mode-option${colorMode === mode ? " active" : ""}`}>
-                <input
-                  type="radio"
-                  name="colorMode"
-                  value={mode}
-                  checked={colorMode === mode}
-                  onChange={() => setColorMode(mode)}
-                  aria-label={mode === "light" ? "Light mode" : "Dark mode"}
-                />
-                <span aria-hidden="true">{mode === "light" ? "☀" : "☾"}</span>
-              </label>
-            ))}
-          </div>
-          {signedIn ? (
-            <>
-              <span className="user-pill">{currentUser?.name || currentUser?.email || "Signed in"}</span>
-              <button className="text-button" type="button" onClick={handleLogout}>
-                Sign out
-              </button>
-            </>
-          ) : (
-            <button className="primary-button" type="button" onClick={openAuthPanel}>
-              Sign in
+    <AuthProvider signedIn={signedIn} currentUser={currentUser} openAuthPanel={openAuthPanel}>
+      <div className="app-shell">
+        <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
+          <div className="brand-block">
+            <button type="button" className="brand-mark-button" onClick={() => navigate("/")} aria-label="Go to homepage">
+              <img className="brand-mark" src={kejaLogo} alt="" />
             </button>
-          )}
-        </div>
-      </header>
+            <div>
+              <h1>KejaApp</h1>
+              {!showSplash && <p>Real rental pages powered by React.</p>}
+            </div>
+          </div>
 
-      <main>
-        {showSplash ? (
-          <LandingPage onStart={() => navigate(getViewPath("discover"))} />
-        ) : (
-          <div className="workspace">
-            <div className="tabs" role="tablist" aria-label="Main navigation">
-              {navigationItems.map((item) => (
-                <button
-                  key={item.view}
-                  type="button"
-                  className={`tab ${view === item.view ? "active" : ""}`}
-                  onClick={() => navigate(item.path)}
-                >
-                  {item.view === "notifications" ? (
-                    <>
-                      <span aria-hidden="true">🔔</span> {item.label}
-                      {displayedUnreadCount > 0 && (
-                        <span
-                          className="notification-badge"
-                          aria-label={`${displayedUnreadCount} unread notifications`}
-                        >
-                          {displayedUnreadCount > 99 ? "99+" : displayedUnreadCount}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    item.label
-                  )}
-                </button>
+          <div className="header-actions">
+            <div className="mode-toggle" role="radiogroup" aria-label="Color mode">
+              {["light", "dark"].map((mode) => (
+                <label key={mode} className={`mode-option${colorMode === mode ? " active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="colorMode"
+                    value={mode}
+                    checked={colorMode === mode}
+                    onChange={() => setColorMode(mode)}
+                    aria-label={mode === "light" ? "Light mode" : "Dark mode"}
+                  />
+                  <span aria-hidden="true">{mode === "light" ? "☀" : "☾"}</span>
+                </label>
               ))}
             </div>
-            <div className="view-content">{renderCurrentPage()}</div>
-            <footer className="legal-footer">
-              <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
-                Privacy
+            {signedIn ? (
+              <>
+                <span className="user-pill">{currentUser?.name || currentUser?.email || "Signed in"}</span>
+                <button className="text-button" type="button" onClick={handleLogout}>
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <button className="primary-button" type="button" onClick={openAuthPanel}>
+                Sign in
               </button>
-              <button className="text-button" type="button" onClick={() => navigate(getViewPath("terms"))}>
-                Terms
-              </button>
-              <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
-                Delete account
-              </button>
-            </footer>
+            )}
           </div>
-        )}
-        {authPanelOpen && <AuthModal onClose={closeAuthPanel} onAuthenticated={handleAuthenticated} />}
-      </main>
-    </div>
+        </header>
+
+        <main>
+          {showSplash ? (
+            <LandingPage onStart={() => navigate(getViewPath("discover"))} />
+          ) : (
+            <div className="workspace">
+              <div className="tabs" role="tablist" aria-label="Main navigation">
+                {navigationItems.map((item) => (
+                  <button
+                    key={item.view}
+                    type="button"
+                    className={`tab ${view === item.view ? "active" : ""}`}
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.view === "notifications" ? (
+                      <>
+                        <span aria-hidden="true">🔔</span> {item.label}
+                        {displayedUnreadCount > 0 && (
+                          <span
+                            className="notification-badge"
+                            aria-label={`${displayedUnreadCount} unread notifications`}
+                          >
+                            {displayedUnreadCount > 99 ? "99+" : displayedUnreadCount}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      item.label
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="view-content">{renderCurrentPage()}</div>
+              <footer className="legal-footer">
+                <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
+                  Privacy
+                </button>
+                <button className="text-button" type="button" onClick={() => navigate(getViewPath("terms"))}>
+                  Terms
+                </button>
+                <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
+                  Delete account
+                </button>
+              </footer>
+            </div>
+          )}
+          {authPanelOpen && <AuthModal onClose={closeAuthPanel} onAuthenticated={handleAuthenticated} />}
+        </main>
+      </div>
+    </AuthProvider>
   );
 }
 
