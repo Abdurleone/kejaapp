@@ -84,7 +84,10 @@ describe("frontend request cache", () => {
     global.fetch = async (url) => {
       calls += 1;
       capturedUrl = url;
-      return jsonResponse({ data: [{ _id: "p1", title: "My Property" }] });
+      return jsonResponse({
+        data: [{ _id: "p1", title: "My Property" }],
+        pagination: { page: 1, limit: 20, total: 1, pages: 1 },
+      });
     };
 
     const first = await fetchMyProperties();
@@ -93,6 +96,8 @@ describe("frontend request cache", () => {
     assert.equal(calls, 1);
     assert.equal(capturedUrl, "http://localhost:5000/api/properties/mine");
     assert.deepEqual(first, second);
+    assert.deepEqual(first.properties, [{ _id: "p1", title: "My Property" }]);
+    assert.deepEqual(first.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 
   it("reuses a cached received-inquiries response within the TTL window", async () => {
@@ -103,7 +108,10 @@ describe("frontend request cache", () => {
     global.fetch = async (url) => {
       calls += 1;
       capturedUrl = url;
-      return jsonResponse({ data: [{ _id: "i1", subject: "Question" }] });
+      return jsonResponse({
+        data: [{ _id: "i1", subject: "Question" }],
+        pagination: { page: 1, limit: 20, total: 1, pages: 1 },
+      });
     };
 
     const first = await fetchReceivedInquiries();
@@ -112,6 +120,8 @@ describe("frontend request cache", () => {
     assert.equal(calls, 1);
     assert.equal(capturedUrl, "http://localhost:5000/api/inquiries/received");
     assert.deepEqual(first, second);
+    assert.deepEqual(first.inquiries, [{ _id: "i1", subject: "Question" }]);
+    assert.deepEqual(first.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 
   it("reuses a cached dashboard-summary response within the TTL window", async () => {

@@ -5,9 +5,10 @@ import PropertyForm, {
   propertyToForm,
   validatePropertyForm,
 } from "../components/PropertyForm.jsx";
+import PropertyImageManager from "../components/PropertyImageManager.jsx";
 import { fetchPropertyById, updateProperty } from "../../app-utils.js";
 
-export default function PropertyEditPage({ propertyId, onBack, onSaved }) {
+export default function PropertyEditPage({ propertyId, apiBaseUrl, onBack, onSaved }) {
   const [property, setProperty] = useState(null);
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +116,15 @@ export default function PropertyEditPage({ propertyId, onBack, onSaved }) {
         message={saveError || (saved ? "Listing updated." : "")}
         messageVariant={saveError ? "error" : "success"}
         onCancel={onBack}
+      />
+
+      <PropertyImageManager
+        property={property}
+        apiBaseUrl={apiBaseUrl}
+        onPropertyUpdated={(updated) => {
+          setProperty(updated);
+          setForm(propertyToForm(updated));
+        }}
       />
     </div>
   );
