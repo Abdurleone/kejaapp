@@ -49,5 +49,12 @@ describe("env config", () => {
   it("defaults to the local storage driver", () => {
     assert.equal(env.storageDriver, "local");
   });
+
+  it("uses default scheduled-job thresholds", () => {
+    assert.equal(env.staleNudgeThresholdMs, 48 * 60 * 60 * 1000);
+    assert.equal(env.viewingReminderWindowMs, 24 * 60 * 60 * 1000);
+    assert.equal(env.staleListingFreshnessMs, 14 * 24 * 60 * 60 * 1000);
+    assert.equal(env.reviewPromptLookbackMs, 14 * 24 * 60 * 60 * 1000);
+  });
 });
 

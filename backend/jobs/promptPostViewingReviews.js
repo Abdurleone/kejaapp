@@ -5,14 +5,13 @@ import ViewingRequest from "../models/ViewingRequest.js";
 import "../models/Property.js";
 import Review from "../models/Review.js";
 import { notifyReviewPrompt } from "../services/notificationService.js";
-
-// Bounded lookback so a long-stopped scheduler doesn't wake up and dump
-// years-old viewings into everyone's inbox the moment it resumes.
-const lookbackWindowMs = 14 * 24 * 60 * 60 * 1000;
+import env from "../config/env.js";
 
 const run = async () => {
   const now = new Date();
-  const lookbackStart = new Date(now.getTime() - lookbackWindowMs);
+  // Bounded lookback so a long-stopped scheduler doesn't wake up and dump
+  // years-old viewings into everyone's inbox the moment it resumes.
+  const lookbackStart = new Date(now.getTime() - env.reviewPromptLookbackMs);
 
   const pastViewings = await ViewingRequest.find({
     status: "approved",

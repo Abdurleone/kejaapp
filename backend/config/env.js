@@ -50,6 +50,26 @@ const parseCookieMaxAge = (value) => {
   return days * 24 * 60 * 60 * 1000;
 };
 
+const parseHoursToMs = (value, fallbackHours, key) => {
+  const hours = Number(value || fallbackHours);
+
+  if (!Number.isFinite(hours) || hours <= 0) {
+    throw new Error(`${key} must be a positive number`);
+  }
+
+  return hours * 60 * 60 * 1000;
+};
+
+const parseDaysToMs = (value, fallbackDays, key) => {
+  const days = Number(value || fallbackDays);
+
+  if (!Number.isFinite(days) || days <= 0) {
+    throw new Error(`${key} must be a positive number`);
+  }
+
+  return days * 24 * 60 * 60 * 1000;
+};
+
 const parsePositiveInteger = (value, fallback, key) => {
   const number = Number(value || fallback);
 
@@ -209,6 +229,26 @@ const env = {
     "FEEDBACK_PUBLIC_CACHE_TTL_MS"
   ),
   logDir: path.resolve(process.env.LOG_DIR || "logs"),
+  staleNudgeThresholdMs: parseHoursToMs(
+    process.env.STALE_NUDGE_THRESHOLD_HOURS,
+    48,
+    "STALE_NUDGE_THRESHOLD_HOURS"
+  ),
+  viewingReminderWindowMs: parseHoursToMs(
+    process.env.VIEWING_REMINDER_WINDOW_HOURS,
+    24,
+    "VIEWING_REMINDER_WINDOW_HOURS"
+  ),
+  staleListingFreshnessMs: parseDaysToMs(
+    process.env.STALE_LISTING_FRESHNESS_DAYS,
+    14,
+    "STALE_LISTING_FRESHNESS_DAYS"
+  ),
+  reviewPromptLookbackMs: parseDaysToMs(
+    process.env.REVIEW_PROMPT_LOOKBACK_DAYS,
+    14,
+    "REVIEW_PROMPT_LOOKBACK_DAYS"
+  ),
 };
 
 export default env;
