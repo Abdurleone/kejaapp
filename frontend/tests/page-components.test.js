@@ -53,23 +53,20 @@ describe("frontend page component contracts", () => {
     assert.match(savedSource, /<PropertyCardSkeletonGrid/);
   });
 
-  it("keeps app navigation, auth modal, and protected views in sync", () => {
+  it("keeps app navigation and protected views in sync", () => {
     assert.match(appSource, /const navItems = \[/);
     assert.match(appSource, /canAccessView\(currentUser\?\.role, item\.view\)/);
-    assert.match(appSource, /authPanelOpen &&/);
-    assert.match(appSource, /authMode === "login" \? "Sign in" : "Create account"/);
-    assert.match(appSource, /loginUser\(\{ identifier: authForm\.email, password: authForm\.password \}\)/);
-    assert.match(appSource, /registerUser\(authForm\)/);
+    assert.match(appSource, /authPanelOpen && <AuthModal/);
     assert.match(appSource, /You need an owner or agency account/);
     assert.match(appSource, /Admin access is required/);
   });
 
-  it("lets a registering user pick their own username and apply a suggestion on conflict", () => {
-    assert.match(appSource, /value={authForm\.username}/);
-    assert.match(appSource, /setUsernameSuggestions\(err\.suggestions \|\| \[\]\)/);
-    assert.match(appSource, /usernameSuggestions\.map\(\(suggestion\) =>/);
-    assert.match(appSource, /applyUsernameSuggestion/);
-  });
+  // The auth modal itself (sign-in/register mode switching, username-
+  // suggestion-on-conflict, submit wiring to loginUser/registerUser) was
+  // extracted out of App.jsx into components/AuthModal.jsx and is covered
+  // by real render + interaction tests in auth-modal.render.test.jsx -
+  // which click the actual tabs/buttons and assert on loginUser/registerUser
+  // being called, not just that these strings exist somewhere in the source.
 
   it("wires the Feedback tab into navigation and view routing", () => {
     assert.match(appSource, /view: "feedback", label: "Feedback"/);
