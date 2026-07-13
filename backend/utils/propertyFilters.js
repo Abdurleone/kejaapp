@@ -107,6 +107,18 @@ const buildPropertyFilters = (query) => {
     }
   }
 
+  if (query.bedrooms) {
+    const bedrooms = Number(query.bedrooms);
+
+    if (!Number.isFinite(bedrooms) || bedrooms < 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "bedrooms must be a non-negative number");
+    }
+
+    // "N+ bedrooms", not an exact match - matches how saved searches already
+    // describe this filter to the user (e.g. "2+ bed").
+    filters.bedrooms = { $gte: bedrooms };
+  }
+
   if (query.search) {
     filters.$text = { $search: query.search };
   }
