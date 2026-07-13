@@ -3,6 +3,7 @@ import {
   fetchAdminUsers,
   fetchAdminUserSummary,
   fetchAdminUserStatusHistory,
+  fetchAdminReviews,
   updateAdminUserStatus,
   formatStatusLabel,
   statusTone,
@@ -10,6 +11,10 @@ import {
 
 const roleFilters = ["", "tenant", "landlord", "agency", "admin"];
 const statusOptions = ["active", "suspended", "banned"];
+const sections = [
+  { key: "users", label: "Users" },
+  { key: "reviews", label: "Reviews" },
+];
 
 function UserDetail({ userId, currentUser, onStatusUpdated }) {
   const [summary, setSummary] = useState(null);
@@ -216,7 +221,96 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
   );
 }
 
+// Read-only by design - review moderation (deleting or altering a review) is
+// not offered to owners or admins anywhere in this app; see
+// docs/terms-of-service.md.
+function AdminReviewsPanel() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await fetchAdminReviews();
+        if (active) setReviews(data);
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load reviews.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [retryKey]);
+
+  if (loading) {
+    return (
+      <div className="stack" role="status" aria-label="Loading reviews" aria-hidden="true">
+        <span className="skeleton skeleton-line skeleton-line--full" />
+        <span className="skeleton skeleton-line skeleton-line--full" />
+        <span className="skeleton skeleton-line skeleton-line--full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="stack">
+        <p className="error-text">{error}</p>
+        <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return <p className="muted-copy">No reviews yet.</p>;
+  }
+
+  return (
+    <div className="table-panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Tenant</th>
+            <th>Rating</th>
+            <th>Comment</th>
+            <th>Owner response</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reviews.map((review) => (
+            <tr key={review._id}>
+              <td>{review.property?.title || "Property"}</td>
+              <td>{review.user?.name || "Tenant"}</td>
+              <td>{review.rating}</td>
+              <td>{review.comment || "-"}</td>
+              <td>{review.ownerResponse?.message || "-"}</td>
+              <td>{new Date(review.createdAt).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function AdminPage({ currentUser }) {
+  const [section, setSection] = useState("users");
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
@@ -274,6 +368,26 @@ export default function AdminPage({ currentUser }) {
         </div>
       </div>
 
+      <div className="auth-panel-tabs">
+        {sections.map((option) => (
+          <button
+            key={option.key}
+            type="button"
+            className={section === option.key ? "active" : "secondary-button"}
+            onClick={() => setSection(option.key)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {section === "reviews" ? (
+        <div className="panel stack">
+          <h3>Reviews</h3>
+          <AdminReviewsPanel />
+        </div>
+      ) : (
+      <>
       <div className="panel stack">
         <h3>Users {pagination ? `(${pagination.total})` : ""}</h3>
         <div className="header-actions">
@@ -385,6 +499,8 @@ export default function AdminPage({ currentUser }) {
 
       {selectedUserId && (
         <UserDetail userId={selectedUserId} currentUser={currentUser} onStatusUpdated={handleStatusUpdated} />
+      )}
+      </>
       )}
     </div>
   );

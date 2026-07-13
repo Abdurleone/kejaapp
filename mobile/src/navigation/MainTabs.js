@@ -13,8 +13,10 @@ import RequestsScreen from "../screens/requests/RequestsScreen.js";
 import NotificationsScreen from "../screens/notifications/NotificationsScreen.js";
 import FeedbackScreen from "../screens/feedback/FeedbackScreen.js";
 import AccountScreen from "../screens/account/AccountScreen.js";
+import AdminStack from "./AdminStack.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { getVisibleTabs } from "./roleTabs.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -28,22 +30,8 @@ const icons = {
   Notifications: "notifications",
   Feedback: "chatbox-ellipses",
   Account: "person-circle",
+  Admin: "shield-checkmark",
 };
-
-// Mirrors the per-role nav filtering frontend/app-utils.js does for the web
-// app (roleViewAccess/canAccessView) - anonymous visitors and each signed-in
-// role only see the tabs relevant to them, instead of every tab regardless
-// of whether it applies (which is what made the bar feel cramped with 8
-// tabs for everyone, tenant and landlord alike).
-const roleTabs = {
-  tenant: ["Dashboard", "Discover", "Saved", "Movers", "Requests", "Notifications", "Feedback", "Account"],
-  landlord: ["Dashboard", "Workspace", "Movers", "Notifications", "Feedback", "Account"],
-  agency: ["Dashboard", "Workspace", "Movers", "Notifications", "Feedback", "Account"],
-  mover: ["Dashboard", "Movers", "Notifications", "Feedback", "Account"],
-  admin: ["Dashboard", "Notifications", "Feedback", "Account"],
-};
-
-const anonymousTabs = ["Dashboard", "Discover", "Movers", "Account"];
 
 const screens = {
   Dashboard: { component: DashboardScreen },
@@ -55,13 +43,14 @@ const screens = {
   Notifications: { component: NotificationsScreen },
   Feedback: { component: FeedbackScreen },
   Account: { component: AccountScreen },
+  Admin: { component: AdminStack, options: { headerShown: false } },
 };
 
 export default function MainTabs() {
   const { user, signedIn } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const visibleTabs = signedIn ? roleTabs[user?.role] || anonymousTabs : anonymousTabs;
+  const visibleTabs = getVisibleTabs(signedIn, user?.role);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // The default tab bar sits close enough to the gesture-nav home indicator
