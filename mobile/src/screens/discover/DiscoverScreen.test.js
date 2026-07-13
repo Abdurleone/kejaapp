@@ -111,4 +111,68 @@ describe("DiscoverScreen", () => {
 
     await waitFor(() => expect(getByText("Location permission was denied.")).toBeTruthy());
   });
+
+  it("filters by type and bedrooms, and applies a price range", async () => {
+    const { getByText, getByPlaceholderText } = await render(<DiscoverScreen navigation={navigation} />);
+
+    await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
+
+    fireEvent.press(getByText("Studio"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ type: "studio" })));
+
+    fireEvent.press(getByText("2+"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ bedrooms: "2" })));
+
+    const minInput = getByPlaceholderText("Min rent");
+    const maxInput = getByPlaceholderText("Max rent");
+    fireEvent.changeText(minInput, "10000");
+    await waitFor(() => expect(minInput.props.value).toBe("10000"));
+
+    fireEvent.changeText(maxInput, "20000");
+    await waitFor(() => expect(maxInput.props.value).toBe("20000"));
+
+    fireEvent.press(getByText("Apply price"));
+
+    await waitFor(() =>
+      expect(fetchProperties).toHaveBeenLastCalledWith(
+        expect.objectContaining({ minRent: "10000", maxRent: "20000", type: "studio", bedrooms: "2" })
+      )
+    );
+  });
+
+  it("includes type/bedrooms/price in a saved search", async () => {
+    useAuth.mockReturnValue({ signedIn: true });
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: "granted" });
+    Location.getCurrentPositionAsync.mockResolvedValue({ coords: { latitude: -1.3, longitude: 36.8 } });
+    createSavedSearch.mockResolvedValue({});
+
+    const { getByText, getByPlaceholderText } = await render(<DiscoverScreen navigation={navigation} />);
+
+    await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
+
+    fireEvent.press(getByText("Studio"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ type: "studio" })));
+
+    const minInput = getByPlaceholderText("Min rent");
+    fireEvent.changeText(minInput, "10000");
+    await waitFor(() => expect(minInput.props.value).toBe("10000"));
+
+    fireEvent.press(getByText("Near me"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ lat: -1.3 })));
+
+    fireEvent.press(getByText("Save search"));
+
+    await waitFor(() =>
+      expect(createSavedSearch).toHaveBeenCalledWith({
+        lat: -1.3,
+        lng: 36.8,
+        radiusKm: 5,
+        type: "studio",
+        minRent: 10000,
+      })
+    );
+    await waitFor(() =>
+      expect(getByText("Saved! We'll notify you when a matching listing appears.")).toBeTruthy()
+    );
+  });
 });

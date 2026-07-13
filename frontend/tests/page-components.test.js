@@ -111,8 +111,20 @@ describe("frontend page component contracts", () => {
   });
 
   it("lets a signed-in tenant save the current Discover search", () => {
-    assert.match(discoverSource, /createSavedSearch\(\{ lat: coords\.lat, lng: coords\.lng, radiusKm: radius \}\)/);
+    assert.match(discoverSource, /const payload = \{ lat: coords\.lat, lng: coords\.lng, radiusKm: radius \}/);
+    assert.match(discoverSource, /await createSavedSearch\(payload\)/);
     assert.match(discoverSource, /"Save this search"/);
+  });
+
+  it("lets Discover filter by type, bedrooms, and rent range", () => {
+    assert.match(discoverSource, /if \(typeFilter\) params\.type = typeFilter/);
+    assert.match(discoverSource, /if \(bedroomsFilter\) params\.bedrooms = bedroomsFilter/);
+    assert.match(discoverSource, /if \(minRentFilter\) params\.minRent = minRentFilter/);
+    assert.match(discoverSource, /if \(maxRentFilter\) params\.maxRent = maxRentFilter/);
+    assert.match(discoverSource, /if \(type\) payload\.type = type/);
+    assert.match(discoverSource, /if \(bedrooms\) payload\.bedrooms = Number\(bedrooms\)/);
+    assert.match(discoverSource, /if \(minRent\) payload\.minRent = Number\(minRent\)/);
+    assert.match(discoverSource, /if \(maxRent\) payload\.maxRent = Number\(maxRent\)/);
   });
 
   it("lists and removes saved searches on the Account page", () => {

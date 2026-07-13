@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as Location from "expo-location";
 import { createSavedSearch, fetchFavorites, fetchProperties, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -10,6 +10,22 @@ import MessageView from "../../components/MessageView.js";
 import { useTheme } from "../../context/ThemeContext.js";
 
 const radiusOptions = [3, 5, 10, 20];
+const typeOptions = [
+  { value: "", label: "Any type" },
+  { value: "apartment", label: "Apartment" },
+  { value: "bedsitter", label: "Bedsitter" },
+  { value: "maisonette", label: "Maisonette" },
+  { value: "house", label: "House" },
+  { value: "studio", label: "Studio" },
+  { value: "other", label: "Other" },
+];
+const bedroomOptions = [
+  { value: "", label: "Any beds" },
+  { value: "1", label: "1+" },
+  { value: "2", label: "2+" },
+  { value: "3", label: "3+" },
+  { value: "4", label: "4+" },
+];
 
 export default function DiscoverScreen({ navigation }) {
   const { signedIn } = useAuth();
@@ -22,6 +38,10 @@ export default function DiscoverScreen({ navigation }) {
   const [error, setError] = useState("");
   const [coords, setCoords] = useState(null);
   const [radius, setRadius] = useState(5);
+  const [type, setType] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [minRent, setMinRent] = useState("");
+  const [maxRent, setMaxRent] = useState("");
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [savedIds, setSavedIds] = useState([]);
@@ -29,7 +49,15 @@ export default function DiscoverScreen({ navigation }) {
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
 
-  const loadProperties = useCallback(async ({ lat, lng, radiusKm } = {}) => {
+  const loadProperties = useCallback(async ({
+    lat,
+    lng,
+    radiusKm = radius,
+    type: typeFilter = type,
+    bedrooms: bedroomsFilter = bedrooms,
+    minRent: minRentFilter = minRent,
+    maxRent: maxRentFilter = maxRent,
+  } = {}) => {
     setError("");
 
     try {
@@ -38,15 +66,20 @@ export default function DiscoverScreen({ navigation }) {
       if (lat != null && lng != null) {
         params.lat = lat;
         params.lng = lng;
-        params.radiusKm = radiusKm || radius;
+        params.radiusKm = radiusKm;
       }
+
+      if (typeFilter) params.type = typeFilter;
+      if (bedroomsFilter) params.bedrooms = bedroomsFilter;
+      if (minRentFilter) params.minRent = minRentFilter;
+      if (maxRentFilter) params.maxRent = maxRentFilter;
 
       const data = await fetchProperties(params);
       setProperties(data);
     } catch (err) {
       setError(err.message || "Failed to load properties.");
     }
-  }, [radius]);
+  }, [radius, type, bedrooms, minRent, maxRent]);
 
   const loadFavorites = useCallback(async () => {
     if (!signedIn) {
@@ -119,6 +152,20 @@ export default function DiscoverScreen({ navigation }) {
     }
   };
 
+  const handleTypeChange = async (value) => {
+    setType(value);
+    await loadProperties({ lat: coords?.lat, lng: coords?.lng, type: value });
+  };
+
+  const handleBedroomsChange = async (value) => {
+    setBedrooms(value);
+    await loadProperties({ lat: coords?.lat, lng: coords?.lng, bedrooms: value });
+  };
+
+  const handleApplyPriceFilter = async () => {
+    await loadProperties({ lat: coords?.lat, lng: coords?.lng });
+  };
+
   const handleSaveSearch = async () => {
     if (!signedIn) {
       navigation.navigate("Login");
@@ -129,7 +176,13 @@ export default function DiscoverScreen({ navigation }) {
     setSavingSearch(true);
 
     try {
-      await createSavedSearch({ lat: coords.lat, lng: coords.lng, radiusKm: radius });
+      const payload = { lat: coords.lat, lng: coords.lng, radiusKm: radius };
+      if (type) payload.type = type;
+      if (bedrooms) payload.bedrooms = Number(bedrooms);
+      if (minRent) payload.minRent = Number(minRent);
+      if (maxRent) payload.maxRent = Number(maxRent);
+
+      await createSavedSearch(payload);
       setSaveSearchMessage("Saved! We'll notify you when a matching listing appears.");
     } catch (err) {
       setSaveSearchMessage(err.message || "Could not save this search.");
@@ -167,27 +220,77 @@ export default function DiscoverScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.filterBar}>
-        <View style={styles.radiusRow}>
-          {radiusOptions.map((option) => (
+        <View style={styles.filterRow}>
+          <View style={styles.radiusRow}>
+            {radiusOptions.map((option) => (
+              <Pressable
+                key={option}
+                style={[styles.radiusChip, radius === option && styles.radiusChipActive]}
+                onPress={() => handleRadiusChange(option)}
+              >
+                <Text style={[styles.radiusChipText, radius === option && styles.radiusChipTextActive]}>
+                  {option} km
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <Pressable style={styles.nearMeButton} onPress={handleNearMe} disabled={locating}>
+            <Text style={styles.nearMeButtonText}>{locating ? "Locating..." : "Near me"}</Text>
+          </Pressable>
+          {coords ? (
+            <Pressable style={styles.nearMeButton} onPress={handleSaveSearch} disabled={savingSearch}>
+              <Text style={styles.nearMeButtonText}>{savingSearch ? "Saving..." : "Save search"}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <View style={styles.filterRow}>
+          {typeOptions.map((option) => (
             <Pressable
-              key={option}
-              style={[styles.radiusChip, radius === option && styles.radiusChipActive]}
-              onPress={() => handleRadiusChange(option)}
+              key={option.value || "any-type"}
+              style={[styles.radiusChip, type === option.value && styles.radiusChipActive]}
+              onPress={() => handleTypeChange(option.value)}
             >
-              <Text style={[styles.radiusChipText, radius === option && styles.radiusChipTextActive]}>
-                {option} km
+              <Text style={[styles.radiusChipText, type === option.value && styles.radiusChipTextActive]}>
+                {option.label}
               </Text>
             </Pressable>
           ))}
         </View>
-        <Pressable style={styles.nearMeButton} onPress={handleNearMe} disabled={locating}>
-          <Text style={styles.nearMeButtonText}>{locating ? "Locating..." : "Near me"}</Text>
-        </Pressable>
-        {coords ? (
-          <Pressable style={styles.nearMeButton} onPress={handleSaveSearch} disabled={savingSearch}>
-            <Text style={styles.nearMeButtonText}>{savingSearch ? "Saving..." : "Save search"}</Text>
+
+        <View style={styles.filterRow}>
+          {bedroomOptions.map((option) => (
+            <Pressable
+              key={option.value || "any-beds"}
+              style={[styles.radiusChip, bedrooms === option.value && styles.radiusChipActive]}
+              onPress={() => handleBedroomsChange(option.value)}
+            >
+              <Text style={[styles.radiusChipText, bedrooms === option.value && styles.radiusChipTextActive]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.filterRow}>
+          <TextInput
+            style={styles.rentInput}
+            value={minRent}
+            onChangeText={setMinRent}
+            placeholder="Min rent"
+            keyboardType="number-pad"
+          />
+          <TextInput
+            style={styles.rentInput}
+            value={maxRent}
+            onChangeText={setMaxRent}
+            placeholder="Max rent"
+            keyboardType="number-pad"
+          />
+          <Pressable style={styles.nearMeButton} onPress={handleApplyPriceFilter}>
+            <Text style={styles.nearMeButtonText}>Apply price</Text>
           </Pressable>
-        ) : null}
+        </View>
       </View>
 
       {locationError ? <Text style={styles.inlineError}>{locationError}</Text> : null}
@@ -234,17 +337,33 @@ const createStyles = (colors) =>
     backgroundColor: colors.bg,
   },
   filterBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 4,
+    gap: 8,
+  },
+  filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
     gap: 8,
   },
   radiusRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 6,
+  },
+  rentInput: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    minHeight: 44,
+    minWidth: 100,
+    flexGrow: 1,
+    fontSize: 13,
+    backgroundColor: colors.surface,
+    color: colors.ink,
   },
   radiusChip: {
     borderWidth: 1,

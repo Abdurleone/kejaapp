@@ -68,6 +68,29 @@ describe("savedSearchMatchingService", () => {
     assert.equal(create.mock.callCount(), 0);
   });
 
+  it("derives a bedrooms filter from the saved search", async () => {
+    const property = { _id: new mongoose.Types.ObjectId(), status: "available" };
+    const savedSearch = {
+      _id: new mongoose.Types.ObjectId(),
+      user: new mongoose.Types.ObjectId(),
+      bedrooms: 2,
+      toObject() {
+        return { bedrooms: 2 };
+      },
+    };
+
+    mock.method(SavedSearch, "find", async () => [savedSearch]);
+    let capturedFilters;
+    mock.method(Property, "exists", async (filters) => {
+      capturedFilters = filters;
+      return false;
+    });
+
+    await notifyMatchingSavedSearches(property);
+
+    assert.deepEqual(capturedFilters.bedrooms, { $gte: 2 });
+  });
+
   it("skips matching entirely for properties that are not yet available", async () => {
     const property = { _id: new mongoose.Types.ObjectId(), status: "draft" };
     const find = mock.method(SavedSearch, "find", async () => []);

@@ -11,6 +11,9 @@ import {
   summarizeProperties,
 } from "../../app-utils.js";
 
+const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
+const bedroomOptions = [1, 2, 3, 4, 5];
+
 export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }) {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,10 +23,24 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
   const [saveError, setSaveError] = useState("");
   const [coords, setCoords] = useState(null);
   const [radius, setRadius] = useState(5);
+  const [type, setType] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [minRent, setMinRent] = useState("");
+  const [maxRent, setMaxRent] = useState("");
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
 
-  const loadProperties = async (lat = null, lng = null, radiusKm = radius) => {
+  const loadProperties = async (overrides = {}) => {
+    const {
+      lat = coords?.lat ?? null,
+      lng = coords?.lng ?? null,
+      radiusKm = radius,
+      type: typeFilter = type,
+      bedrooms: bedroomsFilter = bedrooms,
+      minRent: minRentFilter = minRent,
+      maxRent: maxRentFilter = maxRent,
+    } = overrides;
+
     try {
       setLoading(true);
       setError("");
@@ -34,6 +51,11 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
         params.lng = lng;
         params.radiusKm = radiusKm;
       }
+
+      if (typeFilter) params.type = typeFilter;
+      if (bedroomsFilter) params.bedrooms = bedroomsFilter;
+      if (minRentFilter) params.minRent = minRentFilter;
+      if (maxRentFilter) params.maxRent = maxRentFilter;
 
       const data = await fetchProperties(params);
       setProperties(data);
@@ -83,7 +105,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setCoords({ lat: latitude, lng: longitude });
-        loadProperties(latitude, longitude);
+        loadProperties({ lat: latitude, lng: longitude });
       },
       () => setSaveError("Unable to retrieve your location."),
     );
@@ -94,8 +116,24 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
     setRadius(nextRadius);
 
     if (coords) {
-      loadProperties(coords.lat, coords.lng, nextRadius);
+      loadProperties({ lat: coords.lat, lng: coords.lng, radiusKm: nextRadius });
     }
+  };
+
+  const handleTypeChange = (event) => {
+    const nextType = event.target.value;
+    setType(nextType);
+    loadProperties({ type: nextType });
+  };
+
+  const handleBedroomsChange = (event) => {
+    const nextBedrooms = event.target.value;
+    setBedrooms(nextBedrooms);
+    loadProperties({ bedrooms: nextBedrooms });
+  };
+
+  const handleApplyPriceFilter = () => {
+    loadProperties({});
   };
 
   const handleSave = async (propertyId) => {
@@ -127,7 +165,13 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
     setSavingSearch(true);
 
     try {
-      await createSavedSearch({ lat: coords.lat, lng: coords.lng, radiusKm: radius });
+      const payload = { lat: coords.lat, lng: coords.lng, radiusKm: radius };
+      if (type) payload.type = type;
+      if (bedrooms) payload.bedrooms = Number(bedrooms);
+      if (minRent) payload.minRent = Number(minRent);
+      if (maxRent) payload.maxRent = Number(maxRent);
+
+      await createSavedSearch(payload);
       setSaveSearchMessage("Saved! We'll notify you when a matching listing appears.");
     } catch (err) {
       setSaveSearchMessage(err.message || "Could not save this search.");
@@ -168,13 +212,52 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
                 type="button"
                 onClick={() => {
                   setCoords(null);
-                  loadProperties();
+                  loadProperties({ lat: null, lng: null });
                 }}
               >
                 Clear location
               </button>
             </>
           )}
+          <label className="radius-control">
+            Type
+            <select value={type} onChange={handleTypeChange}>
+              <option value="">Any</option>
+              {listingTypes.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="radius-control">
+            Bedrooms
+            <select value={bedrooms} onChange={handleBedroomsChange}>
+              <option value="">Any</option>
+              {bedroomOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}+
+                </option>
+              ))}
+            </select>
+          </label>
+          <input
+            type="number"
+            min="0"
+            placeholder="Min rent"
+            value={minRent}
+            onChange={(event) => setMinRent(event.target.value)}
+          />
+          <input
+            type="number"
+            min="0"
+            placeholder="Max rent"
+            value={maxRent}
+            onChange={(event) => setMaxRent(event.target.value)}
+          />
+          <button className="secondary-button" type="button" onClick={handleApplyPriceFilter}>
+            Apply price
+          </button>
         </div>
       </div>
       {saveSearchMessage && (
@@ -209,7 +292,7 @@ export default function DiscoverPage({ signedIn, onRequireAuth, onOpenProperty }
       ) : error ? (
         <div className="panel">
           <p className="error-text">{error}</p>
-          <button className="secondary-button" type="button" onClick={() => loadProperties(coords?.lat, coords?.lng)}>
+          <button className="secondary-button" type="button" onClick={() => loadProperties({})}>
             Retry
           </button>
         </div>
