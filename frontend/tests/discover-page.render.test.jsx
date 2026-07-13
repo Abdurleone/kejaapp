@@ -1,7 +1,8 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import DiscoverPage from "../src/pages/DiscoverPage.jsx";
+import { renderWithAuth } from "./helpers/renderWithAuth.jsx";
 
 const { fetchProperties, fetchFavorites, saveFavorite, createSavedSearch } = vi.hoisted(() => ({
   fetchProperties: vi.fn(),
@@ -39,7 +40,7 @@ describe("DiscoverPage", () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
     fetchFavorites.mockResolvedValue([]);
 
-    render(<DiscoverPage signedIn={false} onRequireAuth={vi.fn()} onOpenProperty={vi.fn()} />);
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
 
     const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
     expect(within(card).getByText("Kilimani, Nairobi")).toBeInTheDocument();
@@ -50,7 +51,7 @@ describe("DiscoverPage", () => {
     fetchProperties.mockResolvedValue([]);
     fetchFavorites.mockResolvedValue([]);
 
-    render(<DiscoverPage signedIn={false} onRequireAuth={vi.fn()} onOpenProperty={vi.fn()} />);
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
 
     expect(await screen.findByText("No rentals found")).toBeInTheDocument();
   });
@@ -59,7 +60,7 @@ describe("DiscoverPage", () => {
     fetchProperties.mockRejectedValueOnce(new Error("Network down"));
     fetchFavorites.mockResolvedValue([]);
 
-    render(<DiscoverPage signedIn={false} onRequireAuth={vi.fn()} onOpenProperty={vi.fn()} />);
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
 
     expect(await screen.findByText("Network down")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
@@ -68,16 +69,16 @@ describe("DiscoverPage", () => {
   it("requires sign-in to save, and never calls saveFavorite, when signed out", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
     fetchFavorites.mockResolvedValue([]);
-    const onRequireAuth = vi.fn();
+    const openAuthPanel = vi.fn();
     const user = userEvent.setup();
 
-    render(<DiscoverPage signedIn={false} onRequireAuth={onRequireAuth} onOpenProperty={vi.fn()} />);
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />, { signedIn: false, openAuthPanel });
 
     const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
     const saveButton = within(card).getByRole("button", { name: "Sign in to save" });
     await user.click(saveButton);
 
-    expect(onRequireAuth).toHaveBeenCalledTimes(1);
+    expect(openAuthPanel).toHaveBeenCalledTimes(1);
     expect(saveFavorite).not.toHaveBeenCalled();
   });
 
@@ -87,7 +88,7 @@ describe("DiscoverPage", () => {
     saveFavorite.mockResolvedValue({});
     const user = userEvent.setup();
 
-    render(<DiscoverPage signedIn onRequireAuth={vi.fn()} onOpenProperty={vi.fn()} />);
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />, { signedIn: true });
 
     const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
     const saveButton = within(card).getByRole("button", { name: "Save" });
@@ -101,7 +102,7 @@ describe("DiscoverPage", () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
     fetchFavorites.mockResolvedValue([{ property: { _id: "prop-1" } }]);
 
-    render(<DiscoverPage signedIn onRequireAuth={vi.fn()} onOpenProperty={vi.fn()} />);
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />, { signedIn: true });
 
     const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
     expect(await within(card).findByRole("button", { name: "Saved" })).toBeDisabled();

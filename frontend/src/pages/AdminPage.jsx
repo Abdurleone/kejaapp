@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   fetchAdminUsers,
   fetchAdminUserSummary,
@@ -309,7 +310,8 @@ function AdminReviewsPanel() {
   );
 }
 
-export default function AdminPage({ currentUser }) {
+export default function AdminPage() {
+  const { currentUser } = useAuth();
   const [section, setSection] = useState("users");
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState(null);

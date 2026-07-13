@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PropertyDetailSkeleton from "../components/PropertyDetailSkeleton.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   buildEmailUrl,
   buildPhoneUrl,
@@ -39,7 +40,8 @@ const minScheduledDateTime = () => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack, currentUser }) {
+export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
+  const { currentUser } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

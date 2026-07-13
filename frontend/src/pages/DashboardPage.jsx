@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardSkeleton from "../components/DashboardSkeleton.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import { fetchDashboardSummary, formatStatusLabel } from "../../app-utils.js";
 
 const roleLabels = {
@@ -22,7 +23,8 @@ const StatusStatTiles = ({ counts, suffix }) =>
     <StatTile key={`${suffix}-${status}`} value={count} label={`${formatStatusLabel(status)} ${suffix}`} />
   ));
 
-export default function DashboardPage({ currentUser }) {
+export default function DashboardPage() {
+  const { currentUser } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

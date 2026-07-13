@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   affiliateMover,
   canManageListings,
@@ -625,10 +626,12 @@ function MoverDashboard() {
   );
 }
 
-export default function MoversPage({ signedIn, onRequireAuth, currentUser }) {
+export default function MoversPage() {
+  const { signedIn, currentUser, openAuthPanel } = useAuth();
+
   if (currentUser?.role === "mover") {
     return <MoverDashboard />;
   }
 
-  return <MoverDirectory signedIn={signedIn} onRequireAuth={onRequireAuth} currentUser={currentUser} />;
+  return <MoverDirectory signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
 }

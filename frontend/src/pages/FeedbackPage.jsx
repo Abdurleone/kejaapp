@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   createFeedback,
   fetchAdminFeedback,
@@ -285,7 +286,8 @@ function AdminFeedbackPanel() {
   );
 }
 
-export default function FeedbackPage({ currentUser }) {
+export default function FeedbackPage() {
+  const { currentUser } = useAuth();
   if (currentUser?.role === "admin") {
     return <AdminFeedbackPanel />;
   }
