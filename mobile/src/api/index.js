@@ -63,6 +63,21 @@ export const createProperty = async (payload) => {
   return response.data;
 };
 
+export const updateProperty = async (propertyId, payload) => {
+  const response = await apiFetch(`/api/properties/${propertyId}`, { method: "PUT", body: payload });
+  return response.data;
+};
+
+// Returns the whole response (not just .data) since callers need imageReview.status.
+export const uploadPropertyImage = async (propertyId, payload) => {
+  return apiFetch(`/api/properties/${propertyId}/images/upload`, { method: "POST", body: payload });
+};
+
+export const removePropertyImage = async (propertyId, imageId) => {
+  const response = await apiFetch(`/api/properties/${propertyId}/images/${imageId}`, { method: "DELETE" });
+  return response.data;
+};
+
 // --- Favorites ---
 
 export const fetchFavorites = async () => {
