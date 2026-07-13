@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -26,6 +26,12 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [serverInput, setServerInput] = useState("");
+
+  useEffect(() => {
+    if (apiBaseUrl) {
+      setServerInput(apiBaseUrl);
+    }
+  }, [apiBaseUrl]);
 
   const handleSubmit = async () => {
     setError("");
@@ -109,14 +115,14 @@ export default function LoginScreen({ navigation }) {
                   <Text style={styles.label}>API server (e.g. http://192.168.1.20:5000)</Text>
                   <TextInput
                     style={styles.input}
-                    value={serverInput || apiBaseUrl || ""}
+                    value={serverInput}
                     onChangeText={setServerInput}
                     autoCapitalize="none"
-                    placeholder={apiBaseUrl || ""}
+                    placeholder="http://192.168.1.20:5000"
                   />
                   <Pressable
                     style={styles.secondaryButton}
-                    onPress={() => setApiBaseUrl(serverInput)}
+                    onPress={() => setApiBaseUrl(serverInput.trim())}
                   >
                     <Text style={styles.secondaryButtonText}>Save server address</Text>
                   </Pressable>
