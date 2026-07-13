@@ -4,11 +4,10 @@ import ViewingRequest from "../models/ViewingRequest.js";
 // otherwise imports Property.
 import "../models/Property.js";
 import { notifyStaleViewingRequest } from "../services/notificationService.js";
-
-const staleThresholdMs = 48 * 60 * 60 * 1000;
+import env from "../config/env.js";
 
 const run = async () => {
-  const cutoff = new Date(Date.now() - staleThresholdMs);
+  const cutoff = new Date(Date.now() - env.staleNudgeThresholdMs);
   const staleViewingRequests = await ViewingRequest.find({
     status: "pending",
     createdAt: { $lte: cutoff },

@@ -4,12 +4,11 @@ import ViewingRequest from "../models/ViewingRequest.js";
 // otherwise imports Property.
 import "../models/Property.js";
 import { notifyUpcomingViewing } from "../services/notificationService.js";
-
-const reminderWindowMs = 24 * 60 * 60 * 1000;
+import env from "../config/env.js";
 
 const run = async () => {
   const now = new Date();
-  const windowEnd = new Date(now.getTime() + reminderWindowMs);
+  const windowEnd = new Date(now.getTime() + env.viewingReminderWindowMs);
 
   const upcomingViewings = await ViewingRequest.find({
     status: "approved",

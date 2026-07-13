@@ -4,11 +4,10 @@ import Inquiry from "../models/Inquiry.js";
 // otherwise imports Property.
 import "../models/Property.js";
 import { notifyStaleInquiry } from "../services/notificationService.js";
-
-const staleThresholdMs = 48 * 60 * 60 * 1000;
+import env from "../config/env.js";
 
 const run = async () => {
-  const cutoff = new Date(Date.now() - staleThresholdMs);
+  const cutoff = new Date(Date.now() - env.staleNudgeThresholdMs);
   const staleInquiries = await Inquiry.find({
     status: "open",
     createdAt: { $lte: cutoff },
