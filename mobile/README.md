@@ -20,7 +20,7 @@ Implemented:
 - Saved favorites: save/unsave, saved list
 - Inquiries: send an inquiry from a property, view your inquiries (infinite-scroll paginated) and any owner response
 - Viewing requests: request a scheduled or open viewing, view your requests (infinite-scroll paginated) and their status
-- Owner/agency Workspace tab: lists the signed-in landlord/agency's own properties (`fetchMyProperties`, infinite-scroll paginated) and a "New listing" action that opens a create-listing form (`POST /api/properties`); gated so tenants see a sign-in/role message instead. The create form lets you select photos (multi-select via `expo-image-picker`, previewed locally) as part of the same submit — they're uploaded right after the property is created. Editing an existing listing (and its photos) afterward, and the received-inquiries view, are still web-only.
+- Owner/agency Workspace tab: a Listings/Inquiries segmented view. Listings lists the signed-in landlord/agency's own properties (`fetchMyProperties`, infinite-scroll paginated) with a "New listing" action (`POST /api/properties`, photo selection embedded in the same form, previewed locally and uploaded right after creation) and tapping a property opens an edit screen (`PUT /api/properties/:id`, shares its form logic with create via `propertyForm.js`) where photos can also be added/removed afterward. Inquiries lists inquiries tenants have sent about your listings (`GET /api/inquiries/received`, infinite-scroll paginated) with a reply-or-close action (`PUT /api/inquiries/:id`). Gated so tenants see a sign-in/role message instead.
 - Notifications tab: lists all notifications with an All/Unread filter and a "Mark as read" action per item.
 - Saved searches: a "Save search" action on Discover once a location is set (tenants), and a list to review/remove them on the Account tab.
 - Movers tab: a filterable mover directory (service type, county) for tenants/landlords/agencies/anonymous visitors, with a "Request service" action (tenants) and an affiliate add/remove action (landlord/agency); signed-in movers instead see their own profile-status panel plus received tenant requests with accept/decline/complete actions. The property detail screen also shows a "Movers for this move" section (the owner's affiliates plus verified movers nearby) with the same request action.
@@ -29,10 +29,9 @@ Implemented:
 - Light/dark mode toggle: an icon-only sun/moon control in the top-right header of every screen (`ThemeContext`, persisted to AsyncStorage) — replaces the old inline "Dark mode" switch that used to live on the Account screen only.
 - Property detail is gated to signed-in tenants: anonymous visitors and non-tenant roles get a "sign in with a tenant account" prompt instead of pricing/contact info; the Discover list itself stays open to everyone. Contact details include one-tap call/email/WhatsApp actions plus a "Contact via {method}" shortcut for the owner's preferred method.
 - Sign In screen has a branded gradient hero matching the landing page; the "Show API server settings" toggle is hidden in production builds (only visible in development, via `__DEV__`).
+- Admin tab (admin role only): Users segment (search/role filter, paginated list, drill into a user for account summary, status history, and an active/suspended/banned status-change form) and a read-only Reviews segment (property, tenant, rating, comment, owner response, date) — deliberately no delete/moderate action, matching the backend (and web admin console), since reviews can't be moderated per `docs/terms-of-service.md`.
 
 Not yet built (still placeholders on the web frontend too, so this isn't a regression):
-- Editing an existing listing (and managing its photos afterward), and the received-inquiries view from the owner workspace (both web-only so far — mobile can add photos at creation time, just not edit a listing afterward)
-- Admin moderation console
 - Property reviews UI (the backend supports it; the property detail screen shows the rating summary but not a review list/composer yet)
 
 ## Running it
