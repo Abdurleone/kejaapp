@@ -4,6 +4,7 @@ import { Expo } from "expo-server-sdk";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import { sendPushNotifications } from "../../services/pushNotificationService.js";
 import DeviceToken from "../../models/DeviceToken.js";
+import PushReceipt from "../../models/PushReceipt.js";
 
 const validToken = "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]";
 
@@ -61,5 +62,18 @@ describe("pushNotificationService", () => {
 
     assert.equal(deleteOne.mock.callCount(), 1);
     assert.deepEqual(deleteOne.mock.calls[0].arguments[0], { token: validToken });
+  });
+
+  it("records a successfully-queued ticket's id for later receipt polling", async () => {
+    mock.method(DeviceToken, "find", async () => [{ token: validToken }]);
+    mock.method(Expo.prototype, "sendPushNotificationsAsync", async () => [
+      { status: "ok", id: "ticket-1" },
+    ]);
+    const create = mock.method(PushReceipt, "create", async () => ({}));
+
+    await sendPushNotifications(new mongoose.Types.ObjectId(), { title: "Hi", body: "There" });
+
+    assert.equal(create.mock.callCount(), 1);
+    assert.deepEqual(create.mock.calls[0].arguments[0], { ticketId: "ticket-1", token: validToken });
   });
 });
