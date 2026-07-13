@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   createViewingRequest,
+  listMyViewingRequests,
   updateViewingRequestStatus,
 } from "../../controllers/viewingController.js";
 import Property from "../../models/Property.js";
@@ -18,6 +19,27 @@ const createResponse = () => ({
   json(payload) {
     this.body = payload;
     return this;
+  },
+});
+
+// Chainable, thenable stand-in for a Mongoose Query - resolves to `result`
+// whenever awaited, regardless of how many chained methods were called
+// first (mirrors that populateViewingRequest() wraps .sort().skip().limit()).
+const mockPopulatedFind = (result) => ({
+  populate() {
+    return this;
+  },
+  sort() {
+    return this;
+  },
+  skip() {
+    return this;
+  },
+  limit() {
+    return this;
+  },
+  then(resolve) {
+    resolve(result);
   },
 });
 
@@ -135,5 +157,29 @@ describe("viewingController", () => {
 
     assert.equal(nextError.statusCode, 404);
     assert.equal(nextError.message, "Viewing request not found");
+  });
+
+  it("paginates a tenant's own viewing requests with default page/limit", async () => {
+    let findFilters;
+    let countFilters;
+    mock.method(ViewingRequest, "find", (filters) => {
+      findFilters = filters;
+      return mockPopulatedFind([{ _id: "v1" }]);
+    });
+    mock.method(ViewingRequest, "countDocuments", (filters) => {
+      countFilters = filters;
+      return Promise.resolve(7);
+    });
+
+    const userId = new mongoose.Types.ObjectId();
+    const req = { query: {}, user: { _id: userId } };
+    const res = createResponse();
+
+    await listMyViewingRequests(req, res, () => {});
+
+    assert.deepEqual(findFilters, { requester: userId });
+    assert.deepEqual(countFilters, { requester: userId });
+    assert.deepEqual(res.body.data, [{ _id: "v1" }]);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 7, pages: 1 });
   });
 });

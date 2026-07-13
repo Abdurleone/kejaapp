@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, RefreshControl, ScrollView, StyleSheet } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fetchMyProperties } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -18,22 +18,49 @@ export default function WorkspaceScreen() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [properties, setProperties] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
 
   const canManageListings = listingManagerRoles.includes(user?.role);
 
+  // Resets to page 1 and replaces the list - used for the initial load,
+  // pull-to-refresh, and the focus-refresh below. Appending additional pages
+  // is handled separately by loadMore, so a newly created listing (which
+  // sorts first) is never hidden behind stale later pages.
   const load = useCallback(async () => {
     setError("");
 
     try {
-      const data = await fetchMyProperties();
+      const { properties: data, pagination: paginationData } = await fetchMyProperties({ page: 1 });
       setProperties(data);
+      setPagination(paginationData);
     } catch (err) {
       setError(err.message || "Failed to load your workspace.");
     }
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !pagination || pagination.page >= pagination.pages) {
+      return;
+    }
+
+    setLoadingMore(true);
+
+    try {
+      const nextPage = pagination.page + 1;
+      const { properties: data, pagination: paginationData } = await fetchMyProperties({ page: nextPage });
+      setProperties((current) => [...current, ...data]);
+      setPagination(paginationData);
+    } catch {
+      // Best-effort - scrolling again re-triggers onEndReached, so a quiet
+      // failure here just means the next page didn't load this time.
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, pagination]);
 
   useEffect(() => {
     if (!signedIn || !canManageListings) {
@@ -111,6 +138,9 @@ export default function WorkspaceScreen() {
       keyExtractor={(item) => item._id}
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerSpinner} /> : null}
       renderItem={({ item }) => (
         <PropertyCard
           property={item}
@@ -132,5 +162,8 @@ const createStyles = (colors) =>
   },
   list: {
     padding: 16,
+  },
+  footerSpinner: {
+    marginVertical: 16,
   },
   });

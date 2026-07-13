@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fetchInquiries, fetchViewingRequests } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -20,22 +29,72 @@ export default function RequestsScreen() {
   const styles = createStyles(colors);
   const [tab, setTab] = useState("inquiries");
   const [inquiries, setInquiries] = useState([]);
+  const [inquiriesPagination, setInquiriesPagination] = useState(null);
+  const [loadingMoreInquiries, setLoadingMoreInquiries] = useState(false);
   const [viewings, setViewings] = useState([]);
+  const [viewingsPagination, setViewingsPagination] = useState(null);
+  const [loadingMoreViewings, setLoadingMoreViewings] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
+  // Resets both tabs to page 1 and replaces their lists - used for the
+  // initial load and pull-to-refresh. Loading additional pages per tab is
+  // handled separately below, so switching tabs never re-fetches page 1.
   const load = useCallback(async () => {
     setError("");
 
     try {
-      const [inquiryData, viewingData] = await Promise.all([fetchInquiries(), fetchViewingRequests()]);
-      setInquiries(inquiryData);
-      setViewings(viewingData);
+      const [inquiryData, viewingData] = await Promise.all([
+        fetchInquiries({ page: 1 }),
+        fetchViewingRequests({ page: 1 }),
+      ]);
+      setInquiries(inquiryData.inquiries);
+      setInquiriesPagination(inquiryData.pagination);
+      setViewings(viewingData.viewingRequests);
+      setViewingsPagination(viewingData.pagination);
     } catch (err) {
       setError(err.message || "Failed to load your requests.");
     }
   }, []);
+
+  const loadMoreInquiries = useCallback(async () => {
+    if (loadingMoreInquiries || !inquiriesPagination || inquiriesPagination.page >= inquiriesPagination.pages) {
+      return;
+    }
+
+    setLoadingMoreInquiries(true);
+
+    try {
+      const nextPage = inquiriesPagination.page + 1;
+      const { inquiries: data, pagination } = await fetchInquiries({ page: nextPage });
+      setInquiries((current) => [...current, ...data]);
+      setInquiriesPagination(pagination);
+    } catch {
+      // Best-effort - scrolling again re-triggers onEndReached.
+    } finally {
+      setLoadingMoreInquiries(false);
+    }
+  }, [loadingMoreInquiries, inquiriesPagination]);
+
+  const loadMoreViewings = useCallback(async () => {
+    if (loadingMoreViewings || !viewingsPagination || viewingsPagination.page >= viewingsPagination.pages) {
+      return;
+    }
+
+    setLoadingMoreViewings(true);
+
+    try {
+      const nextPage = viewingsPagination.page + 1;
+      const { viewingRequests: data, pagination } = await fetchViewingRequests({ page: nextPage });
+      setViewings((current) => [...current, ...data]);
+      setViewingsPagination(pagination);
+    } catch {
+      // Best-effort - scrolling again re-triggers onEndReached.
+    } finally {
+      setLoadingMoreViewings(false);
+    }
+  }, [loadingMoreViewings, viewingsPagination]);
 
   useEffect(() => {
     if (!signedIn) {
@@ -80,6 +139,8 @@ export default function RequestsScreen() {
   }
 
   const data = tab === "inquiries" ? inquiries : viewings;
+  const loadingMore = tab === "inquiries" ? loadingMoreInquiries : loadingMoreViewings;
+  const loadMore = tab === "inquiries" ? loadMoreInquiries : loadMoreViewings;
 
   return (
     <View style={styles.container}>
@@ -106,6 +167,9 @@ export default function RequestsScreen() {
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerSpinner} /> : null}
           renderItem={({ item }) =>
             tab === "inquiries" ? (
               <InquiryRow inquiry={item} styles={styles} />
@@ -197,6 +261,9 @@ const createStyles = (colors) =>
     list: {
       padding: 16,
       paddingTop: 4,
+    },
+    footerSpinner: {
+      marginVertical: 16,
     },
     card: {
       backgroundColor: colors.surface,

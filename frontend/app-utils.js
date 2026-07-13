@@ -156,6 +156,39 @@ export const updateProperty = async (propertyId, payload) => {
   return response.data;
 };
 
+// These three return the full response (not just response.data), since the
+// caller needs `imageReview.status` to surface a "flagged as suspicious"
+// notice inline - unlike other mutations here where only the updated record
+// itself is ever needed.
+export const addPropertyImage = async (propertyId, payload) => {
+  const response = await apiFetch(`/api/properties/${propertyId}/images`, {
+    method: "POST",
+    body: payload,
+  });
+  clearRequestCache("property");
+  clearRequestCache("myProperties");
+  return response;
+};
+
+export const uploadPropertyImage = async (propertyId, payload) => {
+  const response = await apiFetch(`/api/properties/${propertyId}/images/upload`, {
+    method: "POST",
+    body: payload,
+  });
+  clearRequestCache("property");
+  clearRequestCache("myProperties");
+  return response;
+};
+
+export const removePropertyImage = async (propertyId, imageId) => {
+  const response = await apiFetch(`/api/properties/${propertyId}/images/${imageId}`, {
+    method: "DELETE",
+  });
+  clearRequestCache("property");
+  clearRequestCache("myProperties");
+  return response.data;
+};
+
 const myPropertiesCacheTtlMs = 15000;
 const receivedInquiriesCacheTtlMs = 15000;
 
@@ -171,7 +204,7 @@ export const fetchMyProperties = async (query = {}) => {
   const response = await apiFetch(`/api/properties/mine${queryString}`, {
     method: "GET",
   });
-  const data = response.data || [];
+  const data = { properties: response.data || [], pagination: response.pagination };
   setCached(cacheKey, data, myPropertiesCacheTtlMs);
   return data;
 };
@@ -188,9 +221,18 @@ export const fetchReceivedInquiries = async (query = {}) => {
   const response = await apiFetch(`/api/inquiries/received${queryString}`, {
     method: "GET",
   });
-  const data = response.data || [];
+  const data = { inquiries: response.data || [], pagination: response.pagination };
   setCached(cacheKey, data, receivedInquiriesCacheTtlMs);
   return data;
+};
+
+export const respondToInquiry = async (inquiryId, payload) => {
+  const response = await apiFetch(`/api/inquiries/${inquiryId}`, {
+    method: "PUT",
+    body: payload,
+  });
+  clearRequestCache("receivedInquiries");
+  return response.data;
 };
 
 const dashboardSummaryCacheTtlMs = 15000;

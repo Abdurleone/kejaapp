@@ -329,6 +329,7 @@ function App() {
         return (
           <PropertyEditPage
             propertyId={getPropertyEditIdFromPath(path)}
+            apiBaseUrl={apiBaseUrl}
             onBack={() => navigate(getViewPath("owner"))}
           />
         );
