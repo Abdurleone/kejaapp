@@ -5,6 +5,7 @@ import {
   createFeedback,
   createProperty,
   fetchAdminFeedback,
+  fetchAdminReviews,
   fetchAdminUsers,
   fetchDashboardSummary,
   fetchFavorites,
@@ -181,6 +182,25 @@ describe("frontend request cache", () => {
     await fetchAdminUsers();
 
     assert.equal(calls, 3);
+  });
+
+  it("reuses a cached admin-reviews response within the TTL window", async () => {
+    setupEnv();
+    clearRequestCache();
+    let calls = 0;
+    let capturedUrl;
+    global.fetch = async (url) => {
+      calls += 1;
+      capturedUrl = url;
+      return jsonResponse({ data: [{ _id: "r1", rating: 5 }] });
+    };
+
+    const first = await fetchAdminReviews();
+    const second = await fetchAdminReviews();
+
+    assert.equal(calls, 1);
+    assert.equal(capturedUrl, "http://localhost:5000/api/admin/reviews");
+    assert.deepEqual(first, second);
   });
 
   it("reuses a cached my-feedback response within the TTL window", async () => {
