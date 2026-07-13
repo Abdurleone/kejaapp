@@ -4,6 +4,12 @@ import ApiError from "./apiError.js";
 
 const earthRadiusKm = 6378.1;
 
+// Escapes regex metacharacters so a user-supplied search term is matched
+// literally - without this, a query param like county could be crafted as
+// a pathological regex (ReDoS) or as metacharacters that bypass a partial
+// match filter.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const parseGeoQueryNumber = (value, field) => {
   const number = Number(value);
 
@@ -44,15 +50,15 @@ const buildPropertyFilters = (query) => {
   }
 
   if (query.county) {
-    filters["location.county"] = new RegExp(query.county, "i");
+    filters["location.county"] = new RegExp(escapeRegExp(query.county), "i");
   }
 
   if (query.town) {
-    filters["location.town"] = new RegExp(query.town, "i");
+    filters["location.town"] = new RegExp(escapeRegExp(query.town), "i");
   }
 
   if (query.area) {
-    filters["location.area"] = new RegExp(query.area, "i");
+    filters["location.area"] = new RegExp(escapeRegExp(query.area), "i");
   }
 
   if (query.lat !== undefined || query.lng !== undefined || query.radiusKm !== undefined) {
@@ -137,4 +143,4 @@ const haversineDistanceKm = ([lng1, lat1], [lng2, lat2]) => {
   return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
 };
 
-export { buildPropertyFilters, earthRadiusKm, haversineDistanceKm, parseGeoQueryNumber };
+export { buildPropertyFilters, earthRadiusKm, escapeRegExp, haversineDistanceKm, parseGeoQueryNumber };
