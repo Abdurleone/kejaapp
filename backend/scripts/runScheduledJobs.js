@@ -4,6 +4,7 @@ import connectDB, { disconnectDB } from "../config/db.js";
 import * as flagStaleListings from "../jobs/flagStaleListings.js";
 import * as nudgeStaleInquiries from "../jobs/nudgeStaleInquiries.js";
 import * as nudgeStaleViewingRequests from "../jobs/nudgeStaleViewingRequests.js";
+import * as pollExpoPushReceipts from "../jobs/pollExpoPushReceipts.js";
 import * as promptPostViewingReviews from "../jobs/promptPostViewingReviews.js";
 import * as sendViewingReminders from "../jobs/sendViewingReminders.js";
 
@@ -13,6 +14,7 @@ const jobs = [
   { name: "sendViewingReminders", run: sendViewingReminders.run },
   { name: "promptPostViewingReviews", run: promptPostViewingReviews.run },
   { name: "flagStaleListings", run: flagStaleListings.run },
+  { name: "pollExpoPushReceipts", run: pollExpoPushReceipts.run },
 ];
 
 const runScheduledJobs = async () => {
