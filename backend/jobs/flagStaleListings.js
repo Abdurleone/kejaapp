@@ -1,11 +1,10 @@
 import Property from "../models/Property.js";
 import Inquiry from "../models/Inquiry.js";
 import { notifyStaleListing } from "../services/notificationService.js";
-
-const freshnessWindowMs = 14 * 24 * 60 * 60 * 1000;
+import env from "../config/env.js";
 
 const run = async () => {
-  const cutoff = new Date(Date.now() - freshnessWindowMs);
+  const cutoff = new Date(Date.now() - env.staleListingFreshnessMs);
 
   const staleCandidates = await Property.find({
     status: "available",
