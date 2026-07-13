@@ -105,12 +105,14 @@ mobile/
 
 ## Testing
 
-`npm test` (Jest + React Native Testing Library, `jest-expo` preset). Alongside the original API-client/formatter/component tests, there's now coverage for:
+`npm test` (Jest + React Native Testing Library, `jest-expo` preset; 19 suites, 94 tests). Alongside the original API-client/formatter/component tests, there's now coverage for:
 - Pure-function modules: `screens/workspace/propertyForm.js`, `navigation/roleTabs.js`.
 - Context providers: `ThemeContext`, `SettingsContext` (plus its standalone `resolveAssetUrl` helper), `AuthContext` (session restore, login/register/logout, push-registration wiring) — each with a small test-consumer component rather than mocking React internals.
-- Screens (RNTL render tests, with `../api/index.js` and the relevant context hooks mocked): `SavedScreen`, `PropertyEditScreen`, `AdminScreen`, `WorkspaceScreen`.
+- Every bottom-tab screen (RNTL render tests, with `../api/index.js` and the relevant context hooks mocked): `DashboardScreen`, `DiscoverScreen`, `SavedScreen`, `WorkspaceScreen`, `MoversScreen` (directory and mover-dashboard views), `RequestsScreen`, `NotificationsScreen`, `FeedbackScreen` (submitter and admin-responder views), `AccountScreen`, `PropertyEditScreen`, `AdminScreen`.
 
-This still isn't exhaustive coverage of every screen (Dashboard, Discover, Movers, Notifications, Feedback, Account, and Requests remain untested) — see the root README's Roadmap for what's next.
+Not yet covered: Discover's sub-screens (`PropertyDetailScreen`, `InquiryFormScreen`, `ViewingRequestFormScreen`, `MoverRequestFormScreen`), the auth screens, `LandingView`, and `AdminUserDetailScreen` — see the root README's Roadmap for what's next.
+
+A real gotcha found while writing these: under this React 19 + `jest-expo` + RNTL combination, firing two `fireEvent.press` calls back-to-back with no `waitFor`/flush in between can corrupt the *next* test's render (it comes back as an empty tree) even though the two tests are otherwise unrelated. Every multi-interaction test here flushes (`await waitFor(...)`) after each `fireEvent` call rather than chaining them synchronously.
 
 ## Troubleshooting
 
