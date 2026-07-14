@@ -111,6 +111,8 @@ describe("frontend app utilities", () => {
     assert.equal(getViewPath("discover"), "/search");
     assert.equal(getViewPath("saved"), "/saved");
     assert.equal(getViewPath("dashboard"), "/dashboard");
+    assert.equal(getViewPath("dataProtection"), "/data-protection");
+    assert.equal(resolveViewFromPath("/data-protection"), "dataProtection");
   });
 
   it("routes property detail paths to the propertyDetail view and back", () => {
@@ -161,6 +163,7 @@ describe("frontend app utilities", () => {
     assert.equal(canAccessView("admin", "admin"), true);
     assert.equal(canAccessView("admin", "owner"), false);
     assert.equal(canAccessView("admin", "dashboard"), true);
+    assert.equal(canAccessView(undefined, "dataProtection"), true);
     assert.equal(getDefaultViewForRole("tenant"), "dashboard");
     assert.equal(getDefaultViewForRole("landlord"), "dashboard");
     assert.equal(getDefaultViewForRole("admin"), "dashboard");

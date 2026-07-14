@@ -17,6 +17,7 @@ import FeedbackPage from "./pages/FeedbackPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import PrivacyPage from "./pages/PrivacyPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
+import DataProtectionPage from "./pages/DataProtectionPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import {
   normalizeApiBaseUrl,
@@ -379,6 +380,8 @@ function App() {
         return <PrivacyPage />;
       case "terms":
         return <TermsPage />;
+      case "dataProtection":
+        return <DataProtectionPage />;
       case "deleteAccount":
         return <DeleteAccountPage />;
       default:
@@ -433,7 +436,10 @@ function App() {
 
         <main>
           {showSplash ? (
-            <LandingPage onStart={() => navigate(getViewPath("discover"))} />
+            <LandingPage
+              onStart={() => navigate(getViewPath("discover"))}
+              onNavigateLegal={(view) => navigate(getViewPath(view))}
+            />
           ) : (
             <div className="workspace">
               <div className="tabs" role="tablist" aria-label="Main navigation">
@@ -490,6 +496,13 @@ function App() {
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("terms"))}>
                   Terms
+                </button>
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => navigate(getViewPath("dataProtection"))}
+                >
+                  Data protection
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
                   Delete account
