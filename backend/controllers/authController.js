@@ -18,6 +18,7 @@ import User from "../models/User.js";
 import UserStatusLog from "../models/UserStatusLog.js";
 import UserViolation from "../models/UserViolation.js";
 import ViewingRequest from "../models/ViewingRequest.js";
+import { deletePropertyImage } from "../services/fileStorageService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
@@ -245,11 +246,14 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  const ownedProperties = await Property.find({ owner: userId }).select("_id");
+  const ownedProperties = await Property.find({ owner: userId }).select("_id images");
   const ownedPropertyIds = ownedProperties.map((property) => property._id);
 
   await Promise.all([
     AuthSession.deleteMany({ user: userId }),
+    ...ownedProperties.flatMap((property) =>
+      property.images.map((image) => deletePropertyImage({ storagePath: image.storagePath }))
+    ),
     Favorite.deleteMany({
       $or: [
         { user: userId },
