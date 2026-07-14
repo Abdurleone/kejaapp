@@ -57,7 +57,13 @@ export default function InquiryFormScreen({ route, navigation }) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.field}>
         <Text style={styles.label}>Subject (optional)</Text>
-        <TextInput style={styles.input} value={subject} onChangeText={setSubject} maxLength={140} />
+        <TextInput
+          style={styles.input}
+          value={subject}
+          onChangeText={setSubject}
+          maxLength={140}
+          accessibilityLabel="Subject"
+        />
       </View>
 
       <View style={styles.field}>
@@ -69,6 +75,7 @@ export default function InquiryFormScreen({ route, navigation }) {
           multiline
           numberOfLines={5}
           maxLength={1000}
+          accessibilityLabel="Message"
         />
       </View>
 

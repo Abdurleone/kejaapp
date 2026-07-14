@@ -1193,7 +1193,6 @@ Next:
 - Keep payments off-platform unless the product scope changes later.
 - Username is currently immutable (assigned once at registration, no "change username" flow on web, mobile, or the API) — revisit if users ask to customize it.
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
-- Mobile: test coverage still doesn't cover every screen — Discover's sub-screens (`PropertyDetailScreen`, `InquiryFormScreen`, `ViewingRequestFormScreen`, `MoverRequestFormScreen`), the auth screens (`LoginScreen`/`RegisterScreen`), and `LandingView`/`AdminUserDetailScreen` remain untested.
 - DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
 - `jest-expo`'s `@react-native/jest-preset` (tied to RN 0.86) pins `babel-jest`/`jest-environment-node` to `^29.7.0`, incompatible with `jest@30` — mobile's `jest` stays held back until a compatible `jest-expo` release publishes. (Mobile's `eslint` was in the same situation — pinned to `^10.6.0` despite `eslint-config-expo`'s vendored `eslint-plugin-react@7.37.5` only supporting up to `eslint@^9.7` — but that one's now fixed: pinned to `^9.39.0`, matching the frontend package's convention, so `npm run lint:mobile` actually runs and passes again instead of crashing on the first file.)
 - Push notifications only cover mobile (Expo) — web browser push (Web Push/VAPID + service worker) is a different mechanism and out of scope so far.

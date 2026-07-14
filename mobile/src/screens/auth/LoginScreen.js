@@ -82,6 +82,7 @@ export default function LoginScreen({ navigation }) {
               onChangeText={setIdentifier}
               autoCapitalize="none"
               autoComplete="username"
+              accessibilityLabel="Email or username"
             />
           </View>
 
@@ -93,6 +94,7 @@ export default function LoginScreen({ navigation }) {
               onChangeText={setPassword}
               secureTextEntry
               autoComplete="password"
+              accessibilityLabel="Password"
             />
           </View>
 
