@@ -31,7 +31,7 @@ describe("frontend page component contracts", () => {
 
   it("keeps discover location search and empty/error states wired", () => {
     assert.match(discoverSource, /navigator\.geolocation\.getCurrentPosition/);
-    assert.match(discoverSource, /params\.radiusKm\s*=\s*radiusKm/);
+    assert.match(discoverSource, /params\.radiusKm\s*=\s*appliedFilters\.radiusKm/);
     assert.match(discoverSource, /Radius/);
     assert.match(discoverSource, /Near me/);
     assert.match(discoverSource, /Clear location/);
@@ -112,10 +112,10 @@ describe("frontend page component contracts", () => {
   });
 
   it("lets Discover filter by type, bedrooms, and rent range", () => {
-    assert.match(discoverSource, /if \(typeFilter\) params\.type = typeFilter/);
-    assert.match(discoverSource, /if \(bedroomsFilter\) params\.bedrooms = bedroomsFilter/);
-    assert.match(discoverSource, /if \(minRentFilter\) params\.minRent = minRentFilter/);
-    assert.match(discoverSource, /if \(maxRentFilter\) params\.maxRent = maxRentFilter/);
+    assert.match(discoverSource, /if \(appliedFilters\.type\) params\.type = appliedFilters\.type/);
+    assert.match(discoverSource, /if \(appliedFilters\.bedrooms\) params\.bedrooms = appliedFilters\.bedrooms/);
+    assert.match(discoverSource, /if \(appliedFilters\.minRent\) params\.minRent = appliedFilters\.minRent/);
+    assert.match(discoverSource, /if \(appliedFilters\.maxRent\) params\.maxRent = appliedFilters\.maxRent/);
     assert.match(discoverSource, /if \(type\) payload\.type = type/);
     assert.match(discoverSource, /if \(bedrooms\) payload\.bedrooms = Number\(bedrooms\)/);
     assert.match(discoverSource, /if \(minRent\) payload\.minRent = Number\(minRent\)/);

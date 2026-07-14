@@ -95,14 +95,20 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   }, [propertyId]);
 
   useEffect(() => {
+    let active = true;
+
     fetchFavorites()
       .then((favorites) => {
         const saved = favorites.some(
           (favorite) => String(favorite.property?._id || favorite.property?.id || favorite._id) === String(propertyId)
         );
-        setIsSaved(saved);
+        if (active) setIsSaved(saved);
       })
       .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, [propertyId]);
 
   useEffect(() => {
