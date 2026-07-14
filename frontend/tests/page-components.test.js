@@ -6,10 +6,8 @@ const readSource = (relativePath) => readFile(new URL(`../src/${relativePath}`, 
 
 const appSource = await readSource("App.jsx");
 const discoverSource = await readSource("pages/DiscoverPage.jsx");
-const savedSource = await readSource("pages/SavedPage.jsx");
 const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
-const dashboardSource = await readSource("pages/DashboardPage.jsx");
 const feedbackSource = await readSource("pages/FeedbackPage.jsx");
 const notificationsSource = await readSource("pages/NotificationsPage.jsx");
 const workspaceSource = await readSource("pages/WorkspacePage.jsx");
@@ -45,13 +43,8 @@ describe("frontend page component contracts", () => {
   // actual buttons and assert on saveFavorite/onRequireAuth being called -
   // not just that these strings exist somewhere in the source.
 
-  it("keeps saved listings connected to the favorites API", () => {
-    assert.match(savedSource, /fetchFavorites\(\)/);
-    assert.match(savedSource, /removeFavorite\(propertyId\)/);
-    assert.match(savedSource, /className="property-grid compact-grid"/);
-    assert.match(savedSource, /No saved listings yet/);
-    assert.match(savedSource, /<PropertyCardSkeletonGrid/);
-  });
+  // SavedPage's fetch/error/retry/remove behavior is now covered by real
+  // render + interaction tests in saved-page.render.test.jsx.
 
   it("keeps app navigation and protected views in sync", () => {
     assert.match(appSource, /const navItems = \[/);
@@ -149,16 +142,9 @@ describe("frontend page component contracts", () => {
     assert.doesNotMatch(discoverSource, new RegExp(["Ensure", "this", "is", "imported"].join("\\s+")));
   });
 
-  it("renders a role-aware dashboard summary", () => {
-    assert.match(dashboardSource, /fetchDashboardSummary\(\)/);
-    assert.match(dashboardSource, /summary\.notifications\.unread/);
-    assert.match(dashboardSource, /summary\.tenant/);
-    assert.match(dashboardSource, /summary\.owner/);
-    assert.match(dashboardSource, /summary\.agency/);
-    assert.match(dashboardSource, /summary\.admin/);
-    assert.match(dashboardSource, /summary\.admin\.feedback/);
-    assert.match(dashboardSource, /<DashboardSkeleton/);
-  });
+  // DashboardPage's role-aware summary rendering (tenant/owner/agency/mover/
+  // admin sections, plus the error/retry state) is now covered by real
+  // render tests in dashboard-page.render.test.jsx.
 
   it("adds Dashboard as the default nav item for every role", () => {
     assert.match(appSource, /view: "dashboard", label: "Dashboard"/);
