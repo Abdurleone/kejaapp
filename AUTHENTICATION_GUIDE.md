@@ -10,33 +10,32 @@ KejaApp uses JWT (JSON Web Token) authentication with HTTP-only refresh token co
 
 ### Architecture
 
-The frontend authentication is managed in `frontend/src/App.jsx` with helper functions in `frontend/app-utils.js`.
+Auth state (`signedIn`/`currentUser`) and session bootstrapping live in `frontend/src/App.jsx`; the sign-in/register form itself is a separate component, `frontend/src/components/AuthModal.jsx`; and both are made available to every page without prop-drilling via `frontend/src/context/AuthContext.jsx`. Helper functions (the actual API calls, token storage) live in `frontend/app-utils.js`.
 
-**Key State in App.jsx:**
+**Key state in `App.jsx`:**
 ```javascript
 const [signedIn, setSignedIn] = useState(Boolean(localStorage.getItem("keja_token")));
 const [currentUser, setCurrentUser] = useState(null);
 const [authPanelOpen, setAuthPanelOpen] = useState(false);
-const [authMode, setAuthMode] = useState("login");
-const [authError, setAuthError] = useState("");
-const [authLoading, setAuthLoading] = useState(false);
-const [authForm, setAuthForm] = useState({
-  name: "",
-  email: "",
-  username: "",
-  password: "",
-  phone: "",
-  role: "tenant",
-});
-const [usernameSuggestions, setUsernameSuggestions] = useState([]);
 ```
 
-### Auth Modal (Auth Panel)
+`App.jsx` runs the session-restore effect (calls `fetchCurrentUser()` whenever `signedIn` flips true, falling back to signed-out on failure) and owns `handleAuthenticated(user)`/`handleLogout()`. It renders `<AuthModal onClose={closeAuthPanel} onAuthenticated={handleAuthenticated} />` only while `authPanelOpen` is true, and wraps the whole app in `<AuthProvider signedIn={signedIn} currentUser={currentUser} openAuthPanel={openAuthPanel}>` so any page can read auth state via a `useAuth()` hook instead of receiving it as props.
 
-The auth modal is rendered when `authPanelOpen` is true and provides two tabs:
+**`AuthContext.jsx`** is a thin pass-through — it does not own any state itself, just makes `App.jsx`'s `signedIn`/`currentUser`/`openAuthPanel` available via `useAuth()`:
+```javascript
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  return context;
+}
+```
+
+### Auth Modal (`AuthModal.jsx`)
+
+A self-contained component (own `authMode`/`authError`/`authLoading`/`authForm`/`usernameSuggestions` state — none of it lives in `App.jsx`), rendered by `App.jsx` only while the panel is open. Props: `{ onClose, onAuthenticated }` — since it's only ever mounted fresh (`authPanelOpen && <AuthModal ... />`), there's no need to reset its state on close; unmounting does that for free.
 
 1. **Sign in tab**
-   - Email-or-username input (reuses `authForm.email`, sent as `identifier`)
+   - Email-or-username input (`authForm.email`, sent as `identifier`)
    - Password input
    - Sign in button
    - Leads to `loginUser()` API call
@@ -45,11 +44,13 @@ The auth modal is rendered when `authPanelOpen` is true and provides two tabs:
    - Name input
    - Username input (free text; on a `409` conflict, `usernameSuggestions` is populated and rendered as clickable chips that fill the field)
    - Phone input (optional)
-   - Role selector (tenant, landlord, agency)
+   - Role selector (tenant, landlord, agency, mover)
    - Email input
    - Password input
    - Register button
    - Leads to `registerUser()` API call
+
+On success, `AuthModal` calls `onAuthenticated(payload.user)` — it does not set `signedIn`/`currentUser` itself; `App.jsx`'s `handleAuthenticated` does that and closes the panel.
 
 ### API Helper Functions
 
@@ -128,9 +129,9 @@ export const apiFetch = async (path, options = {}) => {
 };
 ```
 
-### User Session Loading
+### User Session Loading (`App.jsx`)
 
-When the app loads or `signedIn` changes, the current user is fetched:
+Whenever `signedIn` flips true (on mount, if a token is already in `localStorage`; or right after login/register), the current user is fetched. A restored session landing on the bare root path also gets redirected to its role's default view, since `/` always resolves to `discover` otherwise:
 
 ```javascript
 useEffect(() => {
@@ -146,8 +147,9 @@ useEffect(() => {
       const user = await fetchCurrentUser();
       if (active) {
         setCurrentUser(user);
+        if (path === "/") navigate(getViewPath(getDefaultViewForRole(user.role)));
       }
-    } catch (err) {
+    } catch {
       setSignedIn(false);
       setCurrentUser(null);
       setAuthPanelOpen(false);
@@ -159,32 +161,35 @@ useEffect(() => {
 }, [signedIn]);
 ```
 
-### Auth Form Submission
+### Auth Form Submission (`AuthModal.jsx`)
+
+Lives in the `AuthModal` component now, not `App.jsx` — it reports the result back via `onAuthenticated` instead of touching `signedIn`/`currentUser` directly:
 
 ```javascript
 const handleAuthSubmit = async (event) => {
   event.preventDefault();
   setAuthLoading(true);
   setAuthError("");
+  setUsernameSuggestions([]);
 
   try {
     const payload = authMode === "login"
       ? await loginUser({ identifier: authForm.email, password: authForm.password })
       : await registerUser(authForm);
 
-    setCurrentUser(payload.user);
-    setSignedIn(true);
-    setAuthPanelOpen(false);
-    setAuthForm({ name: "", email: "", password: "", phone: "", role: "tenant" });
+    onAuthenticated(payload.user);
   } catch (err) {
     setAuthError(err.message || "Authentication failed");
+    setUsernameSuggestions(err.suggestions || []);
   } finally {
     setAuthLoading(false);
   }
 };
 ```
 
-### Logout Flow
+`App.jsx`'s `handleAuthenticated(user)` (passed as the `onAuthenticated` prop) is what actually sets `currentUser`/`signedIn`, closes the panel, and navigates to the new user's default view.
+
+### Logout Flow (`App.jsx`)
 
 ```javascript
 const handleLogout = async () => {
@@ -351,15 +356,21 @@ const navigationItems = navItems.filter((item) =>
 
 ### Access Rules
 
+`roleViewAccess` (in `frontend/app-utils.js`) is a per-role allow-list of views, also used by `getDefaultViewForRole` to pick where a role lands after signing in (its first entry):
+
 ```javascript
+const roleViewAccess = {
+  tenant: ["dashboard", "discover", "saved", "movers", "notifications", "feedback", "account"],
+  landlord: ["dashboard", "owner", "movers", "notifications", "feedback", "account"],
+  agency: ["dashboard", "owner", "movers", "notifications", "feedback", "account"],
+  mover: ["dashboard", "movers", "notifications", "feedback", "account"],
+  admin: ["dashboard", "admin", "notifications", "feedback", "account"],
+};
+
 export const canAccessView = (role, view) => {
-  const accessMap = {
-    discover: ["tenant", "landlord", "agency", "admin"],
-    saved: ["tenant", "landlord", "agency", "admin"],
-    owner: ["landlord", "agency", "admin"],
-    admin: ["admin"],
-  };
-  return accessMap[view]?.includes(role) || false;
+  if (["privacy", "terms", "deleteAccount"].includes(view)) return true;
+  if (!role) return ["discover", "movers"].includes(view);
+  return Boolean(roleViewAccess[role]?.includes(view));
 };
 ```
 
@@ -436,13 +447,25 @@ npm run test:frontend
 
 ### CORS Configuration
 
-CORS is configured to allow frontend origin:
+`backend/config/cors.js` reads allowed origins from the `CORS_ORIGIN` env var (comma-separated), not a hardcoded list. If it's unset, the policy fails closed in production (no origin is allowed) and stays permissive in development/test, so a missing `.env` value can't silently produce an unrestricted, credentialed CORS policy in production:
+
 ```javascript
-const corsOrigins = [
-  "http://localhost:5173",  // frontend dev
-  "http://localhost:3000",  // frontend alt
-];
+export const isAllowedCorsOrigin = (origin, { nodeEnv = env.nodeEnv, corsOrigins = env.corsOrigins } = {}) => {
+  if (!origin) return true;
+
+  if (corsOrigins.length === 0) {
+    return nodeEnv !== "production";
+  }
+
+  return corsOrigins.includes(origin);
+};
 ```
+
+### CSRF Protection
+
+`authMiddleware.protect()` accepts either an `Authorization` header or the httpOnly session cookie — and that cookie is `sameSite: "none"` in production (frontend and backend are on different origins there), so it's sent on cross-site requests too, the classic CSRF setup. `backend/middlewares/csrfProtection.js` closes this: state-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) require the `Authorization` header, which every real client here already sends on every authenticated call. The cookie stays valid for safe (`GET`) requests; it just stops being trusted alone for mutations, which a forged cross-site request has no way to supply (it can't read the token to put it in a header).
+
+The one exception is `POST /api/auth/refresh` — it never has a valid access token to send as a header (that's the whole reason it's being called), so it instead trusts a refresh token supplied in the request body, which is equally unforgeable cross-site (an attacker can't read or guess it) but doesn't require a header.
 
 ### Auth Middleware
 
@@ -451,6 +474,7 @@ All protected endpoints validate:
 2. Token validity (JWT signature)
 3. Token expiration
 4. User role authorization
+5. For state-changing requests, the `Authorization` header specifically (see CSRF Protection above) — the cookie fallback only works for `GET` requests
 
 ## Troubleshooting
 
