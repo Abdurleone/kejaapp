@@ -8,9 +8,6 @@ const appSource = await readSource("App.jsx");
 const discoverSource = await readSource("pages/DiscoverPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
 const notificationsSource = await readSource("pages/NotificationsPage.jsx");
-const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
-const propertyCreateSource = await readSource("pages/PropertyCreatePage.jsx");
-const propertyFormSource = await readSource("components/PropertyForm.jsx");
 
 describe("frontend page component contracts", () => {
   it("renders discover listings with API data, cards, and save actions", () => {
@@ -142,22 +139,10 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /onEditProperty=\{\(propertyId\) => navigate\(getPropertyEditPath\(propertyId\)\)\}/);
   });
 
-  it("renders a property edit form backed by the update API", () => {
-    assert.match(propertyEditSource, /fetchPropertyById\(propertyId\)/);
-    assert.match(propertyEditSource, /updateProperty\(propertyId, formToPropertyPayload\(form, property\)\)/);
-    assert.match(propertyEditSource, /submitLabel="Save changes"/);
-  });
-
-  it("shares the property form between create and edit, preserving geo data on edit", () => {
-    assert.match(propertyFormSource, /location\.coordinates = originalProperty\.location\.coordinates/);
-    assert.match(propertyFormSource, /export default function PropertyForm/);
-  });
-
-  it("lets landlords create a new listing via the shared form", () => {
-    assert.match(propertyCreateSource, /createProperty\(formToPropertyPayload\(form\)\)/);
-    assert.match(propertyCreateSource, /emptyPropertyForm/);
-    assert.match(propertyCreateSource, /submitLabel="Create listing"/);
-  });
+  // PropertyEditPage, PropertyCreatePage, and the shared PropertyForm
+  // (including preserving geo data on edit) are now covered by real
+  // render + interaction tests in property-edit-page.render.test.jsx and
+  // property-create-page.render.test.jsx.
 
   it("wires the propertyCreate view into app navigation, workspace, and access control", () => {
     assert.match(appSource, /case "propertyCreate":/);
