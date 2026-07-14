@@ -12,7 +12,7 @@ KejaApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Lev
 
 - **Touch targets**: interactive controls (buttons, tabs, form fields) target a minimum 44px touch area on both web and mobile, following a dedicated UI/UX pass to fix undersized controls.
 - **Reduced motion**: skeleton loading placeholders and other animated UI respect the `prefers-reduced-motion` media query (`frontend/styles.css`), falling back to a static state instead of a pulsing animation for users who've requested it at the OS level.
-- **Keyboard accessibility**: the admin user-management table is keyboard-navigable, not mouse-only.
+- **Keyboard accessibility**: the admin user-management table is keyboard-navigable, not mouse-only. The sign-in/sign-up dialog follows the standard modal pattern (`role="dialog"`, `aria-modal`, focus moves to its first field on open, Tab/Shift+Tab is trapped inside it, Escape closes it). The main web navigation bar follows the ARIA tablist pattern (`role="tab"`/`aria-selected`, roving `tabindex`, and Left/Right/Home/End arrow-key navigation between tabs).
 - **Image alt text**: property images support owner-provided alt text, surfaced to screen readers and shown as fallback context if an image fails to load.
 - **Color contrast**: the app uses a single, fixed Kenyan-flag-derived color palette with an explicit light/dark mode toggle, chosen in part for consistent contrast rather than a large, harder-to-audit theme surface.
 - **Responsive layout**: the web frontend adapts from desktop to phone-width layouts without horizontal scrolling or overlapping controls, and `KeyboardAvoidingView` is used on mobile forms so the on-screen keyboard doesn't obscure input fields.
