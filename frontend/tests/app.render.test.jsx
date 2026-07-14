@@ -93,15 +93,27 @@ describe("App - signed-out landing page legal links", () => {
     vi.clearAllMocks();
   });
 
-  it("navigates to the Data protection page from the landing page footer", async () => {
+  it("navigates to the privacy & data protection page from the landing page footer", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Data protection" }));
+    await user.click(await screen.findByRole("button", { name: "Privacy" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Data protection" }),
+      await screen.findByRole("heading", { name: "Privacy & data protection" }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/Kenya Data Protection Act, 2019/).length).toBeGreaterThan(0);
+  });
+
+  it("offers a print-to-PDF download on the privacy & terms pages", async () => {
+    const user = userEvent.setup();
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Privacy" }));
+    await user.click(await screen.findByRole("button", { name: "Download PDF" }));
+
+    expect(printSpy).toHaveBeenCalledTimes(1);
+    printSpy.mockRestore();
   });
 });

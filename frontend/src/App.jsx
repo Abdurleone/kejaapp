@@ -15,7 +15,6 @@ import AdminPage from "./pages/AdminPage.jsx";
 import NotificationsPage from "./pages/NotificationsPage.jsx";
 import FeedbackPage from "./pages/FeedbackPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
-import PrivacyPage from "./pages/PrivacyPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
 import DataProtectionPage from "./pages/DataProtectionPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
@@ -377,11 +376,13 @@ function App() {
 
         return <AccountPage onAccountDeleted={handleAccountDeleted} />;
       case "privacy":
-        return <PrivacyPage />;
+      case "dataProtection":
+        // Kenya's Data Protection Act treats privacy and data protection as
+        // the same subject - one page/PDF covers both rather than keeping
+        // two documents in sync with each other.
+        return <DataProtectionPage />;
       case "terms":
         return <TermsPage />;
-      case "dataProtection":
-        return <DataProtectionPage />;
       case "deleteAccount":
         return <DeleteAccountPage />;
       default:
@@ -496,13 +497,6 @@ function App() {
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("terms"))}>
                   Terms
-                </button>
-                <button
-                  className="text-button"
-                  type="button"
-                  onClick={() => navigate(getViewPath("dataProtection"))}
-                >
-                  Data protection
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
                   Delete account

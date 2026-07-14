@@ -1,9 +1,11 @@
+import PolicyPdfDownload from "../components/PolicyPdfDownload.jsx";
+
 export default function DataProtectionPage() {
   return (
     <div className="view active-view legal-page">
       <div className="view-header">
         <div>
-          <h2>Data protection</h2>
+          <h2>Privacy &amp; data protection</h2>
           <p>How KejaApp handles your personal data under the Kenya Data Protection Act, 2019.</p>
         </div>
       </div>
@@ -46,14 +48,7 @@ export default function DataProtectionPage() {
         </p>
       </section>
 
-      <section className="panel stack">
-        <h3>Full policy</h3>
-        <p className="muted-copy">
-          This page is a summary. Read the full{" "}
-          <code>docs/data-protection-policy.md</code> in the project repository for the complete policy, including
-          third-party processors, retention periods, and international transfer safeguards.
-        </p>
-      </section>
+      <PolicyPdfDownload />
     </div>
   );
 }
