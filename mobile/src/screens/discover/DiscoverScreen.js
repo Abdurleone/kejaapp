@@ -48,38 +48,19 @@ export default function DiscoverScreen({ navigation }) {
   const [savingId, setSavingId] = useState(null);
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
-
-  const loadProperties = useCallback(async ({
-    lat,
-    lng,
-    radiusKm = radius,
-    type: typeFilter = type,
-    bedrooms: bedroomsFilter = bedrooms,
-    minRent: minRentFilter = minRent,
-    maxRent: maxRentFilter = maxRent,
-  } = {}) => {
-    setError("");
-
-    try {
-      const params = { page: 1, limit: 20 };
-
-      if (lat != null && lng != null) {
-        params.lat = lat;
-        params.lng = lng;
-        params.radiusKm = radiusKm;
-      }
-
-      if (typeFilter) params.type = typeFilter;
-      if (bedroomsFilter) params.bedrooms = bedroomsFilter;
-      if (minRentFilter) params.minRent = minRentFilter;
-      if (maxRentFilter) params.maxRent = maxRentFilter;
-
-      const data = await fetchProperties(params);
-      setProperties(data);
-    } catch (err) {
-      setError(err.message || "Failed to load properties.");
-    }
-  }, [radius, type, bedrooms, minRent, maxRent]);
+  const [retryKey, setRetryKey] = useState(0);
+  // The filter set actually fetched, as opposed to the raw min/max rent
+  // inputs below - those only feed a fetch once "Apply price" is tapped,
+  // everything else applies immediately on change.
+  const [appliedFilters, setAppliedFilters] = useState({
+    lat: null,
+    lng: null,
+    radiusKm: radius,
+    type: "",
+    bedrooms: "",
+    minRent: "",
+    maxRent: "",
+  });
 
   const loadFavorites = useCallback(async () => {
     if (!signedIn) {
@@ -100,24 +81,60 @@ export default function DiscoverScreen({ navigation }) {
   }, [signedIn]);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await Promise.all([loadProperties(), loadFavorites()]);
-      setLoading(false);
-    })();
-    // Intentionally only re-runs on sign-in state, not on every loadProperties/loadFavorites
-    // identity change (which happens whenever radius changes) — radius-driven reloads are
-    // already triggered explicitly by handleRadiusChange, so adding them here would double-fetch.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn]);
+    loadFavorites();
+  }, [loadFavorites]);
 
-  const handleRefresh = async () => {
+  // Deriving the fetch from appliedFilters (rather than calling a shared
+  // loadProperties function ad hoc from every handler) is what makes the
+  // active-flag guard actually work: React runs this effect's cleanup
+  // before the next one fires whenever appliedFilters/retryKey changes, so
+  // a still-in-flight, now-stale request can never overwrite a newer one.
+  // loading only reflects the very first run (its initial value is true,
+  // and nothing here ever sets it back to true) so filter taps update the
+  // list silently, matching the screen's original no-flicker behavior.
+  useEffect(() => {
+    let active = true;
+
+    const run = async () => {
+      setError("");
+
+      try {
+        const params = { page: 1, limit: 20 };
+
+        if (appliedFilters.lat != null && appliedFilters.lng != null) {
+          params.lat = appliedFilters.lat;
+          params.lng = appliedFilters.lng;
+          params.radiusKm = appliedFilters.radiusKm;
+        }
+
+        if (appliedFilters.type) params.type = appliedFilters.type;
+        if (appliedFilters.bedrooms) params.bedrooms = appliedFilters.bedrooms;
+        if (appliedFilters.minRent) params.minRent = appliedFilters.minRent;
+        if (appliedFilters.maxRent) params.maxRent = appliedFilters.maxRent;
+
+        const data = await fetchProperties(params);
+        if (active) setProperties(data);
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load properties.");
+      } finally {
+        if (active) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      active = false;
+    };
+  }, [appliedFilters, retryKey]);
+
+  const handleRefresh = () => {
     setRefreshing(true);
-    await Promise.all([
-      loadProperties(coords ? { lat: coords.lat, lng: coords.lng, radiusKm: radius } : {}),
-      loadFavorites(),
-    ]);
-    setRefreshing(false);
+    loadFavorites();
+    setRetryKey((key) => key + 1);
   };
 
   const handleNearMe = async () => {
@@ -136,7 +153,7 @@ export default function DiscoverScreen({ navigation }) {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
       setCoords({ lat, lng });
-      await loadProperties({ lat, lng, radiusKm: radius });
+      setAppliedFilters((current) => ({ ...current, lat, lng, radiusKm: radius }));
     } catch {
       setLocationError("Unable to retrieve your location.");
     } finally {
@@ -144,26 +161,37 @@ export default function DiscoverScreen({ navigation }) {
     }
   };
 
-  const handleRadiusChange = async (value) => {
+  const handleRadiusChange = (value) => {
     setRadius(value);
 
     if (coords) {
-      await loadProperties({ lat: coords.lat, lng: coords.lng, radiusKm: value });
+      setAppliedFilters((current) => ({ ...current, lat: coords.lat, lng: coords.lng, radiusKm: value }));
     }
   };
 
-  const handleTypeChange = async (value) => {
+  const handleTypeChange = (value) => {
     setType(value);
-    await loadProperties({ lat: coords?.lat, lng: coords?.lng, type: value });
+    setAppliedFilters((current) => ({ ...current, lat: coords?.lat ?? null, lng: coords?.lng ?? null, type: value }));
   };
 
-  const handleBedroomsChange = async (value) => {
+  const handleBedroomsChange = (value) => {
     setBedrooms(value);
-    await loadProperties({ lat: coords?.lat, lng: coords?.lng, bedrooms: value });
+    setAppliedFilters((current) => ({
+      ...current,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
+      bedrooms: value,
+    }));
   };
 
-  const handleApplyPriceFilter = async () => {
-    await loadProperties({ lat: coords?.lat, lng: coords?.lng });
+  const handleApplyPriceFilter = () => {
+    setAppliedFilters((current) => ({
+      ...current,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
+      minRent,
+      maxRent,
+    }));
   };
 
   const handleSaveSearch = async () => {
@@ -301,7 +329,7 @@ export default function DiscoverScreen({ navigation }) {
           title="Couldn't load rentals"
           message={error}
           actionLabel="Retry"
-          onAction={() => loadProperties(coords ? { lat: coords.lat, lng: coords.lng, radiusKm: radius } : {})}
+          onAction={() => setRetryKey((key) => key + 1)}
         />
       ) : properties.length === 0 ? (
         <MessageView title="No rentals found" message="Try clearing location search or widening the radius." />

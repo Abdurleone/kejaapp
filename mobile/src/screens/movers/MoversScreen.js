@@ -107,27 +107,68 @@ function MoverDirectory({ styles }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({ serviceType: "", county: "" });
+  const [countyInput, setCountyInput] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
-  const load = useCallback(async () => {
-    setError("");
-
-    try {
-      const data = await fetchMovers(filters);
-      setMovers(data);
-    } catch (err) {
-      setError(err.message || "Failed to load movers.");
-    }
-  }, [filters]);
-
+  // Debounce the county text input into `filters.county` so typing doesn't
+  // fire a request per keystroke - the active-flag guard below already
+  // makes any given request race-safe, but there's no reason to fire ten
+  // requests for one typed word.
   useEffect(() => {
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [load]);
+    let active = true;
 
-  const handleRefresh = async () => {
+    const timeoutId = setTimeout(() => {
+      if (!active) return;
+
+      // Bail out (return the same reference) when the value hasn't actually
+      // changed, e.g. on mount - otherwise this would fire a phantom
+      // no-op refetch 300ms after every mount, since a new object
+      // reference alone is enough to trigger the fetch effect below.
+      setFilters((current) => (current.county === countyInput ? current : { ...current, county: countyInput }));
+    }, 300);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [countyInput]);
+
+  // Deriving the fetch from filters/retryKey (rather than exposing a shared
+  // load callback that the effect, Retry action, and pull-to-refresh all
+  // called independently) is what makes the active-flag guard actually
+  // work: React runs this effect's cleanup before the next one fires
+  // whenever filters/retryKey changes, so a still-in-flight, now-stale
+  // request can never overwrite a newer one.
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await fetchMovers(filters);
+        if (active) setMovers(data);
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load movers.");
+      } finally {
+        if (active) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [filters, retryKey]);
+
+  const handleRefresh = () => {
     setRefreshing(true);
-    await load();
-    setRefreshing(false);
+    setRetryKey((key) => key + 1);
   };
 
   const handleAffiliateChange = (updatedMover) => {
@@ -143,7 +184,14 @@ function MoverDirectory({ styles }) {
   }
 
   if (error) {
-    return <MessageView title="Couldn't load movers" message={error} actionLabel="Retry" onAction={load} />;
+    return (
+      <MessageView
+        title="Couldn't load movers"
+        message={error}
+        actionLabel="Retry"
+        onAction={() => setRetryKey((key) => key + 1)}
+      />
+    );
   }
 
   return (
@@ -165,8 +213,8 @@ function MoverDirectory({ styles }) {
       </View>
       <TextInput
         style={styles.input}
-        value={filters.county}
-        onChangeText={(value) => setFilters((current) => ({ ...current, county: value }))}
+        value={countyInput}
+        onChangeText={setCountyInput}
         placeholder="Filter by county (e.g. Nairobi)"
       />
 

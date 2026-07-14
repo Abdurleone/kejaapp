@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "../../api/index.js";
@@ -30,34 +30,47 @@ export default function NotificationsScreen() {
     }
   }, [unreadOnly]);
 
-  useEffect(() => {
-    if (!signedIn) {
-      return;
-    }
-
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [signedIn, load]);
-
   const handleRefresh = async () => {
     setRefreshing(true);
     await load();
     setRefreshing(false);
   };
 
+  // Runs on every time this tab becomes focused - not just the first mount
+  // - so a notification that arrived while the user was elsewhere actually
+  // shows up here instead of the list staying stuck on whatever it looked
+  // like the *first* time this screen mounted. load() runs first so this
+  // visit's list still reflects whatever was actually unread when the tab
+  // was opened; marking everything read afterwards (in the background)
+  // only affects the *next* visit's badge count, it doesn't retroactively
+  // hide "New" pills the user hasn't seen yet this visit.
   useFocusEffect(
     useCallback(() => {
-      if (!signedIn) return;
+      if (!signedIn) {
+        return undefined;
+      }
 
-      // Opening this tab is what clears the bottom-tab badge — the list above still
-      // reflects whatever was unread at the moment it loaded, so "New" pills for this
-      // visit aren't affected by this running in the background.
-      markAllNotificationsAsRead().catch(() => {
-        // Non-fatal: the badge will just resync on its next poll instead.
-      });
-    }, [signedIn]),
+      let active = true;
+
+      // Kicking off a real fetch here, not deriving avoidable state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(true);
+      load()
+        .finally(() => {
+          if (active) setLoading(false);
+        })
+        .then(() => {
+          if (!active) return;
+
+          markAllNotificationsAsRead().catch(() => {
+            // Non-fatal: the badge will just resync on its next poll instead.
+          });
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [signedIn, load]),
   );
 
   const handleMarkRead = async (notificationId) => {

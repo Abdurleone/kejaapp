@@ -175,4 +175,46 @@ describe("DiscoverScreen", () => {
       expect(getByText("Saved! We'll notify you when a matching listing appears.")).toBeTruthy()
     );
   });
+
+  it("ignores a stale response that resolves after a newer filter change (race-condition guard)", async () => {
+    // The initial mount fetch has to resolve normally first - the whole
+    // screen (filter chips included) stays on a loading skeleton until it
+    // does, so the race under test has to be between two filter-driven
+    // fetches, not the mount fetch and a filter change.
+    const deferred = () => {
+      let resolve;
+      const promise = new Promise((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+    const studioCall = deferred();
+    const bedroomsCall = deferred();
+    fetchProperties
+      .mockResolvedValueOnce([property])
+      .mockImplementationOnce(() => studioCall.promise)
+      .mockImplementationOnce(() => bedroomsCall.promise);
+
+    const { getByText, queryByText } = await render(<DiscoverScreen navigation={navigation} />);
+    await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
+
+    fireEvent.press(getByText("Studio"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(2));
+
+    fireEvent.press(getByText("2+"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(3));
+
+    // Resolve the newer (bedrooms) request first, then the older (studio,
+    // now-stale) one - the out-of-order network scenario that used to let
+    // the stale response overwrite the list with results for a filter the
+    // user no longer has selected.
+    bedroomsCall.resolve([{ _id: "p-new", title: "New Filtered Listing", price: { rent: 20000 } }]);
+    await waitFor(() => expect(getByText("New Filtered Listing")).toBeTruthy());
+
+    studioCall.resolve([{ _id: "p-stale", title: "Stale Unfiltered Listing", price: { rent: 5000 } }]);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(queryByText("Stale Unfiltered Listing")).toBeNull();
+    expect(getByText("New Filtered Listing")).toBeTruthy();
+  });
 });
