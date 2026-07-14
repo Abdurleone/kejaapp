@@ -695,12 +695,14 @@ Base URL for local development:
 http://localhost:5000
 ```
 
-Authentication supports both:
+Authentication supports both, for read (`GET`) requests:
 
 ```text
 Authorization: Bearer <token>
 Cookie: keja_token=<token>
 ```
+
+State-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) require the `Authorization` header — the cookie alone is rejected there as a CSRF defense (`backend/middlewares/csrfProtection.js`), since it's sent automatically by the browser on cross-site requests too.
 
 Health:
 
