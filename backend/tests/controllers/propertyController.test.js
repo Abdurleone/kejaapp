@@ -3,13 +3,20 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   addPropertyImage,
+  deleteProperty,
   listMyProperties,
   listProperties,
   listPropertyMovers,
   removePropertyImage,
 } from "../../controllers/propertyController.js";
+import Favorite from "../../models/Favorite.js";
+import Inquiry from "../../models/Inquiry.js";
 import Mover from "../../models/Mover.js";
+import MoverRequest from "../../models/MoverRequest.js";
 import Property from "../../models/Property.js";
+import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
+import Review from "../../models/Review.js";
+import ViewingRequest from "../../models/ViewingRequest.js";
 
 const createResponse = () => ({
   body: null,
@@ -304,6 +311,91 @@ describe("propertyController", () => {
 
     assert.equal(nextError.statusCode, 404);
     assert.equal(nextError.message, "Property image not found");
+  });
+
+  it("returns not found when deleting a missing property", async () => {
+    mock.method(Property, "findById", async () => null);
+    const req = { params: { id: new mongoose.Types.ObjectId().toString() }, user: { _id: new mongoose.Types.ObjectId(), role: "landlord" } };
+    const res = createResponse();
+    let nextError;
+
+    await deleteProperty(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 404);
+    assert.equal(nextError.message, "Property not found");
+  });
+
+  it("rejects deleting a property owned by someone else", async () => {
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: new mongoose.Types.ObjectId(),
+      price: { rent: 65000 },
+    });
+    mock.method(Property, "findById", async () => property);
+    const req = {
+      params: { id: property._id.toString() },
+      user: { _id: new mongoose.Types.ObjectId(), role: "landlord" },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await deleteProperty(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 403);
+    assert.equal(nextError.message, "Not authorized to manage this property");
+  });
+
+  it("cascades deleting a property to every document that references it", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const property = new Property({
+      title: "Modern Kilimani Apartment",
+      owner: ownerId,
+      price: { rent: 65000 },
+      // No storagePath set on these - deletePropertyImage no-ops on a
+      // missing storagePath, so this exercises the "iterate every image"
+      // path without touching the real filesystem/S3.
+      images: [{ url: "https://example.com/a.jpg" }, { url: "https://example.com/b.jpg" }],
+    });
+    let deleted = false;
+    property.deleteOne = async () => {
+      deleted = true;
+    };
+    mock.method(Property, "findById", async () => property);
+
+    const deleteManyCalls = {};
+    const trackDeleteMany = (Model, name) => {
+      mock.method(Model, "deleteMany", async (filter) => {
+        deleteManyCalls[name] = filter;
+        return { deletedCount: 0 };
+      });
+    };
+
+    trackDeleteMany(Inquiry, "Inquiry");
+    trackDeleteMany(ViewingRequest, "ViewingRequest");
+    trackDeleteMany(Review, "Review");
+    trackDeleteMany(Favorite, "Favorite");
+    trackDeleteMany(PropertyImageFingerprint, "PropertyImageFingerprint");
+    trackDeleteMany(MoverRequest, "MoverRequest");
+
+    const req = { params: { id: property._id.toString() }, user: { _id: ownerId, role: "landlord" } };
+    const res = createResponse();
+
+    await deleteProperty(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(deleted, true);
+    assert.deepEqual(deleteManyCalls.Inquiry, { property: property._id });
+    assert.deepEqual(deleteManyCalls.ViewingRequest, { property: property._id });
+    assert.deepEqual(deleteManyCalls.Review, { property: property._id });
+    assert.deepEqual(deleteManyCalls.Favorite, { property: property._id });
+    assert.deepEqual(deleteManyCalls.PropertyImageFingerprint, { property: property._id });
+    assert.deepEqual(deleteManyCalls.MoverRequest, { property: property._id });
   });
 
   it("returns not found when listing movers for a missing property", async () => {
