@@ -31,7 +31,7 @@ export function ThemeProvider({ children }) {
       setColorMode,
       toggleColorMode,
     }),
-    [colorMode]
+    [colorMode, toggleColorMode]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

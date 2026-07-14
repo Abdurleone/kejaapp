@@ -81,6 +81,8 @@ export default function DiscoverScreen({ navigation }) {
   }, [signedIn]);
 
   useEffect(() => {
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFavorites();
   }, [loadFavorites]);
 

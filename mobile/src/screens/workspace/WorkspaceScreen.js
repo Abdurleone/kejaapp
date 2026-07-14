@@ -189,7 +189,6 @@ export default function WorkspaceScreen() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     load().finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInquiriesLoading(true);
     loadInquiries().finally(() => setInquiriesLoading(false));
   }, [signedIn, canManageListings, load, loadInquiries]);

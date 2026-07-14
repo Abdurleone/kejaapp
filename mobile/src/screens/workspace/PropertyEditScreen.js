@@ -76,6 +76,8 @@ export default function PropertyEditScreen({ route, navigation }) {
   }, [propertyId]);
 
   useEffect(() => {
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     load().finally(() => setLoading(false));
   }, [load]);
