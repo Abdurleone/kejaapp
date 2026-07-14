@@ -108,4 +108,38 @@ describe("DiscoverPage", () => {
     expect(await within(card).findByRole("button", { name: "Saved" })).toBeDisabled();
     expect(saveFavorite).not.toHaveBeenCalled();
   });
+
+  it("ignores a stale response that resolves after a newer filter change (race-condition guard)", async () => {
+    const deferred = () => {
+      let resolve;
+      const promise = new Promise((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+    const initial = deferred();
+    const filtered = deferred();
+    fetchProperties.mockImplementationOnce(() => initial.promise).mockImplementationOnce(() => filtered.promise);
+    fetchFavorites.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(1));
+
+    await user.selectOptions(screen.getByLabelText("Type"), "studio");
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(2));
+
+    // Resolve the newer (filtered) request first, then the older (initial,
+    // now-stale) one - the out-of-order network scenario that used to let
+    // the stale response overwrite the grid with results for a filter the
+    // user no longer has selected.
+    filtered.resolve([{ ...sampleProperty, _id: "prop-new", title: "New Filtered Listing" }]);
+    await screen.findByText("New Filtered Listing");
+
+    initial.resolve([{ ...sampleProperty, _id: "prop-stale", title: "Stale Unfiltered Listing" }]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(screen.queryByText("Stale Unfiltered Listing")).not.toBeInTheDocument();
+    expect(screen.getByText("New Filtered Listing")).toBeInTheDocument();
+  });
 });

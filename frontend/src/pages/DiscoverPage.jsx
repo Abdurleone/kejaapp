@@ -31,71 +31,91 @@ export default function DiscoverPage({ onOpenProperty }) {
   const [maxRent, setMaxRent] = useState("");
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
-
-  const loadProperties = async (overrides = {}) => {
-    const {
-      lat = coords?.lat ?? null,
-      lng = coords?.lng ?? null,
-      radiusKm = radius,
-      type: typeFilter = type,
-      bedrooms: bedroomsFilter = bedrooms,
-      minRent: minRentFilter = minRent,
-      maxRent: maxRentFilter = maxRent,
-    } = overrides;
-
-    try {
-      setLoading(true);
-      setError("");
-      const params = { page: 1, limit: 12 };
-
-      if (lat != null && lng != null) {
-        params.lat = lat;
-        params.lng = lng;
-        params.radiusKm = radiusKm;
-      }
-
-      if (typeFilter) params.type = typeFilter;
-      if (bedroomsFilter) params.bedrooms = bedroomsFilter;
-      if (minRentFilter) params.minRent = minRentFilter;
-      if (maxRentFilter) params.maxRent = maxRentFilter;
-
-      const data = await fetchProperties(params);
-      setProperties(data);
-    } catch (err) {
-      setError(err.message || "Failed to load properties.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [retryKey, setRetryKey] = useState(0);
+  // The filter set actually fetched, as opposed to the raw min/max rent
+  // inputs below - those only feed a fetch once "Apply price" is clicked,
+  // everything else applies immediately on change.
+  const [appliedFilters, setAppliedFilters] = useState({
+    lat: null,
+    lng: null,
+    radiusKm: radius,
+    type: "",
+    bedrooms: "",
+    minRent: "",
+    maxRent: "",
+  });
 
   useEffect(() => {
+    let active = true;
+
     const loadUserMetadata = async () => {
       if (!signedIn) {
-        setSavedPropertyIds([]);
+        if (active) setSavedPropertyIds([]);
         return;
       }
 
       try {
         const favorites = await fetchFavorites();
-        setSavedPropertyIds(
-          favorites
-            .map((favorite) => favorite.property?._id || favorite.property?.id || favorite._id || favorite.id)
-            .filter(Boolean),
-        );
+        if (active) {
+          setSavedPropertyIds(
+            favorites
+              .map((favorite) => favorite.property?._id || favorite.property?.id || favorite._id || favorite.id)
+              .filter(Boolean),
+          );
+        }
       } catch (err) {
         console.error("Could not sync favorites", err);
       }
     };
 
     loadUserMetadata();
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadProperties();
-    // loadProperties is recreated every render (not memoized) and closes over `radius`,
-    // so adding it here would re-run this effect on every render instead of only when
-    // sign-in state changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      active = false;
+    };
   }, [signedIn]);
+
+  // Deriving the fetch from appliedFilters (rather than calling a shared
+  // loadProperties function ad hoc from every handler) is what makes the
+  // active-flag guard actually work: React runs this effect's cleanup
+  // before the next one fires whenever appliedFilters/retryKey changes, so
+  // a still-in-flight, now-stale request can never overwrite a newer one.
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const params = { page: 1, limit: 12 };
+
+        if (appliedFilters.lat != null && appliedFilters.lng != null) {
+          params.lat = appliedFilters.lat;
+          params.lng = appliedFilters.lng;
+          params.radiusKm = appliedFilters.radiusKm;
+        }
+
+        if (appliedFilters.type) params.type = appliedFilters.type;
+        if (appliedFilters.bedrooms) params.bedrooms = appliedFilters.bedrooms;
+        if (appliedFilters.minRent) params.minRent = appliedFilters.minRent;
+        if (appliedFilters.maxRent) params.maxRent = appliedFilters.maxRent;
+
+        const data = await fetchProperties(params);
+        if (active) setProperties(data);
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load properties.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [appliedFilters, retryKey]);
 
   const handleNearMe = () => {
     if (!navigator.geolocation) {
@@ -107,7 +127,7 @@ export default function DiscoverPage({ onOpenProperty }) {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setCoords({ lat: latitude, lng: longitude });
-        loadProperties({ lat: latitude, lng: longitude });
+        setAppliedFilters((current) => ({ ...current, lat: latitude, lng: longitude, radiusKm: radius }));
       },
       () => setSaveError("Unable to retrieve your location."),
     );
@@ -118,24 +138,24 @@ export default function DiscoverPage({ onOpenProperty }) {
     setRadius(nextRadius);
 
     if (coords) {
-      loadProperties({ lat: coords.lat, lng: coords.lng, radiusKm: nextRadius });
+      setAppliedFilters((current) => ({ ...current, lat: coords.lat, lng: coords.lng, radiusKm: nextRadius }));
     }
   };
 
   const handleTypeChange = (event) => {
     const nextType = event.target.value;
     setType(nextType);
-    loadProperties({ type: nextType });
+    setAppliedFilters((current) => ({ ...current, type: nextType }));
   };
 
   const handleBedroomsChange = (event) => {
     const nextBedrooms = event.target.value;
     setBedrooms(nextBedrooms);
-    loadProperties({ bedrooms: nextBedrooms });
+    setAppliedFilters((current) => ({ ...current, bedrooms: nextBedrooms }));
   };
 
   const handleApplyPriceFilter = () => {
-    loadProperties({});
+    setAppliedFilters((current) => ({ ...current, minRent, maxRent }));
   };
 
   const handleSave = async (propertyId) => {
@@ -214,7 +234,7 @@ export default function DiscoverPage({ onOpenProperty }) {
                 type="button"
                 onClick={() => {
                   setCoords(null);
-                  loadProperties({ lat: null, lng: null });
+                  setAppliedFilters((current) => ({ ...current, lat: null, lng: null }));
                 }}
               >
                 Clear location
@@ -294,7 +314,7 @@ export default function DiscoverPage({ onOpenProperty }) {
       ) : error ? (
         <div className="panel">
           <p className="error-text">{error}</p>
-          <button className="secondary-button" type="button" onClick={() => loadProperties({})}>
+          <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
             Retry
           </button>
         </div>
