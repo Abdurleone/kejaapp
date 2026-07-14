@@ -10,7 +10,6 @@ const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
 const feedbackSource = await readSource("pages/FeedbackPage.jsx");
 const notificationsSource = await readSource("pages/NotificationsPage.jsx");
-const workspaceSource = await readSource("pages/WorkspacePage.jsx");
 const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
 const propertyCreateSource = await readSource("pages/PropertyCreatePage.jsx");
 const propertyFormSource = await readSource("components/PropertyForm.jsx");
@@ -152,11 +151,9 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /getDefaultViewForRole/);
   });
 
-  it("lets landlords open an edit action from their workspace listings", () => {
-    assert.match(workspaceSource, /fetchMyProperties\(\{ page: propertiesPage \}\)/);
-    assert.match(workspaceSource, /onEditProperty\(property\._id\)/);
-    assert.match(workspaceSource, /className="card-actions"/);
-  });
+  // WorkspacePage's listings/inquiries fetch, edit action, retry, and
+  // inquiry-response behavior are now covered by real render + interaction
+  // tests in workspace-page.render.test.jsx.
 
   it("wires the propertyEdit view into app navigation and access control", () => {
     assert.match(appSource, /case "propertyEdit":/);
@@ -186,7 +183,5 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /case "propertyCreate":/);
     assert.match(appSource, /You need an owner or agency account to create listings\./);
     assert.match(appSource, /onCreated=\{\(created\) => navigate\(getPropertyEditPath\(created\._id\)\)\}/);
-    assert.match(workspaceSource, /onClick=\{onCreateProperty\}/);
-    assert.match(workspaceSource, /New listing/);
   });
 });
