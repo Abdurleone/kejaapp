@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loginUser, registerUser } from "../../app-utils.js";
 
 const emptyAuthForm = { name: "", email: "", username: "", password: "", phone: "", role: "tenant" };
+const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 // Extracted out of App.jsx, which owned this as inline state/JSX alongside
 // routing and everything else. Since App only ever mounts this behind
@@ -14,6 +15,44 @@ export default function AuthModal({ onClose, onAuthenticated }) {
   const [authLoading, setAuthLoading] = useState(false);
   const [authForm, setAuthForm] = useState(emptyAuthForm);
   const [usernameSuggestions, setUsernameSuggestions] = useState([]);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    // Focus the first actual field (skipping the Close button) rather than
+    // just "the first focusable element" - a user opening this expects to
+    // start typing, not land on a button.
+    panelRef.current?.querySelector("input, select, textarea")?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !panelRef.current) {
+        return;
+      }
+
+      // Trap focus inside the dialog - recomputed on every Tab press (not
+      // memoized) so it stays correct as register mode adds/removes fields.
+      const focusable = Array.from(panelRef.current.querySelectorAll(focusableSelector));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const switchMode = (mode) => {
     setAuthMode(mode);
@@ -56,9 +95,9 @@ export default function AuthModal({ onClose, onAuthenticated }) {
 
   return (
     <div className="auth-panel-overlay">
-      <div className="auth-panel">
+      <div className="auth-panel" ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="auth-panel-title">
         <div className="auth-panel-header">
-          <h2>{authMode === "login" ? "Sign in" : "Create account"}</h2>
+          <h2 id="auth-panel-title">{authMode === "login" ? "Sign in" : "Create account"}</h2>
           <button className="text-button" type="button" onClick={onClose}>
             Close
           </button>
