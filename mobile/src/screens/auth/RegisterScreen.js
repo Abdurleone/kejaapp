@@ -71,7 +71,12 @@ export default function RegisterScreen({ navigation }) {
 
         <View style={styles.field}>
           <Text style={styles.label}>Name</Text>
-          <TextInput style={styles.input} value={form.name} onChangeText={setField("name")} />
+          <TextInput
+            style={styles.input}
+            value={form.name}
+            onChangeText={setField("name")}
+            accessibilityLabel="Name"
+          />
         </View>
 
         <View style={styles.field}>
@@ -82,6 +87,7 @@ export default function RegisterScreen({ navigation }) {
             onChangeText={setField("email")}
             autoCapitalize="none"
             keyboardType="email-address"
+            accessibilityLabel="Email"
           />
         </View>
 
@@ -92,6 +98,7 @@ export default function RegisterScreen({ navigation }) {
             value={form.username}
             onChangeText={setField("username")}
             autoCapitalize="none"
+            accessibilityLabel="Username"
           />
           {usernameSuggestions.length > 0 ? (
             <View style={styles.roleRow}>
@@ -115,6 +122,7 @@ export default function RegisterScreen({ navigation }) {
             value={form.phone}
             onChangeText={setField("phone")}
             keyboardType="phone-pad"
+            accessibilityLabel="Phone"
           />
         </View>
 
@@ -125,6 +133,7 @@ export default function RegisterScreen({ navigation }) {
             value={form.password}
             onChangeText={setField("password")}
             secureTextEntry
+            accessibilityLabel="Password"
           />
         </View>
 

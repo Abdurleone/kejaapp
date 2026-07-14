@@ -134,6 +134,7 @@ export default function ViewingRequestFormScreen({ route, navigation }) {
           multiline
           numberOfLines={4}
           maxLength={1000}
+          accessibilityLabel="Message"
         />
       </View>
 
