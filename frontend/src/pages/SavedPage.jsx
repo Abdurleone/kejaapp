@@ -10,20 +10,26 @@ export default function SavedPage({ onOpenProperty }) {
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
+    let active = true;
+
     const loadSaved = async () => {
       try {
         setLoading(true);
         setError("");
         const favorites = await fetchFavorites();
-        setSaved(favorites);
+        if (active) setSaved(favorites);
       } catch (err) {
-        setError(err.message || "Failed to load saved listings.");
+        if (active) setError(err.message || "Failed to load saved listings.");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     loadSaved();
+
+    return () => {
+      active = false;
+    };
   }, [retryKey]);
 
   return (
