@@ -1,7 +1,13 @@
 import httpStatus from "../constants/httpStatus.js";
+import Favorite from "../models/Favorite.js";
+import Inquiry from "../models/Inquiry.js";
 import Mover from "../models/Mover.js";
+import MoverRequest from "../models/MoverRequest.js";
 import Property from "../models/Property.js";
 import { propertyStatuses } from "../models/Property.js";
+import PropertyImageFingerprint from "../models/PropertyImageFingerprint.js";
+import Review from "../models/Review.js";
+import ViewingRequest from "../models/ViewingRequest.js";
 import {
   attachCostSummaries,
   attachCostSummary,
@@ -325,6 +331,19 @@ const deleteProperty = asyncHandler(async (req, res) => {
   }
 
   ensurePropertyOwner(property, req.user);
+
+  // Deleting the property document alone left every one of these dangling:
+  // uploaded image files (disk/S3), inquiries, viewing requests, reviews,
+  // favorites, image fingerprints, and mover requests that reference it.
+  await Promise.all([
+    ...property.images.map((image) => deletePropertyImage({ storagePath: image.storagePath })),
+    Inquiry.deleteMany({ property: property._id }),
+    ViewingRequest.deleteMany({ property: property._id }),
+    Review.deleteMany({ property: property._id }),
+    Favorite.deleteMany({ property: property._id }),
+    PropertyImageFingerprint.deleteMany({ property: property._id }),
+    MoverRequest.deleteMany({ property: property._id }),
+  ]);
 
   await property.deleteOne();
   await invalidateNamespace("properties");

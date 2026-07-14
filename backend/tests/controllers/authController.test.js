@@ -180,6 +180,63 @@ describe("authController", () => {
     assert.deepEqual(moverAffiliateUpdate.update, { $pull: { affiliatedOwners: userId } });
   });
 
+  it("deletes uploaded image files for every owned property, not just the DB records", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      async deleteOne() {},
+    };
+    // No storagePath set - deletePropertyImage no-ops on a missing
+    // storagePath, so this exercises "iterate every owned property's
+    // images" without touching the real filesystem/S3.
+    const ownedProperties = [
+      { _id: new mongoose.Types.ObjectId(), images: [{ url: "https://example.com/a.jpg" }] },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        images: [{ url: "https://example.com/b.jpg" }, { url: "https://example.com/c.jpg" }],
+      },
+    ];
+
+    mock.method(User, "findById", async () => user);
+    mock.method(Property, "find", () => ({
+      select: async () => ownedProperties,
+    }));
+
+    for (const Model of [
+      AuthSession,
+      Favorite,
+      Inquiry,
+      ViewingRequest,
+      Review,
+      Notification,
+      AgencyVerification,
+      PropertyImageFingerprint,
+      UserViolation,
+      UserStatusLog,
+      Property,
+      Mover,
+      MoverVerification,
+      MoverRequest,
+      Feedback,
+      SavedSearch,
+      DeviceToken,
+    ]) {
+      mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
+    }
+    mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
+
+    const req = { user: { _id: userId } };
+    const res = createResponse();
+
+    // Would throw (fs.rm/S3 on a nonexistent path) if any image were
+    // missed or the deletion crashed instead of resolving cleanly.
+    await deleteCurrentUser(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+  });
+
   it("rejects password changes with the wrong current password", async () => {
     const user = {
       async matchPassword() {
