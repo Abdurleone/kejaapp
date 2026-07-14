@@ -938,6 +938,15 @@ dialog {
   color: rgba(255, 255, 255, 0.7);
 }
 
+.landing-page .legal-footer {
+  grid-column: 1 / -1;
+  border-top-color: rgba(255, 255, 255, 0.22);
+}
+
+.landing-page .legal-footer .text-button {
+  color: #ffffff;
+}
+
 @media (max-width: 1320px) {
   .workspace {
     width: min(100% - 28px, 1080px);
