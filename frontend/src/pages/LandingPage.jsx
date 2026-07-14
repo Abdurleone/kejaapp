@@ -72,9 +72,6 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
         <button className="text-button" type="button" onClick={() => onNavigateLegal("terms")}>
           Terms
         </button>
-        <button className="text-button" type="button" onClick={() => onNavigateLegal("dataProtection")}>
-          Data protection
-        </button>
       </footer>
     </section>
   );
