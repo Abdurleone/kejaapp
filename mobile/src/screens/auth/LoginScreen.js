@@ -28,7 +28,11 @@ export default function LoginScreen({ navigation }) {
   const [serverInput, setServerInput] = useState("");
 
   useEffect(() => {
+    // Syncing serverInput from apiBaseUrl once it loads asynchronously from
+    // storage - serverInput then stays independently editable afterward, so
+    // this can't be computed at render time from apiBaseUrl directly.
     if (apiBaseUrl) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setServerInput(apiBaseUrl);
     }
   }, [apiBaseUrl]);

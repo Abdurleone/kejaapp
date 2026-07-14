@@ -53,7 +53,6 @@ export default function NotificationsScreen() {
       let active = true;
 
       // Kicking off a real fetch here, not deriving avoidable state.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       load()
         .finally(() => {
