@@ -6,6 +6,7 @@ import morgan from "morgan";
 import corsOptions from "./config/cors.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import env from "./config/env.js";
+import csrfProtection from "./middlewares/csrfProtection.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import { createRateLimiter } from "./middlewares/rateLimiter.js";
 import { accessLogStream, nairobiTimestamp } from "./utils/logger.js";
@@ -61,6 +62,7 @@ app.use("/api", createRateLimiter({
   windowMs: env.rateLimitWindowMs,
   max: env.rateLimitMax,
 }));
+app.use("/api", csrfProtection);
 
 app.get("/", (req, res) => {
   res.json({

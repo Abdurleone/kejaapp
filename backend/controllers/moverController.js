@@ -5,6 +5,7 @@ import { invalidateNamespace } from "../middlewares/responseCache.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { earthRadiusKm, parseGeoQueryNumber } from "../utils/propertyFilters.js";
+import { escapeRegExp } from "../utils/regex.js";
 
 const serviceTypes = ["local", "long_distance", "packing", "storage", "office", "furniture"];
 
@@ -48,15 +49,15 @@ const buildMoverFilters = (query) => {
   }
 
   if (query.county) {
-    filters["location.county"] = new RegExp(query.county, "i");
+    filters["location.county"] = new RegExp(escapeRegExp(query.county), "i");
   }
 
   if (query.town) {
-    filters["location.town"] = new RegExp(query.town, "i");
+    filters["location.town"] = new RegExp(escapeRegExp(query.town), "i");
   }
 
   if (query.area) {
-    filters["location.areasServed"] = new RegExp(query.area, "i");
+    filters["location.areasServed"] = new RegExp(escapeRegExp(query.area), "i");
   }
 
   if (query.isAvailable !== undefined) {

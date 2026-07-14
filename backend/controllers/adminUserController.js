@@ -11,6 +11,7 @@ import ViewingRequest from "../models/ViewingRequest.js";
 import { notifyUserStatusChanged } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { escapeRegExp } from "../utils/regex.js";
 
 const roles = ["tenant", "landlord", "agency", "admin"];
 
@@ -41,10 +42,12 @@ const buildUserFilters = (query) => {
   }
 
   if (query.search) {
+    const escapedSearch = escapeRegExp(query.search);
+
     filters.$or = [
-      { name: new RegExp(query.search, "i") },
-      { email: new RegExp(query.search, "i") },
-      { phone: new RegExp(query.search, "i") },
+      { name: new RegExp(escapedSearch, "i") },
+      { email: new RegExp(escapedSearch, "i") },
+      { phone: new RegExp(escapedSearch, "i") },
     ];
   }
 

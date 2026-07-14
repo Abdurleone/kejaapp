@@ -1,14 +1,9 @@
 import httpStatus from "../constants/httpStatus.js";
 import { propertyStatuses } from "../models/Property.js";
 import ApiError from "./apiError.js";
+import { escapeRegExp } from "./regex.js";
 
 const earthRadiusKm = 6378.1;
-
-// Escapes regex metacharacters so a user-supplied search term is matched
-// literally - without this, a query param like county could be crafted as
-// a pathological regex (ReDoS) or as metacharacters that bypass a partial
-// match filter.
-const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const parseGeoQueryNumber = (value, field) => {
   const number = Number(value);

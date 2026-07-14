@@ -78,6 +78,40 @@ describe("adminUserController", () => {
     assert.equal(res.body.pagination.total, 1);
   });
 
+  it("escapes regex metacharacters in the search filter (ReDoS guard)", async () => {
+    const pathological = "(a+)+$";
+    let findFilters;
+    mock.method(User, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        select() {
+          return this;
+        },
+        sort() {
+          return this;
+        },
+        skip() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve([]);
+        },
+      };
+    });
+    mock.method(User, "countDocuments", async () => 0);
+    const req = { query: { search: pathological } };
+    const res = createResponse();
+
+    await listUsers(req, res, (error) => {
+      throw error;
+    });
+
+    const start = Date.now();
+    assert.equal(findFilters.$or[0].name.test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!"), false);
+    assert.ok(Date.now() - start < 50);
+  });
+
   it("rejects invalid user role filters", async () => {
     const req = { query: { role: "owner" } };
     const res = createResponse();
