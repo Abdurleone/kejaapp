@@ -42,7 +42,7 @@ Enter either your **email or your username**, plus your password. For security, 
 
 ## 6. Your data and privacy
 
-See the [Data Protection Policy](../data-protection-policy.md) for what KejaApp collects and why, the [Cookie Policy](../cookie-policy.md) for cookies/local storage specifically, and the in-app Privacy page for a shorter summary. In short:
+See the [Data Protection Policy](../data-protection-policy.md) for what KejaApp collects and why, the [Cookie Policy](../cookie-policy.md) for cookies/local storage specifically, and the in-app "Privacy" page (linked from the footer) for a summary you can also download as a PDF. In short:
 
 - KejaApp never sells your data.
 - Your contact details are only shared with another user when needed to complete something you initiated (an inquiry, a viewing, a mover request).

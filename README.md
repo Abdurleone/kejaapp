@@ -916,7 +916,7 @@ Platform ethics and terms:
 - [Dispute Resolution & Complaints Policy](docs/dispute-resolution-policy.md) — what KejaApp does and doesn't mediate, and how to complain about an enforcement decision.
 
 Data protection and privacy:
-- [Data Protection Policy](docs/data-protection-policy.md) — what data is collected, why, how it's secured, and user rights over it. Summarized in-app on the web frontend's public landing page footer ("Data protection", `frontend/src/pages/DataProtectionPage.jsx`) and the signed-in app shell's footer, so this isn't only reachable by reading the repo.
+- [Data Protection Policy](docs/data-protection-policy.md) — what data is collected, why, how it's secured, and user rights over it. Summarized in-app as a combined "Privacy & data protection" page (`frontend/src/pages/DataProtectionPage.jsx`, linked from the public landing page and signed-in app footers as "Privacy"), downloadable as a watermarked PDF via the browser's print dialog — not only reachable by reading the repo.
 - [Cookie Policy](docs/cookie-policy.md) — cookies and local storage used by the web frontend.
 - [Records of Processing Activities](docs/records-of-processing-activities.md) — a GDPR/Kenya-DPA-style register of every processing activity.
 - [Data Protection Impact Assessments](docs/data-protection-impact-assessment.md) — risk assessments for the higher-risk processing activities (mover geolocation, image fingerprinting, admin moderation).

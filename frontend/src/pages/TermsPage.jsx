@@ -1,3 +1,5 @@
+import PolicyPdfDownload from "../components/PolicyPdfDownload.jsx";
+
 export default function TermsPage() {
   return (
     <div className="view active-view legal-page">
@@ -35,12 +37,7 @@ export default function TermsPage() {
         </p>
       </section>
 
-      <section className="panel stack">
-        <h3>Full terms</h3>
-        <p className="muted-copy">
-          This page is a summary. Read the full Terms of Service, Acceptable Use Policy, and Data Protection Policy in the project repository for complete detail.
-        </p>
-      </section>
+      <PolicyPdfDownload />
     </div>
   );
 }

@@ -85,7 +85,7 @@ Consistent with the Act (s. 26) and GDPR (Art. 15–21), every user has the righ
 
 | Right | How to exercise it today |
 |---|---|
-| Be informed | This policy, plus the in-app [Privacy page](../frontend/src/pages/PrivacyPage.jsx) |
+| Be informed | This policy, plus the in-app [Privacy & data protection page](../frontend/src/pages/DataProtectionPage.jsx), downloadable as a PDF from that page |
 | Access their data | `GET /api/auth/me`, and every list view (Saved, Workspace, Notifications, etc.) already shows a user their own records; a full data export beyond what's visible in-app can be requested from `privacy@kejaapp.com` |
 | Correct their data | Account page (name, phone); email `privacy@kejaapp.com` for fields not user-editable |
 | Delete their data | Account page or Delete Account page — see [Section 9](#9-retention-and-deletion) |

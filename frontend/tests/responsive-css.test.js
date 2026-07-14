@@ -38,4 +38,30 @@ describe("responsive stylesheet", () => {
     assert.match(styles, /\.landing-page\s*{[^}]*grid-template-columns:/s);
     assert.match(styles, /:root\[data-color-mode="dark"\]/);
   });
+
+  it("prints legal pages with a watermark and forced light colors", () => {
+    // .legal-footer must be hidden too, not just .app-header/.tabs/.no-print -
+    // otherwise the site-wide nav footer prints at the bottom of every legal
+    // page alongside the actual policy content (caught via a real page.pdf()
+    // render, not just an emulated-media screenshot).
+    assert.match(styles, /@media print\s*{[\s\S]*?\.legal-footer,\s*\n\s*\.no-print\s*{[^}]*display:\s*none\s*!important;/s);
+    assert.match(
+      styles,
+      /@media print\s*{[\s\S]*?:root,\s*\n\s*:root\[data-color-mode="dark"\]\s*{[^}]*--ink:\s*#000000;/s,
+    );
+    // z-index: 0 (not just position: relative) is required so .legal-page
+    // establishes its own stacking context - otherwise the watermark's
+    // z-index: -1 escapes to the root stacking context and renders behind
+    // the opaque `body` background instead of behind the page's own text.
+    assert.match(styles, /@media print\s*{[\s\S]*?\.legal-page\s*{[^}]*position:\s*relative;[^}]*z-index:\s*0;/s);
+    // .panel needs a transparent background under print, or the watermark
+    // would only ever be visible in the gaps between panels, never through
+    // the (otherwise opaque) boxed sections that make up almost the entire
+    // page.
+    assert.match(styles, /@media print\s*{[\s\S]*?\.legal-page \.panel\s*{[^}]*background:\s*transparent;/s);
+    assert.match(
+      styles,
+      /@media print\s*{[\s\S]*?\.legal-page::before\s*{[^}]*background:\s*url\("assets\/keja-logo\.png"\)[^}]*opacity:\s*0\.5;/s,
+    );
+  });
 });
