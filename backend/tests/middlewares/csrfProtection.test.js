@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import csrfProtection from "../../middlewares/csrfProtection.js";
 
+const baseReq = (overrides) => ({ originalUrl: "/api/properties", headers: {}, ...overrides });
+
 describe("csrfProtection", () => {
   it("allows unsafe methods that carry an Authorization: Bearer header", () => {
-    const req = { method: "POST", headers: { authorization: "Bearer abc.def.ghi" } };
+    const req = baseReq({ method: "POST", headers: { authorization: "Bearer abc.def.ghi" } });
     let nextCalled = false;
 
     csrfProtection(req, {}, () => {
@@ -15,7 +17,7 @@ describe("csrfProtection", () => {
   });
 
   it("allows safe methods (GET) even when only the session cookie is present", () => {
-    const req = { method: "GET", headers: { cookie: "keja_token=abc" } };
+    const req = baseReq({ method: "GET", headers: { cookie: "keja_token=abc" } });
     let nextCalled = false;
 
     csrfProtection(req, {}, () => {
@@ -26,7 +28,7 @@ describe("csrfProtection", () => {
   });
 
   it("allows unsafe methods with no Authorization header when there's no session cookie either", () => {
-    const req = { method: "POST", headers: {} };
+    const req = baseReq({ method: "POST" });
     let nextCalled = false;
 
     csrfProtection(req, {}, () => {
@@ -38,7 +40,7 @@ describe("csrfProtection", () => {
 
   for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
     it(`rejects a cookie-only ${method} request with no Authorization header (CSRF guard)`, () => {
-      const req = { method, headers: { cookie: "keja_token=abc; other=1" } };
+      const req = baseReq({ method, headers: { cookie: "keja_token=abc; other=1" } });
 
       assert.throws(
         () => csrfProtection(req, {}, () => {}),
@@ -49,4 +51,46 @@ describe("csrfProtection", () => {
       );
     });
   }
+
+  it("rejects a refresh-cookie-only request to a non-refresh route the same way (CSRF guard)", () => {
+    const req = baseReq({ method: "DELETE", headers: { cookie: "keja_refresh=abc" } });
+
+    assert.throws(
+      () => csrfProtection(req, {}, () => {}),
+      { statusCode: 403 }
+    );
+  });
+
+  it("rejects a forged POST /api/auth/refresh relying only on the refresh cookie", () => {
+    const req = baseReq({
+      method: "POST",
+      originalUrl: "/api/auth/refresh",
+      headers: { cookie: "keja_refresh=abc" },
+      body: {},
+    });
+
+    assert.throws(
+      () => csrfProtection(req, {}, () => {}),
+      {
+        message: "This request must be authenticated with an Authorization header",
+        statusCode: 403,
+      }
+    );
+  });
+
+  it("allows POST /api/auth/refresh when the refresh token is supplied in the body, even with the cookie also present", () => {
+    const req = baseReq({
+      method: "POST",
+      originalUrl: "/api/auth/refresh",
+      headers: { cookie: "keja_refresh=abc" },
+      body: { refreshToken: "a-real-refresh-token" },
+    });
+    let nextCalled = false;
+
+    csrfProtection(req, {}, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, true);
+  });
 });
