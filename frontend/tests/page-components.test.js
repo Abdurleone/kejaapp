@@ -6,9 +6,7 @@ const readSource = (relativePath) => readFile(new URL(`../src/${relativePath}`, 
 
 const appSource = await readSource("App.jsx");
 const discoverSource = await readSource("pages/DiscoverPage.jsx");
-const accountSource = await readSource("pages/AccountPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
-const feedbackSource = await readSource("pages/FeedbackPage.jsx");
 const notificationsSource = await readSource("pages/NotificationsPage.jsx");
 const propertyEditSource = await readSource("pages/PropertyEditPage.jsx");
 const propertyCreateSource = await readSource("pages/PropertyCreatePage.jsx");
@@ -81,21 +79,9 @@ describe("frontend page component contracts", () => {
     assert.match(notificationsSource, /!item\.isRead/);
   });
 
-  it("submits feedback and lists the current user's own submissions", () => {
-    assert.match(feedbackSource, /fetchMyFeedback\(\)/);
-    assert.match(feedbackSource, /createFeedback\(\{ message \}\)/);
-    assert.match(feedbackSource, /className="property-grid compact-grid"/);
-    assert.match(feedbackSource, /className="auth-panel-form"/);
-    assert.match(feedbackSource, /statusTone\(item\.status\)/);
-    assert.match(feedbackSource, /item\.response\?\.message/);
-  });
-
-  it("lets admins list all feedback and respond to it", () => {
-    assert.match(feedbackSource, /fetchAdminFeedback\(\)/);
-    assert.match(feedbackSource, /respondToFeedback\(feedbackId, \{ message: responseMessage \}\)/);
-    assert.match(feedbackSource, /currentUser\?\.role === "admin"/);
-    assert.match(feedbackSource, /"Send response"/);
-  });
+  // FeedbackPage's submit/list flow (submitter view) and list/respond flow
+  // (admin view) are now covered by real render + interaction tests in
+  // feedback-page.render.test.jsx.
 
   it("lets a signed-in tenant save the current Discover search", () => {
     assert.match(discoverSource, /const payload = \{ lat: coords\.lat, lng: coords\.lng, radiusKm: radius \}/);
@@ -114,17 +100,11 @@ describe("frontend page component contracts", () => {
     assert.match(discoverSource, /if \(maxRent\) payload\.maxRent = Number\(maxRent\)/);
   });
 
-  it("lists and removes saved searches on the Account page", () => {
-    assert.match(accountSource, /fetchSavedSearches\(\)/);
-    assert.match(accountSource, /deleteSavedSearch\(savedSearchId\)/);
-    assert.match(accountSource, /currentUser\?\.role === "tenant"/);
-  });
+  // AccountPage's saved-searches list/remove and account-deletion flows are
+  // now covered by real render + interaction tests in
+  // account-page.render.test.jsx.
 
-  it("keeps account deletion and landing entry points available", () => {
-    assert.match(accountSource, /deleteCurrentAccount\(\)/);
-    assert.match(accountSource, /confirmation === "DELETE"/);
-    assert.match(accountSource, /Delete my account/);
-    assert.match(accountSource, /currentUser\?\.username \|\| "Not set"/);
+  it("keeps landing entry points available", () => {
     assert.match(landingSource, /className="landing-page"/);
     assert.match(landingSource, /Start searching/);
     assert.match(landingSource, /onStart/);
