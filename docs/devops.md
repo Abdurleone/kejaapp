@@ -6,8 +6,10 @@
 
 - **backend** job: spins up a `mongo:7` service container, runs `npm test` against it (this also exercises `backend/tests/integration/mongodb.integration.test.js`, which otherwise self-skips without `TEST_MONGODB_URI`).
 - **frontend** job: runs `npm test`, then `npm run build` to catch build-breaking errors.
-- **docker** job: builds the backend and frontend images (`docker build`, no push) to catch Dockerfile regressions, gated on the two test jobs passing first.
-- **publish** job: on pushes to `main` only (not PRs), rebuilds both images and pushes them to GHCR (`ghcr.io/<owner>/kejaapp-backend`, `kejaapp-frontend`), tagged `latest` and the commit SHA. This is what the Kubernetes manifests in `k8s/` deploy — see "Deployment (Kubernetes)" below. Render doesn't use these; it builds directly from the Dockerfiles itself.
+- **mobile** job: `npm run lint` then `npm test`. Runs independently in parallel with the two above — it isn't in `docker`'s `needs:` list, so a mobile-only failure doesn't block the backend/frontend images from building or publishing.
+- **docker** job: builds the backend and frontend images (`docker build`, no push) to catch Dockerfile regressions, gated on the **backend** and **frontend** jobs passing (not **mobile** — see above).
+- **k8s-smoke-test** job: gated on **docker** passing. Spins up a real `kind` cluster, installs `ingress-nginx`, builds and loads the backend/frontend images straight into the cluster (no registry round-trip), applies the `k8s/` manifests (with a throwaway in-cluster MongoDB standing in for Atlas), and verifies the whole stack through the ingress end-to-end: health check, register, create a property, confirm it's publicly discoverable. This is the CI job that actually proves the `k8s/` manifests work together, not just that they build.
+- **publish** job: on pushes to `main` only (not PRs), gated on **docker** and **k8s-smoke-test** passing. Rebuilds both images and pushes them to GHCR (`ghcr.io/<owner>/kejaapp-backend`, `kejaapp-frontend`), tagged `latest` and the commit SHA. This is what the Kubernetes manifests in `k8s/` deploy — see "Deployment (Kubernetes)" below. Render doesn't use these; it builds directly from the Dockerfiles itself.
 
 ## Containers
 

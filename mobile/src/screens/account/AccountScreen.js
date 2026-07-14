@@ -69,7 +69,7 @@ function SavedSearchesCard({ styles }) {
         <Text style={styles.error}>{error}</Text>
       ) : savedSearches.length === 0 ? (
         <Text style={styles.subtitleSmall}>
-          You have no saved searches yet. Save one from the Discover tab's location filters.
+          You have no saved searches yet. Save one from the Discover tab&apos;s location filters.
         </Text>
       ) : (
         savedSearches.map((savedSearch) => (

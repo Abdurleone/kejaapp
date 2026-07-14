@@ -67,6 +67,9 @@ export default function MainTabs() {
 
   useEffect(() => {
     if (!signedIn) {
+      // Nothing was started while signed out, so there's nothing to tear
+      // down - just reset the badge, not deriving avoidable state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnreadCount(0);
       return;
     }
