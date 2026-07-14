@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import kejaLogo from "../assets/keja-logo.png";
 import AuthModal from "./components/AuthModal.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -63,6 +63,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authPanelOpen, setAuthPanelOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const tabRefs = useRef(new Map());
 
   useEffect(() => {
     document.documentElement.dataset.colorMode = colorMode;
@@ -73,6 +74,28 @@ function App() {
     if (nextPath === path) return;
     window.history.pushState({}, "", nextPath);
     setPath(nextPath);
+  };
+
+  // Roving-tabindex arrow-key navigation for the main nav's ARIA tablist -
+  // matches its existing click behavior (moving to a tab immediately
+  // navigates there) rather than a separate focus-then-activate step.
+  const handleTabKeyDown = (event, items, index) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+      return;
+    }
+
+    event.preventDefault();
+    const lastIndex = items.length - 1;
+    let nextIndex = index;
+
+    if (event.key === "ArrowLeft") nextIndex = index === 0 ? lastIndex : index - 1;
+    else if (event.key === "ArrowRight") nextIndex = index === lastIndex ? 0 : index + 1;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = lastIndex;
+
+    const nextItem = items[nextIndex];
+    navigate(nextItem.path);
+    tabRefs.current.get(nextItem.view)?.focus();
   };
 
   useEffect(() => {
@@ -186,6 +209,11 @@ function App() {
   };
 
   const navigationItems = navItems.filter((item) => canAccessView(currentUser?.role, item.view));
+  // Sub-views reached from a tab (propertyDetail, propertyEdit, privacy,
+  // terms, deleteAccount) have no tab of their own showing as selected -
+  // leave the panel unlabelled rather than pointing aria-labelledby at a
+  // tab id that doesn't exist for those.
+  const activeTabId = navigationItems.some((item) => item.view === view) ? `tab-${view}` : undefined;
 
   const renderCurrentPage = () => {
     switch (view) {
@@ -409,32 +437,53 @@ function App() {
           ) : (
             <div className="workspace">
               <div className="tabs" role="tablist" aria-label="Main navigation">
-                {navigationItems.map((item) => (
-                  <button
-                    key={item.view}
-                    type="button"
-                    className={`tab ${view === item.view ? "active" : ""}`}
-                    onClick={() => navigate(item.path)}
-                  >
-                    {item.view === "notifications" ? (
-                      <>
-                        <span aria-hidden="true">🔔</span> {item.label}
-                        {displayedUnreadCount > 0 && (
-                          <span
-                            className="notification-badge"
-                            aria-label={`${displayedUnreadCount} unread notifications`}
-                          >
-                            {displayedUnreadCount > 99 ? "99+" : displayedUnreadCount}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      item.label
-                    )}
-                  </button>
-                ))}
+                {navigationItems.map((item, index) => {
+                  const isSelected = view === item.view;
+
+                  return (
+                    <button
+                      key={item.view}
+                      ref={(el) => {
+                        if (el) tabRefs.current.set(item.view, el);
+                        else tabRefs.current.delete(item.view);
+                      }}
+                      id={`tab-${item.view}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={isSelected}
+                      aria-controls="view-content-panel"
+                      tabIndex={isSelected ? 0 : -1}
+                      className={`tab ${isSelected ? "active" : ""}`}
+                      onClick={() => navigate(item.path)}
+                      onKeyDown={(event) => handleTabKeyDown(event, navigationItems, index)}
+                    >
+                      {item.view === "notifications" ? (
+                        <>
+                          <span aria-hidden="true">🔔</span> {item.label}
+                          {displayedUnreadCount > 0 && (
+                            <span
+                              className="notification-badge"
+                              aria-label={`${displayedUnreadCount} unread notifications`}
+                            >
+                              {displayedUnreadCount > 99 ? "99+" : displayedUnreadCount}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        item.label
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="view-content">{renderCurrentPage()}</div>
+              <div
+                className="view-content"
+                id="view-content-panel"
+                role="tabpanel"
+                aria-labelledby={activeTabId}
+              >
+                {renderCurrentPage()}
+              </div>
               <footer className="legal-footer">
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("privacy"))}>
                   Privacy

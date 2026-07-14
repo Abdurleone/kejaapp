@@ -124,4 +124,47 @@ describe("AuthModal", () => {
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it("exposes proper dialog semantics", () => {
+    render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toHaveAttribute("aria-labelledby", "auth-panel-title");
+    expect(screen.getByRole("heading", { name: "Sign in" })).toHaveAttribute("id", "auth-panel-title");
+  });
+
+  it("moves focus to the first field on open, not the Close button", () => {
+    render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    expect(screen.getByLabelText("Email or username")).toHaveFocus();
+  });
+
+  it("closes on Escape", async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(<AuthModal onClose={onClose} onAuthenticated={vi.fn()} />);
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("traps Tab focus inside the dialog, wrapping from the last element back to the first", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    // Cancel is the last focusable element in sign-in mode - Tab from here
+    // must wrap back to the first (Close), not escape the dialog.
+    const form = container.querySelector("form");
+    within(form).getByRole("button", { name: "Cancel" }).focus();
+    expect(within(form).getByRole("button", { name: "Cancel" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Close" })).toHaveFocus();
+
+    // Shift+Tab from the first element must wrap to the last.
+    await user.tab({ shift: true });
+    expect(within(form).getByRole("button", { name: "Cancel" })).toHaveFocus();
+  });
 });
