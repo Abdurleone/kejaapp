@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildPropertyFilters, escapeRegExp } from "../../utils/propertyFilters.js";
+import { buildPropertyFilters } from "../../utils/propertyFilters.js";
 
 describe("buildPropertyFilters", () => {
   it("defaults to available listings with no other filters", () => {
@@ -80,15 +80,5 @@ describe("buildPropertyFilters", () => {
     const filters = buildPropertyFilters({ county: pathological });
     assert.ok(Date.now() - start < 50);
     assert.equal(filters["location.county"].test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!"), false);
-  });
-});
-
-describe("escapeRegExp", () => {
-  it("escapes every regex metacharacter", () => {
-    assert.equal(escapeRegExp(".*+?^${}()|[]\\"), "\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\");
-  });
-
-  it("leaves plain alphanumeric text untouched", () => {
-    assert.equal(escapeRegExp("Nairobi West 2"), "Nairobi West 2");
   });
 });

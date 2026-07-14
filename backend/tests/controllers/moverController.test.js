@@ -99,6 +99,36 @@ describe("moverController", () => {
     assert.equal(res.body.pagination.total, 1);
   });
 
+  it("escapes regex metacharacters in county/town/area filters (ReDoS guard)", async () => {
+    const pathological = "(a+)+$";
+    const query = {
+      sort() {
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
+        return [];
+      },
+    };
+    const find = mock.method(Mover, "find", (filters) => {
+      const start = Date.now();
+      assert.equal(filters["location.county"].test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!"), false);
+      assert.ok(Date.now() - start < 50);
+      return query;
+    });
+    mock.method(Mover, "countDocuments", async () => 0);
+    const req = { query: { county: pathological, town: pathological, area: pathological } };
+    const res = createResponse();
+
+    await listMovers(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(find.mock.callCount(), 1);
+  });
+
   it("rejects mover profile submission from non-mover users", async () => {
     const req = {
       body: { name: "SwiftMove Nairobi" },
