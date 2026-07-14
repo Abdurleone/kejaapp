@@ -5,6 +5,14 @@ import { createDeviceToken, deleteDeviceToken } from "../api/index.js";
 
 let registeredToken = null;
 let notificationsModule = null;
+// Tracks an in-flight registerForPushNotifications() call so
+// unregisterForPushNotifications() can wait for it - otherwise a logout
+// that starts while an earlier login/register/session-restore's background
+// registration call is still awaiting permissions/token/network can see
+// registeredToken as still null, no-op, and then have that delayed
+// registration land *after* logout and re-register the device under the
+// now-signed-out session.
+let pendingRegistration = null;
 
 // Best-effort: registration silently no-ops on any failure (missing
 // permission, simulator/emulator, no EAS project configured yet, etc.)
@@ -47,43 +55,59 @@ const getNotifications = () => {
 };
 
 export const registerForPushNotifications = async () => {
-  try {
-    if (!canUsePushNotifications()) {
-      return;
+  const registration = (async () => {
+    try {
+      if (!canUsePushNotifications()) {
+        return;
+      }
+
+      const Notifications = getNotifications();
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        return;
+      }
+
+      // Required by getExpoPushTokenAsync - normally set automatically by an
+      // EAS build, but this repo hasn't run `eas build:configure` yet (see
+      // mobile/README.md), so it's absent in local/Expo Go development.
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+
+      if (!projectId) {
+        return;
+      }
+
+      const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
+      registeredToken = token;
+
+      await createDeviceToken({ token, platform: Platform.OS });
+    } catch (error) {
+      console.error("Could not register for push notifications", error);
     }
+  })();
 
-    const Notifications = getNotifications();
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+  pendingRegistration = registration;
+  await registration;
 
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== "granted") {
-      return;
-    }
-
-    // Required by getExpoPushTokenAsync - normally set automatically by an
-    // EAS build, but this repo hasn't run `eas build:configure` yet (see
-    // mobile/README.md), so it's absent in local/Expo Go development.
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-
-    if (!projectId) {
-      return;
-    }
-
-    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-    registeredToken = token;
-
-    await createDeviceToken({ token, platform: Platform.OS });
-  } catch (error) {
-    console.error("Could not register for push notifications", error);
+  if (pendingRegistration === registration) {
+    pendingRegistration = null;
   }
 };
 
 export const unregisterForPushNotifications = async () => {
+  // Let any in-flight registration finish (and register its token) first,
+  // so unregister always runs last and wins regardless of firing order -
+  // see the comment on pendingRegistration above.
+  if (pendingRegistration) {
+    await pendingRegistration;
+  }
+
   if (!registeredToken) {
     return;
   }

@@ -94,6 +94,9 @@ describe("MoversScreen (directory)", () => {
     fireEvent.press(getByText("Local move"));
 
     await waitFor(() => expect(fetchMovers).toHaveBeenCalledWith({ serviceType: "local", county: "" }));
+    // Let this fetch's own state updates fully settle before the test ends
+    // - otherwise a still-pending update can land mid-render in a later test.
+    await waitFor(() => expect(getByText("Speedy Movers")).toBeTruthy());
   });
 });
 
