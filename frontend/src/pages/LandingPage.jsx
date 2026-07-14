@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchPublicTestimonials, formatStatusLabel } from "../../app-utils.js";
 
-export default function LandingPage({ onStart }) {
+export default function LandingPage({ onStart, onNavigateLegal }) {
   const [testimonials, setTestimonials] = useState([]);
 
   useEffect(() => {
@@ -65,6 +65,17 @@ export default function LandingPage({ onStart }) {
           ))}
         </div>
       )}
+      <footer className="legal-footer">
+        <button className="text-button" type="button" onClick={() => onNavigateLegal("privacy")}>
+          Privacy
+        </button>
+        <button className="text-button" type="button" onClick={() => onNavigateLegal("terms")}>
+          Terms
+        </button>
+        <button className="text-button" type="button" onClick={() => onNavigateLegal("dataProtection")}>
+          Data protection
+        </button>
+      </footer>
     </section>
   );
 }

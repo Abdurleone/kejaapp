@@ -3,14 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../src/App.jsx";
 
-const { fetchCurrentUser, fetchDashboardSummary } = vi.hoisted(() => ({
+const { fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials } = vi.hoisted(() => ({
   fetchCurrentUser: vi.fn(),
   fetchDashboardSummary: vi.fn(),
+  fetchPublicTestimonials: vi.fn(),
 }));
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, fetchCurrentUser, fetchDashboardSummary };
+  return { ...actual, fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials };
 });
 
 // The main nav's ARIA tablist pattern (role=tab, aria-selected, roving
@@ -78,5 +79,29 @@ describe("App - main navigation tablist", () => {
     const lastTab = tabs[tabs.length - 1];
     await waitFor(() => expect(lastTab).toHaveFocus());
     expect(lastTab).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+describe("App - signed-out landing page legal links", () => {
+  beforeEach(() => {
+    window.history.pushState({}, "", "/");
+    fetchPublicTestimonials.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("navigates to the Data protection page from the landing page footer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Data protection" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Data protection" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Kenya Data Protection Act, 2019/).length).toBeGreaterThan(0);
   });
 });
