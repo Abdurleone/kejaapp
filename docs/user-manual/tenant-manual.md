@@ -35,7 +35,7 @@ After interacting with a property (not your own listing — you can't review som
 
 ## 6. Saving a search & alerts
 
-On Discover, once you've set a location and radius, use **"Save this search"**. From then on, if a landlord or agency publishes a new listing matching that search, you'll get a notification (and a push notification, if you've registered a mobile device). Manage your saved searches from the Account page.
+On Discover, once you've set a location and radius, use **"Save this search"** — any type, bedrooms, or rent-range filters you have active are saved alongside the location. From then on, if a landlord or agency publishes a new listing matching that full search, you'll get a notification (and a push notification, if you've registered a mobile device). Manage your saved searches from the Account page.
 
 ## 7. Booking a mover
 
