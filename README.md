@@ -181,7 +181,7 @@ Agency verification and admin moderation:
 Notifications:
 - Notification model and service layer, funneling every notification (direct-event and scheduled) through one `createNotification` chokepoint.
 - Protected notification listing, with an `unread=true` filter.
-- Mark notification as read endpoint.
+- Mark notification as read endpoint (single or mark-all).
 - Event-triggered notifications for inquiries, reviews, viewings, agency verification decisions, feedback responses, and saved-search matches.
 - Scheduled sweeps (`backend/jobs/`, run via `npm run jobs` or the `k8s/backend-cronjob.yaml` CronJob every 15 minutes) for: nudging owners about inquiries/viewing requests unanswered for 48+ hours, reminding both sides of a viewing happening within 24 hours, prompting a review once a viewing's date has passed (and marking it `completed`), and nudging owners about listings live 14+ days with zero inquiries. Each sweep is idempotent (marks what it's already acted on) and safe to run from multiple/overlapping invocations.
 - Device token registration (`DeviceToken` model, upsert/delete endpoints) and best-effort push delivery via Expo's push service (`expo-server-sdk`) for every notification above, for any user with a registered mobile device.
@@ -270,6 +270,7 @@ Frontend API helpers in `app-utils.js`:
 - `respondToFeedback(feedbackId, { message })` → `PUT /api/admin/feedback/:id/respond` (admin only)
 - `fetchNotifications(query)` → `GET /api/notifications` (`unread: "true"` to filter)
 - `markNotificationAsRead(notificationId)` → `PUT /api/notifications/:id/read`
+- `markAllNotificationsAsRead()` → `PUT /api/notifications/read-all`
 - `createSavedSearch(payload)` → `POST /api/saved-searches`
 - `fetchSavedSearches()` → `GET /api/saved-searches`
 - `deleteSavedSearch(savedSearchId)` → `DELETE /api/saved-searches/:id`
