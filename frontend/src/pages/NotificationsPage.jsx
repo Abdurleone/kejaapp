@@ -8,6 +8,7 @@ export default function NotificationsPage() {
   const [retryKey, setRetryKey] = useState(0);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [markingId, setMarkingId] = useState(null);
+  const [markingAll, setMarkingAll] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -33,14 +34,18 @@ export default function NotificationsPage() {
     };
   }, [retryKey, unreadOnly]);
 
-  useEffect(() => {
-    // Opening this page is what clears the notification bell in the header — the
-    // list above still reflects whatever was unread at the moment it loaded, so
-    // "New" pills for this visit aren't affected by this running in the background.
-    markAllNotificationsAsRead().catch(() => {
-      // Non-fatal: the bell will just resync on its next poll instead.
-    });
-  }, []);
+  const handleMarkAllRead = async () => {
+    setMarkingAll(true);
+
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((current) => (unreadOnly ? [] : current.map((item) => ({ ...item, isRead: true }))));
+    } catch (err) {
+      setError(err.message || "Could not mark all notifications as read.");
+    } finally {
+      setMarkingAll(false);
+    }
+  };
 
   const handleMarkRead = async (notificationId) => {
     setMarkingId(notificationId);
@@ -75,6 +80,11 @@ export default function NotificationsPage() {
             />
             Unread only
           </label>
+          {notifications.some((item) => !item.isRead) && (
+            <button className="secondary-button" type="button" disabled={markingAll} onClick={handleMarkAllRead}>
+              {markingAll ? "Marking..." : "Mark all as read"}
+            </button>
+          )}
         </div>
       </div>
 
