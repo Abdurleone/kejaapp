@@ -16,6 +16,7 @@ import MoverRequest from "../../models/MoverRequest.js";
 import Property from "../../models/Property.js";
 import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
 import Review from "../../models/Review.js";
+import UserViolation from "../../models/UserViolation.js";
 import ViewingRequest from "../../models/ViewingRequest.js";
 
 const createResponse = () => ({
@@ -381,6 +382,12 @@ describe("propertyController", () => {
     trackDeleteMany(PropertyImageFingerprint, "PropertyImageFingerprint");
     trackDeleteMany(MoverRequest, "MoverRequest");
 
+    const violationEvidenceUpdates = [];
+    mock.method(UserViolation, "updateMany", async (filter, update) => {
+      violationEvidenceUpdates.push({ filter, update });
+      return { modifiedCount: 0 };
+    });
+
     const req = { params: { id: property._id.toString() }, user: { _id: ownerId, role: "landlord" } };
     const res = createResponse();
 
@@ -390,6 +397,15 @@ describe("propertyController", () => {
 
     assert.equal(res.statusCode, 200);
     assert.equal(deleted, true);
+    assert.equal(violationEvidenceUpdates.length, 2);
+    assert.deepEqual(violationEvidenceUpdates[0], {
+      filter: { "evidence.property": { $in: [property._id] } },
+      update: { $unset: { "evidence.property": "" } },
+    });
+    assert.deepEqual(violationEvidenceUpdates[1], {
+      filter: { "evidence.matchedProperty": { $in: [property._id] } },
+      update: { $unset: { "evidence.matchedProperty": "" } },
+    });
     assert.deepEqual(deleteManyCalls.Inquiry, { property: property._id });
     assert.deepEqual(deleteManyCalls.ViewingRequest, { property: property._id });
     assert.deepEqual(deleteManyCalls.Review, { property: property._id });
