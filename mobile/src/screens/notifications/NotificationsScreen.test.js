@@ -61,12 +61,28 @@ describe("NotificationsScreen", () => {
     await waitFor(() => expect(getByText("New inquiry")).toBeTruthy());
     expect(getByText("New")).toBeTruthy();
 
-    await waitFor(() => expect(markAllNotificationsAsRead).toHaveBeenCalledTimes(1));
+    expect(markAllNotificationsAsRead).not.toHaveBeenCalled();
 
     fireEvent.press(getByText("Mark as read"));
 
     await waitFor(() => expect(queryByText("New")).toBeNull());
     expect(markNotificationAsRead).toHaveBeenCalledWith("n1");
+  });
+
+  it("marks every notification as read via the bulk button", async () => {
+    useAuth.mockReturnValue({ signedIn: true });
+    fetchNotifications.mockResolvedValue([unreadNotification]);
+
+    const { getByText, queryByText } = await render(<NotificationsScreen />);
+
+    await waitFor(() => expect(getByText("New inquiry")).toBeTruthy());
+    expect(getByText("New")).toBeTruthy();
+
+    fireEvent.press(getByText("Mark all as read"));
+
+    await waitFor(() => expect(markAllNotificationsAsRead).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(queryByText("New")).toBeNull());
+    expect(queryByText("Mark all as read")).toBeNull();
   });
 
   it("reloads the list on every focus, not just the first mount (staleness guard)", async () => {
@@ -75,7 +91,6 @@ describe("NotificationsScreen", () => {
 
     const { getByText, queryByText } = await render(<NotificationsScreen />);
     await waitFor(() => expect(getByText("New inquiry")).toBeTruthy());
-    await waitFor(() => expect(markAllNotificationsAsRead).toHaveBeenCalledTimes(1));
 
     // A new notification arrives while the user is on another tab, then
     // they come back to this one - the list must pick it up, not stay
@@ -96,7 +111,7 @@ describe("NotificationsScreen", () => {
     await waitFor(() => expect(fetchNotifications).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(getByText("New viewing request")).toBeTruthy());
     expect(queryByText("New inquiry")).toBeNull();
-    await waitFor(() => expect(markAllNotificationsAsRead).toHaveBeenCalledTimes(2));
+    expect(markAllNotificationsAsRead).not.toHaveBeenCalled();
   });
 
   it("switches to the Unread filter and refetches", async () => {
