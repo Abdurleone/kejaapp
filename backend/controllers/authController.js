@@ -18,7 +18,11 @@ import User from "../models/User.js";
 import UserStatusLog from "../models/UserStatusLog.js";
 import UserViolation from "../models/UserViolation.js";
 import ViewingRequest from "../models/ViewingRequest.js";
-import { deletePropertyImage } from "../services/fileStorageService.js";
+import {
+  clearPropertyViolationEvidence,
+  deleteOwnedPropertyReferences,
+  deletePropertyImages,
+} from "../services/propertyCascadeService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
@@ -249,39 +253,25 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
   const ownedProperties = await Property.find({ owner: userId }).select("_id images");
   const ownedPropertyIds = ownedProperties.map((property) => property._id);
 
+  // Property-referencing models cascade off the same shared registry
+  // deleteProperty uses (services/propertyCascadeService.js), scoped to every
+  // property this user owns. Each of these models also has actor fields with
+  // no property angle at all (sender/owner/respondedBy etc.) - those are kept
+  // here as narrower, model-specific deletes alongside the shared calls.
   await Promise.all([
     AuthSession.deleteMany({ user: userId }),
-    ...ownedProperties.flatMap((property) =>
-      property.images.map((image) => deletePropertyImage({ storagePath: image.storagePath }))
-    ),
-    Favorite.deleteMany({
-      $or: [
-        { user: userId },
-        { property: { $in: ownedPropertyIds } },
-      ],
-    }),
+    ...deletePropertyImages(ownedProperties),
+    ...deleteOwnedPropertyReferences(ownedPropertyIds),
+    ...clearPropertyViolationEvidence(ownedPropertyIds),
+    Favorite.deleteMany({ user: userId }),
     Inquiry.deleteMany({
-      $or: [
-        { sender: userId },
-        { owner: userId },
-        { property: { $in: ownedPropertyIds } },
-        { respondedBy: userId },
-      ],
+      $or: [{ sender: userId }, { owner: userId }, { respondedBy: userId }],
     }),
     ViewingRequest.deleteMany({
-      $or: [
-        { requester: userId },
-        { owner: userId },
-        { property: { $in: ownedPropertyIds } },
-        { reviewedBy: userId },
-      ],
+      $or: [{ requester: userId }, { owner: userId }, { reviewedBy: userId }],
     }),
     Review.deleteMany({
-      $or: [
-        { user: userId },
-        { property: { $in: ownedPropertyIds } },
-        { "ownerResponse.respondedBy": userId },
-      ],
+      $or: [{ user: userId }, { "ownerResponse.respondedBy": userId }],
     }),
     Notification.deleteMany({ user: userId }),
     AgencyVerification.deleteMany({
@@ -291,11 +281,7 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
       ],
     }),
     PropertyImageFingerprint.deleteMany({
-      $or: [
-        { property: { $in: ownedPropertyIds } },
-        { uploadedBy: userId },
-        { matchedUploadedBy: userId },
-      ],
+      $or: [{ uploadedBy: userId }, { matchedUploadedBy: userId }],
     }),
     UserViolation.deleteMany({ user: userId }),
     UserStatusLog.deleteMany({
@@ -317,12 +303,7 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
       ],
     }),
     MoverRequest.deleteMany({
-      $or: [
-        { tenant: userId },
-        { moverAccount: userId },
-        { respondedBy: userId },
-        { property: { $in: ownedPropertyIds } },
-      ],
+      $or: [{ tenant: userId }, { moverAccount: userId }, { respondedBy: userId }],
     }),
     Feedback.deleteMany({
       $or: [

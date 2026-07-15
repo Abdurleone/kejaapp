@@ -119,10 +119,15 @@ describe("authController", () => {
       select: async () => [],
     }));
 
+    // Each property-referencing model now gets deleteMany called twice - once
+    // from the shared cascade registry (property-ownership side) and once
+    // locally (actor-only side) - so calls are tracked as arrays, not a
+    // single last-write-wins value.
     const deleteManyCalls = {};
     const trackDeleteMany = (Model, name) => {
       mock.method(Model, "deleteMany", async (filter) => {
-        deleteManyCalls[name] = filter;
+        deleteManyCalls[name] = deleteManyCalls[name] || [];
+        deleteManyCalls[name].push(filter);
         return { deletedCount: 0 };
       });
     };
@@ -150,6 +155,7 @@ describe("authController", () => {
       moverAffiliateUpdate = { filter, update };
       return { modifiedCount: 0 };
     });
+    mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const req = { user: { _id: userId } };
     const res = createResponse();
@@ -159,23 +165,24 @@ describe("authController", () => {
     });
 
     assert.equal(res.statusCode, 200);
-    assert.deepEqual(deleteManyCalls.Mover, { user: userId });
-    assert.deepEqual(deleteManyCalls.MoverVerification, {
-      $or: [{ user: userId }, { reviewedBy: userId }],
-    });
-    assert.deepEqual(deleteManyCalls.MoverRequest, {
-      $or: [
-        { tenant: userId },
-        { moverAccount: userId },
-        { respondedBy: userId },
-        { property: { $in: [] } },
-      ],
-    });
-    assert.deepEqual(deleteManyCalls.Feedback, {
-      $or: [{ submitter: userId }, { "response.respondedBy": userId }],
-    });
-    assert.deepEqual(deleteManyCalls.SavedSearch, { user: userId });
-    assert.deepEqual(deleteManyCalls.DeviceToken, { user: userId });
+    assert.deepEqual(deleteManyCalls.Mover, [{ user: userId }]);
+    assert.deepEqual(deleteManyCalls.MoverVerification, [
+      { $or: [{ user: userId }, { reviewedBy: userId }] },
+    ]);
+    // Owned-property side (shared cascade) then actor-only side (local).
+    assert.deepEqual(deleteManyCalls.MoverRequest, [
+      { property: { $in: [] } },
+      { $or: [{ tenant: userId }, { moverAccount: userId }, { respondedBy: userId }] },
+    ]);
+    assert.deepEqual(deleteManyCalls.Inquiry, [
+      { property: { $in: [] } },
+      { $or: [{ sender: userId }, { owner: userId }, { respondedBy: userId }] },
+    ]);
+    assert.deepEqual(deleteManyCalls.Feedback, [
+      { $or: [{ submitter: userId }, { "response.respondedBy": userId }] },
+    ]);
+    assert.deepEqual(deleteManyCalls.SavedSearch, [{ user: userId }]);
+    assert.deepEqual(deleteManyCalls.DeviceToken, [{ user: userId }]);
     assert.deepEqual(moverAffiliateUpdate.filter, { affiliatedOwners: userId });
     assert.deepEqual(moverAffiliateUpdate.update, { $pull: { affiliatedOwners: userId } });
   });
@@ -224,6 +231,7 @@ describe("authController", () => {
       mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
     }
     mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const req = { user: { _id: userId } };
     const res = createResponse();
