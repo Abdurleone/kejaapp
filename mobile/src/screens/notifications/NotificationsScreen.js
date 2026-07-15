@@ -18,6 +18,7 @@ export default function NotificationsScreen() {
   const [error, setError] = useState("");
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [markingId, setMarkingId] = useState(null);
+  const [markingAll, setMarkingAll] = useState(false);
 
   const load = useCallback(async () => {
     setError("");
@@ -39,11 +40,10 @@ export default function NotificationsScreen() {
   // Runs on every time this tab becomes focused - not just the first mount
   // - so a notification that arrived while the user was elsewhere actually
   // shows up here instead of the list staying stuck on whatever it looked
-  // like the *first* time this screen mounted. load() runs first so this
-  // visit's list still reflects whatever was actually unread when the tab
-  // was opened; marking everything read afterwards (in the background)
-  // only affects the *next* visit's badge count, it doesn't retroactively
-  // hide "New" pills the user hasn't seen yet this visit.
+  // like the *first* time this screen mounted. Read state is never changed
+  // here - only via explicit user action (per-item or "Mark all as read")
+  // - otherwise a notification seen-but-not-clicked on one visit would
+  // silently show as already read the next time this effect re-runs.
   useFocusEffect(
     useCallback(() => {
       if (!signedIn) {
@@ -54,23 +54,28 @@ export default function NotificationsScreen() {
 
       // Kicking off a real fetch here, not deriving avoidable state.
       setLoading(true);
-      load()
-        .finally(() => {
-          if (active) setLoading(false);
-        })
-        .then(() => {
-          if (!active) return;
-
-          markAllNotificationsAsRead().catch(() => {
-            // Non-fatal: the badge will just resync on its next poll instead.
-          });
-        });
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
 
       return () => {
         active = false;
       };
     }, [signedIn, load]),
   );
+
+  const handleMarkAllRead = async () => {
+    setMarkingAll(true);
+
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((current) => (unreadOnly ? [] : current.map((item) => ({ ...item, isRead: true }))));
+    } catch (err) {
+      setError(err.message || "Could not mark all notifications as read.");
+    } finally {
+      setMarkingAll(false);
+    }
+  };
 
   const handleMarkRead = async (notificationId) => {
     setMarkingId(notificationId);
@@ -127,6 +132,11 @@ export default function NotificationsScreen() {
         >
           <Text style={[styles.filterButtonText, unreadOnly && styles.filterButtonTextActive]}>Unread</Text>
         </Pressable>
+        {notifications.some((item) => !item.isRead) ? (
+          <Pressable style={styles.filterButton} disabled={markingAll} onPress={handleMarkAllRead}>
+            <Text style={styles.filterButtonText}>{markingAll ? "Marking..." : "Mark all as read"}</Text>
+          </Pressable>
+        ) : null}
       </View>
       <FlatList
         data={notifications}
