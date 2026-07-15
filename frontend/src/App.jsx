@@ -172,9 +172,11 @@ function App() {
     };
   }, [signedIn]);
 
-  // Opening the Notifications tab is what "clears" the bell — NotificationsPage marks
-  // everything read server-side; deriving both cases here clears the badge
-  // immediately (signed-out and "already looking at it") with no extra effect/state.
+  // Hide the numeric badge while already on the Notifications tab — the list
+  // there is showing the same unread items the badge would just be repeating.
+  // Nothing gets marked read here; that only happens via explicit user action
+  // (per-item or "Mark all as read"), so leaving the tab without marking
+  // anything correctly brings the badge right back on the next poll.
   const displayedUnreadCount = signedIn && view !== "notifications" ? unreadCount : 0;
 
   const openAuthPanel = () => setAuthPanelOpen(true);
