@@ -234,7 +234,7 @@ Frontend architecture:
 - React components in `src/pages/` (LandingPage, DashboardPage, DiscoverPage, SavedPage, WorkspacePage, PropertyEditPage, PropertyCreatePage, AdminPage, NotificationsPage, FeedbackPage, MoversPage), with the create/edit form fields factored into a shared `src/components/PropertyForm.jsx`.
 - Manual `window.history.pushState` routing without react-router.
 - Page-based layout with tabbed navigation for role-aware view access.
-- Global `app-utils.js` for API helpers, formatting, and view logic.
+- `app-utils.js` for API helpers, formatting, and view logic - a thin barrel re-exporting `app-utils/{client,api,format,access,misc}.js`, split by concern (HTTP client, domain API calls, formatters, authorization/routing rules, misc) so a single file doesn't mix all of them.
 - Light/dark mode toggle that persists locally.
 
 Authentication and session:
