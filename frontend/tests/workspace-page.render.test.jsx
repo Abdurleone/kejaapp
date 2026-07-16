@@ -140,4 +140,25 @@ describe("WorkspacePage", () => {
     expect(respondToInquiry).toHaveBeenCalledWith("inq-1", { status: "closed", response: "" });
     await waitFor(() => expect(screen.getByText("Closed without a reply.")).toBeInTheDocument());
   });
+
+  it("does not send an abandoned draft as the response when closing without reply", async () => {
+    fetchMyProperties.mockResolvedValue(noProperties);
+    fetchReceivedInquiries.mockResolvedValue({
+      inquiries: [openInquiry],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+    respondToInquiry.mockResolvedValue({ ...openInquiry, status: "closed", response: "" });
+    const user = userEvent.setup();
+
+    render(<WorkspacePage onEditProperty={vi.fn()} onCreateProperty={vi.fn()} />);
+    await screen.findByText("Is this still available?");
+
+    // Owner starts typing a reply, then changes their mind and closes instead
+    // of sending it or clearing the box first.
+    await user.type(screen.getByPlaceholderText("Write a response..."), "Draft I never meant to send");
+    await user.click(screen.getByRole("button", { name: "Close without reply" }));
+
+    expect(respondToInquiry).toHaveBeenCalledWith("inq-1", { status: "closed", response: "" });
+    await waitFor(() => expect(screen.getByText("Closed without a reply.")).toBeInTheDocument());
+  });
 });
