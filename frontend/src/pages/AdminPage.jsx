@@ -318,10 +318,31 @@ export default function AdminPage() {
   const [page, setPage] = useState(1);
   const [role, setRole] = useState("");
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
+
+  // Debounce the free-text search input into `search` (what actually drives
+  // the fetch effect below) so typing a name doesn't fire a request per
+  // keystroke - mirrors the same debounce pattern already used on mobile's
+  // MoversScreen county filter.
+  useEffect(() => {
+    let active = true;
+
+    const timeoutId = setTimeout(() => {
+      if (!active) return;
+
+      setSearch((current) => (current === searchInput ? current : searchInput));
+      setPage(1);
+    }, 300);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [searchInput]);
 
   useEffect(() => {
     let active = true;
@@ -396,11 +417,8 @@ export default function AdminPage() {
           <input
             type="search"
             placeholder="Search by name, email, or phone"
-            value={search}
-            onChange={(event) => {
-              setPage(1);
-              setSearch(event.target.value);
-            }}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
           />
           <select
             value={role}
