@@ -30,6 +30,14 @@ const formatPagination = (page, limit, total) => ({
   pages: Math.ceil(total / limit),
 });
 
+// Property.contact (with its own preferredMethod) is the intended
+// public-facing way to reach an owner - the unauthenticated list/detail
+// endpoints must not leak the owner's actual account email/phone regardless
+// of that preference. Authenticated owner-facing endpoints below (an owner
+// managing their own listing) keep the fuller projection.
+const publicOwnerProjection = "name role verified";
+const ownerProjection = "name email role phone verified";
+
 const propertyFields = [
   "title",
   "description",
@@ -76,7 +84,7 @@ const listProperties = asyncHandler(async (req, res) => {
 
   const [properties, total] = await Promise.all([
     Property.find(filters)
-      .populate("owner", "name email role phone verified")
+      .populate("owner", publicOwnerProjection)
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -106,7 +114,7 @@ const listMyProperties = asyncHandler(async (req, res) => {
 
   const [properties, total] = await Promise.all([
     Property.find(filters)
-      .populate("owner", "name email role phone verified")
+      .populate("owner", ownerProjection)
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -134,7 +142,7 @@ const createProperty = asyncHandler(async (req, res) => {
     listedBy: req.body.listedBy || (req.user.role === "agency" ? "agency" : "owner"),
   });
 
-  const populatedProperty = await property.populate("owner", "name email role phone verified");
+  const populatedProperty = await property.populate("owner", ownerProjection);
   await invalidateNamespace("properties");
   await notifyMatchingSavedSearches(populatedProperty);
 
@@ -144,7 +152,7 @@ const createProperty = asyncHandler(async (req, res) => {
 });
 
 const getProperty = asyncHandler(async (req, res) => {
-  const property = await Property.findById(req.params.id).populate("owner", "name email role phone verified");
+  const property = await Property.findById(req.params.id).populate("owner", publicOwnerProjection);
 
   if (!property) {
     throw new ApiError(httpStatus.NOT_FOUND, "Property not found");
@@ -209,7 +217,7 @@ const updateProperty = asyncHandler(async (req, res) => {
 
   Object.assign(property, pickPropertyPayload(req.body));
   await property.save();
-  await property.populate("owner", "name email role phone verified");
+  await property.populate("owner", ownerProjection);
   await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
@@ -238,7 +246,7 @@ const addPropertyImage = asyncHandler(async (req, res) => {
     property,
     uploadedBy: req.user._id,
   });
-  await property.populate("owner", "name email role phone verified");
+  await property.populate("owner", ownerProjection);
   await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
@@ -280,7 +288,7 @@ const uploadPropertyImage = asyncHandler(async (req, res) => {
     property,
     uploadedBy: req.user._id,
   });
-  await property.populate("owner", "name email role phone verified");
+  await property.populate("owner", ownerProjection);
   await invalidateNamespace("properties");
 
   res.status(httpStatus.CREATED).json({
@@ -314,7 +322,7 @@ const removePropertyImage = asyncHandler(async (req, res) => {
     propertyId: property._id,
   });
   await property.save();
-  await property.populate("owner", "name email role phone verified");
+  await property.populate("owner", ownerProjection);
   await invalidateNamespace("properties");
 
   res.status(httpStatus.OK).json({
