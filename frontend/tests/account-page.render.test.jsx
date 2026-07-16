@@ -66,6 +66,21 @@ describe("AccountPage", () => {
     await waitFor(() => expect(screen.queryByText(/in Nairobi/)).not.toBeInTheDocument());
   });
 
+  it("shows an inline error when removing a saved search fails, without hiding the rest of the list", async () => {
+    fetchSavedSearches.mockResolvedValue([{ _id: "ss-1", county: "Nairobi" }]);
+    deleteSavedSearch.mockRejectedValue(new Error("Could not delete this saved search."));
+    const user = userEvent.setup();
+
+    renderWithAuth(<AccountPage onAccountDeleted={vi.fn()} />, { currentUser: tenantUser });
+    await screen.findByText(/in Nairobi/);
+
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+
+    expect(await screen.findByText("Could not delete this saved search.")).toBeInTheDocument();
+    // The saved search stays visible - a failed action no longer nukes the whole list.
+    expect(screen.getByText(/in Nairobi/)).toBeInTheDocument();
+  });
+
   it("keeps Delete my account disabled until DELETE is typed exactly", async () => {
     fetchSavedSearches.mockResolvedValue([]);
     const user = userEvent.setup();
