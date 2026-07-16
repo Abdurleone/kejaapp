@@ -127,4 +127,37 @@ describe("savedSearchMatchingService", () => {
 
     assert.equal(aggregate.mock.callCount(), 0);
   });
+
+  it("skips a malformed saved search (legacy radiusKm with no lat/lng) instead of failing every other match", async () => {
+    const property = { _id: new mongoose.Types.ObjectId(), status: "available" };
+    const malformedSavedSearch = {
+      _id: new mongoose.Types.ObjectId(),
+      user: new mongoose.Types.ObjectId(),
+      radiusKm: 5,
+    };
+    const validSavedSearch = {
+      _id: new mongoose.Types.ObjectId(),
+      user: new mongoose.Types.ObjectId(),
+      county: "Nairobi",
+    };
+
+    mock.method(SavedSearch, "find", () => ({ lean: async () => [malformedSavedSearch, validSavedSearch] }));
+    let capturedPipeline;
+    const aggregate = mock.method(Property, "aggregate", async (pipeline) => {
+      capturedPipeline = pipeline;
+      // Only index 1 (the valid saved search) ever reaches the facet stage.
+      return [{ 1: [{ _id: "match" }] }];
+    });
+    mock.method(DeviceToken, "find", async () => []);
+    const create = mock.method(Notification, "create", async (payload) => payload);
+
+    await notifyMatchingSavedSearches(property);
+
+    const [, facetStage] = capturedPipeline;
+    assert.equal(aggregate.mock.callCount(), 1);
+    assert.deepEqual(Object.keys(facetStage.$facet), ["1"]);
+    assert.equal(create.mock.callCount(), 1);
+    const [notification] = create.mock.calls[0].arguments;
+    assert.equal(notification.data.savedSearch, validSavedSearch._id);
+  });
 });

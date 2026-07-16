@@ -82,6 +82,19 @@ describe("savedSearchController", () => {
     assert.match(nextError.message, /lat must be a number between -90 and 90/);
   });
 
+  it("rejects radiusKm without lat and lng", async () => {
+    const req = { user: { _id: new mongoose.Types.ObjectId() }, body: { radiusKm: 5 } };
+    const res = createResponse();
+    let nextError;
+
+    await createSavedSearch(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.match(nextError.message, /radiusKm requires lat and lng/);
+  });
+
   it("lists only the current user's saved searches", async () => {
     const userId = new mongoose.Types.ObjectId();
     let filters;
