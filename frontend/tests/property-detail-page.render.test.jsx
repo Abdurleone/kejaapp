@@ -1,20 +1,30 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PropertyDetailPage from "../src/pages/PropertyDetailPage.jsx";
 import { renderWithAuth } from "./helpers/renderWithAuth.jsx";
 
-const { fetchPropertyById, fetchFavorites, fetchPropertyMovers, saveFavorite, createInquiry } = vi.hoisted(() => ({
-  fetchPropertyById: vi.fn(),
-  fetchFavorites: vi.fn(),
-  fetchPropertyMovers: vi.fn(),
-  saveFavorite: vi.fn(),
-  createInquiry: vi.fn(),
-}));
+const { fetchPropertyById, fetchFavorites, fetchPropertyMovers, saveFavorite, createInquiry, createViewingRequest } =
+  vi.hoisted(() => ({
+    fetchPropertyById: vi.fn(),
+    fetchFavorites: vi.fn(),
+    fetchPropertyMovers: vi.fn(),
+    saveFavorite: vi.fn(),
+    createInquiry: vi.fn(),
+    createViewingRequest: vi.fn(),
+  }));
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, fetchPropertyById, fetchFavorites, fetchPropertyMovers, saveFavorite, createInquiry };
+  return {
+    ...actual,
+    fetchPropertyById,
+    fetchFavorites,
+    fetchPropertyMovers,
+    saveFavorite,
+    createInquiry,
+    createViewingRequest,
+  };
 });
 
 const sampleProperty = {
@@ -185,5 +195,27 @@ describe("PropertyDetailPage", () => {
       })
     );
     expect(await screen.findByText("Inquiry sent")).toBeInTheDocument();
+  });
+
+  it("rejects a past date for a scheduled viewing request, client-side, without calling createViewingRequest", async () => {
+    const user = userEvent.setup();
+    renderDetailPage({ property: { ...sampleProperty, viewingType: "scheduled" } });
+
+    await screen.findByText("Modern Kilimani Apartment");
+    await user.click(screen.getByRole("button", { name: "Request viewing" }));
+
+    const form = screen.getByText("Request viewing", { selector: "h3" }).closest("form");
+    const dateInput = within(form).getByLabelText("Requested date and time");
+    // The "min" attribute only hints at the browser's own date picker UI -
+    // several real browsers don't strictly enforce it for keyboard/paste
+    // entry, which is exactly why the past-date check must also happen in
+    // JS rather than relying on the HTML constraint alone. fireEvent.submit
+    // dispatches the submit event directly (skipping the button click's own
+    // native "min" constraint check) to exercise precisely that bypass path.
+    fireEvent.change(dateInput, { target: { value: "2020-01-01T10:00" } });
+    fireEvent.submit(form);
+
+    expect(await screen.findByText("Choose a valid future date.")).toBeInTheDocument();
+    expect(createViewingRequest).not.toHaveBeenCalled();
   });
 });
