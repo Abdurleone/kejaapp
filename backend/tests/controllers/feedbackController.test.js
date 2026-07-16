@@ -51,7 +51,11 @@ describe("feedbackController", () => {
     };
 
     const create = mock.method(Feedback, "create", async (payload) => {
-      assert.deepEqual(payload, { submitter: submitterId, message: "KejaApp helped me find my dream home." });
+      assert.deepEqual(payload, {
+        submitter: submitterId,
+        message: "KejaApp helped me find my dream home.",
+        allowPublicSharing: false,
+      });
       return created;
     });
 
@@ -110,7 +114,7 @@ describe("feedbackController", () => {
     assert.equal(res.statusCode, 200);
   });
 
-  it("responds to feedback and notifies the submitter", async () => {
+  it("responds to feedback and publishes it when the submitter opted in", async () => {
     const adminId = new mongoose.Types.ObjectId();
     const feedbackId = new mongoose.Types.ObjectId();
     const feedback = {
@@ -118,6 +122,7 @@ describe("feedbackController", () => {
       submitter: new mongoose.Types.ObjectId(),
       status: "pending",
       isPublic: false,
+      allowPublicSharing: true,
       response: {},
       async save() {},
       async populate() {
@@ -147,6 +152,42 @@ describe("feedbackController", () => {
     assert.equal(feedback.response.respondedBy, adminId);
     assert.ok(feedback.response.respondedAt instanceof Date);
     assert.equal(notificationCreate.mock.callCount(), 1);
+  });
+
+  it("responds to feedback but keeps it private when the submitter did not opt in", async () => {
+    const adminId = new mongoose.Types.ObjectId();
+    const feedbackId = new mongoose.Types.ObjectId();
+    const feedback = {
+      _id: feedbackId,
+      submitter: new mongoose.Types.ObjectId(),
+      status: "pending",
+      isPublic: false,
+      allowPublicSharing: false,
+      response: {},
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+
+    mock.method(Feedback, "findById", async () => feedback);
+    mock.method(DeviceToken, "find", async () => []);
+    mock.method(Notification, "create", async (payload) => payload);
+
+    const req = {
+      params: { id: feedbackId.toString() },
+      body: { message: "Thanks for sharing your experience!" },
+      user: { _id: adminId },
+    };
+    const res = createResponse();
+
+    await respondToFeedback(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(feedback.status, "responded");
+    assert.equal(feedback.isPublic, false);
   });
 
   it("returns not found when responding to missing feedback", async () => {

@@ -9,6 +9,7 @@ const createFeedback = asyncHandler(async (req, res) => {
   const feedback = await Feedback.create({
     submitter: req.user._id,
     message: req.body.message,
+    allowPublicSharing: req.body.allowPublicSharing || false,
   });
 
   await feedback.populate("submitter", "name role");
@@ -53,7 +54,7 @@ const respondToFeedback = asyncHandler(async (req, res) => {
   }
 
   feedback.status = "responded";
-  feedback.isPublic = true;
+  feedback.isPublic = feedback.allowPublicSharing;
   feedback.response = {
     message: req.body.message,
     respondedBy: req.user._id,

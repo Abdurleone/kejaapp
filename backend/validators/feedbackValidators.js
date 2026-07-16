@@ -14,6 +14,9 @@ const createFeedbackSchema = {
       return null;
     },
   },
+  allowPublicSharing: {
+    type: "boolean",
+  },
 };
 
 const respondToFeedbackSchema = {

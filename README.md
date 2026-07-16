@@ -198,11 +198,11 @@ Trust and safety:
 - Automatic user bans on the fourth active violation.
 
 Platform feedback:
-- Feedback model linked to the submitting user, with a `pending`/`responded` status and an embedded admin response (message, responder, timestamp).
+- Feedback model linked to the submitting user, with a `pending`/`responded` status, an `allowPublicSharing` opt-in (default `false`, set by the submitter at creation), and an embedded admin response (message, responder, timestamp).
 - Protected endpoint for tenants, landlords, agencies, and movers to submit feedback (admins cannot submit — they only respond).
 - Protected endpoint for users to list their own submitted feedback.
 - Admin-only endpoints to list all feedback and respond to a pending item.
-- Responding marks the feedback `responded` and publishes it immediately — no separate publish/unpublish step.
+- Responding marks the feedback `responded`, and publishes it as a public testimonial only if the submitter opted in via `allowPublicSharing` — otherwise it stays private regardless of the response.
 - Public, unauthenticated, cached endpoint listing only responded/published feedback, consumed by the landing page as testimonials.
 - Notification triggered for the submitter when an admin responds.
 - Pending feedback count surfaced in the admin dashboard summary, alongside the existing agency-verification and violation counts.
@@ -263,7 +263,7 @@ Frontend API helpers in `app-utils.js`:
 - `loginUser({ identifier, password })` → `POST /api/auth/login` (`identifier` accepts either the account's email or its username)
 - `registerUser({ name, email, password, phone, role })` → `POST /api/auth/register`
 - `logoutUser()` → `POST /api/auth/logout`
-- `createFeedback({ message })` → `POST /api/feedback` (tenant/landlord/agency only)
+- `createFeedback({ message, allowPublicSharing })` → `POST /api/feedback` (tenant/landlord/agency only)
 - `fetchMyFeedback()` → `GET /api/feedback/mine`
 - `fetchPublicTestimonials()` → `GET /api/feedback/public` (no auth required — used on the landing page)
 - `fetchAdminFeedback(query)` → `GET /api/admin/feedback` (admin only)
@@ -303,7 +303,7 @@ Included flows:
 - Saved properties list loading from real `/api/favorites` endpoint, with a Details link into the same property detail page as Discover.
 - Owner workspace showing the signed-in landlord/agency's own listings and the real inquiries tenants have sent about them (scoped server-side by `owner`, not filtered client-side), with an Edit action on each listing card opening a full edit form (`/owner/properties/:id/edit`) backed by `PUT /api/properties/:id`, plus a "New listing" action (`/owner/properties/new`) backed by `POST /api/properties` for creating new properties. Tenants only ever get read access to listings (Discover/Saved/property detail) — creation and editing are gated behind `canManageListings` (landlord, agency). Admins cannot create, edit, or view the owner workspace at all — admins moderate accounts, not listings.
 - Admin console (`/admin`) for managing user accounts: search and filter users by role, open a user's account summary (violations, and role-specific activity counts) and status change history, and change an account's status to active, suspended, or banned with a reason, backed by the existing `GET/PUT /api/admin/users*` endpoints.
-- Feedback tab (`/feedback`), visible to every signed-in role: tenants/landlords/agencies get a submit form plus a list of their own past submissions and any admin response; admins instead see every submission and can respond inline, which immediately publishes it as a landing-page testimonial.
+- Feedback tab (`/feedback`), visible to every signed-in role: tenants/landlords/agencies get a submit form (with an opt-in checkbox for being shown as a landing-page testimonial if an admin responds) plus a list of their own past submissions and any admin response; admins instead see every submission and can respond inline, which publishes it as a testimonial only if the submitter opted in.
 - Notifications tab (`/notifications`), visible to every signed-in role: lists all notifications with an "Unread only" filter and a mark-as-read action per item that persists across reloads.
 - "Save this search" action next to Discover's radius/location controls (tenants only, shown once a location is set), plus a "Saved searches" panel on the Account page to review and remove them.
 - Light and dark mode toggle that persists locally.

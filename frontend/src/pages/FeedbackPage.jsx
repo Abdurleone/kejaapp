@@ -15,6 +15,7 @@ function SubmitFeedbackPanel() {
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
   const [message, setMessage] = useState("");
+  const [allowPublicSharing, setAllowPublicSharing] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -49,9 +50,10 @@ function SubmitFeedbackPanel() {
     setSubmitting(true);
 
     try {
-      const created = await createFeedback({ message });
+      const created = await createFeedback({ message, allowPublicSharing });
       setFeedback((current) => [created, ...current]);
       setMessage("");
+      setAllowPublicSharing(false);
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err.message || "Could not submit your feedback.");
@@ -84,6 +86,14 @@ function SubmitFeedbackPanel() {
               placeholder="Share your experience with KejaApp..."
               required
             />
+          </label>
+          <label className="radius-control">
+            <input
+              type="checkbox"
+              checked={allowPublicSharing}
+              onChange={(event) => setAllowPublicSharing(event.target.checked)}
+            />
+            Allow this to be shown as a testimonial on our landing page if an admin responds
           </label>
           {submitError && <p className="error-text">{submitError}</p>}
           {submitted && <p className="success-text">Thanks for sharing! We&apos;ll be in touch.</p>}
