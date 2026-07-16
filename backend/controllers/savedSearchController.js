@@ -32,6 +32,10 @@ const createSavedSearch = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "lng must be a number between -180 and 180");
   }
 
+  if (payload.radiusKm !== undefined && (payload.lat === undefined || payload.lng === undefined)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "radiusKm requires lat and lng to also be provided");
+  }
+
   const savedSearch = await SavedSearch.create({
     ...payload,
     user: req.user._id,
