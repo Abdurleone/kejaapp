@@ -214,7 +214,7 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
     if (isScheduled) {
       const date = new Date(viewingDate);
 
-      if (!viewingDate || Number.isNaN(date.getTime())) {
+      if (!viewingDate || Number.isNaN(date.getTime()) || date <= new Date()) {
         setViewingError("Choose a valid future date.");
         return;
       }
