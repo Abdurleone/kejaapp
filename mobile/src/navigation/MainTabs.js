@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,6 +52,14 @@ export default function MainTabs() {
   const insets = useSafeAreaInsets();
   const visibleTabs = getVisibleTabs(signedIn, user?.role);
   const [unreadCount, setUnreadCount] = useState(0);
+  const mountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
   // The default tab bar sits close enough to the gesture-nav home indicator
   // that it read as "obstructed" once the bar had a solid dark background
@@ -65,25 +73,23 @@ export default function MainTabs() {
     paddingBottom: insets.bottom + 12,
   };
 
+  const refreshUnreadCount = useCallback(async () => {
+    try {
+      const summary = await fetchDashboardSummary();
+      if (mountedRef.current) setUnreadCount(summary.notifications?.unread || 0);
+    } catch {
+      // Non-fatal: the badge just keeps its last known value until the next refresh.
+    }
+  }, []);
+
   useEffect(() => {
     if (!signedIn) {
       // Nothing was started while signed out, so there's nothing to tear
       // down - just reset the badge, not deriving avoidable state.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnreadCount(0);
-      return;
+      return undefined;
     }
-
-    let active = true;
-
-    const refreshUnreadCount = async () => {
-      try {
-        const summary = await fetchDashboardSummary();
-        if (active) setUnreadCount(summary.notifications?.unread || 0);
-      } catch {
-        // Non-fatal: the badge just keeps its last known value until the next refresh.
-      }
-    };
 
     refreshUnreadCount();
     // Polling rather than a push mechanism (no websockets in this app) — good enough
@@ -91,10 +97,9 @@ export default function MainTabs() {
     const intervalId = setInterval(refreshUnreadCount, 30000);
 
     return () => {
-      active = false;
       clearInterval(intervalId);
     };
-  }, [signedIn]);
+  }, [signedIn, refreshUnreadCount]);
 
   return (
     <Tab.Navigator
@@ -153,10 +158,11 @@ export default function MainTabs() {
           listeners={
             name === "Notifications"
               ? {
-                  // Tapping the tab is what "clears" the bell — NotificationsScreen
-                  // marks everything read server-side; this clears the badge
-                  // immediately instead of waiting on the next poll.
-                  tabPress: () => setUnreadCount(0),
+                  // NotificationsScreen no longer marks everything read just by being
+                  // opened - read state only changes via explicit user action there.
+                  // So tapping this tab doesn't zero the badge; it eagerly re-syncs
+                  // with the real count instead of waiting up to 30s for the next poll.
+                  tabPress: () => refreshUnreadCount(),
                 }
               : undefined
           }
