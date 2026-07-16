@@ -370,10 +370,10 @@ const myFeedbackCacheTtlMs = 15000;
 const adminFeedbackCacheTtlMs = 15000;
 const publicTestimonialsCacheTtlMs = 60000;
 
-export const createFeedback = async ({ message }) => {
+export const createFeedback = async ({ message, allowPublicSharing }) => {
   const response = await apiFetch("/api/feedback", {
     method: "POST",
-    body: { message },
+    body: { message, allowPublicSharing },
   });
   clearRequestCache("myFeedback");
   return response.data;

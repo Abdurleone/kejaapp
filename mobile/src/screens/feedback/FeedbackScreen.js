@@ -125,6 +125,7 @@ function StatusBadge({ status, styles }) {
 
 function SubmitFeedbackForm({ onSubmitted, styles }) {
   const [message, setMessage] = useState("");
+  const [allowPublicSharing, setAllowPublicSharing] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -140,9 +141,10 @@ function SubmitFeedbackForm({ onSubmitted, styles }) {
     setSubmitting(true);
 
     try {
-      const created = await createFeedback({ message: message.trim() });
+      const created = await createFeedback({ message: message.trim(), allowPublicSharing });
       onSubmitted(created);
       setMessage("");
+      setAllowPublicSharing(false);
       setSubmitted(true);
     } catch (err) {
       setError(err.message || "Could not submit your feedback.");
@@ -166,6 +168,19 @@ function SubmitFeedbackForm({ onSubmitted, styles }) {
         maxLength={1000}
         placeholder="Tell us how KejaApp helped you find your next home..."
       />
+      <Pressable
+        style={styles.switchRow}
+        onPress={() => setAllowPublicSharing((current) => !current)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: allowPublicSharing }}
+      >
+        <View style={[styles.checkbox, allowPublicSharing && styles.checkboxChecked]}>
+          {allowPublicSharing ? <Text style={styles.checkboxMark}>✓</Text> : null}
+        </View>
+        <Text style={styles.switchLabel}>
+          Allow this to be shown as a testimonial on our landing page if an admin responds
+        </Text>
+      </Pressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {submitted ? <Text style={styles.success}>Thanks for sharing! We will be in touch.</Text> : null}
       <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={submitting}>
@@ -294,6 +309,35 @@ const createStyles = (colors) =>
       fontSize: 13,
       fontWeight: "700",
       color: colors.muted,
+    },
+    switchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    switchLabel: {
+      flex: 1,
+      fontSize: 13,
+      color: colors.ink,
+    },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: colors.line,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+    },
+    checkboxChecked: {
+      backgroundColor: colors.greenDark,
+      borderColor: colors.greenDark,
+    },
+    checkboxMark: {
+      color: colors.white,
+      fontSize: 14,
+      fontWeight: "700",
     },
     input: {
       borderWidth: 1,

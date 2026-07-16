@@ -248,8 +248,8 @@ export const fetchMyFeedback = async () => {
   return response.data || [];
 };
 
-export const createFeedback = async ({ message }) => {
-  const response = await apiFetch("/api/feedback", { method: "POST", body: { message } });
+export const createFeedback = async ({ message, allowPublicSharing }) => {
+  const response = await apiFetch("/api/feedback", { method: "POST", body: { message, allowPublicSharing } });
   return response.data;
 };
 
