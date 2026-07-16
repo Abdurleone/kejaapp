@@ -8,6 +8,12 @@ import {
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { assertValidTransition } from "../utils/statusTransitions.js";
+
+const allowedFromByTarget = {
+  responded: ["open"],
+  closed: ["open", "responded"],
+};
 
 const populateInquiry = (query) =>
   query
@@ -127,6 +133,7 @@ const updateInquiry = asyncHandler(async (req, res) => {
   }
 
   ensureInquiryManager(inquiry, req.user);
+  assertValidTransition(inquiry.status, req.body.status, allowedFromByTarget);
 
   inquiry.status = req.body.status;
   inquiry.response = req.body.response;

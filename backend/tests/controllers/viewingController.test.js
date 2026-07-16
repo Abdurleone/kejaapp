@@ -6,6 +6,8 @@ import {
   listMyViewingRequests,
   updateViewingRequestStatus,
 } from "../../controllers/viewingController.js";
+import DeviceToken from "../../models/DeviceToken.js";
+import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
 import ViewingRequest from "../../models/ViewingRequest.js";
 
@@ -157,6 +159,72 @@ describe("viewingController", () => {
 
     assert.equal(nextError.statusCode, 404);
     assert.equal(nextError.message, "Viewing request not found");
+  });
+
+  it("approves a pending viewing request", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const viewingRequest = {
+      _id: new mongoose.Types.ObjectId(),
+      requester: new mongoose.Types.ObjectId(),
+      owner: ownerId,
+      property: new mongoose.Types.ObjectId(),
+      status: "pending",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(ViewingRequest, "findById", () => ({
+      populate: async () => viewingRequest,
+    }));
+    mock.method(DeviceToken, "find", async () => []);
+    mock.method(Notification, "create", async (payload) => payload);
+
+    const req = {
+      body: { status: "approved" },
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await updateViewingRequestStatus(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(viewingRequest.status, "approved");
+  });
+
+  it("rejects approving a viewing request that was already rejected", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const viewingRequest = {
+      requester: new mongoose.Types.ObjectId(),
+      owner: ownerId,
+      status: "rejected",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(ViewingRequest, "findById", () => ({
+      populate: async () => viewingRequest,
+    }));
+
+    const req = {
+      body: { status: "approved" },
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await updateViewingRequestStatus(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.match(nextError.message, /Cannot change status from "rejected" to "approved"/);
+    assert.equal(viewingRequest.status, "rejected");
   });
 
   it("paginates a tenant's own viewing requests with default page/limit", async () => {
