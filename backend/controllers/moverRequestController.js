@@ -8,6 +8,14 @@ import {
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { haversineDistanceKm } from "../utils/propertyFilters.js";
+import { assertValidTransition } from "../utils/statusTransitions.js";
+
+const allowedFromByTarget = {
+  accepted: ["pending"],
+  declined: ["pending"],
+  cancelled: ["pending", "accepted"],
+  completed: ["accepted"],
+};
 
 const populatePaths = [
   { path: "mover", select: "name phone email serviceTypes location basePrice ratingAverage" },
@@ -113,6 +121,8 @@ const updateMoverRequestStatus = asyncHandler(async (req, res) => {
   } else if (!isMover) {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to manage this mover request");
   }
+
+  assertValidTransition(moverRequest.status, req.body.status, allowedFromByTarget);
 
   moverRequest.status = req.body.status;
   moverRequest.response = req.body.response;

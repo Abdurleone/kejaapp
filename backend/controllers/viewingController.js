@@ -8,8 +8,16 @@ import {
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { assertValidTransition } from "../utils/statusTransitions.js";
 
 const activeViewingStatuses = ["pending", "approved"];
+
+const allowedFromByTarget = {
+  approved: ["pending"],
+  rejected: ["pending"],
+  cancelled: ["pending", "approved"],
+  completed: ["approved"],
+};
 
 const populateViewingRequest = (query) =>
   query
@@ -134,6 +142,8 @@ const updateViewingRequestStatus = asyncHandler(async (req, res) => {
   } else if (!isOwner) {
     throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to manage this viewing request");
   }
+
+  assertValidTransition(viewingRequest.status, req.body.status, allowedFromByTarget);
 
   viewingRequest.status = req.body.status;
   viewingRequest.decisionReason = req.body.reason;
