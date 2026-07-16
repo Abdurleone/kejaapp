@@ -48,8 +48,28 @@ describe("FeedbackScreen", () => {
     fireEvent.press(getByText("Submit feedback"));
 
     await waitFor(() => expect(getByText("Thanks for sharing! We will be in touch.")).toBeTruthy());
-    expect(createFeedback).toHaveBeenCalledWith({ message: "Loved it!" });
+    expect(createFeedback).toHaveBeenCalledWith({ message: "Loved it!", allowPublicSharing: false });
     expect(getByText("Loved it!")).toBeTruthy();
+  });
+
+  it("passes allowPublicSharing: true when the opt-in switch is toggled on", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { role: "tenant" } });
+    fetchMyFeedback.mockResolvedValue([]);
+    createFeedback.mockResolvedValue({ _id: "f2", message: "Great!", status: "open" });
+
+    const { getByText, getByPlaceholderText, getByRole } = await render(<FeedbackScreen />);
+
+    await waitFor(() => expect(getByText("Share your experience")).toBeTruthy());
+
+    const input = getByPlaceholderText("Tell us how KejaApp helped you find your next home...");
+    fireEvent.changeText(input, "Great!");
+    await waitFor(() => expect(input.props.value).toBe("Great!"));
+    fireEvent.press(getByRole("checkbox"));
+    await waitFor(() => expect(getByRole("checkbox").props.accessibilityState.checked).toBe(true));
+    fireEvent.press(getByText("Submit feedback"));
+
+    await waitFor(() => expect(getByText("Thanks for sharing! We will be in touch.")).toBeTruthy());
+    expect(createFeedback).toHaveBeenCalledWith({ message: "Great!", allowPublicSharing: true });
   });
 
   it("lets an admin respond to a submitted feedback item", async () => {

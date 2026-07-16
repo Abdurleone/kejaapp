@@ -27,6 +27,10 @@ const feedbackSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    allowPublicSharing: {
+      type: Boolean,
+      default: false,
+    },
     response: {
       message: {
         type: String,

@@ -35,9 +35,26 @@ describe("FeedbackPage - submitter view", () => {
     await user.type(screen.getByLabelText("Your feedback"), "Loved using this app!");
     await user.click(screen.getByRole("button", { name: "Submit feedback" }));
 
-    expect(createFeedback).toHaveBeenCalledWith({ message: "Loved using this app!" });
+    expect(createFeedback).toHaveBeenCalledWith({ message: "Loved using this app!", allowPublicSharing: false });
     expect(await screen.findByText("Thanks for sharing! We'll be in touch.")).toBeInTheDocument();
     expect(screen.getByText("Loved using this app!")).toBeInTheDocument();
+  });
+
+  it("passes allowPublicSharing: true when the opt-in checkbox is checked", async () => {
+    fetchMyFeedback.mockResolvedValue([]);
+    createFeedback.mockResolvedValue({ _id: "fb-2", message: "Great app!", status: "open" });
+    const user = userEvent.setup();
+
+    renderWithAuth(<FeedbackPage />, { currentUser: { role: "tenant" } });
+    await screen.findByText("You haven't submitted any feedback yet.");
+
+    await user.type(screen.getByLabelText("Your feedback"), "Great app!");
+    await user.click(
+      screen.getByLabelText("Allow this to be shown as a testimonial on our landing page if an admin responds"),
+    );
+    await user.click(screen.getByRole("button", { name: "Submit feedback" }));
+
+    expect(createFeedback).toHaveBeenCalledWith({ message: "Great app!", allowPublicSharing: true });
   });
 
   it("renders previously submitted feedback with its status and any admin response", async () => {
