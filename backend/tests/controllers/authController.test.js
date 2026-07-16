@@ -118,6 +118,8 @@ describe("authController", () => {
     mock.method(Property, "find", () => ({
       select: async () => [],
     }));
+    mock.method(Review, "distinct", async () => []);
+    mock.method(Review, "updatePropertyRating", async () => {});
 
     // Each property-referencing model now gets deleteMany called twice - once
     // from the shared cascade registry (property-ownership side) and once
@@ -208,6 +210,8 @@ describe("authController", () => {
     mock.method(Property, "find", () => ({
       select: async () => ownedProperties,
     }));
+    mock.method(Review, "distinct", async () => []);
+    mock.method(Review, "updatePropertyRating", async () => {});
 
     for (const Model of [
       AuthSession,
@@ -243,6 +247,61 @@ describe("authController", () => {
     });
 
     assert.equal(res.statusCode, 200);
+  });
+
+  it("recomputes ratings for other owners' properties this user reviewed, but not their own (soon-deleted) properties", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const ownPropertyId = new mongoose.Types.ObjectId();
+    const otherOwnerPropertyId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      async deleteOne() {},
+    };
+
+    mock.method(User, "findById", async () => user);
+    mock.method(Property, "find", () => ({
+      select: async () => [{ _id: ownPropertyId, images: [] }],
+    }));
+    mock.method(Review, "distinct", async () => [ownPropertyId, otherOwnerPropertyId]);
+
+    for (const Model of [
+      AuthSession,
+      Favorite,
+      Inquiry,
+      ViewingRequest,
+      Review,
+      Notification,
+      AgencyVerification,
+      PropertyImageFingerprint,
+      UserViolation,
+      UserStatusLog,
+      Property,
+      Mover,
+      MoverVerification,
+      MoverRequest,
+      Feedback,
+      SavedSearch,
+      DeviceToken,
+    ]) {
+      mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
+    }
+    mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
+
+    const recomputedIds = [];
+    mock.method(Review, "updatePropertyRating", async (propertyId) => {
+      recomputedIds.push(propertyId);
+    });
+
+    const req = { user: { _id: userId } };
+    const res = createResponse();
+
+    await deleteCurrentUser(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(recomputedIds, [otherOwnerPropertyId]);
   });
 
   it("rejects password changes with the wrong current password", async () => {
