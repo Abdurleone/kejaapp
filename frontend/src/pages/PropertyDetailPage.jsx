@@ -41,7 +41,7 @@ const minScheduledDateTime = () => {
 };
 
 export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
-  const { currentUser } = useAuth();
+  const { currentUser, signedIn } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -95,6 +95,10 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   }, [propertyId]);
 
   useEffect(() => {
+    if (!signedIn) {
+      return undefined;
+    }
+
     let active = true;
 
     fetchFavorites()
@@ -109,7 +113,7 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
     return () => {
       active = false;
     };
-  }, [propertyId]);
+  }, [propertyId, signedIn]);
 
   useEffect(() => {
     let active = true;
