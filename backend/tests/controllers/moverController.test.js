@@ -61,7 +61,7 @@ describe("moverController", () => {
     const expectedData = [{ name: "SwiftMove Nairobi" }];
     const query = {
       sort(sortValue) {
-        assert.equal(sortValue, "-verified -ratingAverage name");
+        assert.equal(sortValue, "-verified name");
         return this;
       },
       skip() {

@@ -183,7 +183,7 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
-  const [filters, setFilters] = useState({ serviceType: "", county: "", minRating: "", maxBasePrice: "" });
+  const [filters, setFilters] = useState({ serviceType: "", county: "", maxBasePrice: "" });
 
   useEffect(() => {
     let active = true;
@@ -238,15 +238,6 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
           <label className="radius-control">
             County
             <input type="text" value={filters.county} onChange={handleFilterChange("county")} placeholder="Nairobi" />
-          </label>
-          <label className="radius-control">
-            Min rating
-            <select value={filters.minRating} onChange={handleFilterChange("minRating")}>
-              <option value="">Any rating</option>
-              <option value="3">3+</option>
-              <option value="4">4+</option>
-              <option value="4.5">4.5+</option>
-            </select>
           </label>
         </div>
       </div>

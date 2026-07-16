@@ -68,12 +68,6 @@ const buildMoverFilters = (query) => {
     filters.verified = query.verified === "true";
   }
 
-  if (query.minRating) {
-    filters.ratingAverage = {
-      $gte: parseNumberFilter(query.minRating, "minRating"),
-    };
-  }
-
   if (query.maxBasePrice) {
     filters.basePrice = {
       $lte: parseNumberFilter(query.maxBasePrice, "maxBasePrice"),
@@ -120,7 +114,7 @@ const listMovers = asyncHandler(async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
   const skip = (page - 1) * limit;
   const filters = buildMoverFilters(req.query);
-  const sort = req.query.sort || "-verified -ratingAverage name";
+  const sort = req.query.sort || "-verified name";
 
   const [movers, total] = await Promise.all([
     Mover.find(filters).sort(sort).skip(skip).limit(limit),
