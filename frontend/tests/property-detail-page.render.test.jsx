@@ -38,7 +38,7 @@ const renderDetailPage = (props = {}) => {
 
   return renderWithAuth(
     <PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={props.onBack ?? vi.fn()} />,
-    { currentUser: props.currentUser ?? null }
+    { currentUser: props.currentUser ?? null, signedIn: props.signedIn ?? false }
   );
 };
 
@@ -95,6 +95,22 @@ describe("PropertyDetailPage", () => {
 
     expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
     expect(screen.getByText("Verified agency")).toBeInTheDocument();
+  });
+
+  it("does not check favorites for a signed-out visitor (would be a guaranteed 401)", async () => {
+    renderDetailPage({ signedIn: false });
+
+    await screen.findByText("Modern Kilimani Apartment");
+
+    expect(fetchFavorites).not.toHaveBeenCalled();
+  });
+
+  it("checks favorites for a signed-in visitor", async () => {
+    renderDetailPage({ signedIn: true, currentUser: { _id: "tenant-1", role: "tenant" } });
+
+    await screen.findByText("Modern Kilimani Apartment");
+
+    await waitFor(() => expect(fetchFavorites).toHaveBeenCalledTimes(1));
   });
 
   it("does not show a Verified agency badge for an unverified agency", async () => {
