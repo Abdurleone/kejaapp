@@ -1,5 +1,6 @@
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
+import { invalidateNamespace } from "../middlewares/responseCache.js";
 import AgencyVerification from "../models/AgencyVerification.js";
 import AuthSession from "../models/AuthSession.js";
 import DeviceToken from "../models/DeviceToken.js";
@@ -253,6 +254,20 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
   const ownedProperties = await Property.find({ owner: userId }).select("_id images");
   const ownedPropertyIds = ownedProperties.map((property) => property._id);
 
+  // Deleting this user's own reviews (below) via deleteMany skips Review's
+  // post("deleteOne") hook that recalculates a property's rating - so any
+  // review they left on someone *else's* still-existing property would
+  // leave that property's ratingAverage/ratingCount stale forever. Capture
+  // which other-owned properties are affected before deleting, so their
+  // ratings can be recomputed afterward (properties this user owns
+  // themselves are being deleted too - no point recomputing those).
+  const reviewCleanupFilter = { $or: [{ user: userId }, { "ownerResponse.respondedBy": userId }] };
+  const reviewAffectedPropertyIds = await Review.distinct("property", reviewCleanupFilter);
+  const ownedPropertyIdSet = new Set(ownedPropertyIds.map((id) => id.toString()));
+  const otherOwnersAffectedPropertyIds = reviewAffectedPropertyIds.filter(
+    (propertyId) => !ownedPropertyIdSet.has(propertyId.toString())
+  );
+
   // Property-referencing models cascade off the same shared registry
   // deleteProperty uses (services/propertyCascadeService.js), scoped to every
   // property this user owns. Each of these models also has actor fields with
@@ -270,9 +285,7 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
     ViewingRequest.deleteMany({
       $or: [{ requester: userId }, { owner: userId }, { reviewedBy: userId }],
     }),
-    Review.deleteMany({
-      $or: [{ user: userId }, { "ownerResponse.respondedBy": userId }],
-    }),
+    Review.deleteMany(reviewCleanupFilter),
     Notification.deleteMany({ user: userId }),
     AgencyVerification.deleteMany({
       $or: [
@@ -314,6 +327,16 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
     SavedSearch.deleteMany({ user: userId }),
     DeviceToken.deleteMany({ user: userId }),
   ]);
+
+  await Promise.all(
+    otherOwnersAffectedPropertyIds.map((propertyId) => Review.updatePropertyRating(propertyId))
+  );
+
+  // The cascade above deletes/mutates properties and ratings but never
+  // invalidated the response cache backing GET /api/properties(/:id) -
+  // without this, a deleted property or a just-recomputed rating could
+  // keep serving stale cached data for up to the cache's TTL.
+  await invalidateNamespace("properties");
 
   await user.deleteOne();
 
