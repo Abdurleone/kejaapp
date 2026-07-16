@@ -5,6 +5,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [markingId, setMarkingId] = useState(null);
@@ -36,12 +37,13 @@ export default function NotificationsPage() {
 
   const handleMarkAllRead = async () => {
     setMarkingAll(true);
+    setActionError("");
 
     try {
       await markAllNotificationsAsRead();
       setNotifications((current) => (unreadOnly ? [] : current.map((item) => ({ ...item, isRead: true }))));
     } catch (err) {
-      setError(err.message || "Could not mark all notifications as read.");
+      setActionError(err.message || "Could not mark all notifications as read.");
     } finally {
       setMarkingAll(false);
     }
@@ -49,6 +51,7 @@ export default function NotificationsPage() {
 
   const handleMarkRead = async (notificationId) => {
     setMarkingId(notificationId);
+    setActionError("");
 
     try {
       const updated = await markNotificationAsRead(notificationId);
@@ -58,7 +61,7 @@ export default function NotificationsPage() {
           : current.map((item) => (item._id === notificationId ? updated : item)),
       );
     } catch (err) {
-      setError(err.message || "Could not mark this notification as read.");
+      setActionError(err.message || "Could not mark this notification as read.");
     } finally {
       setMarkingId(null);
     }
@@ -87,6 +90,12 @@ export default function NotificationsPage() {
           )}
         </div>
       </div>
+
+      {actionError && (
+        <div className="panel notice-panel">
+          <p className="error-text">{actionError}</p>
+        </div>
+      )}
 
       <div className="panel stack">
         {loading ? (

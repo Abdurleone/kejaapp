@@ -97,11 +97,7 @@ describe("SavedPage", () => {
     await waitFor(() => expect(screen.queryByText("Modern Kilimani Apartment")).not.toBeInTheDocument());
   });
 
-  it("shows an error state (replacing the whole list) when removing a favorite fails", async () => {
-    // Note: setting `error` here reuses the same top-level conditional as the
-    // initial-load error state, so a failed removal swaps out the *entire*
-    // grid for the error panel + Retry - not just an inline error on the
-    // one card - even though the other saved listings loaded successfully.
+  it("shows an inline error when removing a favorite fails, without hiding the rest of the list", async () => {
     fetchFavorites.mockResolvedValue([sampleFavorite]);
     removeFavorite.mockRejectedValue(new Error("Unable to remove favorite."));
     const user = userEvent.setup();
@@ -112,6 +108,8 @@ describe("SavedPage", () => {
     await user.click(screen.getByRole("button", { name: "Remove" }));
 
     expect(await screen.findByText("Unable to remove favorite.")).toBeInTheDocument();
-    expect(screen.queryByText("Modern Kilimani Apartment")).not.toBeInTheDocument();
+    // The card stays visible - a failed action no longer nukes the whole grid.
+    expect(screen.getByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
   });
 });

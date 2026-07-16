@@ -6,6 +6,7 @@ export default function SavedPage({ onOpenProperty }) {
   const [saved, setSaved] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [removingPropertyId, setRemovingPropertyId] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
 
@@ -40,6 +41,12 @@ export default function SavedPage({ onOpenProperty }) {
           <p>Review rentals you&apos;ve bookmarked for easy comparison.</p>
         </div>
       </div>
+
+      {actionError && (
+        <div className="panel notice-panel">
+          <p className="error-text">{actionError}</p>
+        </div>
+      )}
 
       {loading ? (
         <PropertyCardSkeletonGrid compact />
@@ -78,14 +85,14 @@ export default function SavedPage({ onOpenProperty }) {
                       type="button"
                       disabled={removingPropertyId === propertyId}
                       onClick={async () => {
-                        setError("");
+                        setActionError("");
                         setRemovingPropertyId(propertyId);
 
                         try {
                           await removeFavorite(propertyId);
                           setSaved((current) => current.filter((favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId));
                         } catch (err) {
-                          setError(err.message || "Unable to remove favorite.");
+                          setActionError(err.message || "Unable to remove favorite.");
                         } finally {
                           setRemovingPropertyId(null);
                         }

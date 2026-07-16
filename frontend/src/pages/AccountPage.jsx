@@ -24,6 +24,7 @@ function SavedSearchesPanel() {
   const [savedSearches, setSavedSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -53,12 +54,13 @@ function SavedSearchesPanel() {
 
   const handleDelete = async (savedSearchId) => {
     setDeletingId(savedSearchId);
+    setActionError("");
 
     try {
       await deleteSavedSearch(savedSearchId);
       setSavedSearches((current) => current.filter((item) => item._id !== savedSearchId));
     } catch (err) {
-      setError(err.message || "Could not delete this saved search.");
+      setActionError(err.message || "Could not delete this saved search.");
     } finally {
       setDeletingId(null);
     }
@@ -68,6 +70,7 @@ function SavedSearchesPanel() {
     <div className="panel stack">
       <h3>Saved searches</h3>
       <p className="muted-copy">We&apos;ll notify you when a new listing matches one of these.</p>
+      {actionError && <p className="error-text">{actionError}</p>}
       {loading ? (
         <div className="stack" role="status" aria-label="Loading saved searches" aria-hidden="true">
           <span className="skeleton skeleton-line skeleton-line--full" />
