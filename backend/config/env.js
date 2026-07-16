@@ -249,6 +249,14 @@ const env = {
     14,
     "REVIEW_PROMPT_LOOKBACK_DAYS"
   ),
+  // "Open" viewings (no fixed date - approved immediately, visit anytime) have
+  // no requestedDate to anchor a review prompt on, unlike scheduled ones. This
+  // is how long after creation one is assumed to have actually happened.
+  openViewingCompletionDelayMs: parseHoursToMs(
+    process.env.OPEN_VIEWING_COMPLETION_DELAY_HOURS,
+    48,
+    "OPEN_VIEWING_COMPLETION_DELAY_HOURS"
+  ),
 };
 
 export default env;
