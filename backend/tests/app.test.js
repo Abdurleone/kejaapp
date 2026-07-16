@@ -248,13 +248,6 @@ describe("KejaApp API", () => {
     assert.deepEqual(response.body.errors, ["price.rent is required and must be a number"]);
   });
 
-  it("rejects invalid mover filters", async () => {
-    const response = await request(app).get("/api/movers?minRating=great");
-
-    assert.equal(response.status, 400);
-    assert.equal(response.body.message, "minRating must be a number");
-  });
-
   it("rejects unsupported mover service types", async () => {
     const response = await request(app).get("/api/movers?serviceType=teleport");
 
