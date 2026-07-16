@@ -108,9 +108,9 @@ function SubmitFeedbackPanel() {
       <div className="panel stack">
         <h3>Your submissions</h3>
         {loading ? (
-          <div className="stack" role="status" aria-label="Loading your feedback" aria-hidden="true">
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
+          <div className="stack" role="status" aria-label="Loading your feedback">
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
           </div>
         ) : error ? (
           <div className="stack">
@@ -209,10 +209,10 @@ function AdminFeedbackPanel() {
 
       <div className="panel stack">
         {loading ? (
-          <div className="stack" role="status" aria-label="Loading feedback" aria-hidden="true">
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
+          <div className="stack" role="status" aria-label="Loading feedback">
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
           </div>
         ) : error ? (
           <div className="stack">

@@ -36,6 +36,14 @@ describe("NotificationsPage", () => {
     expect(screen.getByText("Modern Kilimani Apartment received a new inquiry.")).toBeInTheDocument();
   });
 
+  it("exposes the loading state as an accessible status region, not hidden by aria-hidden", () => {
+    fetchNotifications.mockReturnValue(new Promise(() => {})); // never resolves - stays in loading state
+
+    render(<NotificationsPage />);
+
+    expect(screen.getByRole("status", { name: "Loading notifications" })).toBeInTheDocument();
+  });
+
   it("shows an inline error when marking a notification as read fails, without hiding the rest of the list", async () => {
     fetchNotifications.mockResolvedValue([sampleNotification]);
     markNotificationAsRead.mockRejectedValue(new Error("Could not mark this notification as read."));

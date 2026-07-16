@@ -84,10 +84,10 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
 
   if (loading) {
     return (
-      <div className="panel detail-panel stack" role="status" aria-label="Loading user" aria-hidden="true">
-        <span className="skeleton skeleton-line skeleton-line--title" />
-        <span className="skeleton skeleton-line skeleton-line--md" />
-        <span className="skeleton skeleton-line skeleton-line--full" />
+      <div className="panel detail-panel stack" role="status" aria-label="Loading user">
+        <span className="skeleton skeleton-line skeleton-line--title" aria-hidden="true" />
+        <span className="skeleton skeleton-line skeleton-line--md" aria-hidden="true" />
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
       </div>
     );
   }
@@ -257,10 +257,10 @@ function AdminReviewsPanel() {
 
   if (loading) {
     return (
-      <div className="stack" role="status" aria-label="Loading reviews" aria-hidden="true">
-        <span className="skeleton skeleton-line skeleton-line--full" />
-        <span className="skeleton skeleton-line skeleton-line--full" />
-        <span className="skeleton skeleton-line skeleton-line--full" />
+      <div className="stack" role="status" aria-label="Loading reviews">
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
       </div>
     );
   }
@@ -418,10 +418,10 @@ export default function AdminPage() {
         </div>
 
         {loading ? (
-          <div className="stack" role="status" aria-label="Loading users" aria-hidden="true">
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
+          <div className="stack" role="status" aria-label="Loading users">
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
           </div>
         ) : error ? (
           <div className="stack">

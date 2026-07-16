@@ -243,9 +243,9 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
       </div>
 
       {loading ? (
-        <div className="stack" role="status" aria-label="Loading movers" aria-hidden="true">
-          <span className="skeleton skeleton-line skeleton-line--full" />
-          <span className="skeleton skeleton-line skeleton-line--full" />
+        <div className="stack" role="status" aria-label="Loading movers">
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
         </div>
       ) : error ? (
         <div className="panel">
@@ -582,9 +582,9 @@ function MoverDashboard() {
       </div>
 
       {loading ? (
-        <div className="stack" role="status" aria-label="Loading your mover dashboard" aria-hidden="true">
-          <span className="skeleton skeleton-line skeleton-line--full" />
-          <span className="skeleton skeleton-line skeleton-line--full" />
+        <div className="stack" role="status" aria-label="Loading your mover dashboard">
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
         </div>
       ) : error ? (
         <div className="panel">

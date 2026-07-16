@@ -17,6 +17,7 @@ KejaApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Lev
 - **Color contrast**: the app uses a single, fixed Kenyan-flag-derived color palette with an explicit light/dark mode toggle, chosen in part for consistent contrast rather than a large, harder-to-audit theme surface.
 - **Responsive layout**: the web frontend adapts from desktop to phone-width layouts without horizontal scrolling or overlapping controls, and `KeyboardAvoidingView` is used on mobile forms so the on-screen keyboard doesn't obscure input fields.
 - **Error/empty states**: pages that could previously dead-end silently on failure now show a visible error state with a retry action, rather than leaving a screen reader user on an unexplained blank screen.
+- **Loading-state announcements**: every loading skeleton across the app uses `role="status"` with a descriptive `aria-label`, and `aria-hidden` is applied only to the decorative placeholder shapes inside it, not the status region itself - a general health-check pass found 11 spots where `aria-hidden` had been placed on the same element as `role="status"`, which silently removed the loading announcement from the accessibility tree entirely; all 11 now follow the pattern the property-listing skeleton already used correctly.
 
 ## 4. Known gaps
 
