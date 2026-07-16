@@ -81,6 +81,27 @@ describe("AdminPage", () => {
     );
   });
 
+  it("debounces the search input instead of fetching per keystroke", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+
+    const callCountBeforeTyping = fetchAdminUsers.mock.calls.length;
+
+    // A single change is enough to prove the fetch is debounced rather than
+    // firing once per keystroke - typing "jane" is 4 keystrokes, but only
+    // one additional fetch (for the final settled value) should follow.
+    await user.type(screen.getByPlaceholderText("Search by name, email, or phone"), "jane");
+
+    await waitFor(() =>
+      expect(fetchAdminUsers).toHaveBeenLastCalledWith(expect.objectContaining({ search: "jane" }))
+    );
+
+    expect(fetchAdminUsers.mock.calls.length).toBe(callCountBeforeTyping + 1);
+  });
+
   it("shows the empty state when no users match", async () => {
     fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
 
