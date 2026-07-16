@@ -7,8 +7,10 @@ import {
   listReceivedMoverRequests,
   updateMoverRequestStatus,
 } from "../../controllers/moverRequestController.js";
+import DeviceToken from "../../models/DeviceToken.js";
 import Mover from "../../models/Mover.js";
 import MoverRequest from "../../models/MoverRequest.js";
+import Notification from "../../models/Notification.js";
 
 const createResponse = () => ({
   body: null,
@@ -231,5 +233,64 @@ describe("moverRequestController", () => {
 
     assert.equal(nextError.statusCode, 403);
     assert.equal(nextError.message, "Not authorized to manage this mover request");
+  });
+
+  it("accepts a pending mover request", async () => {
+    const moverAccountId = new mongoose.Types.ObjectId();
+    const moverRequest = {
+      _id: new mongoose.Types.ObjectId(),
+      mover: new mongoose.Types.ObjectId(),
+      tenant: new mongoose.Types.ObjectId(),
+      moverAccount: moverAccountId,
+      status: "pending",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(MoverRequest, "findById", async () => moverRequest);
+    mock.method(DeviceToken, "find", async () => []);
+    mock.method(Notification, "create", async (payload) => payload);
+
+    const req = {
+      body: { status: "accepted" },
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: moverAccountId },
+    };
+    const res = createResponse();
+
+    await updateMoverRequestStatus(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(moverRequest.status, "accepted");
+  });
+
+  it("rejects accepting a mover request that was already declined", async () => {
+    const moverAccountId = new mongoose.Types.ObjectId();
+    const moverRequest = {
+      tenant: new mongoose.Types.ObjectId(),
+      moverAccount: moverAccountId,
+      status: "declined",
+      async save() {},
+    };
+    mock.method(MoverRequest, "findById", async () => moverRequest);
+
+    const req = {
+      body: { status: "accepted" },
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: moverAccountId },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await updateMoverRequestStatus(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.match(nextError.message, /Cannot change status from "declined" to "accepted"/);
+    assert.equal(moverRequest.status, "declined");
   });
 });

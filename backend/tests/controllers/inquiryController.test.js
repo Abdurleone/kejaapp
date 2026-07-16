@@ -7,7 +7,9 @@ import {
   listReceivedInquiries,
   updateInquiry,
 } from "../../controllers/inquiryController.js";
+import DeviceToken from "../../models/DeviceToken.js";
 import Inquiry from "../../models/Inquiry.js";
+import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
 
 // Chainable, thenable stand-in for a Mongoose Query - resolves to `result`
@@ -133,6 +135,71 @@ describe("inquiryController", () => {
 
     assert.equal(nextError.statusCode, 403);
     assert.equal(nextError.message, "Not authorized to manage this inquiry");
+  });
+
+  it("responds to an open inquiry", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const inquiry = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: ownerId,
+      sender: new mongoose.Types.ObjectId(),
+      property: { _id: new mongoose.Types.ObjectId(), title: "Modern Kilimani Apartment" },
+      status: "open",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Inquiry, "findById", () => ({
+      populate: async () => inquiry,
+    }));
+    mock.method(DeviceToken, "find", async () => []);
+    mock.method(Notification, "create", async (payload) => payload);
+
+    const req = {
+      body: { status: "responded", response: "Yes, it is available." },
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await updateInquiry(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(inquiry.status, "responded");
+  });
+
+  it("rejects responding to an inquiry that is already closed", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const inquiry = {
+      owner: ownerId,
+      status: "closed",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Inquiry, "findById", () => ({
+      populate: async () => inquiry,
+    }));
+
+    const req = {
+      body: { status: "responded", response: "Yes, it is available." },
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await updateInquiry(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.match(nextError.message, /Cannot change status from "closed" to "responded"/);
+    assert.equal(inquiry.status, "closed");
   });
 
   it("paginates a tenant's own inquiries with default page/limit", async () => {
