@@ -1,4 +1,5 @@
 import Notification from "../models/Notification.js";
+import { logError } from "../utils/logger.js";
 import { sendPushNotifications } from "./pushNotificationService.js";
 
 const createNotification = async (payload) => {
@@ -11,7 +12,7 @@ const createNotification = async (payload) => {
       data: payload.data,
     });
   } catch (error) {
-    console.error(`Push notification failed: ${error.message}`);
+    logError(`Push notification failed: ${error.message}`);
   }
 
   return notification;

@@ -335,11 +335,15 @@ describe("notificationService", () => {
     create.mock.restore();
   });
 
-  it("still creates the notification even when sending a push notification fails", async () => {
+  it("still creates the notification even when sending a push notification fails, and logs it (via the shared logger, which also calls console.error)", async () => {
     mock.method(Notification, "create", async (payload) => payload);
     mock.method(DeviceToken, "find", async () => [{ token: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }]);
     mock.method(Expo.prototype, "sendPushNotificationsAsync", async () => {
       throw new Error("Expo push service unreachable");
+    });
+    const consoleErrorCalls = [];
+    mock.method(console, "error", (message) => {
+      consoleErrorCalls.push(message);
     });
 
     const notification = await notifyFeedbackResponded({
@@ -349,6 +353,7 @@ describe("notificationService", () => {
     });
 
     assert.equal(notification.type, "feedback");
+    assert.ok(consoleErrorCalls.some((message) => /Push notification failed: Expo push service unreachable/.test(message)));
     // Restore the DeviceToken mock back to the no-tokens default for any later tests.
     mock.method(DeviceToken, "find", async () => []);
   });
