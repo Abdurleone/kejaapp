@@ -13,11 +13,27 @@ const run = async () => {
   // years-old viewings into everyone's inbox the moment it resumes.
   const lookbackStart = new Date(now.getTime() - env.reviewPromptLookbackMs);
 
-  const pastViewings = await ViewingRequest.find({
+  const scheduledViewings = await ViewingRequest.find({
     status: "approved",
     requestedDate: { $lt: now, $gte: lookbackStart },
     reviewPromptSentAt: null,
   }).populate("property", "title");
+
+  // "Open" viewings (property.viewingType === "open") are auto-approved with
+  // no requestedDate at all - there's no future date to wait out, so they'd
+  // otherwise never match the query above and would sit at "approved"
+  // forever, with the tenant never nudged for a review. Treat one as likely
+  // completed once it's old enough that a visit would plausibly have
+  // happened, anchored on createdAt instead of the requestedDate they don't have.
+  const openViewingCutoff = new Date(now.getTime() - env.openViewingCompletionDelayMs);
+  const openViewings = await ViewingRequest.find({
+    status: "approved",
+    requestedDate: null,
+    createdAt: { $lt: openViewingCutoff, $gte: lookbackStart },
+    reviewPromptSentAt: null,
+  }).populate("property", "title");
+
+  const pastViewings = [...scheduledViewings, ...openViewings];
 
   for (const viewingRequest of pastViewings) {
     const alreadyReviewed = await Review.exists({
