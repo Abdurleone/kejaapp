@@ -72,8 +72,8 @@ function SavedSearchesPanel() {
       <p className="muted-copy">We&apos;ll notify you when a new listing matches one of these.</p>
       {actionError && <p className="error-text">{actionError}</p>}
       {loading ? (
-        <div className="stack" role="status" aria-label="Loading saved searches" aria-hidden="true">
-          <span className="skeleton skeleton-line skeleton-line--full" />
+        <div className="stack" role="status" aria-label="Loading saved searches">
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
         </div>
       ) : error ? (
         <div className="stack">
