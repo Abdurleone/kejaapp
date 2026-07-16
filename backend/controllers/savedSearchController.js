@@ -2,6 +2,7 @@ import httpStatus from "../constants/httpStatus.js";
 import SavedSearch from "../models/SavedSearch.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 
 const isValidLatitude = (value) => typeof value === "number" && value >= -90 && value <= 90;
 const isValidLongitude = (value) => typeof value === "number" && value >= -180 && value <= 180;
@@ -47,10 +48,17 @@ const createSavedSearch = asyncHandler(async (req, res) => {
 });
 
 const listMySavedSearches = asyncHandler(async (req, res) => {
-  const savedSearches = await SavedSearch.find({ user: req.user._id }).sort("-createdAt");
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const filters = { user: req.user._id };
+
+  const [savedSearches, total] = await Promise.all([
+    SavedSearch.find(filters).sort("-createdAt").skip(skip).limit(limit),
+    SavedSearch.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: savedSearches,
+    pagination: formatPagination(page, limit, total),
   });
 });
 

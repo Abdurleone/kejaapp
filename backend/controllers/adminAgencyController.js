@@ -4,22 +4,30 @@ import User from "../models/User.js";
 import { invalidateNamespace } from "../middlewares/responseCache.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 import { notifyAgencyVerificationDecision } from "../services/notificationService.js";
 
 const listAgencyVerifications = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const filters = {};
 
   if (req.query.status) {
     filters.status = req.query.status;
   }
 
-  const verifications = await AgencyVerification.find(filters)
-    .populate("user", "name email role phone")
-    .populate("reviewedBy", "name email role")
-    .sort("-createdAt");
+  const [verifications, total] = await Promise.all([
+    AgencyVerification.find(filters)
+      .populate("user", "name email role phone")
+      .populate("reviewedBy", "name email role")
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit),
+    AgencyVerification.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: verifications,
+    pagination: formatPagination(page, limit, total),
   });
 });
 

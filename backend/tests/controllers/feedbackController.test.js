@@ -30,6 +30,12 @@ const createFeedbackQuery = (feedback) => ({
     return this;
   },
   sort() {
+    return this;
+  },
+  skip() {
+    return this;
+  },
+  limit() {
     return Promise.resolve(feedback);
   },
 });
@@ -82,6 +88,7 @@ describe("feedbackController", () => {
       filters = query;
       return createFeedbackQuery([]);
     });
+    mock.method(Feedback, "countDocuments", async () => 0);
 
     const req = { user: { _id: submitterId } };
     const res = createResponse();
@@ -93,6 +100,7 @@ describe("feedbackController", () => {
     assert.deepEqual(filters, { submitter: submitterId });
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body.data, []);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 0, pages: 0 });
   });
 
   it("lists all feedback for admins, with an optional status filter", async () => {
@@ -102,6 +110,7 @@ describe("feedbackController", () => {
       filters = query;
       return createFeedbackQuery([]);
     });
+    mock.method(Feedback, "countDocuments", async () => 0);
 
     const req = { query: { status: "pending" } };
     const res = createResponse();

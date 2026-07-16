@@ -75,6 +75,12 @@ describe("moverRequestController", () => {
         assert.equal(sortValue, "-createdAt");
         return this;
       },
+      skip() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
       populate() {
         return expectedData;
       },
@@ -84,6 +90,7 @@ describe("moverRequestController", () => {
       assert.deepEqual(filters, { tenant: tenantId });
       return query;
     });
+    mock.method(MoverRequest, "countDocuments", async () => 1);
     const req = { query: {}, user: { _id: tenantId } };
     const res = createResponse();
 
@@ -93,12 +100,19 @@ describe("moverRequestController", () => {
 
     assert.equal(find.mock.callCount(), 1);
     assert.deepEqual(res.body.data, expectedData);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 
   it("lists mover requests received by the signed-in mover", async () => {
     const expectedData = [{ status: "accepted" }];
     const query = {
       sort() {
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
         return this;
       },
       populate() {
@@ -110,6 +124,7 @@ describe("moverRequestController", () => {
       assert.deepEqual(filters, { moverAccount: moverAccountId, status: "accepted" });
       return query;
     });
+    mock.method(MoverRequest, "countDocuments", async () => 1);
     const req = { query: { status: "accepted" }, user: { _id: moverAccountId } };
     const res = createResponse();
 
@@ -118,6 +133,7 @@ describe("moverRequestController", () => {
     });
 
     assert.deepEqual(res.body.data, expectedData);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 
   it("returns not found when updating a missing mover request", async () => {
@@ -172,12 +188,19 @@ describe("moverRequestController", () => {
       sort() {
         return this;
       },
+      skip() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
       populate() {
         return expectedData;
       },
     };
     const tenantId = new mongoose.Types.ObjectId();
     mock.method(MoverRequest, "find", () => query);
+    mock.method(MoverRequest, "countDocuments", async () => 1);
     const req = { query: {}, user: { _id: tenantId } };
     const res = createResponse();
 
@@ -198,11 +221,18 @@ describe("moverRequestController", () => {
       sort() {
         return this;
       },
+      skip() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
       populate() {
         return expectedData;
       },
     };
     mock.method(MoverRequest, "find", () => query);
+    mock.method(MoverRequest, "countDocuments", async () => 1);
     const req = { query: {}, user: { _id: new mongoose.Types.ObjectId() } };
     const res = createResponse();
 
