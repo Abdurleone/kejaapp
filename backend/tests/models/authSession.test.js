@@ -25,4 +25,13 @@ describe("AuthSession model", () => {
 
     assert.ok(sessionIndex);
   });
+
+  it("has a TTL index that lets MongoDB auto-prune sessions at expiresAt, so the collection doesn't grow unbounded", () => {
+    const indexes = AuthSession.schema.indexes();
+    const ttlIndex = indexes.find(([fields]) => Object.keys(fields).length === 1 && fields.expiresAt === 1);
+
+    assert.ok(ttlIndex, "expected a dedicated single-field index on expiresAt");
+    const [, options] = ttlIndex;
+    assert.equal(options.expireAfterSeconds, 0);
+  });
 });
