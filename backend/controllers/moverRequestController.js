@@ -7,6 +7,7 @@ import {
 } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 import { haversineDistanceKm } from "../utils/propertyFilters.js";
 import { assertValidTransition } from "../utils/statusTransitions.js";
 
@@ -77,30 +78,40 @@ const createMoverRequest = asyncHandler(async (req, res) => {
 });
 
 const listMyMoverRequests = asyncHandler(async (req, res) => {
-  const statusFilter = req.query.status ? { status: req.query.status } : {};
-  const moverRequests = await populateMoverRequest(
-    MoverRequest.find({
-      tenant: req.user._id,
-      ...statusFilter,
-    }).sort("-createdAt")
-  );
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const filters = { tenant: req.user._id };
+
+  if (req.query.status) {
+    filters.status = req.query.status;
+  }
+
+  const [moverRequests, total] = await Promise.all([
+    populateMoverRequest(MoverRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    MoverRequest.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: moverRequests.map(attachDistanceKm),
+    pagination: formatPagination(page, limit, total),
   });
 });
 
 const listReceivedMoverRequests = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = parsePaginationParams(req.query);
   const filters = { moverAccount: req.user._id };
 
   if (req.query.status) {
     filters.status = req.query.status;
   }
 
-  const moverRequests = await populateMoverRequest(MoverRequest.find(filters).sort("-createdAt"));
+  const [moverRequests, total] = await Promise.all([
+    populateMoverRequest(MoverRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    MoverRequest.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: moverRequests.map(attachDistanceKm),
+    pagination: formatPagination(page, limit, total),
   });
 });
 

@@ -23,6 +23,12 @@ const createResponse = () => ({
 
 const createSavedSearchQuery = (savedSearches) => ({
   sort() {
+    return this;
+  },
+  skip() {
+    return this;
+  },
+  limit() {
     return Promise.resolve(savedSearches);
   },
 });
@@ -103,6 +109,7 @@ describe("savedSearchController", () => {
       filters = query;
       return createSavedSearchQuery([]);
     });
+    mock.method(SavedSearch, "countDocuments", async () => 0);
 
     const req = { user: { _id: userId } };
     const res = createResponse();
@@ -114,6 +121,7 @@ describe("savedSearchController", () => {
     assert.deepEqual(filters, { user: userId });
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body.data, []);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 0, pages: 0 });
   });
 
   it("deletes a saved search owned by the current user", async () => {

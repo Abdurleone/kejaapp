@@ -26,6 +26,12 @@ const createReviewQuery = (reviews) => ({
     return this;
   },
   sort() {
+    return this;
+  },
+  skip() {
+    return this;
+  },
+  limit() {
     return Promise.resolve(reviews);
   },
 });
@@ -54,6 +60,7 @@ describe("reviewController", () => {
       reviewFilters = filters;
       return createReviewQuery([]);
     });
+    mock.method(Review, "countDocuments", async () => 0);
 
     const req = {
       user: { _id: ownerId, role: "landlord" },
@@ -66,6 +73,7 @@ describe("reviewController", () => {
     assert.deepEqual(reviewFilters, { property: { $in: [propertyId] } });
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body.data, []);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 0, pages: 0 });
   });
 
   it("lets admins list all reviews without ownership filters", async () => {
@@ -75,6 +83,7 @@ describe("reviewController", () => {
       reviewFilters = filters;
       return createReviewQuery([]);
     });
+    mock.method(Review, "countDocuments", async () => 0);
 
     const req = {
       user: { _id: new mongoose.Types.ObjectId(), role: "admin" },
