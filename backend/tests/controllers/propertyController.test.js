@@ -4,6 +4,7 @@ import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   addPropertyImage,
   deleteProperty,
+  getProperty,
   listMyProperties,
   listProperties,
   listPropertyMovers,
@@ -71,6 +72,46 @@ describe("propertyController", () => {
     assert.deepEqual(findFilters, { status: "available" });
     assert.deepEqual(countFilters, { status: "available" });
     assert.equal(res.statusCode, 200);
+  });
+
+  it("does not leak the owner's email or phone on the public listing endpoint", async () => {
+    let ownerProjection;
+    mock.method(Property, "find", () => ({
+      populate(field, projection) {
+        ownerProjection = projection;
+        return this;
+      },
+      sort() {
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
+        return Promise.resolve([]);
+      },
+    }));
+    mock.method(Property, "countDocuments", () => Promise.resolve(0));
+
+    await listProperties({ query: {} }, createResponse(), () => {});
+
+    assert.doesNotMatch(ownerProjection, /email/);
+    assert.doesNotMatch(ownerProjection, /phone/);
+  });
+
+  it("does not leak the owner's email or phone on the public property-detail endpoint", async () => {
+    let ownerProjection;
+    mock.method(Property, "findById", () => ({
+      populate(field, projection) {
+        ownerProjection = projection;
+        return Promise.resolve({ _id: new mongoose.Types.ObjectId() });
+      },
+    }));
+
+    await getProperty({ params: { id: new mongoose.Types.ObjectId().toString() } }, createResponse(), () => {});
+
+    assert.doesNotMatch(ownerProjection, /email/);
+    assert.doesNotMatch(ownerProjection, /phone/);
   });
 
   it("allows explicit property status filters", async () => {
