@@ -33,6 +33,12 @@ describe("violationController", () => {
       },
       sort(sortValue) {
         assert.equal(sortValue, "-createdAt");
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
         return expectedData;
       },
     };
@@ -43,6 +49,7 @@ describe("violationController", () => {
       });
       return query;
     });
+    mock.method(UserViolation, "countDocuments", async () => 1);
     const req = {
       query: {
         status: "open",
@@ -57,6 +64,7 @@ describe("violationController", () => {
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body.data, expectedData);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 
   it("returns not found when updating a missing violation", async () => {

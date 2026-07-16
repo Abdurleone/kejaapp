@@ -34,6 +34,12 @@ describe("adminAgencyController", () => {
       },
       sort(sortValue) {
         assert.equal(sortValue, "-createdAt");
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
         return expectedData;
       },
     };
@@ -41,6 +47,7 @@ describe("adminAgencyController", () => {
       assert.deepEqual(filters, { status: "pending" });
       return query;
     });
+    mock.method(AgencyVerification, "countDocuments", async () => 1);
     const req = { query: { status: "pending" } };
     const res = createResponse();
 
@@ -51,6 +58,7 @@ describe("adminAgencyController", () => {
     assert.equal(find.mock.callCount(), 1);
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body.data, expectedData);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 
   it("returns not found when approving a missing verification", async () => {

@@ -3,6 +3,7 @@ import UserViolation from "../models/UserViolation.js";
 import { enforceViolationThreshold } from "../services/accountModerationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 
 const violationFilterFields = ["status", "type", "severity", "user"];
 
@@ -16,15 +17,24 @@ const buildViolationFilters = (query) =>
   }, {});
 
 const listViolations = asyncHandler(async (req, res) => {
-  const violations = await UserViolation.find(buildViolationFilters(req.query))
-    .populate("user", "name email role accountStatus")
-    .populate("evidence.property", "title")
-    .populate("evidence.matchedProperty", "title")
-    .populate("reviewedBy", "name email")
-    .sort(req.query.sort || "-createdAt");
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const filters = buildViolationFilters(req.query);
+
+  const [violations, total] = await Promise.all([
+    UserViolation.find(filters)
+      .populate("user", "name email role accountStatus")
+      .populate("evidence.property", "title")
+      .populate("evidence.matchedProperty", "title")
+      .populate("reviewedBy", "name email")
+      .sort(req.query.sort || "-createdAt")
+      .skip(skip)
+      .limit(limit),
+    UserViolation.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: violations,
+    pagination: formatPagination(page, limit, total),
   });
 });
 
