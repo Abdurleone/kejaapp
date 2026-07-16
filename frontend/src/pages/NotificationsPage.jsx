@@ -99,10 +99,10 @@ export default function NotificationsPage() {
 
       <div className="panel stack">
         {loading ? (
-          <div className="stack" role="status" aria-label="Loading notifications" aria-hidden="true">
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
-            <span className="skeleton skeleton-line skeleton-line--full" />
+          <div className="stack" role="status" aria-label="Loading notifications">
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+            <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
           </div>
         ) : error ? (
           <div className="stack">
