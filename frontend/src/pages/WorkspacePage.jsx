@@ -226,7 +226,13 @@ function InquiryCard({ inquiry, onResponded }) {
     setSubmitting(true);
 
     try {
-      const updated = await respondToInquiry(inquiry._id, { status, response: response.trim() });
+      // "Close without reply" must not send whatever draft text is sitting in
+      // the textarea - the owner explicitly chose not to reply, so the
+      // response is always empty regardless of what they'd typed and not sent.
+      const updated = await respondToInquiry(inquiry._id, {
+        status,
+        response: status === "responded" ? response.trim() : "",
+      });
       onResponded(updated);
     } catch (err) {
       setError(err.message || "Could not send your response.");
