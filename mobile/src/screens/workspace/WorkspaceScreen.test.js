@@ -3,9 +3,9 @@ import WorkspaceScreen from "./WorkspaceScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
 const mockNavigate = jest.fn();
-const mockAddListener = jest.fn(() => () => {});
 jest.mock("@react-navigation/native", () => ({
-  useNavigation: () => ({ navigate: mockNavigate, addListener: mockAddListener }),
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: (callback) => require("react").useEffect(callback, [callback]),
 }));
 
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
@@ -48,6 +48,15 @@ describe("WorkspaceScreen", () => {
     const { getByText } = await render(<WorkspaceScreen />);
 
     expect(getByText("Owner or agency account required")).toBeTruthy();
+  });
+
+  it("fetches listings and inquiries exactly once each on mount, not twice", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { role: "landlord" } });
+
+    await render(<WorkspaceScreen />);
+
+    await waitFor(() => expect(fetchMyProperties).toHaveBeenCalledTimes(1));
+    expect(fetchReceivedInquiries).toHaveBeenCalledTimes(1);
   });
 
   it("lists the owner's properties and opens the edit screen on tap", async () => {

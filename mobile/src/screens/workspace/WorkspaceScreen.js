@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchMyProperties, fetchReceivedInquiries, respondToInquiry } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
@@ -180,31 +180,35 @@ export default function WorkspaceScreen() {
     }
   }, [loadingMoreInquiries, inquiriesPagination]);
 
-  useEffect(() => {
-    if (!signedIn || !canManageListings) {
-      return;
-    }
-
-    // Kicking off real fetches here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-    setInquiriesLoading(true);
-    loadInquiries().finally(() => setInquiriesLoading(false));
-  }, [signedIn, canManageListings, load, loadInquiries]);
-
-  useEffect(() => {
-    // Refresh after returning from the create/edit-listing screens, so
-    // changes show up without a manual pull-to-refresh.
-    const unsubscribe = navigation.addListener("focus", () => {
-      if (signedIn && canManageListings) {
-        load();
-        loadInquiries();
+  // Runs on every focus - not just the first mount - so returning from the
+  // create/edit-listing screens refreshes without a manual pull-to-refresh.
+  // React Navigation fires "focus" for the initial mount too, so this single
+  // effect covers both; a separate mount-only effect alongside this one used
+  // to double-fetch every time the screen first mounted (4 concurrent
+  // requests instead of 2).
+  useFocusEffect(
+    useCallback(() => {
+      if (!signedIn || !canManageListings) {
+        return undefined;
       }
-    });
 
-    return unsubscribe;
-  }, [navigation, signedIn, canManageListings, load, loadInquiries]);
+      let active = true;
+
+      // Kicking off real fetches here, not deriving avoidable state.
+      setLoading(true);
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
+      setInquiriesLoading(true);
+      loadInquiries().finally(() => {
+        if (active) setInquiriesLoading(false);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [signedIn, canManageListings, load, loadInquiries]),
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
