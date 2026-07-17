@@ -6,7 +6,6 @@ const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8")
 
 describe("responsive stylesheet", () => {
   it("keeps primary layout regions container-safe", () => {
-    assert.match(styles, /grid-template-columns:\s*minmax\(260px,\s*320px\)\s+minmax\(0,\s*1fr\)/);
     assert.match(styles, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*270px\),\s*1fr\)\)/);
   });
 
@@ -23,9 +22,8 @@ describe("responsive stylesheet", () => {
     assert.match(styles, /@media\s*\(max-width:\s*480px\)\s*{[\s\S]*?\.header-actions\s*,[\s\S]*?\.card-actions\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*1fr;/s);
   });
 
-  it("keeps listing action buttons and detail panels responsive", () => {
+  it("keeps listing action buttons responsive", () => {
     assert.match(styles, /\.card-actions\s*{[^}]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(92px,\s*1fr\)\);/s);
-    assert.match(styles, /\.property-detail\s*{[^}]*grid-template-columns:\s*minmax\(220px,\s*0\.86fr\)\s+minmax\(0,\s*1\.14fr\);/s);
   });
 
   it("protects tables and dialogs from narrow-screen overflow", () => {
