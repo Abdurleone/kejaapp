@@ -28,38 +28,3 @@ export const summarizeProperties = (properties) => {
     areaCount: areas.size,
   };
 };
-
-export const summarizeReview = (review) => {
-  const propertyTitle = review.property?.title || "Property";
-  const reviewer = review.user?.name || "Tenant";
-  const rating = Number(review.rating || 0);
-
-  return `${propertyTitle} - ${rating}/5 by ${reviewer}`;
-};
-
-export const sortProperties = (properties, sortMode) => {
-  const sorted = [...properties];
-
-  if (sortMode === "rent-asc") {
-    return sorted.sort((a, b) => Number(a.price?.rent || 0) - Number(b.price?.rent || 0));
-  }
-
-  if (sortMode === "rent-desc") {
-    return sorted.sort((a, b) => Number(b.price?.rent || 0) - Number(a.price?.rent || 0));
-  }
-
-  return sorted;
-};
-
-export const demoAccounts = {
-  tenant: "tenant@example.com",
-  landlord: "landlord@example.com",
-  agency: "agency@example.com",
-  mover: "mover1@example.com",
-  admin: "admin@example.com",
-};
-
-export const getDemoEmailForRole = (role) => demoAccounts[role] || demoAccounts.tenant;
-
-export const findPropertyById = (collections, propertyId) =>
-  collections.flat().find((property) => String(property?._id || property?.id) === String(propertyId));

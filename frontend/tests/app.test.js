@@ -5,15 +5,11 @@ import {
   canAccessView,
   canManageListings,
   canOpenPropertyDetails,
-  canRegisterRole,
   canSearchListings,
-  canUseTenantPropertyActions,
   createApiUrl,
-  getDemoEmailForRole,
   formatStatusLabel,
   formatKes,
   formatRatingSummary,
-  findPropertyById,
   getPropertyDetailPath,
   getPropertyEditIdFromPath,
   getPropertyEditPath,
@@ -26,9 +22,7 @@ import {
   resolveAssetUrl,
   resolveViewFromPath,
   shouldShowSplash,
-  sortProperties,
   statusTone,
-  summarizeReview,
   summarizeProperties,
 } from "../app-utils.js";
 
@@ -83,22 +77,6 @@ describe("frontend app utilities", () => {
   it("formats listing rating summaries", () => {
     assert.equal(formatRatingSummary(4.25, 3), "4.3 rating (3)");
     assert.equal(formatRatingSummary(0, 0), "No ratings");
-  });
-
-  it("maps demo account roles to login emails", () => {
-    assert.equal(getDemoEmailForRole("tenant"), "tenant@example.com");
-    assert.equal(getDemoEmailForRole("landlord"), "landlord@example.com");
-    assert.equal(getDemoEmailForRole("agency"), "agency@example.com");
-    assert.equal(getDemoEmailForRole("admin"), "admin@example.com");
-    assert.equal(getDemoEmailForRole("unknown"), "tenant@example.com");
-  });
-
-  it("allows public sign-up for non-admin user categories", () => {
-    assert.equal(canRegisterRole("tenant"), true);
-    assert.equal(canRegisterRole("landlord"), true);
-    assert.equal(canRegisterRole("agency"), true);
-    assert.equal(canRegisterRole("mover"), true);
-    assert.equal(canRegisterRole("admin"), false);
   });
 
   it("maps frontend paths to workspace views", () => {
@@ -170,8 +148,6 @@ describe("frontend app utilities", () => {
     assert.equal(canSearchListings(undefined), true);
     assert.equal(canSearchListings("tenant"), true);
     assert.equal(canSearchListings("agency"), false);
-    assert.equal(canUseTenantPropertyActions("tenant"), true);
-    assert.equal(canUseTenantPropertyActions("landlord"), false);
     assert.equal(canOpenPropertyDetails(undefined), false);
     assert.equal(canOpenPropertyDetails("tenant"), true);
     assert.equal(canOpenPropertyDetails("landlord"), true);
@@ -179,16 +155,6 @@ describe("frontend app utilities", () => {
     assert.equal(canManageListings("tenant"), false);
     assert.equal(canManageListings("agency"), true);
     assert.equal(canManageListings("admin"), false);
-  });
-
-  it("finds properties across cached frontend collections", () => {
-    const property = { _id: "p2", title: "Found home" };
-
-    assert.equal(
-      findPropertyById([[{ _id: "p1" }], [property]], "p2"),
-      property
-    );
-    assert.equal(findPropertyById([[{ _id: "p1" }]], "missing"), undefined);
   });
 
   it("summarizes property collections", () => {
@@ -203,26 +169,5 @@ describe("frontend app utilities", () => {
     assert.equal(summary.openViewings, 1);
     assert.equal(summary.scheduledViewings, 2);
     assert.equal(summary.areaCount, 2);
-  });
-
-  it("summarizes reviews for owner and admin tables", () => {
-    assert.equal(
-      summarizeReview({
-        property: { title: "Modern Kilimani Apartment" },
-        user: { name: "Demo Tenant" },
-        rating: 4,
-      }),
-      "Modern Kilimani Apartment - 4/5 by Demo Tenant"
-    );
-  });
-
-  it("sorts properties by rent", () => {
-    const properties = [
-      { title: "B", price: { rent: 70000 } },
-      { title: "A", price: { rent: 50000 } },
-    ];
-
-    assert.equal(sortProperties(properties, "rent-asc")[0].title, "A");
-    assert.equal(sortProperties(properties, "rent-desc")[0].title, "B");
   });
 });

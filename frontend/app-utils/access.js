@@ -7,7 +7,6 @@ export const roles = Object.freeze({
 });
 
 export const roleGroups = Object.freeze({
-  publicRegistration: [roles.tenant, roles.landlord, roles.agency, roles.mover],
   tenantOnly: [roles.tenant],
   listingManagers: [roles.landlord, roles.agency],
   propertyOwners: [roles.landlord, roles.agency],
@@ -17,8 +16,6 @@ export const roleGroups = Object.freeze({
 });
 
 export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
-
-export const canRegisterRole = (role) => hasRole(role, roleGroups.publicRegistration);
 
 const roleViewAccess = {
   [roles.tenant]: ["dashboard", "discover", "saved", "movers", "notifications", "feedback", "account"],
@@ -41,8 +38,6 @@ export const canAccessView = (role, view) => {
 };
 
 export const getDefaultViewForRole = (role) => roleViewAccess[role]?.[0] || "discover";
-
-export const canUseTenantPropertyActions = (role) => hasRole(role, roleGroups.tenantOnly);
 
 export const canManageListings = (role) => hasRole(role, roleGroups.listingManagers);
 
