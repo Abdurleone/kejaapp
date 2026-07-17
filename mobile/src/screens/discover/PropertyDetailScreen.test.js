@@ -131,6 +131,45 @@ describe("PropertyDetailScreen", () => {
     expect(fetchProperty).toHaveBeenCalledTimes(2);
   });
 
+  it("ignores a stale movers response after navigating to a different property (active-flag guard)", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+
+    const deferred = () => {
+      let resolve;
+      const promise = new Promise((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+    const moversForFirstProperty = deferred();
+    fetchPropertyMovers
+      .mockImplementationOnce(() => moversForFirstProperty.promise)
+      .mockResolvedValueOnce({ affiliates: [{ _id: "m2", name: "New Property Mover" }], nearby: [] });
+
+    const { findByText, queryByText, getByText, rerender } = await render(
+      <PropertyDetailScreen route={{ params: { propertyId: "p1" } }} navigation={{ navigate: jest.fn() }} />,
+    );
+    await findByText("Cozy studio");
+
+    // Simulate navigating from one property's detail screen straight to
+    // another's (same screen component, new route param) while the first
+    // property's movers request is still in flight.
+    rerender(<PropertyDetailScreen route={{ params: { propertyId: "p2" } }} navigation={{ navigate: jest.fn() }} />);
+    await findByText("New Property Mover");
+
+    // Resolve the stale (first property's) request last - the active-flag
+    // guard should prevent it from overwriting the second property's
+    // already-rendered movers list. Give the resolved promise's chain a
+    // real chance to land (a single setTimeout(0) flush isn't always
+    // enough hops in this environment) before asserting it didn't.
+    moversForFirstProperty.resolve({ affiliates: [{ _id: "m1", name: "Stale Property Mover" }], nearby: [] });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(queryByText("Stale Property Mover")).toBeNull();
+    expect(getByText("New Property Mover")).toBeTruthy();
+  });
+
   it("navigates to the inquiry and viewing-request forms", async () => {
     useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
     fetchProperty.mockResolvedValue(baseProperty);
