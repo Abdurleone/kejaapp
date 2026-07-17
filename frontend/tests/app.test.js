@@ -170,4 +170,15 @@ describe("frontend app utilities", () => {
     assert.equal(summary.scheduledViewings, 2);
     assert.equal(summary.areaCount, 2);
   });
+
+  it("averages the two middle values for an even-length rent collection", () => {
+    const summary = summarizeProperties([
+      { price: { rent: 50000 } },
+      { price: { rent: 70000 } },
+      { price: { rent: 90000 } },
+      { price: { rent: 110000 } },
+    ]);
+
+    assert.equal(summary.medianRent, 80000);
+  });
 });
