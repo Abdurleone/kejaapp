@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -27,7 +27,7 @@ const tabs = [
   { key: "inquiries", label: "Inquiries" },
 ];
 
-function InquiryRow({ inquiry, onResponded, styles }) {
+const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles }) {
   const [response, setResponse] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -87,7 +87,7 @@ function InquiryRow({ inquiry, onResponded, styles }) {
       ) : null}
     </View>
   );
-}
+});
 
 export default function WorkspaceScreen() {
   const navigation = useNavigation();
@@ -222,9 +222,25 @@ export default function WorkspaceScreen() {
     setInquiriesRefreshing(false);
   };
 
-  const handleInquiryResponded = (updated) => {
+  const handleInquiryResponded = useCallback((updated) => {
     setInquiries((current) => current.map((item) => (item._id === updated._id ? updated : item)));
-  };
+  }, []);
+
+  const renderPropertyItem = useCallback(
+    ({ item }) => (
+      <PropertyCard
+        property={item}
+        apiBaseUrl={apiBaseUrl}
+        onPress={() => navigation.navigate("PropertyEdit", { propertyId: item._id })}
+      />
+    ),
+    [apiBaseUrl, navigation]
+  );
+
+  const renderInquiryItem = useCallback(
+    ({ item }) => <InquiryRow inquiry={item} onResponded={handleInquiryResponded} styles={styles} />,
+    [handleInquiryResponded, styles]
+  );
 
   if (!signedIn) {
     return (
@@ -279,13 +295,7 @@ export default function WorkspaceScreen() {
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
             ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerSpinner} /> : null}
-            renderItem={({ item }) => (
-              <PropertyCard
-                property={item}
-                apiBaseUrl={apiBaseUrl}
-                onPress={() => navigation.navigate("PropertyEdit", { propertyId: item._id })}
-              />
-            )}
+            renderItem={renderPropertyItem}
           />
         )
       ) : inquiriesLoading ? (
@@ -314,9 +324,7 @@ export default function WorkspaceScreen() {
           onEndReached={loadMoreInquiries}
           onEndReachedThreshold={0.5}
           ListFooterComponent={loadingMoreInquiries ? <ActivityIndicator style={styles.footerSpinner} /> : null}
-          renderItem={({ item }) => (
-            <InquiryRow inquiry={item} onResponded={handleInquiryResponded} styles={styles} />
-          )}
+          renderItem={renderInquiryItem}
         />
       )}
     </View>

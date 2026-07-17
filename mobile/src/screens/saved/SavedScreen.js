@@ -49,7 +49,7 @@ export default function SavedScreen() {
     setRefreshing(false);
   };
 
-  const handleRemove = async (propertyId) => {
+  const handleRemove = useCallback(async (propertyId) => {
     setRemovingId(propertyId);
 
     try {
@@ -62,7 +62,34 @@ export default function SavedScreen() {
     } finally {
       setRemovingId(null);
     }
-  };
+  }, []);
+
+  const renderFavoriteItem = useCallback(
+    ({ item }) => {
+      const property = item.property || item;
+      const propertyId = property._id || property.id;
+
+      return (
+        <View>
+          <PropertyCard
+            property={property}
+            apiBaseUrl={apiBaseUrl}
+            onPress={() => navigation.navigate("Discover", { screen: "PropertyDetail", params: { propertyId } })}
+          />
+          <Pressable
+            style={styles.removeButton}
+            onPress={() => handleRemove(propertyId)}
+            disabled={removingId === propertyId}
+          >
+            <Text style={styles.removeButtonText}>
+              {removingId === propertyId ? "Removing..." : "Remove from saved"}
+            </Text>
+          </Pressable>
+        </View>
+      );
+    },
+    [apiBaseUrl, navigation, removingId, styles, handleRemove]
+  );
 
   if (!signedIn) {
     return (
@@ -105,29 +132,7 @@ export default function SavedScreen() {
       keyExtractor={(item) => item.property?._id || item._id}
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-      renderItem={({ item }) => {
-        const property = item.property || item;
-        const propertyId = property._id || property.id;
-
-        return (
-          <View>
-            <PropertyCard
-              property={property}
-              apiBaseUrl={apiBaseUrl}
-              onPress={() => navigation.navigate("Discover", { screen: "PropertyDetail", params: { propertyId } })}
-            />
-            <Pressable
-              style={styles.removeButton}
-              onPress={() => handleRemove(propertyId)}
-              disabled={removingId === propertyId}
-            >
-              <Text style={styles.removeButtonText}>
-                {removingId === propertyId ? "Removing..." : "Remove from saved"}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      }}
+      renderItem={renderFavoriteItem}
     />
   );
 }

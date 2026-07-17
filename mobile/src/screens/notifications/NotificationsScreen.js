@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "../../api/index.js";
@@ -77,22 +77,37 @@ export default function NotificationsScreen() {
     }
   };
 
-  const handleMarkRead = async (notificationId) => {
-    setMarkingId(notificationId);
+  const handleMarkRead = useCallback(
+    async (notificationId) => {
+      setMarkingId(notificationId);
 
-    try {
-      const updated = await markNotificationAsRead(notificationId);
-      setNotifications((current) =>
-        unreadOnly
-          ? current.filter((item) => item._id !== notificationId)
-          : current.map((item) => (item._id === notificationId ? updated : item)),
-      );
-    } catch (err) {
-      setError(err.message || "Could not mark this notification as read.");
-    } finally {
-      setMarkingId(null);
-    }
-  };
+      try {
+        const updated = await markNotificationAsRead(notificationId);
+        setNotifications((current) =>
+          unreadOnly
+            ? current.filter((item) => item._id !== notificationId)
+            : current.map((item) => (item._id === notificationId ? updated : item)),
+        );
+      } catch (err) {
+        setError(err.message || "Could not mark this notification as read.");
+      } finally {
+        setMarkingId(null);
+      }
+    },
+    [unreadOnly]
+  );
+
+  const renderNotificationItem = useCallback(
+    ({ item }) => (
+      <NotificationRow
+        notification={item}
+        marking={markingId === item._id}
+        onMarkRead={handleMarkRead}
+        styles={styles}
+      />
+    ),
+    [markingId, handleMarkRead, styles]
+  );
 
   if (!signedIn) {
     return (
@@ -148,20 +163,13 @@ export default function NotificationsScreen() {
             {unreadOnly ? "No unread notifications." : "You don't have any notifications yet."}
           </Text>
         }
-        renderItem={({ item }) => (
-          <NotificationRow
-            notification={item}
-            marking={markingId === item._id}
-            onMarkRead={handleMarkRead}
-            styles={styles}
-          />
-        )}
+        renderItem={renderNotificationItem}
       />
     </View>
   );
 }
 
-function NotificationRow({ notification, marking, onMarkRead, styles }) {
+const NotificationRow = memo(function NotificationRow({ notification, marking, onMarkRead, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -185,7 +193,7 @@ function NotificationRow({ notification, marking, onMarkRead, styles }) {
       </View>
     </View>
   );
-}
+});
 
 const createStyles = (colors) =>
   StyleSheet.create({

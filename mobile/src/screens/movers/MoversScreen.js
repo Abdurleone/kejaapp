@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -27,7 +27,7 @@ const serviceTypeOptions = [
   { value: "furniture", label: "Furniture" },
 ];
 
-function MoverCard({ mover, user, navigation, onAffiliateChange, styles }) {
+const MoverCard = memo(function MoverCard({ mover, user, navigation, onAffiliateChange, styles }) {
   const [affiliateBusy, setAffiliateBusy] = useState(false);
   const [affiliateError, setAffiliateError] = useState("");
   const isAffiliated = (mover.affiliatedOwners || []).some((ownerId) => String(ownerId) === String(user?._id));
@@ -97,7 +97,7 @@ function MoverCard({ mover, user, navigation, onAffiliateChange, styles }) {
       ) : null}
     </View>
   );
-}
+});
 
 function MoverDirectory({ styles }) {
   const navigation = useNavigation();
@@ -171,9 +171,16 @@ function MoverDirectory({ styles }) {
     setRetryKey((key) => key + 1);
   };
 
-  const handleAffiliateChange = (updatedMover) => {
+  const handleAffiliateChange = useCallback((updatedMover) => {
     setMovers((current) => current.map((mover) => (mover._id === updatedMover._id ? updatedMover : mover)));
-  };
+  }, []);
+
+  const renderMoverItem = useCallback(
+    ({ item }) => (
+      <MoverCard mover={item} user={user} navigation={navigation} onAffiliateChange={handleAffiliateChange} styles={styles} />
+    ),
+    [user, navigation, handleAffiliateChange, styles]
+  );
 
   if (loading) {
     return (
@@ -226,15 +233,7 @@ function MoverDirectory({ styles }) {
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          renderItem={({ item }) => (
-            <MoverCard
-              mover={item}
-              user={user}
-              navigation={navigation}
-              onAffiliateChange={handleAffiliateChange}
-              styles={styles}
-            />
-          )}
+          renderItem={renderMoverItem}
         />
       )}
     </View>

@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext.js";
 import { formatKes } from "../utils/format.js";
 import { resolveAssetUrl } from "../context/SettingsContext.js";
 
-export default function PropertyCard({ property, apiBaseUrl, onPress, isSaved, onToggleSave, savingFavorite }) {
+function PropertyCard({ property, apiBaseUrl, onPress, isSaved, onToggleSave, savingFavorite }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const rent = property.price?.rent ?? property.rent;
@@ -196,3 +197,5 @@ const createStyles = (colors) =>
       color: colors.muted,
     },
   });
+
+export default memo(PropertyCard);
