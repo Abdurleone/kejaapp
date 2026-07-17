@@ -12,6 +12,13 @@ import {
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 
+// Mirrors the backend's registerUserSchema (backend/validators/authValidators.js)
+// so obviously-invalid input is caught here instead of round-tripping to the
+// server first - web's AuthModal relies on the browser's own HTML5
+// required/type=email validation for the same purpose.
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const minPasswordLength = 8;
+
 const roles = [
   { value: "tenant", label: "Tenant" },
   { value: "landlord", label: "Landlord" },
@@ -50,6 +57,27 @@ export default function RegisterScreen({ navigation }) {
   const handleSubmit = async () => {
     setError("");
     setUsernameSuggestions([]);
+
+    if (!form.name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+
+    if (!emailPattern.test(form.email.trim())) {
+      setError("Enter a valid email address.");
+      return;
+    }
+
+    if (!form.username.trim()) {
+      setError("Username is required.");
+      return;
+    }
+
+    if (form.password.length < minPasswordLength) {
+      setError(`Password must be at least ${minPasswordLength} characters.`);
+      return;
+    }
+
     setLoading(true);
 
     try {
