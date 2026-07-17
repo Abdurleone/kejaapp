@@ -51,10 +51,14 @@ describe("RegisterScreen", () => {
     );
     useAuth.mockReturnValue({ register });
 
-    const { getAllByText, getByText, findByText } = await render(
+    const { getAllByText, getByText, getByLabelText, findByText } = await render(
       <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
     );
 
+    await fireEvent.changeText(getByLabelText("Name"), "Jane Tenant");
+    await fireEvent.changeText(getByLabelText("Email"), "jane@example.com");
+    await fireEvent.changeText(getByLabelText("Username"), "janet");
+    await fireEvent.changeText(getByLabelText("Password"), "password123");
     const submitButtons = getAllByText("Create account");
     await fireEvent.press(submitButtons[submitButtons.length - 1]);
 
@@ -73,6 +77,10 @@ describe("RegisterScreen", () => {
       <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
     );
 
+    await fireEvent.changeText(getByLabelText("Name"), "Jane Tenant");
+    await fireEvent.changeText(getByLabelText("Email"), "jane@example.com");
+    await fireEvent.changeText(getByLabelText("Username"), "janet");
+    await fireEvent.changeText(getByLabelText("Password"), "password123");
     const submitButtons = getAllByText("Create account");
     await fireEvent.press(submitButtons[submitButtons.length - 1]);
     await findByText("janet2");
@@ -81,6 +89,86 @@ describe("RegisterScreen", () => {
 
     expect(getByLabelText("Username").props.value).toBe("janet2");
     expect(queryByText("janet2")).toBeNull();
+  });
+
+  describe("client-side validation", () => {
+    const fillValidForm = async (getByLabelText, overrides = {}) => {
+      const values = {
+        name: "Jane Tenant",
+        email: "jane@example.com",
+        username: "janet",
+        password: "password123",
+        ...overrides,
+      };
+      await fireEvent.changeText(getByLabelText("Name"), values.name);
+      await fireEvent.changeText(getByLabelText("Email"), values.email);
+      await fireEvent.changeText(getByLabelText("Username"), values.username);
+      await fireEvent.changeText(getByLabelText("Password"), values.password);
+    };
+
+    it("rejects a blank name without calling register", async () => {
+      const register = jest.fn();
+      useAuth.mockReturnValue({ register });
+
+      const { getAllByText, getByLabelText, findByText } = await render(
+        <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
+      );
+
+      await fillValidForm(getByLabelText, { name: "   " });
+      const submitButtons = getAllByText("Create account");
+      await fireEvent.press(submitButtons[submitButtons.length - 1]);
+
+      expect(await findByText("Name is required.")).toBeTruthy();
+      expect(register).not.toHaveBeenCalled();
+    });
+
+    it("rejects a malformed email without calling register", async () => {
+      const register = jest.fn();
+      useAuth.mockReturnValue({ register });
+
+      const { getAllByText, getByLabelText, findByText } = await render(
+        <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
+      );
+
+      await fillValidForm(getByLabelText, { email: "not-an-email" });
+      const submitButtons = getAllByText("Create account");
+      await fireEvent.press(submitButtons[submitButtons.length - 1]);
+
+      expect(await findByText("Enter a valid email address.")).toBeTruthy();
+      expect(register).not.toHaveBeenCalled();
+    });
+
+    it("rejects a blank username without calling register", async () => {
+      const register = jest.fn();
+      useAuth.mockReturnValue({ register });
+
+      const { getAllByText, getByLabelText, findByText } = await render(
+        <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
+      );
+
+      await fillValidForm(getByLabelText, { username: "  " });
+      const submitButtons = getAllByText("Create account");
+      await fireEvent.press(submitButtons[submitButtons.length - 1]);
+
+      expect(await findByText("Username is required.")).toBeTruthy();
+      expect(register).not.toHaveBeenCalled();
+    });
+
+    it("rejects a too-short password without calling register", async () => {
+      const register = jest.fn();
+      useAuth.mockReturnValue({ register });
+
+      const { getAllByText, getByLabelText, findByText } = await render(
+        <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
+      );
+
+      await fillValidForm(getByLabelText, { password: "short" });
+      const submitButtons = getAllByText("Create account");
+      await fireEvent.press(submitButtons[submitButtons.length - 1]);
+
+      expect(await findByText("Password must be at least 8 characters.")).toBeTruthy();
+      expect(register).not.toHaveBeenCalled();
+    });
   });
 
   it("navigates to Login from the link", async () => {
