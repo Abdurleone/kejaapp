@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { fetchFavorites, fetchProperty, fetchPropertyMovers, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -37,48 +37,69 @@ export default function PropertyDetailScreen({ route, navigation }) {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [propertyMovers, setPropertyMovers] = useState({ affiliates: [], nearby: [] });
-
-  const loadProperty = useCallback(async () => {
-    setError("");
-
-    try {
-      const data = await fetchProperty(propertyId);
-      setProperty(data);
-    } catch (err) {
-      setError(err.message || "Failed to load this property.");
-    } finally {
-      setLoading(false);
-    }
-  }, [propertyId]);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
-    if (!canViewDetails) return;
+    if (!canViewDetails) return undefined;
+
+    let active = true;
 
     // Kicking off a real fetch here, not deriving avoidable state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    loadProperty();
-  }, [canViewDetails, loadProperty]);
+    setError("");
+
+    fetchProperty(propertyId)
+      .then((data) => {
+        if (active) setProperty(data);
+      })
+      .catch((err) => {
+        if (active) setError(err.message || "Failed to load this property.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [canViewDetails, propertyId, retryKey]);
 
   useEffect(() => {
-    if (!canViewDetails) return;
+    if (!canViewDetails) return undefined;
+
+    let active = true;
 
     fetchFavorites()
       .then((favorites) => {
+        if (!active) return;
+
         const saved = favorites.some(
           (favorite) => (favorite.property?._id || favorite.property?.id || favorite._id) === propertyId
         );
         setIsSaved(saved);
       })
       .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, [canViewDetails, propertyId]);
 
   useEffect(() => {
-    if (!canViewDetails) return;
+    if (!canViewDetails) return undefined;
+
+    let active = true;
 
     fetchPropertyMovers(propertyId)
-      .then((data) => setPropertyMovers(data))
+      .then((data) => {
+        if (active) setPropertyMovers(data);
+      })
       .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, [canViewDetails, propertyId]);
 
   const handleSave = async () => {
@@ -128,7 +149,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
         title="Couldn't load this property"
         message={error || "Property not found."}
         actionLabel={error ? "Retry" : undefined}
-        onAction={error ? loadProperty : undefined}
+        onAction={error ? () => setRetryKey((key) => key + 1) : undefined}
       />
     );
   }
