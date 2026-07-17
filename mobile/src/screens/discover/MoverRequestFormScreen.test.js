@@ -1,7 +1,13 @@
 import { fireEvent, render } from "@testing-library/react-native";
+import { Platform } from "react-native";
 import MoverRequestFormScreen from "./MoverRequestFormScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
+// This screen requires the native DateTimePicker unconditionally at module
+// load whenever Platform.OS !== "web" (true under jest, which reports
+// "ios") - stub it out entirely since none of these tests need to actually
+// open the native picker (matching ViewingRequestFormScreen's convention).
+jest.mock("@react-native-community/datetimepicker", () => "DateTimePicker");
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));
 jest.mock("../../api/index.js", () => ({ createMoverRequest: jest.fn() }));
 jest.mock("../../utils/location.js", () => ({ getCurrentPositionOrNull: jest.fn() }));
@@ -33,14 +39,13 @@ describe("MoverRequestFormScreen", () => {
     expect(createMoverRequest).not.toHaveBeenCalled();
   });
 
-  it("submits with the device's resolved pickup location", async () => {
+  it("submits with the device's resolved pickup location and no preferred date chosen", async () => {
     getCurrentPositionOrNull.mockResolvedValue({ lat: -1.28, lng: 36.82 });
     createMoverRequest.mockResolvedValue({ _id: "r1" });
 
     const { getByText, getByPlaceholderText, findByText } = await renderScreen();
 
     await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
-    await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), "2026-08-01");
     await fireEvent.press(getByText("Send request"));
 
     expect(await findByText("Nairobi Movers will respond soon.")).toBeTruthy();
@@ -48,9 +53,47 @@ describe("MoverRequestFormScreen", () => {
       mover: "m1",
       property: "p1",
       message: "Moving a 2-bedroom flat",
-      preferredDate: "2026-08-01",
+      preferredDate: undefined,
       pickupLat: -1.28,
       pickupLng: 36.82,
+    });
+  });
+
+  describe("preferred date (web platform text fallback)", () => {
+    const originalPlatformOS = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatformOS;
+    });
+
+    it("rejects a past preferred date without calling createMoverRequest", async () => {
+      Platform.OS = "web";
+      getCurrentPositionOrNull.mockResolvedValue(null);
+
+      const { getByText, getByPlaceholderText, findByText } = await renderScreen();
+
+      await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
+      await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), "2020-01-01");
+      await fireEvent.press(getByText("Send request"));
+
+      expect(await findByText("Choose a valid date, today or later.")).toBeTruthy();
+      expect(createMoverRequest).not.toHaveBeenCalled();
+    });
+
+    it("submits a valid future preferred date", async () => {
+      Platform.OS = "web";
+      getCurrentPositionOrNull.mockResolvedValue(null);
+      createMoverRequest.mockResolvedValue({ _id: "r1" });
+
+      const { getByText, getByPlaceholderText, findByText } = await renderScreen();
+
+      await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
+      await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), "2026-08-01");
+      await fireEvent.press(getByText("Send request"));
+
+      expect(await findByText("Nairobi Movers will respond soon.")).toBeTruthy();
+      const payload = createMoverRequest.mock.calls[0][0];
+      expect(typeof payload.preferredDate).toBe("string");
     });
   });
 

@@ -13,12 +13,28 @@ import { createMoverRequest } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { getCurrentPositionOrNull } from "../../utils/location.js";
 
+// DateTimePicker has no web implementation; fall back to a plain text input
+// there (used for Expo web verification) while using the native picker on
+// iOS/Android - matching ViewingRequestFormScreen's existing pattern.
+let DateTimePicker = null;
+if (Platform.OS !== "web") {
+  DateTimePicker = require("@react-native-community/datetimepicker").default;
+}
+
+const startOfToday = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
 export default function MoverRequestFormScreen({ route, navigation }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const { moverId, moverName, propertyId } = route.params;
   const [message, setMessage] = useState("");
-  const [preferredDate, setPreferredDate] = useState("");
+  const [preferredDate, setPreferredDate] = useState(null);
+  const [webDateInput, setWebDateInput] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -31,6 +47,20 @@ export default function MoverRequestFormScreen({ route, navigation }) {
       return;
     }
 
+    let preferredDateIso;
+    const hasDateInput = Platform.OS === "web" ? webDateInput.trim() : preferredDate;
+
+    if (hasDateInput) {
+      const date = Platform.OS === "web" ? new Date(webDateInput) : preferredDate;
+
+      if (!date || Number.isNaN(date.getTime()) || date < startOfToday()) {
+        setError("Choose a valid date, today or later.");
+        return;
+      }
+
+      preferredDateIso = date.toISOString();
+    }
+
     setSubmitting(true);
 
     try {
@@ -39,7 +69,7 @@ export default function MoverRequestFormScreen({ route, navigation }) {
         mover: moverId,
         property: propertyId,
         message: message.trim(),
-        preferredDate: preferredDate || undefined,
+        preferredDate: preferredDateIso,
         pickupLat: position?.lat,
         pickupLng: position?.lng,
       });
@@ -85,12 +115,33 @@ export default function MoverRequestFormScreen({ route, navigation }) {
 
         <View style={styles.field}>
           <Text style={styles.label}>Preferred date (optional)</Text>
-          <TextInput
-            style={styles.input}
-            value={preferredDate}
-            onChangeText={setPreferredDate}
-            placeholder="YYYY-MM-DD"
-          />
+          {Platform.OS === "web" ? (
+            <TextInput
+              style={styles.input}
+              value={webDateInput}
+              onChangeText={setWebDateInput}
+              placeholder="YYYY-MM-DD"
+            />
+          ) : (
+            <>
+              <Pressable style={styles.input} onPress={() => setShowPicker(true)}>
+                <Text style={styles.dateText}>
+                  {preferredDate ? preferredDate.toLocaleDateString() : "No preference"}
+                </Text>
+              </Pressable>
+              {showPicker ? (
+                <DateTimePicker
+                  value={preferredDate || startOfToday()}
+                  mode="date"
+                  minimumDate={startOfToday()}
+                  onChange={(event, selectedDate) => {
+                    setShowPicker(Platform.OS === "ios");
+                    if (selectedDate) setPreferredDate(selectedDate);
+                  }}
+                />
+              ) : null}
+            </>
+          )}
         </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -136,6 +187,10 @@ const createStyles = (colors) =>
       paddingVertical: 10,
       fontSize: 15,
       backgroundColor: colors.surface,
+      color: colors.ink,
+    },
+    dateText: {
+      fontSize: 15,
       color: colors.ink,
     },
     textArea: {
