@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { darkColors, lightColors } from "../theme/colors.js";
 
@@ -17,12 +17,15 @@ export function ThemeProvider({ children }) {
     });
   }, []);
 
-  const setColorMode = async (mode) => {
+  const setColorMode = useCallback(async (mode) => {
     setColorModeState(mode);
     await AsyncStorage.setItem(COLOR_MODE_KEY, mode);
-  };
+  }, []);
 
-  const toggleColorMode = () => setColorMode(colorMode === "dark" ? "light" : "dark");
+  const toggleColorMode = useCallback(
+    () => setColorMode(colorMode === "dark" ? "light" : "dark"),
+    [colorMode, setColorMode]
+  );
 
   const value = useMemo(
     () => ({
