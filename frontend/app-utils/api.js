@@ -233,11 +233,6 @@ export const fetchMovers = async (query = {}) => {
   return data;
 };
 
-export const fetchMoverById = async (moverId) => {
-  const response = await apiFetch(`/api/movers/${moverId}`, { method: "GET" });
-  return response.data;
-};
-
 export const fetchPropertyMovers = async (propertyId, query = {}) => {
   const queryString = buildQueryString(query);
   const cacheKey = `propertyMovers:${propertyId}:${queryString}`;
@@ -317,21 +312,6 @@ export const getCurrentPositionOrNull = () =>
       { timeout: 8000 },
     );
   });
-
-export const fetchMyMoverRequests = async (query = {}) => {
-  const queryString = buildQueryString(query);
-  const cacheKey = `myMoverRequests:${queryString}`;
-  const cached = getCached(cacheKey);
-
-  if (cached) {
-    return cached;
-  }
-
-  const response = await apiFetch(`/api/mover-requests${queryString}`, { method: "GET" });
-  const data = response.data || [];
-  setCached(cacheKey, data, moverRequestsCacheTtlMs);
-  return data;
-};
 
 export const fetchReceivedMoverRequests = async (query = {}) => {
   const queryString = buildQueryString(query);
