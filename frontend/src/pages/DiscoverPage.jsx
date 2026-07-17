@@ -29,6 +29,7 @@ export default function DiscoverPage({ onOpenProperty }) {
   const [bedrooms, setBedrooms] = useState("");
   const [minRent, setMinRent] = useState("");
   const [maxRent, setMaxRent] = useState("");
+  const [priceFilterError, setPriceFilterError] = useState("");
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
   const [retryKey, setRetryKey] = useState(0);
@@ -155,6 +156,12 @@ export default function DiscoverPage({ onOpenProperty }) {
   };
 
   const handleApplyPriceFilter = () => {
+    if (minRent && maxRent && Number(minRent) > Number(maxRent)) {
+      setPriceFilterError("Min rent can't be greater than max rent.");
+      return;
+    }
+
+    setPriceFilterError("");
     setAppliedFilters((current) => ({ ...current, minRent, maxRent }));
   };
 
@@ -282,6 +289,11 @@ export default function DiscoverPage({ onOpenProperty }) {
           </button>
         </div>
       </div>
+      {priceFilterError && (
+        <div className="panel notice-panel">
+          <p className="error-text">{priceFilterError}</p>
+        </div>
+      )}
       {saveSearchMessage && (
         <div className="panel notice-panel">
           <p className="muted-copy">{saveSearchMessage}</p>

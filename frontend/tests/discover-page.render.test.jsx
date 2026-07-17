@@ -142,4 +142,21 @@ describe("DiscoverPage", () => {
     expect(screen.queryByText("Stale Unfiltered Listing")).not.toBeInTheDocument();
     expect(screen.getByText("New Filtered Listing")).toBeInTheDocument();
   });
+
+  it("rejects an inverted price range instead of silently applying it", async () => {
+    fetchProperties.mockResolvedValue([sampleProperty]);
+    fetchFavorites.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
+    await screen.findByText("Modern Kilimani Apartment");
+    const callCountBeforeApply = fetchProperties.mock.calls.length;
+
+    await user.type(screen.getByPlaceholderText("Min rent"), "90000");
+    await user.type(screen.getByPlaceholderText("Max rent"), "50000");
+    await user.click(screen.getByRole("button", { name: "Apply price" }));
+
+    expect(await screen.findByText("Min rent can't be greater than max rent.")).toBeInTheDocument();
+    expect(fetchProperties.mock.calls.length).toBe(callCountBeforeApply);
+  });
 });
