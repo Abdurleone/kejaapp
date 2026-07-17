@@ -66,24 +66,67 @@ function UsersSegment({ styles }) {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
-  const load = useCallback(async () => {
-    setError("");
+  // Debounce the raw text input into `search` so typing doesn't fire a
+  // request per keystroke - mirrors the debounce mobile's MoversScreen
+  // county filter already uses.
+  useEffect(() => {
+    let active = true;
 
-    try {
-      const { users: data, pagination: paginationData } = await fetchAdminUsers({
-        page: 1,
-        search: search || undefined,
-        role: role || undefined,
-      });
-      setUsers(data);
-      setPagination(paginationData);
-    } catch (err) {
-      setError(err.message || "Failed to load users.");
-    }
-  }, [search, role]);
+    const timeoutId = setTimeout(() => {
+      if (!active) return;
+      setSearch((current) => (current === searchInput ? current : searchInput));
+    }, 300);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [searchInput]);
+
+  // Deriving the fetch from search/role/retryKey (rather than a shared
+  // `load` callback fired ad hoc from an effect, refresh, and retry) is what
+  // makes the active-flag guard work: React runs this effect's cleanup
+  // before the next one fires whenever search/role/retryKey changes, so a
+  // still-in-flight, now-stale request - e.g. an out-of-order response to an
+  // earlier keystroke - can never overwrite a newer one.
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const { users: data, pagination: paginationData } = await fetchAdminUsers({
+          page: 1,
+          search: search || undefined,
+          role: role || undefined,
+        });
+        if (active) {
+          setUsers(data);
+          setPagination(paginationData);
+        }
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load users.");
+      } finally {
+        if (active) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [search, role, retryKey]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !pagination || pagination.page >= pagination.pages) {
@@ -108,25 +151,21 @@ function UsersSegment({ styles }) {
     }
   }, [loadingMore, pagination, search, role]);
 
-  useEffect(() => {
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [load]);
-
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setRefreshing(true);
-    await load();
-    setRefreshing(false);
+    setRetryKey((key) => key + 1);
+  };
+
+  const handleRetry = () => {
+    setRetryKey((key) => key + 1);
   };
 
   return (
     <View style={styles.flex}>
       <TextInput
         style={styles.input}
-        value={search}
-        onChangeText={setSearch}
+        value={searchInput}
+        onChangeText={setSearchInput}
         placeholder="Search by name, email, or phone"
       />
       <View style={styles.filterRow}>
@@ -148,7 +187,7 @@ function UsersSegment({ styles }) {
           <Text style={styles.cardMessage}>Loading users...</Text>
         </ScrollView>
       ) : error ? (
-        <MessageView title="Couldn't load users" message={error} actionLabel="Retry" onAction={load} />
+        <MessageView title="Couldn't load users" message={error} actionLabel="Retry" onAction={handleRetry} />
       ) : users.length === 0 ? (
         <MessageView title="No users match this search" message="Try a different search or role filter." />
       ) : (
