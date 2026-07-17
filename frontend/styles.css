@@ -789,12 +789,6 @@ textarea:focus {
   color: var(--red);
 }
 
-.property-detail {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.86fr) minmax(0, 1.14fr);
-  gap: 18px;
-}
-
 dialog {
   max-width: calc(100vw - 24px);
   border: 1px solid var(--line);
@@ -973,24 +967,12 @@ dialog {
   }
 }
 
-@media (min-width: 900px) {
-  .owner-layout {
-    display: grid;
-    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-    gap: 18px;
-  }
-}
-
 @media (max-width: 900px) {
   .view-header {
     display: grid;
   }
 
   .header-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .property-detail {
     grid-template-columns: 1fr;
   }
 }
