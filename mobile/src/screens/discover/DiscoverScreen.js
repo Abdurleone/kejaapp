@@ -221,23 +221,43 @@ export default function DiscoverScreen({ navigation }) {
     }
   };
 
-  const handleSave = async (propertyId) => {
-    if (!signedIn) {
-      navigation.navigate("Login");
-      return;
-    }
+  const handleSave = useCallback(
+    async (propertyId) => {
+      if (!signedIn) {
+        navigation.navigate("Login");
+        return;
+      }
 
-    setSavingId(propertyId);
+      setSavingId(propertyId);
 
-    try {
-      await saveFavorite(propertyId);
-      setSavedIds((current) => [...new Set([...current, propertyId])]);
-    } catch {
-      // Swallow: card just stays unsaved, user can retry.
-    } finally {
-      setSavingId(null);
-    }
-  };
+      try {
+        await saveFavorite(propertyId);
+        setSavedIds((current) => [...new Set([...current, propertyId])]);
+      } catch {
+        // Swallow: card just stays unsaved, user can retry.
+      } finally {
+        setSavingId(null);
+      }
+    },
+    [signedIn, navigation]
+  );
+
+  const renderPropertyItem = useCallback(
+    ({ item }) => {
+      const propertyId = item._id || item.id;
+      return (
+        <PropertyCard
+          property={item}
+          apiBaseUrl={apiBaseUrl}
+          isSaved={savedIds.includes(propertyId)}
+          savingFavorite={savingId === propertyId}
+          onToggleSave={() => handleSave(propertyId)}
+          onPress={() => navigation.navigate("PropertyDetail", { propertyId })}
+        />
+      );
+    },
+    [apiBaseUrl, savedIds, savingId, handleSave, navigation]
+  );
 
   if (loading) {
     return (
@@ -341,19 +361,7 @@ export default function DiscoverScreen({ navigation }) {
           keyExtractor={(item) => item._id || item.id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          renderItem={({ item }) => {
-            const propertyId = item._id || item.id;
-            return (
-              <PropertyCard
-                property={item}
-                apiBaseUrl={apiBaseUrl}
-                isSaved={savedIds.includes(propertyId)}
-                savingFavorite={savingId === propertyId}
-                onToggleSave={() => handleSave(propertyId)}
-                onPress={() => navigation.navigate("PropertyDetail", { propertyId })}
-              />
-            );
-          }}
+          renderItem={renderPropertyItem}
         />
       )}
     </View>

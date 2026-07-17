@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fetchAdminReviews, fetchAdminUsers } from "../../api/index.js";
@@ -19,7 +19,7 @@ const tabs = [
   { key: "reviews", label: "Reviews" },
 ];
 
-function UserRow({ user, onPress, styles }) {
+const UserRow = memo(function UserRow({ user, onPress, styles }) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHeaderRow}>
@@ -32,12 +32,12 @@ function UserRow({ user, onPress, styles }) {
       <Text style={styles.cardMessage}>{formatStatusLabel(user.role)}</Text>
     </Pressable>
   );
-}
+});
 
 // Read-only by design - review moderation isn't offered anywhere in this
 // app (see docs/terms-of-service.md), so there are no action affordances
 // here, matching the web admin console's reviews segment.
-function ReviewRow({ review, styles }) {
+const ReviewRow = memo(function ReviewRow({ review, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -56,7 +56,7 @@ function ReviewRow({ review, styles }) {
       ) : null}
     </View>
   );
-}
+});
 
 function UsersSegment({ styles }) {
   const navigation = useNavigation();
@@ -160,6 +160,13 @@ function UsersSegment({ styles }) {
     setRetryKey((key) => key + 1);
   };
 
+  const renderUserItem = useCallback(
+    ({ item }) => (
+      <UserRow user={item} styles={styles} onPress={() => navigation.navigate("AdminUserDetail", { userId: item._id })} />
+    ),
+    [styles, navigation]
+  );
+
   return (
     <View style={styles.flex}>
       <TextInput
@@ -198,13 +205,7 @@ function UsersSegment({ styles }) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
-          renderItem={({ item }) => (
-            <UserRow
-              user={item}
-              styles={styles}
-              onPress={() => navigation.navigate("AdminUserDetail", { userId: item._id })}
-            />
-          )}
+          renderItem={renderUserItem}
         />
       )}
     </View>
@@ -241,6 +242,11 @@ function ReviewsSegment({ styles }) {
     setRefreshing(false);
   };
 
+  const renderReviewItem = useCallback(
+    ({ item }) => <ReviewRow review={item} styles={styles} />,
+    [styles]
+  );
+
   if (loading) {
     return (
       <ScrollView contentContainerStyle={styles.list}>
@@ -263,7 +269,7 @@ function ReviewsSegment({ styles }) {
       keyExtractor={(item) => item._id}
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-      renderItem={({ item }) => <ReviewRow review={item} styles={styles} />}
+      renderItem={renderReviewItem}
     />
   );
 }

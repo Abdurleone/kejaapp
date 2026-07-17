@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -62,9 +62,19 @@ export default function FeedbackScreen() {
     setFeedback((current) => [created, ...current]);
   };
 
-  const handleResponded = (updated) => {
+  const handleResponded = useCallback((updated) => {
     setFeedback((current) => current.map((item) => (item._id === updated._id ? updated : item)));
-  };
+  }, []);
+
+  const renderFeedbackItem = useCallback(
+    ({ item }) =>
+      isAdmin ? (
+        <AdminFeedbackRow feedback={item} onResponded={handleResponded} styles={styles} />
+      ) : (
+        <FeedbackRow feedback={item} styles={styles} />
+      ),
+    [isAdmin, handleResponded, styles]
+  );
 
   if (!signedIn) {
     return (
@@ -103,13 +113,7 @@ export default function FeedbackScreen() {
             {isAdmin ? "No feedback submitted yet." : "You have not submitted any feedback yet."}
           </Text>
         }
-        renderItem={({ item }) =>
-          isAdmin ? (
-            <AdminFeedbackRow feedback={item} onResponded={handleResponded} styles={styles} />
-          ) : (
-            <FeedbackRow feedback={item} styles={styles} />
-          )
-        }
+        renderItem={renderFeedbackItem}
       />
     </KeyboardAvoidingView>
   );
@@ -190,7 +194,7 @@ function SubmitFeedbackForm({ onSubmitted, styles }) {
   );
 }
 
-function FeedbackRow({ feedback, styles }) {
+const FeedbackRow = memo(function FeedbackRow({ feedback, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -205,9 +209,9 @@ function FeedbackRow({ feedback, styles }) {
       ) : null}
     </View>
   );
-}
+});
 
-function AdminFeedbackRow({ feedback, onResponded, styles }) {
+const AdminFeedbackRow = memo(function AdminFeedbackRow({ feedback, onResponded, styles }) {
   const [responding, setResponding] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -284,7 +288,7 @@ function AdminFeedbackRow({ feedback, onResponded, styles }) {
       )}
     </View>
   );
-}
+});
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -113,6 +113,12 @@ export default function RequestsScreen() {
     setRefreshing(false);
   };
 
+  const renderRequestItem = useCallback(
+    ({ item }) =>
+      tab === "inquiries" ? <InquiryRow inquiry={item} styles={styles} /> : <ViewingRow viewing={item} styles={styles} />,
+    [tab, styles]
+  );
+
   if (!signedIn) {
     return (
       <MessageView
@@ -170,20 +176,14 @@ export default function RequestsScreen() {
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerSpinner} /> : null}
-          renderItem={({ item }) =>
-            tab === "inquiries" ? (
-              <InquiryRow inquiry={item} styles={styles} />
-            ) : (
-              <ViewingRow viewing={item} styles={styles} />
-            )
-          }
+          renderItem={renderRequestItem}
         />
       )}
     </View>
   );
 }
 
-function InquiryRow({ inquiry, styles }) {
+const InquiryRow = memo(function InquiryRow({ inquiry, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -200,9 +200,9 @@ function InquiryRow({ inquiry, styles }) {
       ) : null}
     </View>
   );
-}
+});
 
-function ViewingRow({ viewing, styles }) {
+const ViewingRow = memo(function ViewingRow({ viewing, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -217,7 +217,7 @@ function ViewingRow({ viewing, styles }) {
       {viewing.message ? <Text style={styles.cardMessage}>{viewing.message}</Text> : null}
     </View>
   );
-}
+});
 
 function StatusBadge({ status, styles }) {
   return (
