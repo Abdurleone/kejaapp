@@ -126,6 +126,7 @@ describe("DiscoverPage", () => {
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
     await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(1));
 
+    await user.click(screen.getByRole("button", { name: "Filters" }));
     await user.selectOptions(screen.getByLabelText("Type"), "studio");
     await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(2));
 
@@ -143,6 +144,30 @@ describe("DiscoverPage", () => {
     expect(screen.getByText("New Filtered Listing")).toBeInTheDocument();
   });
 
+  it("keeps type/bedrooms/price filters collapsed behind a Filters toggle, and reflects the active count", async () => {
+    fetchProperties.mockResolvedValue([sampleProperty]);
+    fetchFavorites.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
+    await screen.findByText("Modern Kilimani Apartment");
+
+    expect(screen.queryByLabelText("Type")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Min rent")).not.toBeInTheDocument();
+
+    const toggle = screen.getByRole("button", { name: "Filters" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText("Type")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Type"), "studio");
+    await waitFor(() => expect(fetchProperties).toHaveBeenLastCalledWith(expect.objectContaining({ type: "studio" })));
+
+    expect(screen.getByRole("button", { name: "Filters (1)" })).toBeInTheDocument();
+  });
+
   it("rejects an inverted price range instead of silently applying it", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
     fetchFavorites.mockResolvedValue([]);
@@ -152,11 +177,34 @@ describe("DiscoverPage", () => {
     await screen.findByText("Modern Kilimani Apartment");
     const callCountBeforeApply = fetchProperties.mock.calls.length;
 
+    await user.click(screen.getByRole("button", { name: "Filters" }));
     await user.type(screen.getByPlaceholderText("Min rent"), "90000");
     await user.type(screen.getByPlaceholderText("Max rent"), "50000");
     await user.click(screen.getByRole("button", { name: "Apply price" }));
 
     expect(await screen.findByText("Min rent can't be greater than max rent.")).toBeInTheDocument();
     expect(fetchProperties.mock.calls.length).toBe(callCountBeforeApply);
+  });
+
+  it("hides the price-filter error when the Filters panel is collapsed again", async () => {
+    fetchProperties.mockResolvedValue([sampleProperty]);
+    fetchFavorites.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
+    await screen.findByText("Modern Kilimani Apartment");
+
+    const toggle = screen.getByRole("button", { name: "Filters" });
+    await user.click(toggle);
+    await user.type(screen.getByPlaceholderText("Min rent"), "90000");
+    await user.type(screen.getByPlaceholderText("Max rent"), "50000");
+    await user.click(screen.getByRole("button", { name: "Apply price" }));
+    await screen.findByText("Min rent can't be greater than max rent.");
+
+    // Collapsing hides the fields the error refers to - the error
+    // shouldn't linger on screen with no visible context for it.
+    await user.click(toggle);
+
+    expect(screen.queryByText("Min rent can't be greater than max rent.")).not.toBeInTheDocument();
   });
 });
