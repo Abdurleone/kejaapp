@@ -404,6 +404,14 @@ button:disabled {
   border-color: color-mix(in srgb, var(--amber) 45%, var(--line));
 }
 
+.filters-panel {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 .detail-panel {
   display: grid;
   gap: 14px;
