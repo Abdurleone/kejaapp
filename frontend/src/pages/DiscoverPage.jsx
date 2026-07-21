@@ -33,6 +33,12 @@ export default function DiscoverPage({ onOpenProperty }) {
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  // Type/bedrooms/price start collapsed behind a "Filters" disclosure -
+  // radius and "Near me" are the only always-visible controls, keeping the
+  // number of simultaneous choices low for a first-time visitor. The
+  // toggle's own label still surfaces how many filters are active, so
+  // collapsing them doesn't hide that state from view.
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   // The filter set actually fetched, as opposed to the raw min/max rent
   // inputs below - those only feed a fetch once "Apply price" is clicked,
   // everything else applies immediately on change.
@@ -210,6 +216,12 @@ export default function DiscoverPage({ onOpenProperty }) {
   };
 
   const summary = useMemo(() => summarizeProperties(properties), [properties]);
+  const activeFilterCount = [
+    appliedFilters.type,
+    appliedFilters.bedrooms,
+    appliedFilters.minRent,
+    appliedFilters.maxRent,
+  ].filter(Boolean).length;
 
   return (
     <div className="view active-view">
@@ -248,6 +260,19 @@ export default function DiscoverPage({ onOpenProperty }) {
               </button>
             </>
           )}
+          <button
+            className="secondary-button"
+            type="button"
+            aria-expanded={showMoreFilters}
+            aria-controls="discover-more-filters"
+            onClick={() => setShowMoreFilters((current) => !current)}
+          >
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </button>
+        </div>
+      </div>
+      {showMoreFilters && (
+        <div id="discover-more-filters" className="panel filters-panel">
           <label className="radius-control">
             Type
             <select value={type} onChange={handleTypeChange}>
@@ -288,8 +313,8 @@ export default function DiscoverPage({ onOpenProperty }) {
             Apply price
           </button>
         </div>
-      </div>
-      {priceFilterError && (
+      )}
+      {showMoreFilters && priceFilterError && (
         <div className="panel notice-panel">
           <p className="error-text">{priceFilterError}</p>
         </div>
