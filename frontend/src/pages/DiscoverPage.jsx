@@ -314,7 +314,7 @@ export default function DiscoverPage({ onOpenProperty }) {
           </button>
         </div>
       )}
-      {priceFilterError && (
+      {showMoreFilters && priceFilterError && (
         <div className="panel notice-panel">
           <p className="error-text">{priceFilterError}</p>
         </div>
