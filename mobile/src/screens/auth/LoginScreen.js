@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -18,7 +18,7 @@ import { useTheme } from "../../context/ThemeContext.js";
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { apiBaseUrl, setApiBaseUrl } = useSettings();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");

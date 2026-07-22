@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -26,7 +26,7 @@ export default function RequestsScreen() {
   const navigation = useNavigation();
   const { signedIn } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [tab, setTab] = useState("inquiries");
   const [inquiries, setInquiries] = useState([]);
   const [inquiriesPagination, setInquiriesPagination] = useState(null);

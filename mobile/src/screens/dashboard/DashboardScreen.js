@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { fetchDashboardSummary } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -39,7 +39,7 @@ function StatusStatTiles({ counts, suffix, styles }) {
 export default function DashboardScreen() {
   const { user, signedIn } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

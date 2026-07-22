@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -51,7 +51,7 @@ export default function PropertyEditScreen({ route, navigation }) {
   const { propertyId } = route.params;
   const { colors } = useTheme();
   const { apiBaseUrl } = useSettings();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [property, setProperty] = useState(null);
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);

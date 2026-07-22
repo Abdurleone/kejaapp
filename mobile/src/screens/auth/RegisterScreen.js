@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -29,7 +29,7 @@ const roles = [
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [form, setForm] = useState({
     name: "",
     email: "",
