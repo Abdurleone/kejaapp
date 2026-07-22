@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { fetchDashboardSummary } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -16,16 +16,16 @@ const roleLabels = {
   admin: "Admin",
 };
 
-function StatTile({ value, label, styles }) {
+const StatTile = memo(function StatTile({ value, label, styles }) {
   return (
     <View style={styles.tile}>
       <Text style={styles.tileValue}>{value}</Text>
       <Text style={styles.tileLabel}>{label}</Text>
     </View>
   );
-}
+});
 
-function StatusStatTiles({ counts, suffix, styles }) {
+const StatusStatTiles = memo(function StatusStatTiles({ counts, suffix, styles }) {
   return Object.entries(counts).map(([status, count]) => (
     <StatTile
       key={`${suffix}-${status}`}
@@ -34,7 +34,7 @@ function StatusStatTiles({ counts, suffix, styles }) {
       styles={styles}
     />
   ));
-}
+});
 
 export default function DashboardScreen() {
   const { user, signedIn } = useAuth();
