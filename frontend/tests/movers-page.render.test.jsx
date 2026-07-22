@@ -218,6 +218,29 @@ describe("MoversPage - mover dashboard", () => {
     expect(await screen.findByText("Accepted")).toBeInTheDocument();
   });
 
+  it("highlights the mover request a notification tap pointed at", async () => {
+    fetchMoverProfileStatus.mockResolvedValue({
+      status: "approved",
+      verified: true,
+      name: "Speedy Movers",
+      serviceTypes: ["local"],
+      location: { town: "Westlands", county: "Nairobi" },
+    });
+    fetchReceivedMoverRequests.mockResolvedValue([
+      { _id: "req-1", status: "pending", message: "Need help moving", tenant: { name: "Jane Tenant" } },
+    ]);
+
+    renderWithAuth(<MoversPage highlightId="req-1" />, {
+      signedIn: true,
+      currentUser: { _id: "m1", role: "mover" },
+    });
+
+    await screen.findByText("Need help moving");
+
+    const card = screen.getByText("Need help moving").closest("article");
+    expect(card.className).toContain("property-card--highlighted");
+  });
+
   it("shows the dashboard error state with retry", async () => {
     fetchMoverProfileStatus.mockRejectedValueOnce(new Error("Dashboard down"));
     fetchMoverProfileStatus.mockResolvedValueOnce({ status: "not_submitted" });

@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import PaginationFooter from "../components/PaginationFooter.jsx";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import {
@@ -11,7 +11,17 @@ import {
   updateViewingRequestStatus,
 } from "../../app-utils.js";
 
-export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
+export default function WorkspacePage({ onEditProperty, onCreateProperty, highlightId }) {
+  const [dismissedHighlightId, setDismissedHighlightId] = useState(null);
+  const activeHighlightId = highlightId && highlightId !== dismissedHighlightId ? highlightId : null;
+
+  useEffect(() => {
+    if (!highlightId) return undefined;
+
+    const timer = setTimeout(() => setDismissedHighlightId(highlightId), 5000);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
+
   const [properties, setProperties] = useState([]);
   const [propertiesPagination, setPropertiesPagination] = useState(null);
   const [propertiesPage, setPropertiesPage] = useState(1);
@@ -210,7 +220,12 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
           <>
             <div className="property-grid compact-grid">
               {inquiries.map((inquiry) => (
-                <InquiryCard key={inquiry._id} inquiry={inquiry} onResponded={handleInquiryResponded} />
+                <InquiryCard
+                  key={inquiry._id}
+                  inquiry={inquiry}
+                  onResponded={handleInquiryResponded}
+                  isHighlighted={inquiry._id === activeHighlightId}
+                />
               ))}
             </div>
             <PaginationFooter
@@ -247,6 +262,7 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
                   key={viewingRequest._id}
                   viewingRequest={viewingRequest}
                   onResponded={handleViewingRequestResponded}
+                  isHighlighted={viewingRequest._id === activeHighlightId}
                 />
               ))}
             </div>
@@ -262,10 +278,17 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
   );
 }
 
-export const InquiryCard = memo(function InquiryCard({ inquiry, onResponded }) {
+export const InquiryCard = memo(function InquiryCard({ inquiry, onResponded, isHighlighted }) {
   const [response, setResponse] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (isHighlighted && typeof cardRef.current?.scrollIntoView === "function") {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isHighlighted]);
 
   const handleRespond = async (status) => {
     setError("");
@@ -288,7 +311,7 @@ export const InquiryCard = memo(function InquiryCard({ inquiry, onResponded }) {
   };
 
   return (
-    <article className="property-card">
+    <article ref={cardRef} className={`property-card${isHighlighted ? " property-card--highlighted" : ""}`}>
       <div className="property-body">
         <h3 className="property-title">{inquiry.property?.title || "Property"}</h3>
         <p className="muted-copy">{inquiry.subject || inquiry.message}</p>
@@ -336,9 +359,16 @@ export const InquiryCard = memo(function InquiryCard({ inquiry, onResponded }) {
   );
 });
 
-export const ViewingRequestCard = memo(function ViewingRequestCard({ viewingRequest, onResponded }) {
+export const ViewingRequestCard = memo(function ViewingRequestCard({ viewingRequest, onResponded, isHighlighted }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (isHighlighted && typeof cardRef.current?.scrollIntoView === "function") {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isHighlighted]);
 
   const handleRespond = async (status) => {
     setError("");
@@ -355,7 +385,7 @@ export const ViewingRequestCard = memo(function ViewingRequestCard({ viewingRequ
   };
 
   return (
-    <article className="property-card">
+    <article ref={cardRef} className={`property-card${isHighlighted ? " property-card--highlighted" : ""}`}>
       <div className="property-body">
         <h3 className="property-title">{viewingRequest.property?.title || "Property"}</h3>
         <p className="muted-copy">{viewingRequest.requester?.name || "Tenant"}</p>

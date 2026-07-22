@@ -62,6 +62,7 @@ function App() {
   const [signedIn, setSignedIn] = useState(Boolean(localStorage.getItem("keja_token")));
   const [currentUser, setCurrentUser] = useState(null);
   const [authPanelOpen, setAuthPanelOpen] = useState(false);
+  const [highlightRequestId, setHighlightRequestId] = useState(null);
   const tabRefs = useRef(new Map());
 
   useEffect(() => {
@@ -73,6 +74,11 @@ function App() {
     if (nextPath === path) return;
     window.history.pushState({}, "", nextPath);
     setPath(nextPath);
+  };
+
+  const navigateToRequest = ({ view, highlightId }) => {
+    setHighlightRequestId(highlightId);
+    navigate(getViewPath(view));
   };
 
   // Roving-tabindex arrow-key navigation for the main nav's ARIA tablist -
@@ -290,10 +296,11 @@ function App() {
           <WorkspacePage
             onEditProperty={(propertyId) => navigate(getPropertyEditPath(propertyId))}
             onCreateProperty={() => navigate(getPropertyCreatePath())}
+            highlightId={highlightRequestId}
           />
         );
       case "movers":
-        return <MoversPage />;
+        return <MoversPage highlightId={highlightRequestId} />;
       case "admin":
         if (!signedIn || !canAccessView(currentUser?.role, "admin")) {
           return (
@@ -316,7 +323,7 @@ function App() {
           );
         }
 
-        return <NotificationsPage />;
+        return <NotificationsPage currentUser={currentUser} onNavigateToRequest={navigateToRequest} />;
       case "feedback":
         if (!signedIn || !canAccessView(currentUser?.role, "feedback")) {
           return (
