@@ -75,4 +75,39 @@ describe("SettingsProvider", () => {
     expect(setApiBaseUrl).toHaveBeenCalledWith("http://192.168.1.20:5000");
     await waitFor(() => expect(getByText("http://192.168.1.20:5000")).toBeTruthy());
   });
+
+  it("keeps the same setApiBaseUrl function reference across a change that updates apiBaseUrl", async () => {
+    // The outer `value` object is memoized on [apiBaseUrl, ...], so it's
+    // already a new object once apiBaseUrl changes - that alone doesn't
+    // prove setApiBaseUrl itself is stable. Wrapping it in useCallback is
+    // what keeps *its* reference identical even across a render where the
+    // surrounding value object necessarily changes.
+    getApiBaseUrl
+      .mockResolvedValueOnce("http://localhost:5000")
+      .mockResolvedValueOnce("http://192.168.1.20:5000");
+    setApiBaseUrl.mockResolvedValue();
+    const captured = [];
+
+    function CaptureConsumer() {
+      const value = useSettings();
+      captured.push(value);
+      return <Text>{value.apiBaseUrl ?? "loading"}</Text>;
+    }
+
+    const { getByText } = await render(
+      <SettingsProvider>
+        <CaptureConsumer />
+      </SettingsProvider>
+    );
+    await waitFor(() => expect(getByText("http://localhost:5000")).toBeTruthy());
+    const beforeSet = captured[captured.length - 1].setApiBaseUrl;
+
+    await act(async () => {
+      await beforeSet("http://192.168.1.20:5000");
+    });
+    await waitFor(() => expect(getByText("http://192.168.1.20:5000")).toBeTruthy());
+    const afterSet = captured[captured.length - 1].setApiBaseUrl;
+
+    expect(afterSet).toBe(beforeSet);
+  });
 });

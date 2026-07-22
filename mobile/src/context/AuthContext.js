@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   fetchCurrentUser,
   getAuthToken,
@@ -41,29 +41,29 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const login = async (credentials) => {
+  const login = useCallback(async (credentials) => {
     const response = await loginUser(credentials);
     setUser(response.user);
     registerForPushNotifications();
     return response.user;
-  };
+  }, []);
 
-  const register = async (payload) => {
+  const register = useCallback(async (payload) => {
     const response = await registerUser(payload);
     setUser(response.user);
     registerForPushNotifications();
     return response.user;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await unregisterForPushNotifications();
     await logoutUser();
     setUser(null);
-  };
+  }, []);
 
   const value = useMemo(
     () => ({ user, signedIn: Boolean(user), loading, login, register, logout }),
-    [user, loading]
+    [user, loading, login, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
