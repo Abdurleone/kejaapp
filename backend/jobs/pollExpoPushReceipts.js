@@ -10,8 +10,13 @@ const expo = new Expo();
 // than polling forever.
 const receiptMaxAgeMs = 24 * 60 * 60 * 1000;
 
+// Bounds memory/DB load per run if the queue ever backs up. Oldest-first so a
+// backlog drains in order across runs instead of newest tickets starving old
+// ones; nothing is lost - unprocessed receipts just wait for the next run.
+const receiptBatchSize = 1000;
+
 const run = async () => {
-  const pendingReceipts = await PushReceipt.find({});
+  const pendingReceipts = await PushReceipt.find({}).sort("createdAt").limit(receiptBatchSize);
 
   if (pendingReceipts.length === 0) {
     return 0;
