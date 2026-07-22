@@ -4,9 +4,11 @@ import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx
 import {
   fetchMyProperties,
   fetchReceivedInquiries,
+  fetchReceivedViewingRequests,
   formatKes,
   formatStatusLabel,
   respondToInquiry,
+  updateViewingRequestStatus,
 } from "../../app-utils.js";
 
 export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
@@ -23,6 +25,13 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
   const [inquiriesLoading, setInquiriesLoading] = useState(true);
   const [inquiriesError, setInquiriesError] = useState("");
   const [inquiriesRetryKey, setInquiriesRetryKey] = useState(0);
+
+  const [viewingRequests, setViewingRequests] = useState([]);
+  const [viewingRequestsPagination, setViewingRequestsPagination] = useState(null);
+  const [viewingRequestsPage, setViewingRequestsPage] = useState(1);
+  const [viewingRequestsLoading, setViewingRequestsLoading] = useState(true);
+  const [viewingRequestsError, setViewingRequestsError] = useState("");
+  const [viewingRequestsRetryKey, setViewingRequestsRetryKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -78,8 +87,41 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
     };
   }, [inquiriesPage, inquiriesRetryKey]);
 
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setViewingRequestsLoading(true);
+      setViewingRequestsError("");
+
+      try {
+        const { viewingRequests: data, pagination } = await fetchReceivedViewingRequests({
+          page: viewingRequestsPage,
+        });
+        if (active) {
+          setViewingRequests(data);
+          setViewingRequestsPagination(pagination);
+        }
+      } catch (err) {
+        if (active) setViewingRequestsError(err.message || "Failed to load your viewing requests.");
+      } finally {
+        if (active) setViewingRequestsLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [viewingRequestsPage, viewingRequestsRetryKey]);
+
   const handleInquiryResponded = useCallback((updated) => {
     setInquiries((current) => current.map((item) => (item._id === updated._id ? updated : item)));
+  }, []);
+
+  const handleViewingRequestResponded = useCallback((updated) => {
+    setViewingRequests((current) => current.map((item) => (item._id === updated._id ? updated : item)));
   }, []);
 
   return (
@@ -179,6 +221,43 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
           </>
         )}
       </div>
+
+      <div className="panel">
+        <h3>Viewing requests {viewingRequestsPagination ? `(${viewingRequestsPagination.total})` : ""}</h3>
+        {viewingRequestsLoading ? (
+          <PropertyCardSkeletonGrid count={3} compact />
+        ) : viewingRequestsError ? (
+          <>
+            <p className="error-text">{viewingRequestsError}</p>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => setViewingRequestsRetryKey((key) => key + 1)}
+            >
+              Retry
+            </button>
+          </>
+        ) : viewingRequests.length === 0 ? (
+          <p className="muted-copy">No viewing requests yet. They&apos;ll show up here once tenants ask to view a property.</p>
+        ) : (
+          <>
+            <div className="property-grid compact-grid">
+              {viewingRequests.map((viewingRequest) => (
+                <ViewingRequestCard
+                  key={viewingRequest._id}
+                  viewingRequest={viewingRequest}
+                  onResponded={handleViewingRequestResponded}
+                />
+              ))}
+            </div>
+            <PaginationFooter
+              pagination={viewingRequestsPagination}
+              page={viewingRequestsPage}
+              onPageChange={setViewingRequestsPage}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -252,6 +331,67 @@ export const InquiryCard = memo(function InquiryCard({ inquiry, onResponded }) {
             </div>
           </>
         )}
+      </div>
+    </article>
+  );
+});
+
+export const ViewingRequestCard = memo(function ViewingRequestCard({ viewingRequest, onResponded }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRespond = async (status) => {
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const updated = await updateViewingRequestStatus(viewingRequest._id, { status });
+      onResponded(updated);
+    } catch (err) {
+      setError(err.message || "Could not update this viewing request.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <article className="property-card">
+      <div className="property-body">
+        <h3 className="property-title">{viewingRequest.property?.title || "Property"}</h3>
+        <p className="muted-copy">{viewingRequest.requester?.name || "Tenant"}</p>
+        {viewingRequest.requestedDate && (
+          <p className="muted-copy">
+            Requested date: {new Date(viewingRequest.requestedDate).toLocaleDateString()}
+          </p>
+        )}
+        {viewingRequest.message && <p className="muted-copy">{viewingRequest.message}</p>}
+        <div className="cost-row">
+          <span className="status-pill">{formatStatusLabel(viewingRequest.status)}</span>
+        </div>
+
+        {viewingRequest.status === "pending" ? (
+          <>
+            {error && <p className="error-text">{error}</p>}
+            <div className="form-actions">
+              <button
+                className="primary-button"
+                type="button"
+                disabled={submitting}
+                onClick={() => handleRespond("approved")}
+              >
+                {submitting ? "Saving..." : "Approve"}
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={submitting}
+                onClick={() => handleRespond("rejected")}
+              >
+                Reject
+              </button>
+            </div>
+          </>
+        ) : null}
       </div>
     </article>
   );
