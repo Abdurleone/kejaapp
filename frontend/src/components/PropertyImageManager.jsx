@@ -105,7 +105,7 @@ export default function PropertyImageManager({ property, apiBaseUrl, onPropertyU
         <div className="image-thumb-grid">
           {images.map((image) => (
             <div className="image-thumb" key={image._id}>
-              <img src={resolveAssetUrl(image.url, apiBaseUrl)} alt={image.alt || ""} />
+              <img src={resolveAssetUrl(image.url, apiBaseUrl)} alt={image.alt || ""} loading="lazy" />
               <button
                 className="secondary-button"
                 type="button"

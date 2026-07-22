@@ -12,7 +12,7 @@ function PropertyCard({ property, isSaved, isSaving, signedIn, onSave, onOpenPro
   return (
     <article className="property-card">
       <div className="property-photo">
-        <img src={getPropertyImage(property)} alt={property.title || "Rental property"} />
+        <img src={getPropertyImage(property)} alt={property.title || "Rental property"} loading="lazy" />
         <span className="status-pill">{property.status || "available"}</span>
       </div>
       <div className="property-body">
