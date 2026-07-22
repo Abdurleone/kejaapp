@@ -38,7 +38,7 @@ describe("DiscoverPage", () => {
 
   it("renders fetched property cards with real listing data", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
 
@@ -49,7 +49,7 @@ describe("DiscoverPage", () => {
 
   it("shows the empty state when no properties are returned", async () => {
     fetchProperties.mockResolvedValue([]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
 
@@ -58,7 +58,7 @@ describe("DiscoverPage", () => {
 
   it("shows an error state with a retry action when the fetch fails", async () => {
     fetchProperties.mockRejectedValueOnce(new Error("Network down"));
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
 
@@ -68,7 +68,7 @@ describe("DiscoverPage", () => {
 
   it("requires sign-in to save, and never calls saveFavorite, when signed out", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     const openAuthPanel = vi.fn();
     const user = userEvent.setup();
 
@@ -84,7 +84,7 @@ describe("DiscoverPage", () => {
 
   it("saves a listing when signed in, then reflects it as Saved and disables the button", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     saveFavorite.mockResolvedValue({});
     const user = userEvent.setup();
 
@@ -100,7 +100,7 @@ describe("DiscoverPage", () => {
 
   it("reflects a listing already in favorites as Saved on initial load, without calling saveFavorite", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([{ property: { _id: "prop-1" } }]);
+    fetchFavorites.mockResolvedValue({ favorites: [{ property: { _id: "prop-1" } }] });
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />, { signedIn: true });
 
@@ -120,7 +120,7 @@ describe("DiscoverPage", () => {
     const initial = deferred();
     const filtered = deferred();
     fetchProperties.mockImplementationOnce(() => initial.promise).mockImplementationOnce(() => filtered.promise);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     const user = userEvent.setup();
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
@@ -146,7 +146,7 @@ describe("DiscoverPage", () => {
 
   it("keeps type/bedrooms/price filters collapsed behind a Filters toggle, and reflects the active count", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     const user = userEvent.setup();
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
@@ -170,7 +170,7 @@ describe("DiscoverPage", () => {
 
   it("rejects an inverted price range instead of silently applying it", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     const user = userEvent.setup();
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
@@ -188,7 +188,7 @@ describe("DiscoverPage", () => {
 
   it("hides the price-filter error when the Filters panel is collapsed again", async () => {
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     const user = userEvent.setup();
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);
