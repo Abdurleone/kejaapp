@@ -489,6 +489,32 @@ export const createViewingRequest = async ({ property, requestedDate, message })
   return response.data;
 };
 
+const receivedViewingRequestsCacheTtlMs = 15000;
+
+export const fetchReceivedViewingRequests = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `receivedViewingRequests:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/viewings/received${queryString}`, { method: "GET" });
+  const data = { viewingRequests: response.data || [], pagination: response.pagination };
+  setCached(cacheKey, data, receivedViewingRequestsCacheTtlMs);
+  return data;
+};
+
+export const updateViewingRequestStatus = async (viewingRequestId, { status, reason }) => {
+  const response = await apiFetch(`/api/viewings/${viewingRequestId}/status`, {
+    method: "PUT",
+    body: { status, reason },
+  });
+  clearRequestCache("receivedViewingRequests");
+  return response.data;
+};
+
 export const fetchCurrentUser = async () => {
   const response = await apiFetch("/api/auth/me", { method: "GET" });
   return response.user;

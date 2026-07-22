@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import PropertyCard from "../src/components/PropertyCard.jsx";
 import SavedPropertyCard from "../src/components/SavedPropertyCard.jsx";
 import NotificationRow from "../src/components/NotificationRow.jsx";
-import { InquiryCard } from "../src/pages/WorkspacePage.jsx";
+import { InquiryCard, ViewingRequestCard } from "../src/pages/WorkspacePage.jsx";
 
 // A row that isn't wrapped in React.memo re-renders every time its parent
 // list re-renders, even if its own props are unchanged - e.g. clicking
@@ -15,6 +15,7 @@ describe("list row memoization", () => {
     ["SavedPage's SavedPropertyCard", SavedPropertyCard],
     ["NotificationsPage's NotificationRow", NotificationRow],
     ["WorkspacePage's InquiryCard", InquiryCard],
+    ["WorkspacePage's ViewingRequestCard", ViewingRequestCard],
   ])("%s is wrapped in React.memo", (_name, Component) => {
     expect(Component.$$typeof).toBe(Symbol.for("react.memo"));
   });
