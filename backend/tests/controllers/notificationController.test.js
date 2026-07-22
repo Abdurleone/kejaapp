@@ -27,7 +27,8 @@ describe("notificationController", () => {
   });
 
   it("lists the signed-in user's notifications, filtering by unread when requested", async () => {
-    const expectedData = [{ readAt: null }];
+    const readAt = new Date("2026-01-01T00:00:00.000Z");
+    const leanResult = [{ readAt: null }, { readAt }];
     const userId = new mongoose.Types.ObjectId();
     const query = {
       sort() {
@@ -37,7 +38,7 @@ describe("notificationController", () => {
         return this;
       },
       lean() {
-        return expectedData;
+        return leanResult;
       },
     };
     const find = mock.method(Notification, "find", (filters) => {
@@ -52,7 +53,14 @@ describe("notificationController", () => {
     });
 
     assert.equal(find.mock.callCount(), 1);
-    assert.deepEqual(res.body.data, expectedData);
+    // .lean() skips the schema's `isRead` virtual entirely (only computed for
+    // real Mongoose documents), so the controller must restore it manually -
+    // otherwise every notification looks unread forever, even after being
+    // marked read, since the list endpoint is always what re-renders it.
+    assert.deepEqual(res.body.data, [
+      { readAt: null, isRead: false },
+      { readAt, isRead: true },
+    ]);
   });
 
   it("returns not found when marking a missing notification as read", async () => {
