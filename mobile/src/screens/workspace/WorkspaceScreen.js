@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -34,7 +34,7 @@ const tabs = [
   { key: "viewingRequests", label: "Viewing requests" },
 ];
 
-const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles }) {
+const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles, isHighlighted }) {
   const [response, setResponse] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -54,7 +54,7 @@ const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles }) {
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isHighlighted && styles.cardHighlighted]}>
       <View style={styles.cardHeaderRow}>
         <Text style={styles.cardTitle} numberOfLines={1}>{inquiry.property?.title || "Property"}</Text>
         <View style={styles.badge}>
@@ -96,7 +96,7 @@ const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles }) {
   );
 });
 
-const ViewingRequestRow = memo(function ViewingRequestRow({ viewingRequest, onResponded, styles }) {
+const ViewingRequestRow = memo(function ViewingRequestRow({ viewingRequest, onResponded, styles, isHighlighted }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -115,7 +115,7 @@ const ViewingRequestRow = memo(function ViewingRequestRow({ viewingRequest, onRe
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isHighlighted && styles.cardHighlighted]}>
       <View style={styles.cardHeaderRow}>
         <Text style={styles.cardTitle} numberOfLines={1}>{viewingRequest.property?.title || "Property"}</Text>
         <View style={styles.badge}>
@@ -147,13 +147,33 @@ const ViewingRequestRow = memo(function ViewingRequestRow({ viewingRequest, onRe
   );
 });
 
-export default function WorkspaceScreen() {
+export default function WorkspaceScreen({ route }) {
   const navigation = useNavigation();
   const { user, signedIn } = useAuth();
   const { apiBaseUrl } = useSettings();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [tab, setTab] = useState("listings");
+  const highlightId = route?.params?.highlightId;
+  const initialTab = route?.params?.initialTab;
+  const [manualTab, setManualTab] = useState("listings");
+  const [dismissedHighlightId, setDismissedHighlightId] = useState(null);
+  const activeHighlightId = highlightId && highlightId !== dismissedHighlightId ? highlightId : null;
+  // A fresh, unconsumed nav-triggered highlight overrides whichever tab the
+  // user was last sitting on - manually switching tabs (below) or the 5s
+  // auto-clear (further below) both hand control back to manualTab.
+  const tab = activeHighlightId && initialTab ? initialTab : manualTab;
+
+  useEffect(() => {
+    if (!highlightId) return undefined;
+
+    const timer = setTimeout(() => setDismissedHighlightId(highlightId), 5000);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
+
+  const handleTabPress = (key) => {
+    setManualTab(key);
+    if (highlightId) setDismissedHighlightId(highlightId);
+  };
 
   const [properties, setProperties] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -354,15 +374,27 @@ export default function WorkspaceScreen() {
   );
 
   const renderInquiryItem = useCallback(
-    ({ item }) => <InquiryRow inquiry={item} onResponded={handleInquiryResponded} styles={styles} />,
-    [handleInquiryResponded, styles]
+    ({ item }) => (
+      <InquiryRow
+        inquiry={item}
+        onResponded={handleInquiryResponded}
+        styles={styles}
+        isHighlighted={item._id === activeHighlightId}
+      />
+    ),
+    [handleInquiryResponded, styles, activeHighlightId]
   );
 
   const renderViewingRequestItem = useCallback(
     ({ item }) => (
-      <ViewingRequestRow viewingRequest={item} onResponded={handleViewingRequestResponded} styles={styles} />
+      <ViewingRequestRow
+        viewingRequest={item}
+        onResponded={handleViewingRequestResponded}
+        styles={styles}
+        isHighlighted={item._id === activeHighlightId}
+      />
     ),
-    [handleViewingRequestResponded, styles]
+    [handleViewingRequestResponded, styles, activeHighlightId]
   );
 
   if (!signedIn) {
@@ -392,7 +424,7 @@ export default function WorkspaceScreen() {
           <Pressable
             key={option.key}
             style={[styles.tab, tab === option.key && styles.tabActive]}
-            onPress={() => setTab(option.key)}
+            onPress={() => handleTabPress(option.key)}
           >
             <Text style={[styles.tabText, tab === option.key && styles.tabTextActive]}>{option.label}</Text>
           </Pressable>
@@ -535,6 +567,10 @@ const createStyles = (colors) =>
       padding: 14,
       gap: 8,
       marginBottom: 12,
+    },
+    cardHighlighted: {
+      borderColor: colors.greenDark,
+      borderWidth: 2,
     },
     cardHeaderRow: {
       flexDirection: "row",

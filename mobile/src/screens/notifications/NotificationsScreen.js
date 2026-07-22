@@ -7,9 +7,39 @@ import { FeedbackCardSkeletonList } from "../../components/FeedbackCardSkeleton.
 import MessageView from "../../components/MessageView.js";
 import { useTheme } from "../../context/ThemeContext.js";
 
+// Only wired up for the actionable recipient of a request - the mover
+// opening a mover_request notification, or the property owner opening a
+// viewing/inquiry notification. The other side (e.g. a tenant being told
+// their viewing was approved) has no "my sent requests" tracking screen to
+// land on yet, so those notifications stay read-only for now. Mirrors the
+// web equivalent in frontend/src/pages/NotificationsPage.jsx.
+export const resolveNotificationTarget = (notification, role) => {
+  if (notification.type === "mover_request" && role === "mover") {
+    return { tab: "Movers", screen: "MoversList", params: { highlightId: notification.data?.moverRequest } };
+  }
+
+  if (notification.type === "viewing" && (role === "landlord" || role === "agency")) {
+    return {
+      tab: "Workspace",
+      screen: "WorkspaceList",
+      params: { highlightId: notification.data?.viewingRequest, initialTab: "viewingRequests" },
+    };
+  }
+
+  if (notification.type === "inquiry" && (role === "landlord" || role === "agency")) {
+    return {
+      tab: "Workspace",
+      screen: "WorkspaceList",
+      params: { highlightId: notification.data?.inquiry, initialTab: "inquiries" },
+    };
+  }
+
+  return null;
+};
+
 export default function NotificationsScreen() {
   const navigation = useNavigation();
-  const { signedIn } = useAuth();
+  const { signedIn, user } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [notifications, setNotifications] = useState([]);
@@ -97,16 +127,30 @@ export default function NotificationsScreen() {
     [unreadOnly]
   );
 
+  const handleOpenNotification = useCallback(
+    (notification, target) => {
+      if (!notification.isRead) {
+        handleMarkRead(notification._id);
+      }
+      navigation.navigate(target.tab, { screen: target.screen, params: target.params });
+    },
+    [handleMarkRead, navigation]
+  );
+
   const renderNotificationItem = useCallback(
-    ({ item }) => (
-      <NotificationRow
-        notification={item}
-        marking={markingId === item._id}
-        onMarkRead={handleMarkRead}
-        styles={styles}
-      />
-    ),
-    [markingId, handleMarkRead, styles]
+    ({ item }) => {
+      const target = resolveNotificationTarget(item, user?.role);
+      return (
+        <NotificationRow
+          notification={item}
+          marking={markingId === item._id}
+          onMarkRead={handleMarkRead}
+          onOpen={target ? () => handleOpenNotification(item, target) : undefined}
+          styles={styles}
+        />
+      );
+    },
+    [markingId, handleMarkRead, handleOpenNotification, user, styles]
   );
 
   if (!signedIn) {
@@ -169,7 +213,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const NotificationRow = memo(function NotificationRow({ notification, marking, onMarkRead, styles }) {
+const NotificationRow = memo(function NotificationRow({ notification, marking, onMarkRead, onOpen, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -185,11 +229,18 @@ const NotificationRow = memo(function NotificationRow({ notification, marking, o
       <Text style={styles.cardMessage}>{notification.message}</Text>
       <View style={styles.cardFooterRow}>
         <Text style={styles.timestamp}>{new Date(notification.createdAt).toLocaleString()}</Text>
-        {!notification.isRead ? (
-          <Pressable disabled={marking} onPress={() => onMarkRead(notification._id)}>
-            <Text style={styles.markReadText}>{marking ? "Marking..." : "Mark as read"}</Text>
-          </Pressable>
-        ) : null}
+        <View style={styles.cardFooterActions}>
+          {onOpen ? (
+            <Pressable onPress={onOpen} hitSlop={8}>
+              <Text style={styles.markReadText}>View request</Text>
+            </Pressable>
+          ) : null}
+          {!notification.isRead ? (
+            <Pressable disabled={marking} onPress={() => onMarkRead(notification._id)} hitSlop={8}>
+              <Text style={styles.markReadText}>{marking ? "Marking..." : "Mark as read"}</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
     </View>
   );
@@ -266,6 +317,10 @@ const createStyles = (colors) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginTop: 4,
+    },
+    cardFooterActions: {
+      flexDirection: "row",
+      gap: 16,
     },
     timestamp: {
       fontSize: 12,

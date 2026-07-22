@@ -194,4 +194,28 @@ describe("WorkspaceScreen", () => {
     await waitFor(() => expect(updateViewingRequestStatus).toHaveBeenCalledWith("v1", { status: "rejected" }));
     await waitFor(() => expect(() => getByText("Reject")).toThrow());
   });
+
+  it("jumps to the viewing-requests tab and highlights the request a notification tap pointed at", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { role: "landlord" } });
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [
+        {
+          _id: "v1",
+          status: "pending",
+          message: "Can I view this Saturday morning?",
+          property: { title: "Cozy studio" },
+          requester: { name: "Jane Doe" },
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+
+    const route = { params: { highlightId: "v1", initialTab: "viewingRequests" } };
+    const { getByText } = await render(<WorkspaceScreen route={route} />);
+
+    await waitFor(() => expect(getByText("Can I view this Saturday morning?")).toBeTruthy());
+
+    const card = getByText("Can I view this Saturday morning?").parent;
+    expect(card.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ borderWidth: 2 })]));
+  });
 });
