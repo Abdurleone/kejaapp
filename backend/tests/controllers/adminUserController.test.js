@@ -157,25 +157,16 @@ describe("adminUserController", () => {
       select: async () => user,
     }));
     mock.method(Notification, "countDocuments", async () => 2);
-    mock.method(UserViolation, "countDocuments", async (filters) => {
-      const counts = { open: 1, reviewed: 0, dismissed: 0 };
-      return counts[filters.status];
-    });
+    mock.method(UserViolation, "aggregate", async () => [{ _id: "open", count: 1 }]);
     mock.method(Favorite, "countDocuments", async () => 3);
-    mock.method(Inquiry, "countDocuments", async (filters) => {
-      const counts = { open: 1, responded: 2, closed: 0 };
-      return counts[filters.status];
-    });
-    mock.method(ViewingRequest, "countDocuments", async (filters) => {
-      const counts = {
-        pending: 1,
-        approved: 1,
-        rejected: 0,
-        cancelled: 0,
-        completed: 0,
-      };
-      return counts[filters.status];
-    });
+    mock.method(Inquiry, "aggregate", async () => [
+      { _id: "open", count: 1 },
+      { _id: "responded", count: 2 },
+    ]);
+    mock.method(ViewingRequest, "aggregate", async () => [
+      { _id: "pending", count: 1 },
+      { _id: "approved", count: 1 },
+    ]);
 
     const req = { params: { id: userId.toString() } };
     const res = createResponse();
@@ -206,25 +197,21 @@ describe("adminUserController", () => {
       select: async () => user,
     }));
     mock.method(Notification, "countDocuments", async () => 0);
-    mock.method(UserViolation, "countDocuments", async () => 0);
-    mock.method(Property, "countDocuments", async (filters) => {
-      const counts = { draft: 1, available: 2, taken: 1, archived: 0 };
-      return counts[filters.status];
-    });
-    mock.method(Inquiry, "countDocuments", async (filters) => {
-      const counts = { open: 4, responded: 1, closed: 0 };
-      return counts[filters.status];
-    });
-    mock.method(ViewingRequest, "countDocuments", async (filters) => {
-      const counts = {
-        pending: 2,
-        approved: 1,
-        rejected: 0,
-        cancelled: 0,
-        completed: 1,
-      };
-      return counts[filters.status];
-    });
+    mock.method(UserViolation, "aggregate", async () => []);
+    mock.method(Property, "aggregate", async () => [
+      { _id: "draft", count: 1 },
+      { _id: "available", count: 2 },
+      { _id: "taken", count: 1 },
+    ]);
+    mock.method(Inquiry, "aggregate", async () => [
+      { _id: "open", count: 4 },
+      { _id: "responded", count: 1 },
+    ]);
+    mock.method(ViewingRequest, "aggregate", async () => [
+      { _id: "pending", count: 2 },
+      { _id: "approved", count: 1 },
+      { _id: "completed", count: 1 },
+    ]);
     mock.method(AgencyVerification, "findOne", (filters) => {
       verificationFilters = filters;
 
