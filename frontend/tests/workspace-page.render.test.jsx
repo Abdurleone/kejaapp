@@ -1,17 +1,32 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import WorkspacePage from "../src/pages/WorkspacePage.jsx";
 
-const { fetchMyProperties, fetchReceivedInquiries, respondToInquiry } = vi.hoisted(() => ({
+const {
+  fetchMyProperties,
+  fetchReceivedInquiries,
+  respondToInquiry,
+  fetchReceivedViewingRequests,
+  updateViewingRequestStatus,
+} = vi.hoisted(() => ({
   fetchMyProperties: vi.fn(),
   fetchReceivedInquiries: vi.fn(),
   respondToInquiry: vi.fn(),
+  fetchReceivedViewingRequests: vi.fn(),
+  updateViewingRequestStatus: vi.fn(),
 }));
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, fetchMyProperties, fetchReceivedInquiries, respondToInquiry };
+  return {
+    ...actual,
+    fetchMyProperties,
+    fetchReceivedInquiries,
+    respondToInquiry,
+    fetchReceivedViewingRequests,
+    updateViewingRequestStatus,
+  };
 });
 
 const sampleProperty = {
@@ -30,12 +45,25 @@ const openInquiry = {
   status: "open",
 };
 
+const pendingViewingRequest = {
+  _id: "view-1",
+  property: { title: "Modern Kilimani Apartment" },
+  requester: { name: "Jane Tenant" },
+  message: "Can I view this Saturday morning?",
+  status: "pending",
+};
+
 const noProperties = { properties: [], pagination: { page: 1, pages: 1, total: 0 } };
 const noInquiries = { inquiries: [], pagination: { page: 1, pages: 1, total: 0 } };
+const noViewingRequests = { viewingRequests: [], pagination: { page: 1, pages: 1, total: 0 } };
 
 // Replaces page-components.test.js's regex-source-matching assertions for
 // WorkspacePage with real render + interaction tests.
 describe("WorkspacePage", () => {
+  beforeEach(() => {
+    fetchReceivedViewingRequests.mockResolvedValue(noViewingRequests);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -63,7 +91,7 @@ describe("WorkspacePage", () => {
     expect(onEditProperty).toHaveBeenCalledWith("prop-1");
   });
 
-  it("shows empty states for both sections when there's no data", async () => {
+  it("shows empty states for all three sections when there's no data", async () => {
     fetchMyProperties.mockResolvedValue(noProperties);
     fetchReceivedInquiries.mockResolvedValue(noInquiries);
 
@@ -71,6 +99,9 @@ describe("WorkspacePage", () => {
 
     expect(await screen.findByText("You haven't listed any properties yet.")).toBeInTheDocument();
     expect(screen.getByText("No inquiries yet. They'll show up here once tenants reach out.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No viewing requests yet. They'll show up here once tenants ask to view a property.")
+    ).toBeInTheDocument();
   });
 
   it("shows an error with retry for the listings section, independent of inquiries", async () => {
@@ -160,5 +191,45 @@ describe("WorkspacePage", () => {
 
     expect(respondToInquiry).toHaveBeenCalledWith("inq-1", { status: "closed", response: "" });
     await waitFor(() => expect(screen.getByText("Closed without a reply.")).toBeInTheDocument());
+  });
+
+  it("renders a pending viewing request and approves it", async () => {
+    fetchMyProperties.mockResolvedValue(noProperties);
+    fetchReceivedInquiries.mockResolvedValue(noInquiries);
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [pendingViewingRequest],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+    updateViewingRequestStatus.mockResolvedValue({ ...pendingViewingRequest, status: "approved" });
+    const user = userEvent.setup();
+
+    render(<WorkspacePage onEditProperty={vi.fn()} onCreateProperty={vi.fn()} />);
+    await screen.findByText("Can I view this Saturday morning?");
+
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+
+    expect(updateViewingRequestStatus).toHaveBeenCalledWith("view-1", { status: "approved" });
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument());
+    expect(screen.getByText("Approved")).toBeInTheDocument();
+  });
+
+  it("rejects a pending viewing request", async () => {
+    fetchMyProperties.mockResolvedValue(noProperties);
+    fetchReceivedInquiries.mockResolvedValue(noInquiries);
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [pendingViewingRequest],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+    updateViewingRequestStatus.mockResolvedValue({ ...pendingViewingRequest, status: "rejected" });
+    const user = userEvent.setup();
+
+    render(<WorkspacePage onEditProperty={vi.fn()} onCreateProperty={vi.fn()} />);
+    await screen.findByText("Can I view this Saturday morning?");
+
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+
+    expect(updateViewingRequestStatus).toHaveBeenCalledWith("view-1", { status: "rejected" });
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Reject" })).not.toBeInTheDocument());
+    expect(screen.getByText("Rejected")).toBeInTheDocument();
   });
 });
