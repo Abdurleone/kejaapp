@@ -138,4 +138,25 @@ describe("MoversScreen (mover dashboard)", () => {
 
     await waitFor(() => expect(getByText("Your mover profile")).toBeTruthy());
   });
+
+  it("highlights the request a notification tap pointed at", async () => {
+    fetchMoverProfileStatus.mockResolvedValue({
+      status: "approved",
+      verified: true,
+      name: "Speedy Movers",
+      serviceTypes: ["local"],
+      location: { town: "Westlands", county: "Nairobi" },
+    });
+    fetchReceivedMoverRequests.mockResolvedValue([
+      { _id: "req1", status: "pending", message: "Need help moving", tenant: { name: "Jane" } },
+    ]);
+
+    const route = { params: { highlightId: "req1" } };
+    const { getByText } = await render(<MoversScreen route={route} />);
+
+    await waitFor(() => expect(getByText("Need help moving")).toBeTruthy());
+
+    const card = getByText("Need help moving").parent;
+    expect(card.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ borderWidth: 2 })]));
+  });
 });

@@ -420,7 +420,7 @@ function MoverProfilePanel({ profile, onSaved, styles }) {
   );
 }
 
-const MoverRequestRow = memo(function MoverRequestRow({ request, onStatusChange, styles }) {
+const MoverRequestRow = memo(function MoverRequestRow({ request, onStatusChange, styles, isHighlighted }) {
   const [response, setResponse] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -440,7 +440,7 @@ const MoverRequestRow = memo(function MoverRequestRow({ request, onStatusChange,
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isHighlighted && styles.cardHighlighted]}>
       <View style={styles.cardHeaderRow}>
         <Text style={styles.cardTitle}>{request.tenant?.name || "Tenant"}</Text>
         <View style={styles.badge}>
@@ -488,12 +488,21 @@ const MoverRequestRow = memo(function MoverRequestRow({ request, onStatusChange,
   );
 });
 
-function MoverDashboard({ styles }) {
+function MoverDashboard({ styles, highlightId }) {
   const [profile, setProfile] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [dismissedHighlightId, setDismissedHighlightId] = useState(null);
+  const activeHighlightId = highlightId && highlightId !== dismissedHighlightId ? highlightId : null;
+
+  useEffect(() => {
+    if (!highlightId) return undefined;
+
+    const timer = setTimeout(() => setDismissedHighlightId(highlightId), 5000);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
 
   const load = useCallback(async () => {
     setError("");
@@ -555,7 +564,13 @@ function MoverDashboard({ styles }) {
             <Text style={styles.cardMessage}>No service requests yet.</Text>
           ) : (
             requests.map((request) => (
-              <MoverRequestRow key={request._id} request={request} onStatusChange={handleRequestStatusChange} styles={styles} />
+              <MoverRequestRow
+                key={request._id}
+                request={request}
+                onStatusChange={handleRequestStatusChange}
+                styles={styles}
+                isHighlighted={request._id === activeHighlightId}
+              />
             ))
           )}
         </View>
@@ -564,13 +579,14 @@ function MoverDashboard({ styles }) {
   );
 }
 
-export default function MoversScreen() {
+export default function MoversScreen({ route }) {
   const { user } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const highlightId = route?.params?.highlightId;
 
   if (user?.role === "mover") {
-    return <MoverDashboard styles={styles} />;
+    return <MoverDashboard styles={styles} highlightId={highlightId} />;
   }
 
   return <MoverDirectory styles={styles} />;
@@ -644,6 +660,10 @@ const createStyles = (colors) =>
       borderRadius: 12,
       padding: 14,
       gap: 8,
+    },
+    cardHighlighted: {
+      borderColor: colors.greenDark,
+      borderWidth: 2,
     },
     panel: {
       backgroundColor: colors.surface,
