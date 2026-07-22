@@ -18,6 +18,7 @@ import {
   getCurrentPositionOrNull,
   getPreferredContactUrl,
   getPropertyImage,
+  homeSizeOptions,
   saveFavorite,
 } from "../../app-utils.js";
 
@@ -66,9 +67,11 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   const [moverRequestFormId, setMoverRequestFormId] = useState(null);
   const [moverMessage, setMoverMessage] = useState("");
   const [moverPreferredDate, setMoverPreferredDate] = useState("");
+  const [moverHomeSize, setMoverHomeSize] = useState("");
   const [moverError, setMoverError] = useState("");
   const [moverSubmitting, setMoverSubmitting] = useState(false);
   const [moverSentId, setMoverSentId] = useState(null);
+  const [moverPriceEstimate, setMoverPriceEstimate] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -158,22 +161,30 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
       return;
     }
 
+    if (!moverHomeSize) {
+      setMoverError("Home size is required.");
+      return;
+    }
+
     setMoverSubmitting(true);
 
     try {
       const position = await getCurrentPositionOrNull();
-      await createMoverRequest({
+      const created = await createMoverRequest({
         mover: moverId,
         property: propertyId,
+        homeSize: moverHomeSize,
         message: moverMessage.trim(),
         preferredDate: moverPreferredDate || undefined,
         pickupLat: position?.lat,
         pickupLng: position?.lng,
       });
       setMoverSentId(moverId);
+      setMoverPriceEstimate(created?.priceEstimate ?? null);
       setMoverRequestFormId(null);
       setMoverMessage("");
       setMoverPreferredDate("");
+      setMoverHomeSize("");
     } catch (err) {
       setMoverError(err.message || "Could not send your mover request.");
     } finally {
@@ -300,9 +311,25 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
           <span>base price</span>
         </div>
         {moverSentId === mover._id ? (
-          <p className="muted-copy">Request sent — the mover will respond soon.</p>
+          <p className="muted-copy">
+            Request sent — the mover will respond soon.
+            {moverPriceEstimate ? ` Estimated price: ${formatKes(moverPriceEstimate)}.` : ""}
+          </p>
         ) : moverRequestFormId === mover._id ? (
           <form className="auth-panel-form" onSubmit={(event) => handleMoverRequestSubmit(event, mover._id)}>
+            <label>
+              Home size
+              <select value={moverHomeSize} onChange={(event) => setMoverHomeSize(event.target.value)} required>
+                <option value="" disabled>
+                  Select a home size
+                </option>
+                {homeSizeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label>
               Message
               <textarea
@@ -332,6 +359,7 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
                 onClick={() => {
                   setMoverRequestFormId(null);
                   setMoverError("");
+                  setMoverHomeSize("");
                 }}
               >
                 Cancel
@@ -347,6 +375,7 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
                 setMoverRequestFormId(mover._id);
                 setMoverMessage("");
                 setMoverPreferredDate("");
+                setMoverHomeSize("");
                 setMoverError("");
               }}
             >

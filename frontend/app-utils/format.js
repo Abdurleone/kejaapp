@@ -54,6 +54,16 @@ export const formatStatusLabel = (value) =>
     .join(" ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+// Mirrors backend/utils/moverPricing.js's homeSizes enum - kept in sync
+// manually since the two apps don't share a module.
+export const homeSizeOptions = [
+  { value: "studio", label: "Studio" },
+  { value: "1br", label: "1 Bedroom" },
+  { value: "2br", label: "2 Bedroom" },
+  { value: "3br", label: "3 Bedroom" },
+  { value: "4br_plus", label: "4+ Bedroom" },
+];
+
 export const formatRatingSummary = (ratingAverage, ratingCount) => {
   const count = Number(ratingCount || 0);
 
