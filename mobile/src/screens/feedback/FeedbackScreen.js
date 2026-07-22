@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -22,7 +22,7 @@ export default function FeedbackScreen() {
   const navigation = useNavigation();
   const { user, signedIn } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isAdmin = signedIn && user?.role === "admin";
 
   const [feedback, setFeedback] = useState([]);

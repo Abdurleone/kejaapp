@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { createInquiry } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
@@ -11,7 +11,7 @@ const contactPreferences = [
 
 export default function InquiryFormScreen({ route, navigation }) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { propertyId } = route.params;
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");

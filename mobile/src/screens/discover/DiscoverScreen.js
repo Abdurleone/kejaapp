@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as Location from "expo-location";
 import { createSavedSearch, fetchFavorites, fetchProperties, saveFavorite } from "../../api/index.js";
@@ -31,7 +31,7 @@ export default function DiscoverScreen({ navigation }) {
   const { signedIn } = useAuth();
   const { apiBaseUrl } = useSettings();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

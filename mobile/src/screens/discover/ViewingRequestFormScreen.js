@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -28,7 +28,7 @@ const minScheduledDate = () => {
 
 export default function ViewingRequestFormScreen({ route, navigation }) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { propertyId, viewingType } = route.params;
   const isScheduled = viewingType === "scheduled";
   const [requestedDate, setRequestedDate] = useState(minScheduledDate());
