@@ -511,6 +511,11 @@ button:disabled {
   box-shadow: var(--shadow-strong);
 }
 
+.property-card--highlighted {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px var(--green);
+}
+
 .property-photo {
   position: relative;
   aspect-ratio: 16 / 10;

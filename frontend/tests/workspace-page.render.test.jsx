@@ -232,4 +232,21 @@ describe("WorkspacePage", () => {
     await waitFor(() => expect(screen.queryByRole("button", { name: "Reject" })).not.toBeInTheDocument());
     expect(screen.getByText("Rejected")).toBeInTheDocument();
   });
+
+  it("highlights the viewing request a notification tap pointed at", async () => {
+    fetchMyProperties.mockResolvedValue(noProperties);
+    fetchReceivedInquiries.mockResolvedValue(noInquiries);
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [pendingViewingRequest],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+
+    render(
+      <WorkspacePage onEditProperty={vi.fn()} onCreateProperty={vi.fn()} highlightId="view-1" />
+    );
+    await screen.findByText("Can I view this Saturday morning?");
+
+    const card = screen.getByText("Can I view this Saturday morning?").closest("article");
+    expect(card.className).toContain("property-card--highlighted");
+  });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
   affiliateMover,
@@ -463,10 +463,17 @@ function MoverProfilePanel({ profile, onSaved }) {
   );
 }
 
-function MoverRequestRow({ request, onStatusChange }) {
+function MoverRequestRow({ request, onStatusChange, isHighlighted }) {
   const [response, setResponse] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const rowRef = useRef(null);
+
+  useEffect(() => {
+    if (isHighlighted && typeof rowRef.current?.scrollIntoView === "function") {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isHighlighted]);
 
   const handleAction = async (status) => {
     setError("");
@@ -483,7 +490,7 @@ function MoverRequestRow({ request, onStatusChange }) {
   };
 
   return (
-    <article className="property-card">
+    <article ref={rowRef} className={`property-card${isHighlighted ? " property-card--highlighted" : ""}`}>
       <div className="property-body">
         <div className="cost-row">
           <h3 className="property-title">{request.tenant?.name || "Tenant"}</h3>
@@ -531,12 +538,21 @@ function MoverRequestRow({ request, onStatusChange }) {
   );
 }
 
-function MoverDashboard() {
+function MoverDashboard({ highlightId }) {
   const [profile, setProfile] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  const [dismissedHighlightId, setDismissedHighlightId] = useState(null);
+  const activeHighlightId = highlightId && highlightId !== dismissedHighlightId ? highlightId : null;
+
+  useEffect(() => {
+    if (!highlightId) return undefined;
+
+    const timer = setTimeout(() => setDismissedHighlightId(highlightId), 5000);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
 
   useEffect(() => {
     let active = true;
@@ -605,7 +621,12 @@ function MoverDashboard() {
               ) : (
                 <div className="property-grid compact-grid">
                   {requests.map((request) => (
-                    <MoverRequestRow key={request._id} request={request} onStatusChange={handleRequestStatusChange} />
+                    <MoverRequestRow
+                      key={request._id}
+                      request={request}
+                      onStatusChange={handleRequestStatusChange}
+                      isHighlighted={request._id === activeHighlightId}
+                    />
                   ))}
                 </div>
               )}
@@ -617,11 +638,11 @@ function MoverDashboard() {
   );
 }
 
-export default function MoversPage() {
+export default function MoversPage({ highlightId }) {
   const { signedIn, currentUser, openAuthPanel } = useAuth();
 
   if (currentUser?.role === "mover") {
-    return <MoverDashboard />;
+    return <MoverDashboard highlightId={highlightId} />;
   }
 
   return <MoverDirectory signedIn={signedIn} onRequireAuth={openAuthPanel} currentUser={currentUser} />;
