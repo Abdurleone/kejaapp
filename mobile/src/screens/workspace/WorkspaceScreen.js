@@ -11,7 +11,13 @@ import {
   View,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { fetchMyProperties, fetchReceivedInquiries, respondToInquiry } from "../../api/index.js";
+import {
+  fetchMyProperties,
+  fetchReceivedInquiries,
+  fetchReceivedViewingRequests,
+  respondToInquiry,
+  updateViewingRequestStatus,
+} from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import PropertyCard from "../../components/PropertyCard.js";
@@ -25,6 +31,7 @@ const listingManagerRoles = ["landlord", "agency"];
 const tabs = [
   { key: "listings", label: "Listings" },
   { key: "inquiries", label: "Inquiries" },
+  { key: "viewingRequests", label: "Viewing requests" },
 ];
 
 const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles }) {
@@ -89,6 +96,57 @@ const InquiryRow = memo(function InquiryRow({ inquiry, onResponded, styles }) {
   );
 });
 
+const ViewingRequestRow = memo(function ViewingRequestRow({ viewingRequest, onResponded, styles }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleAction = async (status) => {
+    setError("");
+    setBusy(true);
+
+    try {
+      const updated = await updateViewingRequestStatus(viewingRequest._id, { status });
+      onResponded(updated);
+    } catch (err) {
+      setError(err.message || "Could not update this viewing request.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeaderRow}>
+        <Text style={styles.cardTitle} numberOfLines={1}>{viewingRequest.property?.title || "Property"}</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{formatStatusLabel(viewingRequest.status)}</Text>
+        </View>
+      </View>
+      <Text style={styles.cardSubtitle}>From {viewingRequest.requester?.name || "Tenant"}</Text>
+      {viewingRequest.requestedDate ? (
+        <Text style={styles.cardMessage}>
+          Requested date: {new Date(viewingRequest.requestedDate).toLocaleDateString()}
+        </Text>
+      ) : null}
+      {viewingRequest.message ? <Text style={styles.cardMessage}>{viewingRequest.message}</Text> : null}
+
+      {viewingRequest.status === "pending" ? (
+        <>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <View style={styles.actionsRow}>
+            <Pressable style={styles.primaryButton} disabled={busy} onPress={() => handleAction("approved")}>
+              <Text style={styles.primaryButtonText}>Approve</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} disabled={busy} onPress={() => handleAction("rejected")}>
+              <Text style={styles.secondaryButtonText}>Reject</Text>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
+    </View>
+  );
+});
+
 export default function WorkspaceScreen() {
   const navigation = useNavigation();
   const { user, signedIn } = useAuth();
@@ -110,6 +168,13 @@ export default function WorkspaceScreen() {
   const [inquiriesRefreshing, setInquiriesRefreshing] = useState(false);
   const [loadingMoreInquiries, setLoadingMoreInquiries] = useState(false);
   const [inquiriesError, setInquiriesError] = useState("");
+
+  const [viewingRequests, setViewingRequests] = useState([]);
+  const [viewingRequestsPagination, setViewingRequestsPagination] = useState(null);
+  const [viewingRequestsLoading, setViewingRequestsLoading] = useState(true);
+  const [viewingRequestsRefreshing, setViewingRequestsRefreshing] = useState(false);
+  const [loadingMoreViewingRequests, setLoadingMoreViewingRequests] = useState(false);
+  const [viewingRequestsError, setViewingRequestsError] = useState("");
 
   const canManageListings = listingManagerRoles.includes(user?.role);
 
@@ -180,6 +245,43 @@ export default function WorkspaceScreen() {
     }
   }, [loadingMoreInquiries, inquiriesPagination]);
 
+  const loadViewingRequests = useCallback(async () => {
+    setViewingRequestsError("");
+
+    try {
+      const { viewingRequests: data, pagination: paginationData } = await fetchReceivedViewingRequests({
+        page: 1,
+      });
+      setViewingRequests(data);
+      setViewingRequestsPagination(paginationData);
+    } catch (err) {
+      setViewingRequestsError(err.message || "Failed to load viewing requests.");
+    }
+  }, []);
+
+  const loadMoreViewingRequests = useCallback(async () => {
+    if (
+      loadingMoreViewingRequests ||
+      !viewingRequestsPagination ||
+      viewingRequestsPagination.page >= viewingRequestsPagination.pages
+    ) {
+      return;
+    }
+
+    setLoadingMoreViewingRequests(true);
+
+    try {
+      const nextPage = viewingRequestsPagination.page + 1;
+      const { viewingRequests: data, pagination } = await fetchReceivedViewingRequests({ page: nextPage });
+      setViewingRequests((current) => [...current, ...data]);
+      setViewingRequestsPagination(pagination);
+    } catch {
+      // Best-effort - scrolling again re-triggers onEndReached.
+    } finally {
+      setLoadingMoreViewingRequests(false);
+    }
+  }, [loadingMoreViewingRequests, viewingRequestsPagination]);
+
   // Runs on every focus - not just the first mount - so returning from the
   // create/edit-listing screens refreshes without a manual pull-to-refresh.
   // React Navigation fires "focus" for the initial mount too, so this single
@@ -203,11 +305,15 @@ export default function WorkspaceScreen() {
       loadInquiries().finally(() => {
         if (active) setInquiriesLoading(false);
       });
+      setViewingRequestsLoading(true);
+      loadViewingRequests().finally(() => {
+        if (active) setViewingRequestsLoading(false);
+      });
 
       return () => {
         active = false;
       };
-    }, [signedIn, canManageListings, load, loadInquiries]),
+    }, [signedIn, canManageListings, load, loadInquiries, loadViewingRequests]),
   );
 
   const handleRefresh = async () => {
@@ -226,6 +332,16 @@ export default function WorkspaceScreen() {
     setInquiries((current) => current.map((item) => (item._id === updated._id ? updated : item)));
   }, []);
 
+  const handleViewingRequestsRefresh = async () => {
+    setViewingRequestsRefreshing(true);
+    await loadViewingRequests();
+    setViewingRequestsRefreshing(false);
+  };
+
+  const handleViewingRequestResponded = useCallback((updated) => {
+    setViewingRequests((current) => current.map((item) => (item._id === updated._id ? updated : item)));
+  }, []);
+
   const renderPropertyItem = useCallback(
     ({ item }) => (
       <PropertyCard
@@ -240,6 +356,13 @@ export default function WorkspaceScreen() {
   const renderInquiryItem = useCallback(
     ({ item }) => <InquiryRow inquiry={item} onResponded={handleInquiryResponded} styles={styles} />,
     [handleInquiryResponded, styles]
+  );
+
+  const renderViewingRequestItem = useCallback(
+    ({ item }) => (
+      <ViewingRequestRow viewingRequest={item} onResponded={handleViewingRequestResponded} styles={styles} />
+    ),
+    [handleViewingRequestResponded, styles]
   );
 
   if (!signedIn) {
@@ -298,33 +421,65 @@ export default function WorkspaceScreen() {
             renderItem={renderPropertyItem}
           />
         )
-      ) : inquiriesLoading ? (
+      ) : tab === "inquiries" ? (
+        inquiriesLoading ? (
+          <ScrollView style={styles.container} contentContainerStyle={styles.list}>
+            <Text style={styles.cardMessage}>Loading inquiries...</Text>
+          </ScrollView>
+        ) : inquiriesError ? (
+          <MessageView
+            title="Couldn't load inquiries"
+            message={inquiriesError}
+            actionLabel="Retry"
+            onAction={loadInquiries}
+          />
+        ) : inquiries.length === 0 ? (
+          <MessageView
+            title="No inquiries yet"
+            message="Inquiries tenants send about your listings will show up here."
+          />
+        ) : (
+          <FlatList
+            style={styles.container}
+            data={inquiries}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={inquiriesRefreshing} onRefresh={handleInquiriesRefresh} />}
+            onEndReached={loadMoreInquiries}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={loadingMoreInquiries ? <ActivityIndicator style={styles.footerSpinner} /> : null}
+            renderItem={renderInquiryItem}
+          />
+        )
+      ) : viewingRequestsLoading ? (
         <ScrollView style={styles.container} contentContainerStyle={styles.list}>
-          <Text style={styles.cardMessage}>Loading inquiries...</Text>
+          <Text style={styles.cardMessage}>Loading viewing requests...</Text>
         </ScrollView>
-      ) : inquiriesError ? (
+      ) : viewingRequestsError ? (
         <MessageView
-          title="Couldn't load inquiries"
-          message={inquiriesError}
+          title="Couldn't load viewing requests"
+          message={viewingRequestsError}
           actionLabel="Retry"
-          onAction={loadInquiries}
+          onAction={loadViewingRequests}
         />
-      ) : inquiries.length === 0 ? (
+      ) : viewingRequests.length === 0 ? (
         <MessageView
-          title="No inquiries yet"
-          message="Inquiries tenants send about your listings will show up here."
+          title="No viewing requests yet"
+          message="Viewing requests tenants send about your listings will show up here."
         />
       ) : (
         <FlatList
           style={styles.container}
-          data={inquiries}
+          data={viewingRequests}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={inquiriesRefreshing} onRefresh={handleInquiriesRefresh} />}
-          onEndReached={loadMoreInquiries}
+          refreshControl={
+            <RefreshControl refreshing={viewingRequestsRefreshing} onRefresh={handleViewingRequestsRefresh} />
+          }
+          onEndReached={loadMoreViewingRequests}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={loadingMoreInquiries ? <ActivityIndicator style={styles.footerSpinner} /> : null}
-          renderItem={renderInquiryItem}
+          ListFooterComponent={loadingMoreViewingRequests ? <ActivityIndicator style={styles.footerSpinner} /> : null}
+          renderItem={renderViewingRequestItem}
         />
       )}
     </View>
