@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
+import PaginationFooter from "../components/PaginationFooter.jsx";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import SavedPropertyCard from "../components/SavedPropertyCard.jsx";
 import { fetchFavorites, removeFavorite } from "../../app-utils.js";
 
 export default function SavedPage({ onOpenProperty }) {
   const [saved, setSaved] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -18,8 +21,11 @@ export default function SavedPage({ onOpenProperty }) {
       try {
         setLoading(true);
         setError("");
-        const favorites = await fetchFavorites();
-        if (active) setSaved(favorites);
+        const { favorites, pagination: nextPagination } = await fetchFavorites({ page });
+        if (active) {
+          setSaved(favorites);
+          setPagination(nextPagination);
+        }
       } catch (err) {
         if (active) setError(err.message || "Failed to load saved listings.");
       } finally {
@@ -32,7 +38,7 @@ export default function SavedPage({ onOpenProperty }) {
     return () => {
       active = false;
     };
-  }, [retryKey]);
+  }, [page, retryKey]);
 
   const handleRemove = useCallback(async (propertyId) => {
     setActionError("");
@@ -79,22 +85,25 @@ export default function SavedPage({ onOpenProperty }) {
           <p className="muted-copy">No saved listings yet. Explore properties to add your favorites.</p>
         </div>
       ) : (
-        <div className="property-grid compact-grid">
-          {saved.map((favorite) => {
-            const property = favorite.property || favorite;
-            const propertyId = property._id || property.id;
+        <>
+          <div className="property-grid compact-grid">
+            {saved.map((favorite) => {
+              const property = favorite.property || favorite;
+              const propertyId = property._id || property.id;
 
-            return (
-              <SavedPropertyCard
-                key={propertyId}
-                property={property}
-                isRemoving={removingPropertyId === propertyId}
-                onOpenProperty={onOpenProperty}
-                onRemove={handleRemove}
-              />
-            );
-          })}
-        </div>
+              return (
+                <SavedPropertyCard
+                  key={propertyId}
+                  property={property}
+                  isRemoving={removingPropertyId === propertyId}
+                  onOpenProperty={onOpenProperty}
+                  onRemove={handleRemove}
+                />
+              );
+            })}
+          </div>
+          <PaginationFooter pagination={pagination} page={page} onPageChange={setPage} />
+        </>
       )}
     </div>
   );

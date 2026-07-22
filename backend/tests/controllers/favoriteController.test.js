@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
-import { removeFavorite, saveFavorite } from "../../controllers/favoriteController.js";
+import { listFavorites, removeFavorite, saveFavorite } from "../../controllers/favoriteController.js";
 import Favorite from "../../models/Favorite.js";
 import Property from "../../models/Property.js";
 
@@ -57,6 +57,51 @@ describe("favoriteController", () => {
 
     assert.equal(nextError.statusCode, 409);
     assert.equal(nextError.message, "Property is already saved");
+  });
+
+  it("lists the current user's favorites with pagination", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const expectedData = [{ property: { title: "Modern Kilimani Apartment" } }];
+    let findFilters;
+    let skipArg;
+    let limitArg;
+
+    mock.method(Favorite, "find", (filters) => {
+      findFilters = filters;
+
+      return {
+        sort() {
+          return this;
+        },
+        skip(value) {
+          skipArg = value;
+          return this;
+        },
+        limit(value) {
+          limitArg = value;
+          return this;
+        },
+        populate() {
+          return this;
+        },
+        lean: async () => expectedData,
+      };
+    });
+    mock.method(Favorite, "countDocuments", async () => 1);
+
+    const req = { query: { page: "2", limit: "5" }, user: { _id: userId } };
+    const res = createResponse();
+
+    await listFavorites(req, res, (error) => {
+      throw error;
+    });
+
+    assert.deepEqual(findFilters, { user: userId });
+    assert.equal(skipArg, 5);
+    assert.equal(limitArg, 5);
+    assert.equal(res.body.data.length, 1);
+    assert.equal(res.body.data[0].property.title, "Modern Kilimani Apartment");
+    assert.deepEqual(res.body.pagination, { page: 2, limit: 5, total: 1, pages: 1 });
   });
 
   it("removes favorites idempotently", async () => {

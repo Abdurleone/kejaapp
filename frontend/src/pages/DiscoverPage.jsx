@@ -61,7 +61,11 @@ export default function DiscoverPage({ onOpenProperty }) {
       }
 
       try {
-        const favorites = await fetchFavorites();
+        // The full 100 (the API's max page size) rather than a paginated
+        // slice - this just syncs which of the *currently displayed*
+        // properties are already saved, so it needs every favorited
+        // property id, not one page of favorite-list display data.
+        const { favorites } = await fetchFavorites({ limit: 100 });
         if (active) {
           setSavedPropertyIds(
             favorites

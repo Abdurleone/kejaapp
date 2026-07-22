@@ -46,7 +46,7 @@ describe("DiscoverPage's property grid", () => {
   it("does not re-render existing cards when typing in the Min/Max rent inputs", async () => {
     renderCount = 0;
     fetchProperties.mockResolvedValue([sampleProperty]);
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     const user = userEvent.setup();
 
     renderWithAuth(<DiscoverPage onOpenProperty={vi.fn()} />);

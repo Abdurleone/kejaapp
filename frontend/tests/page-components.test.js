@@ -13,7 +13,7 @@ const propertyCardSource = await readSource("components/PropertyCard.jsx");
 describe("frontend page component contracts", () => {
   it("renders discover listings with API data, cards, and save actions", () => {
     assert.match(discoverSource, /fetchProperties\(params\)/);
-    assert.match(discoverSource, /fetchFavorites\(\)/);
+    assert.match(discoverSource, /fetchFavorites\(\{ limit: 100 \}\)/);
     assert.match(discoverSource, /saveFavorite\(propertyId\)/);
     assert.match(discoverSource, /className="property-grid"/);
     // Card markup itself now lives in the extracted, memoized PropertyCard
