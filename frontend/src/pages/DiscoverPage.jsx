@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import PropertyCard from "../components/PropertyCard.jsx";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
@@ -6,8 +7,6 @@ import {
   fetchFavorites,
   fetchProperties,
   formatKes,
-  formatRatingSummary,
-  getPropertyImage,
   saveFavorite,
   summarizeProperties,
 } from "../../app-utils.js";
@@ -171,24 +170,27 @@ export default function DiscoverPage({ onOpenProperty }) {
     setAppliedFilters((current) => ({ ...current, minRent, maxRent }));
   };
 
-  const handleSave = async (propertyId) => {
-    if (!signedIn) {
-      onRequireAuth();
-      return;
-    }
+  const handleSave = useCallback(
+    async (propertyId) => {
+      if (!signedIn) {
+        onRequireAuth();
+        return;
+      }
 
-    setSaveError("");
-    setSavingPropertyId(propertyId);
+      setSaveError("");
+      setSavingPropertyId(propertyId);
 
-    try {
-      await saveFavorite(propertyId);
-      setSavedPropertyIds((current) => [...new Set([...current, propertyId])]);
-    } catch (err) {
-      setSaveError(err.message || "Unable to save this listing.");
-    } finally {
-      setSavingPropertyId(null);
-    }
-  };
+      try {
+        await saveFavorite(propertyId);
+        setSavedPropertyIds((current) => [...new Set([...current, propertyId])]);
+      } catch (err) {
+        setSaveError(err.message || "Unable to save this listing.");
+      } finally {
+        setSavingPropertyId(null);
+      }
+    },
+    [signedIn, onRequireAuth]
+  );
 
   const handleSaveSearch = async () => {
     if (!signedIn) {
@@ -364,55 +366,17 @@ export default function DiscoverPage({ onOpenProperty }) {
         <div className="property-grid">
           {properties.map((property) => {
             const propertyId = property._id || property.id;
-            const isSaved = savedPropertyIds.includes(propertyId);
-            const rent = property.price?.rent ?? property.rent;
-            const area = property.location?.area || property.area || "Nairobi";
-            const county = property.location?.county || property.county || "Kenya";
-            const bedrooms = property.bedrooms ?? property.details?.bedrooms;
-            const bathrooms = property.bathrooms ?? property.details?.bathrooms;
 
             return (
-              <article className="property-card" key={propertyId}>
-                <div className="property-photo">
-                  <img src={getPropertyImage(property)} alt={property.title || "Rental property"} />
-                  <span className="status-pill">{property.status || "available"}</span>
-                </div>
-                <div className="property-body">
-                  <div>
-                    <h3 className="property-title">{property.title || "Rental property"}</h3>
-                    <p className="muted-copy">
-                      {area}, {county}
-                    </p>
-                    <p className="property-rating">{formatRatingSummary(property.ratingAverage, property.ratingCount)}</p>
-                    {property.owner?.role === "agency" && property.owner.verified && (
-                      <span className="status-pill status-active verified-badge">Verified agency</span>
-                    )}
-                  </div>
-                  <div className="cost-row">
-                    <strong>{formatKes(rent)}</strong>
-                    <span>per month</span>
-                  </div>
-                  <div className="property-meta">
-                    <span>{bedrooms || "-"} beds</span>
-                    <span>{bathrooms || "-"} baths</span>
-                    <span>{property.viewingType || "viewing"}</span>
-                  </div>
-                  {property.description && <p className="muted-copy property-summary">{property.description}</p>}
-                  <div className="card-actions">
-                    <button
-                      className="primary-button"
-                      type="button"
-                      disabled={isSaved || savingPropertyId === propertyId}
-                      onClick={() => handleSave(propertyId)}
-                    >
-                      {savingPropertyId === propertyId ? "Saving..." : isSaved ? "Saved" : signedIn ? "Save" : "Sign in to save"}
-                    </button>
-                    <button className="secondary-button" type="button" onClick={() => onOpenProperty(propertyId)}>
-                      Details
-                    </button>
-                  </div>
-                </div>
-              </article>
+              <PropertyCard
+                key={propertyId}
+                property={property}
+                isSaved={savedPropertyIds.includes(propertyId)}
+                isSaving={savingPropertyId === propertyId}
+                signedIn={signedIn}
+                onSave={handleSave}
+                onOpenProperty={onOpenProperty}
+              />
             );
           })}
         </div>
