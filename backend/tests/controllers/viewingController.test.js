@@ -4,6 +4,7 @@ import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   createViewingRequest,
   listMyViewingRequests,
+  listReceivedViewingRequests,
   updateViewingRequestStatus,
 } from "../../controllers/viewingController.js";
 import DeviceToken from "../../models/DeviceToken.js";
@@ -252,5 +253,31 @@ describe("viewingController", () => {
     assert.deepEqual(countFilters, { requester: userId });
     assert.deepEqual(res.body.data, [{ _id: "v1" }]);
     assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 7, pages: 1 });
+  });
+
+  it("lists viewing requests received by the signed-in property owner across all their properties", async () => {
+    let findFilters;
+    let countFilters;
+    mock.method(ViewingRequest, "find", (filters) => {
+      findFilters = filters;
+      return mockPopulatedFind([{ _id: "v1", status: "pending" }]);
+    });
+    mock.method(ViewingRequest, "countDocuments", (filters) => {
+      countFilters = filters;
+      return Promise.resolve(1);
+    });
+
+    const ownerId = new mongoose.Types.ObjectId();
+    const req = { query: { status: "pending" }, user: { _id: ownerId } };
+    const res = createResponse();
+
+    await listReceivedViewingRequests(req, res, (error) => {
+      throw error;
+    });
+
+    assert.deepEqual(findFilters, { owner: ownerId, status: "pending" });
+    assert.deepEqual(countFilters, { owner: ownerId, status: "pending" });
+    assert.deepEqual(res.body.data, [{ _id: "v1", status: "pending" }]);
+    assert.deepEqual(res.body.pagination, { page: 1, limit: 20, total: 1, pages: 1 });
   });
 });
