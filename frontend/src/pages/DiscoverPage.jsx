@@ -224,6 +224,29 @@ export default function DiscoverPage({ onOpenProperty }) {
     appliedFilters.minRent,
     appliedFilters.maxRent,
   ].filter(Boolean).length;
+  // Keeps the rendered card list independent of unrelated filter-input state
+  // (e.g. typing in Min/Max rent, which only feeds a fetch once "Apply
+  // price" is clicked) - each PropertyCard is memoized, so this also avoids
+  // recomputing a whole new element array on every keystroke.
+  const propertyCards = useMemo(
+    () =>
+      properties.map((property) => {
+        const propertyId = property._id || property.id;
+
+        return (
+          <PropertyCard
+            key={propertyId}
+            property={property}
+            isSaved={savedPropertyIds.includes(propertyId)}
+            isSaving={savingPropertyId === propertyId}
+            signedIn={signedIn}
+            onSave={handleSave}
+            onOpenProperty={onOpenProperty}
+          />
+        );
+      }),
+    [properties, savedPropertyIds, savingPropertyId, signedIn, handleSave, onOpenProperty]
+  );
 
   return (
     <div className="view active-view">
@@ -363,23 +386,7 @@ export default function DiscoverPage({ onOpenProperty }) {
           <p className="muted-copy">Try clearing location search or widening the radius.</p>
         </div>
       ) : (
-        <div className="property-grid">
-          {properties.map((property) => {
-            const propertyId = property._id || property.id;
-
-            return (
-              <PropertyCard
-                key={propertyId}
-                property={property}
-                isSaved={savedPropertyIds.includes(propertyId)}
-                isSaving={savingPropertyId === propertyId}
-                signedIn={signedIn}
-                onSave={handleSave}
-                onOpenProperty={onOpenProperty}
-              />
-            );
-          })}
-        </div>
+        <div className="property-grid">{propertyCards}</div>
       )}
     </div>
   );
