@@ -12,16 +12,29 @@ const run = async () => {
     freshnessNudgeSentAt: null,
   });
 
-  for (const property of staleCandidates) {
-    const inquiryCount = await Inquiry.countDocuments({ property: property._id });
-
-    if (inquiryCount === 0) {
-      await notifyStaleListing(property);
-    }
-
-    property.freshnessNudgeSentAt = new Date();
-    await property.save();
+  if (staleCandidates.length === 0) {
+    return 0;
   }
+
+  const propertyIds = staleCandidates.map((property) => property._id);
+  const inquiryCounts = await Inquiry.aggregate([
+    { $match: { property: { $in: propertyIds } } },
+    { $group: { _id: "$property", count: { $sum: 1 } } },
+  ]);
+  const inquiryCountByProperty = new Map(
+    inquiryCounts.map(({ _id, count }) => [_id.toString(), count])
+  );
+
+  await Promise.all(
+    staleCandidates
+      .filter((property) => !inquiryCountByProperty.get(property._id.toString()))
+      .map((property) => notifyStaleListing(property))
+  );
+
+  await Property.updateMany(
+    { _id: { $in: propertyIds } },
+    { $set: { freshnessNudgeSentAt: new Date() } }
+  );
 
   return staleCandidates.length;
 };

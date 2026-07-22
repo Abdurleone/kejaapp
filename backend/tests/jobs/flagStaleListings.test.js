@@ -13,7 +13,6 @@ const buildProperty = () => ({
   title: "Modern Kilimani Apartment",
   status: "available",
   freshnessNudgeSentAt: null,
-  async save() {},
 });
 
 describe("flagStaleListings job", () => {
@@ -23,13 +22,20 @@ describe("flagStaleListings job", () => {
 
   it("nudges the owner of a stale listing with zero inquiries and marks it processed", async () => {
     let filters;
+    let updateManyFilter;
+    let updateManyUpdate;
     const property = buildProperty();
 
     mock.method(Property, "find", async (query) => {
       filters = query;
       return [property];
     });
-    mock.method(Inquiry, "countDocuments", async () => 0);
+    mock.method(Inquiry, "aggregate", async () => []);
+    mock.method(Property, "updateMany", async (query, update) => {
+      updateManyFilter = query;
+      updateManyUpdate = update;
+      return { acknowledged: true };
+    });
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
@@ -39,7 +45,8 @@ describe("flagStaleListings job", () => {
     assert.equal(filters.freshnessNudgeSentAt, null);
     assert.ok(filters.createdAt.$lte instanceof Date);
     assert.equal(create.mock.callCount(), 1);
-    assert.ok(property.freshnessNudgeSentAt instanceof Date);
+    assert.deepEqual(updateManyFilter, { _id: { $in: [property._id] } });
+    assert.ok(updateManyUpdate.$set.freshnessNudgeSentAt instanceof Date);
     assert.equal(processedCount, 1);
   });
 
@@ -47,13 +54,13 @@ describe("flagStaleListings job", () => {
     const property = buildProperty();
 
     mock.method(Property, "find", async () => [property]);
-    mock.method(Inquiry, "countDocuments", async () => 3);
+    mock.method(Inquiry, "aggregate", async () => [{ _id: property._id, count: 3 }]);
+    mock.method(Property, "updateMany", async () => ({ acknowledged: true }));
     const create = mock.method(Notification, "create", async (payload) => payload);
 
     const processedCount = await run();
 
     assert.equal(create.mock.callCount(), 0);
-    assert.ok(property.freshnessNudgeSentAt instanceof Date);
     assert.equal(processedCount, 1);
   });
 
