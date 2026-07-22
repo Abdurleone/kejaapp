@@ -12,7 +12,7 @@ const listNotifications = asyncHandler(async (req, res) => {
     filters.readAt = null;
   }
 
-  const notifications = await Notification.find(filters).sort("-createdAt").limit(100);
+  const notifications = await Notification.find(filters).sort("-createdAt").limit(100).lean();
 
   res.status(httpStatus.OK).json({
     data: notifications,

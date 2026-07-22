@@ -34,6 +34,9 @@ describe("notificationController", () => {
         return this;
       },
       limit() {
+        return this;
+      },
+      lean() {
         return expectedData;
       },
     };

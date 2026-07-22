@@ -82,6 +82,9 @@ describe("moverRequestController", () => {
         return this;
       },
       populate() {
+        return this;
+      },
+      lean() {
         return expectedData;
       },
     };
@@ -116,6 +119,9 @@ describe("moverRequestController", () => {
         return this;
       },
       populate() {
+        return this;
+      },
+      lean() {
         return expectedData;
       },
     };
@@ -195,6 +201,9 @@ describe("moverRequestController", () => {
         return this;
       },
       populate() {
+        return this;
+      },
+      lean() {
         return expectedData;
       },
     };
@@ -228,6 +237,9 @@ describe("moverRequestController", () => {
         return this;
       },
       populate() {
+        return this;
+      },
+      lean() {
         return expectedData;
       },
     };

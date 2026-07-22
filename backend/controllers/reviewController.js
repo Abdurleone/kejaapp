@@ -23,7 +23,8 @@ const listPropertyReviews = asyncHandler(async (req, res) => {
       .populate("ownerResponse.respondedBy", "name role")
       .sort("-createdAt")
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Review.countDocuments(filters),
   ]);
 
@@ -49,7 +50,8 @@ const listMyPropertyReviews = asyncHandler(async (req, res) => {
       .populate("ownerResponse.respondedBy", "name role")
       .sort("-createdAt")
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Review.countDocuments(filters),
   ]);
 
