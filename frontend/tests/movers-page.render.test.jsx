@@ -143,12 +143,13 @@ describe("MoversPage - directory (non-mover roles)", () => {
     await screen.findByText("Speedy Movers");
 
     await user.click(screen.getByRole("button", { name: "Request service" }));
+    await user.selectOptions(screen.getByLabelText("Home size"), "2br");
     await user.type(screen.getByPlaceholderText("Tell them about your move..."), "Moving next week");
     await user.click(screen.getByRole("button", { name: "Send request" }));
 
     await waitFor(() =>
       expect(createMoverRequest).toHaveBeenCalledWith(
-        expect.objectContaining({ mover: "mover-1", message: "Moving next week" })
+        expect.objectContaining({ mover: "mover-1", homeSize: "2br", message: "Moving next week" })
       )
     );
     expect(await screen.findByText("Request sent — the mover will respond soon.")).toBeInTheDocument();

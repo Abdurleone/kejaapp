@@ -4,15 +4,25 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import PropertyDetailPage from "../src/pages/PropertyDetailPage.jsx";
 import { renderWithAuth } from "./helpers/renderWithAuth.jsx";
 
-const { fetchPropertyById, fetchFavorites, fetchPropertyMovers, saveFavorite, createInquiry, createViewingRequest } =
-  vi.hoisted(() => ({
-    fetchPropertyById: vi.fn(),
-    fetchFavorites: vi.fn(),
-    fetchPropertyMovers: vi.fn(),
-    saveFavorite: vi.fn(),
-    createInquiry: vi.fn(),
-    createViewingRequest: vi.fn(),
-  }));
+const {
+  fetchPropertyById,
+  fetchFavorites,
+  fetchPropertyMovers,
+  saveFavorite,
+  createInquiry,
+  createViewingRequest,
+  createMoverRequest,
+  getCurrentPositionOrNull,
+} = vi.hoisted(() => ({
+  fetchPropertyById: vi.fn(),
+  fetchFavorites: vi.fn(),
+  fetchPropertyMovers: vi.fn(),
+  saveFavorite: vi.fn(),
+  createInquiry: vi.fn(),
+  createViewingRequest: vi.fn(),
+  createMoverRequest: vi.fn(),
+  getCurrentPositionOrNull: vi.fn(),
+}));
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -24,6 +34,8 @@ vi.mock("../app-utils.js", async (importOriginal) => {
     saveFavorite,
     createInquiry,
     createViewingRequest,
+    createMoverRequest,
+    getCurrentPositionOrNull,
   };
 });
 
@@ -55,9 +67,10 @@ const renderDetailPage = (props = {}) => {
 // PropertyDetailPage had zero test coverage of any kind before this file -
 // not even the regex-matching-source-strings kind other pages had. This
 // covers its highest-value/highest-risk behavior: the owner-only access
-// gate, the loading/error states, and the save/inquiry flows. The viewing-
-// request and movers sections are left for a future slice - this file is
-// already covering a lot of ground and splitting keeps each PR reviewable.
+// gate, the loading/error states, and the save/inquiry flows, plus (added
+// later) the mover-request price-estimate flow. The viewing-request section
+// is left for a future slice - this file is already covering a lot of
+// ground and splitting keeps each PR reviewable.
 describe("PropertyDetailPage", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -217,5 +230,33 @@ describe("PropertyDetailPage", () => {
 
     expect(await screen.findByText("Choose a valid future date.")).toBeInTheDocument();
     expect(createViewingRequest).not.toHaveBeenCalled();
+  });
+
+  it("sends a mover request with the selected home size and shows the returned price estimate", async () => {
+    const sampleMover = {
+      _id: "mover-1",
+      name: "SwiftMove Nairobi",
+      serviceTypes: ["local"],
+      basePrice: 3500,
+    };
+    getCurrentPositionOrNull.mockResolvedValue({ lat: -1.29, lng: 36.78 });
+    createMoverRequest.mockResolvedValue({ priceEstimate: 4950 });
+    const user = userEvent.setup();
+    renderDetailPage({ movers: { affiliates: [], nearby: [sampleMover] } });
+
+    await screen.findByText("Modern Kilimani Apartment");
+    await user.click(screen.getByRole("button", { name: "Request service" }));
+
+    const form = screen.getByText("SwiftMove Nairobi", { selector: "h3" }).closest("article").querySelector("form");
+    await user.selectOptions(within(form).getByLabelText("Home size"), "studio");
+    await user.type(within(form).getByLabelText("Message"), "Need help moving");
+    await user.click(within(form).getByRole("button", { name: "Send request" }));
+
+    await waitFor(() =>
+      expect(createMoverRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ mover: "mover-1", property: "prop-1", homeSize: "studio", message: "Need help moving" })
+      )
+    );
+    expect(await screen.findByText(/Estimated price: Ksh\s*4,950/)).toBeInTheDocument();
   });
 });
