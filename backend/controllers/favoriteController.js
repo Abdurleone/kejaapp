@@ -20,7 +20,7 @@ const populateFavorite = (query) =>
 const listFavorites = asyncHandler(async (req, res) => {
   const favorites = await populateFavorite(
     Favorite.find({ user: req.user._id }).sort("-createdAt")
-  );
+  ).lean();
 
   res.status(httpStatus.OK).json({
     data: attachFavoritePropertyCostSummaries(favorites),

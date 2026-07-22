@@ -32,7 +32,7 @@ const createReviewQuery = (reviews) => ({
     return this;
   },
   limit() {
-    return Promise.resolve(reviews);
+    return { lean: () => Promise.resolve(reviews) };
   },
 });
 

@@ -86,7 +86,7 @@ const listMyMoverRequests = asyncHandler(async (req, res) => {
   }
 
   const [moverRequests, total] = await Promise.all([
-    populateMoverRequest(MoverRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    populateMoverRequest(MoverRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)).lean(),
     MoverRequest.countDocuments(filters),
   ]);
 
@@ -105,7 +105,7 @@ const listReceivedMoverRequests = asyncHandler(async (req, res) => {
   }
 
   const [moverRequests, total] = await Promise.all([
-    populateMoverRequest(MoverRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    populateMoverRequest(MoverRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)).lean(),
     MoverRequest.countDocuments(filters),
   ]);
 

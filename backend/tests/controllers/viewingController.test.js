@@ -40,6 +40,9 @@ const mockPopulatedFind = (result) => ({
   limit() {
     return this;
   },
+  lean() {
+    return this;
+  },
   then(resolve) {
     resolve(result);
   },

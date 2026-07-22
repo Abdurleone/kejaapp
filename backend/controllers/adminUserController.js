@@ -64,7 +64,7 @@ const listUsers = asyncHandler(async (req, res) => {
   const sort = req.query.sort || "-createdAt";
 
   const [users, total] = await Promise.all([
-    User.find(filters).select("-password").sort(sort).skip(skip).limit(limit),
+    User.find(filters).select("-password").sort(sort).skip(skip).limit(limit).lean(),
     User.countDocuments(filters),
   ]);
 
@@ -202,7 +202,8 @@ const listUserStatusHistory = asyncHandler(async (req, res) => {
   const history = await UserStatusLog.find({ user: user._id })
     .populate("changedBy", "name email role")
     .sort("-createdAt")
-    .limit(100);
+    .limit(100)
+    .lean();
 
   res.status(httpStatus.OK).json({
     data: history,

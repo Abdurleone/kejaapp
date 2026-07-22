@@ -54,7 +54,7 @@ describe("adminUserController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve(expectedUsers);
+          return { lean: () => Promise.resolve(expectedUsers) };
         },
       };
     });
@@ -95,7 +95,7 @@ describe("adminUserController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve([]);
+          return { lean: () => Promise.resolve([]) };
         },
       };
     });
@@ -372,7 +372,7 @@ describe("adminUserController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve(expectedHistory);
+          return { lean: () => Promise.resolve(expectedHistory) };
         },
       };
     });

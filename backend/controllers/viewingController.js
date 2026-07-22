@@ -90,7 +90,7 @@ const listMyViewingRequests = asyncHandler(async (req, res) => {
   const filters = { requester: req.user._id, ...statusFilter };
 
   const [viewingRequests, total] = await Promise.all([
-    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)).lean(),
     ViewingRequest.countDocuments(filters),
   ]);
 
@@ -114,7 +114,7 @@ const listPropertyViewingRequests = asyncHandler(async (req, res) => {
   const filters = { property: property._id, ...statusFilter };
 
   const [viewingRequests, total] = await Promise.all([
-    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)),
+    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)).lean(),
     ViewingRequest.countDocuments(filters),
   ]);
 
