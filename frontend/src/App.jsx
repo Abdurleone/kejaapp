@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import kejaLogo from "../assets/keja-logo.png";
 import AuthModal from "./components/AuthModal.jsx";
+import NotificationBadge from "./components/NotificationBadge.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
@@ -30,7 +31,6 @@ import {
   getViewPath,
   getDefaultViewForRole,
   fetchCurrentUser,
-  fetchDashboardSummary,
   logoutUser,
   canAccessView,
   canManageListings,
@@ -62,7 +62,6 @@ function App() {
   const [signedIn, setSignedIn] = useState(Boolean(localStorage.getItem("keja_token")));
   const [currentUser, setCurrentUser] = useState(null);
   const [authPanelOpen, setAuthPanelOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const tabRefs = useRef(new Map());
 
   useEffect(() => {
@@ -142,42 +141,6 @@ function App() {
 
   const view = useMemo(() => resolveViewFromPath(path), [path]);
   const showSplash = shouldShowSplash({ isSignedIn: signedIn, path });
-
-  useEffect(() => {
-    if (!signedIn) {
-      // Nothing was started while signed out, so there's nothing to tear down —
-      // `displayedUnreadCount` below already renders 0 in this case.
-      return;
-    }
-
-    let active = true;
-
-    const refreshUnreadCount = async () => {
-      try {
-        const summary = await fetchDashboardSummary();
-        if (active) setUnreadCount(summary.notifications?.unread || 0);
-      } catch {
-        // Non-fatal: the badge just keeps its last known value until the next refresh.
-      }
-    };
-
-    refreshUnreadCount();
-    // Polling rather than a push mechanism (no websockets in this app) — good enough
-    // for a bell badge that only needs to notice new activity within ~30s.
-    const intervalId = setInterval(refreshUnreadCount, 30000);
-
-    return () => {
-      active = false;
-      clearInterval(intervalId);
-    };
-  }, [signedIn]);
-
-  // Hide the numeric badge while already on the Notifications tab — the list
-  // there is showing the same unread items the badge would just be repeating.
-  // Nothing gets marked read here; that only happens via explicit user action
-  // (per-item or "Mark all as read"), so leaving the tab without marking
-  // anything correctly brings the badge right back on the next poll.
-  const displayedUnreadCount = signedIn && view !== "notifications" ? unreadCount : 0;
 
   const openAuthPanel = () => setAuthPanelOpen(true);
 
@@ -469,14 +432,7 @@ function App() {
                       {item.view === "notifications" ? (
                         <>
                           <span aria-hidden="true">🔔</span> {item.label}
-                          {displayedUnreadCount > 0 && (
-                            <span
-                              className="notification-badge"
-                              aria-label={`${displayedUnreadCount} unread notifications`}
-                            >
-                              {displayedUnreadCount > 99 ? "99+" : displayedUnreadCount}
-                            </span>
-                          )}
+                          <NotificationBadge view={view} />
                         </>
                       ) : (
                         item.label
