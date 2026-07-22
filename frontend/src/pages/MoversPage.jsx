@@ -10,6 +10,7 @@ import {
   formatStatusLabel,
   formatKes,
   getCurrentPositionOrNull,
+  homeSizeOptions,
   statusTone,
   submitMoverProfile,
   unaffiliateMover,
@@ -29,18 +30,26 @@ const serviceTypeOptions = [
 function MoverRequestForm({ moverId, onCancel, onSent }) {
   const [message, setMessage] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
+  const [homeSize, setHomeSize] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+
+    if (!homeSize) {
+      setError("Home size is required.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       const position = await getCurrentPositionOrNull();
       await createMoverRequest({
         mover: moverId,
+        homeSize,
         message: message.trim(),
         preferredDate: preferredDate || undefined,
         pickupLat: position?.lat,
@@ -56,6 +65,19 @@ function MoverRequestForm({ moverId, onCancel, onSent }) {
 
   return (
     <form className="auth-panel-form" onSubmit={handleSubmit}>
+      <label>
+        Home size
+        <select value={homeSize} onChange={(event) => setHomeSize(event.target.value)} required>
+          <option value="" disabled>
+            Select a home size
+          </option>
+          {homeSizeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <label>
         Message
         <textarea
