@@ -12,6 +12,7 @@ import {
 import { createMoverRequest } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { getCurrentPositionOrNull } from "../../utils/location.js";
+import { formatKes, homeSizeOptions } from "../../utils/format.js";
 
 // DateTimePicker has no web implementation; fall back to a plain text input
 // there (used for Expo web verification) while using the native picker on
@@ -35,15 +36,22 @@ export default function MoverRequestFormScreen({ route, navigation }) {
   const [preferredDate, setPreferredDate] = useState(null);
   const [webDateInput, setWebDateInput] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+  const [homeSize, setHomeSize] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [priceEstimate, setPriceEstimate] = useState(null);
 
   const handleSubmit = async () => {
     setError("");
 
     if (!message.trim()) {
       setError("Message is required.");
+      return;
+    }
+
+    if (!homeSize) {
+      setError("Home size is required.");
       return;
     }
 
@@ -65,14 +73,16 @@ export default function MoverRequestFormScreen({ route, navigation }) {
 
     try {
       const position = await getCurrentPositionOrNull();
-      await createMoverRequest({
+      const created = await createMoverRequest({
         mover: moverId,
         property: propertyId,
+        homeSize,
         message: message.trim(),
         preferredDate: preferredDateIso,
         pickupLat: position?.lat,
         pickupLng: position?.lng,
       });
+      setPriceEstimate(created?.priceEstimate ?? null);
       setSent(true);
     } catch (err) {
       setError(err.message || "Could not send your request.");
@@ -87,6 +97,7 @@ export default function MoverRequestFormScreen({ route, navigation }) {
         <Text style={styles.sentTitle}>Request sent</Text>
         <Text style={styles.sentMessage}>
           {moverName ? `${moverName} will respond soon.` : "The mover will respond soon."}
+          {priceEstimate ? ` Estimated price: ${formatKes(priceEstimate)}.` : ""}
         </Text>
         <Pressable style={styles.primaryButton} onPress={() => navigation.goBack()}>
           <Text style={styles.primaryButtonText}>Done</Text>
@@ -99,6 +110,23 @@ export default function MoverRequestFormScreen({ route, navigation }) {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {moverName ? <Text style={styles.title}>Request service from {moverName}</Text> : null}
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Home size</Text>
+          <View style={styles.chipRow}>
+            {homeSizeOptions.map((option) => (
+              <Pressable
+                key={option.value}
+                style={[styles.chip, homeSize === option.value && styles.chipActive]}
+                onPress={() => setHomeSize(option.value)}
+              >
+                <Text style={[styles.chipText, homeSize === option.value && styles.chipTextActive]}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
 
         <View style={styles.field}>
           <Text style={styles.label}>Message</Text>
@@ -178,6 +206,31 @@ const createStyles = (colors) =>
       fontSize: 13,
       fontWeight: "700",
       color: colors.muted,
+    },
+    chipRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 999,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      backgroundColor: colors.surface,
+    },
+    chipActive: {
+      backgroundColor: colors.greenDark,
+      borderColor: colors.greenDark,
+    },
+    chipText: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.ink,
+    },
+    chipTextActive: {
+      color: colors.white,
     },
     input: {
       borderWidth: 1,

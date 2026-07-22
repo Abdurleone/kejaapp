@@ -189,10 +189,18 @@ export const fetchMoverProfileStatus = async () => {
   return response.data;
 };
 
-export const createMoverRequest = async ({ mover, property, message, preferredDate, pickupLat, pickupLng }) => {
+export const createMoverRequest = async ({
+  mover,
+  property,
+  homeSize,
+  message,
+  preferredDate,
+  pickupLat,
+  pickupLng,
+}) => {
   const response = await apiFetch("/api/mover-requests", {
     method: "POST",
-    body: { mover, property, message, preferredDate, pickupLat, pickupLng },
+    body: { mover, property, homeSize, message, preferredDate, pickupLat, pickupLng },
   });
   return response.data;
 };
