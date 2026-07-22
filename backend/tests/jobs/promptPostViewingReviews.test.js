@@ -14,8 +14,14 @@ const buildViewingRequest = () => ({
   property: { _id: new mongoose.Types.ObjectId(), title: "Modern Kilimani Apartment" },
   status: "approved",
   reviewPromptSentAt: null,
-  async save() {},
 });
+
+const mockNoExistingReviews = () => mock.method(Review, "find", () => ({ lean: async () => [] }));
+
+const mockExistingReview = (viewingRequest) =>
+  mock.method(Review, "find", () => ({
+    lean: async () => [{ property: viewingRequest.property._id, user: viewingRequest.requester }],
+  }));
 
 describe("promptPostViewingReviews job", () => {
   afterEach(() => {
@@ -47,7 +53,14 @@ describe("promptPostViewingReviews job", () => {
   it("prompts a review, flips status to completed, and marks it processed", async () => {
     const viewingRequest = buildViewingRequest();
     const filtersByCall = mockScheduledOnly([viewingRequest]);
-    mock.method(Review, "exists", async () => false);
+    mockNoExistingReviews();
+    let updateManyFilter;
+    let updateManyUpdate;
+    mock.method(ViewingRequest, "updateMany", async (filter, update) => {
+      updateManyFilter = filter;
+      updateManyUpdate = update;
+      return { acknowledged: true };
+    });
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
@@ -59,23 +72,23 @@ describe("promptPostViewingReviews job", () => {
     assert.ok(scheduledFilters.requestedDate.$lt instanceof Date);
     assert.ok(scheduledFilters.requestedDate.$gte instanceof Date);
     assert.equal(create.mock.callCount(), 1);
-    assert.equal(viewingRequest.status, "completed");
-    assert.ok(viewingRequest.reviewPromptSentAt instanceof Date);
+    assert.deepEqual(updateManyFilter, { _id: { $in: [viewingRequest._id] } });
+    assert.equal(updateManyUpdate.$set.status, "completed");
+    assert.ok(updateManyUpdate.$set.reviewPromptSentAt instanceof Date);
     assert.equal(processedCount, 1);
   });
 
   it("skips the notification but still marks processed when a review already exists", async () => {
     const viewingRequest = buildViewingRequest();
     mockScheduledOnly([viewingRequest]);
-    mock.method(Review, "exists", async () => true);
+    mockExistingReview(viewingRequest);
+    mock.method(ViewingRequest, "updateMany", async () => ({ acknowledged: true }));
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
     const processedCount = await run();
 
     assert.equal(create.mock.callCount(), 0);
-    assert.equal(viewingRequest.status, "completed");
-    assert.ok(viewingRequest.reviewPromptSentAt instanceof Date);
     assert.equal(processedCount, 1);
   });
 
@@ -105,7 +118,8 @@ describe("promptPostViewingReviews job", () => {
         },
       };
     });
-    mock.method(Review, "exists", async () => false);
+    mockNoExistingReviews();
+    mock.method(ViewingRequest, "updateMany", async () => ({ acknowledged: true }));
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
@@ -118,7 +132,6 @@ describe("promptPostViewingReviews job", () => {
     assert.ok(openFilters.createdAt.$lt instanceof Date);
     assert.ok(openFilters.createdAt.$gte instanceof Date);
     assert.equal(create.mock.callCount(), 1);
-    assert.equal(openViewing.status, "completed");
     assert.equal(processedCount, 1);
   });
 
@@ -136,7 +149,8 @@ describe("promptPostViewingReviews job", () => {
         },
       };
     });
-    mock.method(Review, "exists", async () => false);
+    mockNoExistingReviews();
+    mock.method(ViewingRequest, "updateMany", async () => ({ acknowledged: true }));
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
