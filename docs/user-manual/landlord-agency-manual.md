@@ -22,7 +22,7 @@ Pricing fields are landlord/agency-only — tenants and admins cannot set or edi
 ## 3. Responding to tenant activity
 
 - **Inquiries** — see every inquiry sent about any of your properties in one place (Workspace), scoped automatically to properties you own. Respond to move an inquiry from `open` to `responded`; the tenant is notified either way.
-- **Viewing requests** — approve, reject, cancel, or complete a request for any of your properties. The requester is notified on every status change. A **scheduled**-viewing listing requires the tenant to pick a future date; an **open**-viewing listing auto-approves without one.
+- **Viewing requests** — see every viewing request sent about any of your properties in one place (Workspace's "Viewing requests" panel), scoped automatically to properties you own, and approve, reject, cancel, or complete each directly. The requester is notified on every status change. A **scheduled**-viewing listing requires the tenant to pick a future date; an **open**-viewing listing auto-approves without one.
 - **Reviews** — you can respond publicly to a review on your property, but you cannot delete a review or its rating, even if you disagree with it.
 
 ## 4. Mover affiliates

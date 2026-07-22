@@ -35,7 +35,7 @@ Enter either your **email or your username**, plus your password. For security, 
 ## 5. Features every signed-in user has
 
 - **Dashboard** — your home screen after signing in, showing counts and status relevant to your role (unread notifications for everyone, plus role-specific sections).
-- **Notifications** — a real inbox of everything that's happened on your account (inquiries, viewing/mover-request updates, verification decisions, feedback responses, and proactive reminders). A bell icon shows your unread count and clears the moment you open the tab.
+- **Notifications** — a real inbox of everything that's happened on your account (inquiries, viewing/mover-request updates, verification decisions, feedback responses, and proactive reminders). A bell icon shows your unread count and clears the moment you open the tab. If a notification is something you can act on directly — a mover request addressed to you, or a viewing/inquiry on a property you own — opening it shows a "View request" action that jumps straight to the relevant screen with that request highlighted, ready to respond to (see the [Mover](mover-manual.md) and [Landlord & Agency](landlord-agency-manual.md) manuals). Other notifications stay read-only.
 - **Account** — update your name/phone, change your password, manage saved searches (tenants), and delete your account.
 - **Feedback** — tell KejaApp how the platform is working for you. An admin response to your feedback is published as a public testimonial on the landing page.
 - **Light/dark mode** — a toggle present on every screen, remembered across sessions.

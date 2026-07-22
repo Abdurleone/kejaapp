@@ -33,8 +33,9 @@ A landlord or agency may mark you as a **trusted affiliate**. When they do, you 
 
 A tenant can send you a service request either from a specific property's "Movers for this move" section, or directly from the mover directory. Each request you receive shows:
 
-- The tenant's message and (optionally) a **preferred date**.
+- The tenant's message, their chosen **home-size category** (Studio/1BR/2BR/3BR/4BR+), and (optionally) a **preferred date**.
 - If the tenant shared their device location at request time, a computed **pickup-to-drop-off distance** in km — the straight-line distance from where they're moving from to the property they're moving to. This is calculated fresh on every view (never stored), so it always reflects the property's current location.
+- If the request is tied to a specific property (so the drop-off location is known), a **price estimate** weighing that distance against the tenant's home size — whichever is smaller (below a 10km threshold) counts less toward the total, while the other dominates, on top of your base price. This is the same figure the tenant saw when they sent the request, computed fresh on every view like the distance above rather than locked in at request time.
 
 From your received-requests list, you can:
 
