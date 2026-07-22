@@ -87,7 +87,8 @@ const listProperties = asyncHandler(async (req, res) => {
       .populate("owner", publicOwnerProjection)
       .sort(sort)
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Property.countDocuments(filters),
   ]);
 
@@ -117,7 +118,8 @@ const listMyProperties = asyncHandler(async (req, res) => {
       .populate("owner", ownerProjection)
       .sort(sort)
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Property.countDocuments(filters),
   ]);
 
