@@ -15,7 +15,10 @@ const listNotifications = asyncHandler(async (req, res) => {
   const notifications = await Notification.find(filters).sort("-createdAt").limit(100).lean();
 
   res.status(httpStatus.OK).json({
-    data: notifications,
+    // .lean() returns plain objects, which skip the schema's `isRead` virtual
+    // (only computed for real Mongoose documents) - restore it here so every
+    // notification still reports its actual read state.
+    data: notifications.map((notification) => ({ ...notification, isRead: Boolean(notification.readAt) })),
   });
 });
 
