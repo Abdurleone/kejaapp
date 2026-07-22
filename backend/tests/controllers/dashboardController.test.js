@@ -34,8 +34,8 @@ describe("dashboardController", () => {
   it("returns tenant dashboard counts", async () => {
     mock.method(Notification, "countDocuments", async () => 2);
     mock.method(Favorite, "countDocuments", async () => 3);
-    mock.method(Inquiry, "countDocuments", async (filters) => (filters.status === "open" ? 1 : 0));
-    mock.method(ViewingRequest, "countDocuments", async (filters) => (filters.status === "approved" ? 1 : 0));
+    mock.method(Inquiry, "aggregate", async () => [{ _id: "open", count: 1 }]);
+    mock.method(ViewingRequest, "aggregate", async () => [{ _id: "approved", count: 1 }]);
     const req = {
       user: {
         _id: new mongoose.Types.ObjectId(),
@@ -58,9 +58,9 @@ describe("dashboardController", () => {
 
   it("returns agency owner and verification counts", async () => {
     mock.method(Notification, "countDocuments", async () => 0);
-    mock.method(Property, "countDocuments", async (filters) => (filters.status === "available" ? 2 : 0));
-    mock.method(Inquiry, "countDocuments", async () => 0);
-    mock.method(ViewingRequest, "countDocuments", async () => 0);
+    mock.method(Property, "aggregate", async () => [{ _id: "available", count: 2 }]);
+    mock.method(Inquiry, "aggregate", async () => []);
+    mock.method(ViewingRequest, "aggregate", async () => []);
     mock.method(AgencyVerification, "findOne", () => ({
       select: async () => ({
         status: "approved",
@@ -91,7 +91,7 @@ describe("dashboardController", () => {
         rejectionReason: null,
       }),
     }));
-    mock.method(MoverRequest, "countDocuments", async (filters) => (filters.status === "pending" ? 3 : 0));
+    mock.method(MoverRequest, "aggregate", async () => [{ _id: "pending", count: 3 }]);
     const req = {
       user: {
         _id: new mongoose.Types.ObjectId(),
@@ -110,17 +110,13 @@ describe("dashboardController", () => {
 
   it("returns admin moderation counts", async () => {
     mock.method(Notification, "countDocuments", async () => 0);
-    mock.method(Property, "countDocuments", async () => 0);
-    mock.method(Inquiry, "countDocuments", async () => 0);
-    mock.method(ViewingRequest, "countDocuments", async () => 0);
-    mock.method(AgencyVerification, "countDocuments", async (filters) =>
-      filters.status === "pending" ? 4 : 0
-    );
-    mock.method(MoverVerification, "countDocuments", async (filters) =>
-      filters.status === "pending" ? 7 : 0
-    );
-    mock.method(UserViolation, "countDocuments", async (filters) => (filters.status === "open" ? 5 : 0));
-    mock.method(Feedback, "countDocuments", async (filters) => (filters.status === "pending" ? 6 : 0));
+    mock.method(Property, "aggregate", async () => []);
+    mock.method(Inquiry, "aggregate", async () => []);
+    mock.method(ViewingRequest, "aggregate", async () => []);
+    mock.method(AgencyVerification, "aggregate", async () => [{ _id: "pending", count: 4 }]);
+    mock.method(MoverVerification, "aggregate", async () => [{ _id: "pending", count: 7 }]);
+    mock.method(UserViolation, "aggregate", async () => [{ _id: "open", count: 5 }]);
+    mock.method(Feedback, "aggregate", async () => [{ _id: "pending", count: 6 }]);
     const req = {
       user: {
         _id: new mongoose.Types.ObjectId(),
