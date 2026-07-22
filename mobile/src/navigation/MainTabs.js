@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -67,11 +67,14 @@ export default function MainTabs() {
   // padding on top of the safe-area inset gives clear breathing room, and is
   // shared by both variants below so switching tabs doesn't jump the bar's
   // height.
-  const baseTabBarStyle = {
-    height: 56 + insets.bottom + 12,
-    paddingTop: 8,
-    paddingBottom: insets.bottom + 12,
-  };
+  const baseTabBarStyle = useMemo(
+    () => ({
+      height: 56 + insets.bottom + 12,
+      paddingTop: 8,
+      paddingBottom: insets.bottom + 12,
+    }),
+    [insets.bottom]
+  );
 
   const refreshUnreadCount = useCallback(async () => {
     try {
@@ -101,22 +104,24 @@ export default function MainTabs() {
     };
   }, [signedIn, refreshUnreadCount]);
 
+  const screenOptions = useCallback(
+    ({ route }) => ({
+      tabBarActiveTintColor: colors.greenDark,
+      tabBarInactiveTintColor: colors.muted,
+      tabBarIcon: ({ color, size }) => (
+        <Ionicons name={icons[route.name]} size={size} color={color} />
+      ),
+      headerStyle: { backgroundColor: colors.surface },
+      headerTintColor: colors.ink,
+      headerTitleStyle: { fontWeight: "700" },
+      headerRight: () => <ColorModeToggle />,
+      tabBarStyle: baseTabBarStyle,
+    }),
+    [colors, baseTabBarStyle]
+  );
+
   return (
-    <Tab.Navigator
-      initialRouteName="Dashboard"
-      screenOptions={({ route }) => ({
-        tabBarActiveTintColor: colors.greenDark,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name={icons[route.name]} size={size} color={color} />
-        ),
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: "700" },
-        headerRight: () => <ColorModeToggle />,
-        tabBarStyle: baseTabBarStyle,
-      })}
-    >
+    <Tab.Navigator initialRouteName="Dashboard" screenOptions={screenOptions}>
       {visibleTabs.map((name) => (
         <Tab.Screen
           key={name}
