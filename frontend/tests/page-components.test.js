@@ -8,17 +8,21 @@ const appSource = await readSource("App.jsx");
 const discoverSource = await readSource("pages/DiscoverPage.jsx");
 const landingSource = await readSource("pages/LandingPage.jsx");
 const notificationsSource = await readSource("pages/NotificationsPage.jsx");
+const propertyCardSource = await readSource("components/PropertyCard.jsx");
 
 describe("frontend page component contracts", () => {
   it("renders discover listings with API data, cards, and save actions", () => {
     assert.match(discoverSource, /fetchProperties\(params\)/);
     assert.match(discoverSource, /fetchFavorites\(\)/);
     assert.match(discoverSource, /saveFavorite\(propertyId\)/);
-    assert.match(discoverSource, /getPropertyImage\(property\)/);
     assert.match(discoverSource, /className="property-grid"/);
-    assert.match(discoverSource, /className="property-card"/);
-    assert.match(discoverSource, /className="property-photo"/);
-    assert.match(discoverSource, /className="card-actions"/);
+    // Card markup itself now lives in the extracted, memoized PropertyCard
+    // component (performance pass - avoids re-rendering every card on any
+    // sibling row's state change).
+    assert.match(propertyCardSource, /getPropertyImage\(property\)/);
+    assert.match(propertyCardSource, /className="property-card"/);
+    assert.match(propertyCardSource, /className="property-photo"/);
+    assert.match(propertyCardSource, /className="card-actions"/);
   });
 
   it("keeps discover location search and empty/error states wired", () => {
