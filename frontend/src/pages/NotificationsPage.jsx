@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import NotificationRow from "../components/NotificationRow.jsx";
 import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "../../app-utils.js";
 
 export default function NotificationsPage() {
@@ -35,7 +36,7 @@ export default function NotificationsPage() {
     };
   }, [retryKey, unreadOnly]);
 
-  const handleMarkAllRead = async () => {
+  const handleMarkAllRead = useCallback(async () => {
     setMarkingAll(true);
     setActionError("");
 
@@ -47,25 +48,28 @@ export default function NotificationsPage() {
     } finally {
       setMarkingAll(false);
     }
-  };
+  }, [unreadOnly]);
 
-  const handleMarkRead = async (notificationId) => {
-    setMarkingId(notificationId);
-    setActionError("");
+  const handleMarkRead = useCallback(
+    async (notificationId) => {
+      setMarkingId(notificationId);
+      setActionError("");
 
-    try {
-      const updated = await markNotificationAsRead(notificationId);
-      setNotifications((current) =>
-        unreadOnly
-          ? current.filter((item) => item._id !== notificationId)
-          : current.map((item) => (item._id === notificationId ? updated : item)),
-      );
-    } catch (err) {
-      setActionError(err.message || "Could not mark this notification as read.");
-    } finally {
-      setMarkingId(null);
-    }
-  };
+      try {
+        const updated = await markNotificationAsRead(notificationId);
+        setNotifications((current) =>
+          unreadOnly
+            ? current.filter((item) => item._id !== notificationId)
+            : current.map((item) => (item._id === notificationId ? updated : item)),
+        );
+      } catch (err) {
+        setActionError(err.message || "Could not mark this notification as read.");
+      } finally {
+        setMarkingId(null);
+      }
+    },
+    [unreadOnly]
+  );
 
   return (
     <div className="view active-view">
@@ -118,28 +122,12 @@ export default function NotificationsPage() {
         ) : (
           <div className="property-grid compact-grid">
             {notifications.map((item) => (
-              <article className="property-card" key={item._id}>
-                <div className="property-body">
-                  <div className="cost-row">
-                    <strong>{item.title}</strong>
-                    {!item.isRead && <span className="status-pill status-active">New</span>}
-                  </div>
-                  <p>{item.message}</p>
-                  <div className="cost-row">
-                    <span className="muted-copy">{new Date(item.createdAt).toLocaleString()}</span>
-                    {!item.isRead && (
-                      <button
-                        className="text-button"
-                        type="button"
-                        disabled={markingId === item._id}
-                        onClick={() => handleMarkRead(item._id)}
-                      >
-                        {markingId === item._id ? "Marking..." : "Mark as read"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </article>
+              <NotificationRow
+                key={item._id}
+                notification={item}
+                isMarking={markingId === item._id}
+                onMarkRead={handleMarkRead}
+              />
             ))}
           </div>
         )}

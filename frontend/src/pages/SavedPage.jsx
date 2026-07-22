@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
-import { fetchFavorites, removeFavorite, formatKes, formatRatingSummary } from "../../app-utils.js";
+import SavedPropertyCard from "../components/SavedPropertyCard.jsx";
+import { fetchFavorites, removeFavorite } from "../../app-utils.js";
 
 export default function SavedPage({ onOpenProperty }) {
   const [saved, setSaved] = useState([]);
@@ -32,6 +33,22 @@ export default function SavedPage({ onOpenProperty }) {
       active = false;
     };
   }, [retryKey]);
+
+  const handleRemove = useCallback(async (propertyId) => {
+    setActionError("");
+    setRemovingPropertyId(propertyId);
+
+    try {
+      await removeFavorite(propertyId);
+      setSaved((current) =>
+        current.filter((favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId)
+      );
+    } catch (err) {
+      setActionError(err.message || "Unable to remove favorite.");
+    } finally {
+      setRemovingPropertyId(null);
+    }
+  }, []);
 
   return (
     <div className="view active-view">
@@ -68,41 +85,13 @@ export default function SavedPage({ onOpenProperty }) {
             const propertyId = property._id || property.id;
 
             return (
-              <article className="property-card" key={propertyId}>
-                <div className="property-body">
-                  <h3 className="property-title">{property.title || "Rental property"}</h3>
-                  <p className="property-rating">{formatRatingSummary(property.ratingAverage, property.ratingCount)}</p>
-                  <div className="cost-row">
-                    <strong>{formatKes(property.price?.rent)}</strong>
-                    <span>{property.location?.area || "Nairobi"}</span>
-                  </div>
-                  <div className="card-actions">
-                    <button className="secondary-button" type="button" onClick={() => onOpenProperty(propertyId)}>
-                      Details
-                    </button>
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      disabled={removingPropertyId === propertyId}
-                      onClick={async () => {
-                        setActionError("");
-                        setRemovingPropertyId(propertyId);
-
-                        try {
-                          await removeFavorite(propertyId);
-                          setSaved((current) => current.filter((favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId));
-                        } catch (err) {
-                          setActionError(err.message || "Unable to remove favorite.");
-                        } finally {
-                          setRemovingPropertyId(null);
-                        }
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </article>
+              <SavedPropertyCard
+                key={propertyId}
+                property={property}
+                isRemoving={removingPropertyId === propertyId}
+                onOpenProperty={onOpenProperty}
+                onRemove={handleRemove}
+              />
             );
           })}
         </div>

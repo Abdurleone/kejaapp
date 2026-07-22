@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx";
 import {
   fetchMyProperties,
@@ -76,6 +76,10 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
       active = false;
     };
   }, [inquiriesPage, inquiriesRetryKey]);
+
+  const handleInquiryResponded = useCallback((updated) => {
+    setInquiries((current) => current.map((item) => (item._id === updated._id ? updated : item)));
+  }, []);
 
   return (
     <div className="view active-view">
@@ -163,15 +167,7 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty }) {
           <>
             <div className="property-grid compact-grid">
               {inquiries.map((inquiry) => (
-                <InquiryCard
-                  key={inquiry._id}
-                  inquiry={inquiry}
-                  onResponded={(updated) =>
-                    setInquiries((current) =>
-                      current.map((item) => (item._id === updated._id ? updated : item))
-                    )
-                  }
-                />
+                <InquiryCard key={inquiry._id} inquiry={inquiry} onResponded={handleInquiryResponded} />
               ))}
             </div>
             <PaginationFooter
@@ -216,7 +212,7 @@ function PaginationFooter({ pagination, page, onPageChange }) {
   );
 }
 
-function InquiryCard({ inquiry, onResponded }) {
+export const InquiryCard = memo(function InquiryCard({ inquiry, onResponded }) {
   const [response, setResponse] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -288,4 +284,4 @@ function InquiryCard({ inquiry, onResponded }) {
       </div>
     </article>
   );
-}
+});
