@@ -35,20 +35,32 @@ const run = async () => {
 
   const pastViewings = [...scheduledViewings, ...openViewings];
 
-  for (const viewingRequest of pastViewings) {
-    const alreadyReviewed = await Review.exists({
-      property: viewingRequest.property._id || viewingRequest.property,
-      user: viewingRequest.requester,
-    });
-
-    if (!alreadyReviewed) {
-      await notifyReviewPrompt(viewingRequest);
-    }
-
-    viewingRequest.status = "completed";
-    viewingRequest.reviewPromptSentAt = new Date();
-    await viewingRequest.save();
+  if (pastViewings.length === 0) {
+    return 0;
   }
+
+  const propertyId = (viewingRequest) => viewingRequest.property._id || viewingRequest.property;
+  const existingReviews = await Review.find(
+    {
+      property: { $in: pastViewings.map(propertyId) },
+      user: { $in: pastViewings.map((viewingRequest) => viewingRequest.requester) },
+    },
+    { property: 1, user: 1 }
+  ).lean();
+  const reviewedPairs = new Set(existingReviews.map(({ property, user }) => `${property}:${user}`));
+
+  await Promise.all(
+    pastViewings
+      .filter(
+        (viewingRequest) => !reviewedPairs.has(`${propertyId(viewingRequest)}:${viewingRequest.requester}`)
+      )
+      .map((viewingRequest) => notifyReviewPrompt(viewingRequest))
+  );
+
+  await ViewingRequest.updateMany(
+    { _id: { $in: pastViewings.map((viewingRequest) => viewingRequest._id) } },
+    { $set: { status: "completed", reviewPromptSentAt: new Date() } }
+  );
 
   return pastViewings.length;
 };
