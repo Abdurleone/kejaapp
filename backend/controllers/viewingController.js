@@ -124,6 +124,22 @@ const listPropertyViewingRequests = asyncHandler(async (req, res) => {
   });
 });
 
+const listReceivedViewingRequests = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const statusFilter = req.query.status ? { status: req.query.status } : {};
+  const filters = { owner: req.user._id, ...statusFilter };
+
+  const [viewingRequests, total] = await Promise.all([
+    populateViewingRequest(ViewingRequest.find(filters).sort("-createdAt").skip(skip).limit(limit)).lean(),
+    ViewingRequest.countDocuments(filters),
+  ]);
+
+  res.status(httpStatus.OK).json({
+    data: viewingRequests,
+    pagination: formatPagination(page, limit, total),
+  });
+});
+
 const updateViewingRequestStatus = asyncHandler(async (req, res) => {
   const viewingRequest = await ViewingRequest.findById(req.params.id).populate("property");
 
@@ -166,5 +182,6 @@ export {
   createViewingRequest,
   listMyViewingRequests,
   listPropertyViewingRequests,
+  listReceivedViewingRequests,
   updateViewingRequestStatus,
 };
