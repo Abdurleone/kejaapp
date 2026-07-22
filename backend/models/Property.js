@@ -178,6 +178,7 @@ propertySchema.pre("validate", function syncAvailabilityWithStatus() {
 
 propertySchema.index({ "location.coordinates": "2dsphere" });
 propertySchema.index({ title: "text", description: "text", "location.area": "text" });
+propertySchema.index({ owner: 1, status: 1 });
 
 const Property = mongoose.model("Property", propertySchema);
 
