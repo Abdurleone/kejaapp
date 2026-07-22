@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl, setApiBaseUrl as persistApiBaseUrl } from "../api/index.js";
 
 const SettingsContext = createContext(null);
@@ -10,12 +10,12 @@ export function SettingsProvider({ children }) {
     getApiBaseUrl().then(setApiBaseUrlState);
   }, []);
 
-  const setApiBaseUrl = async (url) => {
+  const setApiBaseUrl = useCallback(async (url) => {
     await persistApiBaseUrl(url);
     setApiBaseUrlState(await getApiBaseUrl());
-  };
+  }, []);
 
-  const value = useMemo(() => ({ apiBaseUrl, setApiBaseUrl }), [apiBaseUrl]);
+  const value = useMemo(() => ({ apiBaseUrl, setApiBaseUrl }), [apiBaseUrl, setApiBaseUrl]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

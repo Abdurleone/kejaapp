@@ -124,4 +124,40 @@ describe("AuthContext", () => {
     expect(unregisterForPushNotifications).toHaveBeenCalledTimes(1);
     expect(logoutUser).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps the same login/register/logout function references across a sign-in that changes user", async () => {
+    // The outer `value` object is only memoized on [user, loading, ...], so
+    // it's already a new object whenever user changes - that alone doesn't
+    // prove login/register/logout are individually stable. Wrapping each in
+    // useCallback is what keeps *their* references identical even across a
+    // render where the surrounding value object necessarily changes; without
+    // it, this render would have captured a fresh closure for each instead.
+    getAuthToken.mockResolvedValue("");
+    loginUser.mockResolvedValue({ user: { name: "Jane" } });
+    const captured = [];
+
+    function CaptureConsumer() {
+      const value = useAuth();
+      captured.push(value);
+      return (
+        <Pressable onPress={() => value.login({ identifier: "jane", password: "pw" })}>
+          <Text>{value.signedIn ? `signed-in:${value.user.name}` : "signed-out"}</Text>
+        </Pressable>
+      );
+    }
+
+    const { getByText } = await render(
+      <AuthProvider>
+        <CaptureConsumer />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(getByText("signed-out")).toBeTruthy());
+    const beforeLogin = captured[captured.length - 1].login;
+
+    fireEvent.press(getByText("signed-out"));
+    await waitFor(() => expect(getByText("signed-in:Jane")).toBeTruthy());
+    const afterLogin = captured[captured.length - 1].login;
+
+    expect(afterLogin).toBe(beforeLogin);
+  });
 });
