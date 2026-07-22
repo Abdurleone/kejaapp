@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -94,7 +94,7 @@ export default function WorkspaceScreen() {
   const { user, signedIn } = useAuth();
   const { apiBaseUrl } = useSettings();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [tab, setTab] = useState("listings");
 
   const [properties, setProperties] = useState([]);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { fetchAdminUserStatusHistory, fetchAdminUserSummary, updateAdminUserStatus } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -30,7 +30,7 @@ export default function AdminUserDetailScreen({ route }) {
   const { userId } = route.params;
   const { user: currentUser } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [summary, setSummary] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);

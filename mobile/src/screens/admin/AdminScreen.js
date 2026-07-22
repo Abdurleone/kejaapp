@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fetchAdminReviews, fetchAdminUsers } from "../../api/index.js";
@@ -276,7 +276,7 @@ function ReviewsSegment({ styles }) {
 
 export default function AdminScreen() {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [tab, setTab] = useState("users");
 
   return (

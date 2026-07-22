@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { deleteSavedSearch, fetchSavedSearches } from "../../api/index.js";
@@ -89,7 +89,7 @@ export default function AccountScreen() {
   const navigation = useNavigation();
   const { user, signedIn, logout } = useAuth();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const confirmSignOut = () => {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [

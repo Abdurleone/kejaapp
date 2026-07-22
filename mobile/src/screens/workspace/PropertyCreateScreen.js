@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -47,7 +47,7 @@ function ChipRow({ options, value, onChange, styles }) {
 
 export default function PropertyCreateScreen({ navigation }) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [form, setForm] = useState(emptyPropertyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);

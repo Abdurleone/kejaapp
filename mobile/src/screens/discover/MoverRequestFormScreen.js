@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -29,7 +29,7 @@ const startOfToday = () => {
 
 export default function MoverRequestFormScreen({ route, navigation }) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { moverId, moverName, propertyId } = route.params;
   const [message, setMessage] = useState("");
   const [preferredDate, setPreferredDate] = useState(null);
