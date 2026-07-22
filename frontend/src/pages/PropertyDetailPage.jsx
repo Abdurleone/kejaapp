@@ -101,8 +101,11 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
 
     let active = true;
 
-    fetchFavorites()
-      .then((favorites) => {
+    // The full 100 (the API's max page size) rather than a paginated slice -
+    // this just needs to know whether this one property is already saved,
+    // not one page of favorite-list display data.
+    fetchFavorites({ limit: 100 })
+      .then(({ favorites }) => {
         const saved = favorites.some(
           (favorite) => String(favorite.property?._id || favorite.property?.id || favorite._id) === String(propertyId)
         );

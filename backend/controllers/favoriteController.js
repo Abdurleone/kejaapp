@@ -7,6 +7,7 @@ import {
 } from "../services/costService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 
 const populateFavorite = (query) =>
   query.populate({
@@ -18,12 +19,17 @@ const populateFavorite = (query) =>
   });
 
 const listFavorites = asyncHandler(async (req, res) => {
-  const favorites = await populateFavorite(
-    Favorite.find({ user: req.user._id }).sort("-createdAt")
-  ).lean();
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const filters = { user: req.user._id };
+
+  const [favorites, total] = await Promise.all([
+    populateFavorite(Favorite.find(filters).sort("-createdAt").skip(skip).limit(limit)).lean(),
+    Favorite.countDocuments(filters),
+  ]);
 
   res.status(httpStatus.OK).json({
     data: attachFavoritePropertyCostSummaries(favorites),
+    pagination: formatPagination(page, limit, total),
   });
 });
 

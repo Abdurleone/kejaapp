@@ -42,7 +42,7 @@ const sampleProperty = {
 const noMovers = { affiliates: [], nearby: [] };
 
 const renderDetailPage = (props = {}) => {
-  fetchFavorites.mockResolvedValue(props.favorites ?? []);
+  fetchFavorites.mockResolvedValue({ favorites: props.favorites ?? [] });
   fetchPropertyMovers.mockResolvedValue(props.movers ?? noMovers);
   fetchPropertyById.mockResolvedValue(props.property ?? sampleProperty);
 
@@ -65,7 +65,7 @@ describe("PropertyDetailPage", () => {
 
   it("shows a loading skeleton before the property has loaded", () => {
     fetchPropertyById.mockReturnValue(new Promise(() => {}));
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     fetchPropertyMovers.mockResolvedValue(noMovers);
 
     const { container } = renderWithAuth(
@@ -77,7 +77,7 @@ describe("PropertyDetailPage", () => {
 
   it("shows an error state with a Back action when the property fails to load", async () => {
     fetchPropertyById.mockRejectedValue(new Error("Property not found"));
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
     fetchPropertyMovers.mockResolvedValue(noMovers);
     const onBack = vi.fn();
     const user = userEvent.setup();

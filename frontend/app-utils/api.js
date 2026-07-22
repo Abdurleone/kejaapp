@@ -494,16 +494,17 @@ export const fetchCurrentUser = async () => {
   return response.user;
 };
 
-export const fetchFavorites = async () => {
-  const cacheKey = "favorites";
+export const fetchFavorites = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `favorites:${queryString}`;
   const cached = getCached(cacheKey);
 
   if (cached) {
     return cached;
   }
 
-  const response = await apiFetch("/api/favorites", { method: "GET" });
-  const data = response.data || [];
+  const response = await apiFetch(`/api/favorites${queryString}`, { method: "GET" });
+  const data = { favorites: response.data || [], pagination: response.pagination };
   setCached(cacheKey, data, favoritesCacheTtlMs);
   return data;
 };

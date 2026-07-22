@@ -30,7 +30,7 @@ describe("SavedPage", () => {
   });
 
   it("renders saved listings with real favorite data", async () => {
-    fetchFavorites.mockResolvedValue([sampleFavorite]);
+    fetchFavorites.mockResolvedValue({ favorites: [sampleFavorite], pagination: null });
 
     render(<SavedPage onOpenProperty={vi.fn()} />);
 
@@ -41,7 +41,7 @@ describe("SavedPage", () => {
   });
 
   it("shows the empty state when there are no saved listings", async () => {
-    fetchFavorites.mockResolvedValue([]);
+    fetchFavorites.mockResolvedValue({ favorites: [], pagination: null });
 
     render(<SavedPage onOpenProperty={vi.fn()} />);
 
@@ -59,7 +59,7 @@ describe("SavedPage", () => {
 
   it("retries loading favorites when Retry is clicked", async () => {
     fetchFavorites.mockRejectedValueOnce(new Error("Network down"));
-    fetchFavorites.mockResolvedValueOnce([sampleFavorite]);
+    fetchFavorites.mockResolvedValueOnce({ favorites: [sampleFavorite], pagination: null });
     const user = userEvent.setup();
 
     render(<SavedPage onOpenProperty={vi.fn()} />);
@@ -71,7 +71,7 @@ describe("SavedPage", () => {
   });
 
   it("opens property details when Details is clicked", async () => {
-    fetchFavorites.mockResolvedValue([sampleFavorite]);
+    fetchFavorites.mockResolvedValue({ favorites: [sampleFavorite], pagination: null });
     const onOpenProperty = vi.fn();
     const user = userEvent.setup();
 
@@ -84,7 +84,7 @@ describe("SavedPage", () => {
   });
 
   it("removes a favorite and drops it from the list", async () => {
-    fetchFavorites.mockResolvedValue([sampleFavorite]);
+    fetchFavorites.mockResolvedValue({ favorites: [sampleFavorite], pagination: null });
     removeFavorite.mockResolvedValue({});
     const user = userEvent.setup();
 
@@ -97,8 +97,35 @@ describe("SavedPage", () => {
     await waitFor(() => expect(screen.queryByText("Modern Kilimani Apartment")).not.toBeInTheDocument());
   });
 
+  it("paginates to the next page of saved listings", async () => {
+    const pageTwoFavorite = {
+      property: {
+        _id: "prop-2",
+        title: "Nyali Beach View Apartment",
+        price: { rent: 60000 },
+        location: { area: "Nyali" },
+      },
+    };
+    fetchFavorites.mockImplementation(({ page } = {}) =>
+      page === 2
+        ? Promise.resolve({ favorites: [pageTwoFavorite], pagination: { page: 2, limit: 20, total: 21, pages: 2 } })
+        : Promise.resolve({ favorites: [sampleFavorite], pagination: { page: 1, limit: 20, total: 21, pages: 2 } })
+    );
+    const user = userEvent.setup();
+
+    render(<SavedPage onOpenProperty={vi.fn()} />);
+    await screen.findByText("Modern Kilimani Apartment");
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    await screen.findByText("Nyali Beach View Apartment");
+    expect(fetchFavorites).toHaveBeenLastCalledWith({ page: 2 });
+    expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
+  });
+
   it("shows an inline error when removing a favorite fails, without hiding the rest of the list", async () => {
-    fetchFavorites.mockResolvedValue([sampleFavorite]);
+    fetchFavorites.mockResolvedValue({ favorites: [sampleFavorite], pagination: null });
     removeFavorite.mockRejectedValue(new Error("Unable to remove favorite."));
     const user = userEvent.setup();
 
