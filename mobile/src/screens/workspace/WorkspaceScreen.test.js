@@ -18,12 +18,20 @@ jest.mock("../../api/index.js", () => ({
   fetchMyProperties: jest.fn(),
   fetchReceivedInquiries: jest.fn(),
   respondToInquiry: jest.fn(),
+  fetchReceivedViewingRequests: jest.fn(),
+  updateViewingRequestStatus: jest.fn(),
 }));
 
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
-import { fetchMyProperties, fetchReceivedInquiries, respondToInquiry } from "../../api/index.js";
+import {
+  fetchMyProperties,
+  fetchReceivedInquiries,
+  respondToInquiry,
+  fetchReceivedViewingRequests,
+  updateViewingRequestStatus,
+} from "../../api/index.js";
 
 describe("WorkspaceScreen", () => {
   beforeEach(() => {
@@ -32,6 +40,10 @@ describe("WorkspaceScreen", () => {
     useTheme.mockReturnValue({ colors: lightColors });
     fetchMyProperties.mockResolvedValue({ properties: [], pagination: { page: 1, pages: 1, total: 0 } });
     fetchReceivedInquiries.mockResolvedValue({ inquiries: [], pagination: { page: 1, pages: 1, total: 0 } });
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [],
+      pagination: { page: 1, pages: 1, total: 0 },
+    });
   });
 
   it("prompts sign-in when signed out", async () => {
@@ -50,13 +62,14 @@ describe("WorkspaceScreen", () => {
     expect(getByText("Owner or agency account required")).toBeTruthy();
   });
 
-  it("fetches listings and inquiries exactly once each on mount, not twice", async () => {
+  it("fetches listings, inquiries, and viewing requests exactly once each on mount, not twice", async () => {
     useAuth.mockReturnValue({ signedIn: true, user: { role: "landlord" } });
 
     await render(<WorkspaceScreen />);
 
     await waitFor(() => expect(fetchMyProperties).toHaveBeenCalledTimes(1));
     expect(fetchReceivedInquiries).toHaveBeenCalledTimes(1);
+    expect(fetchReceivedViewingRequests).toHaveBeenCalledTimes(1);
   });
 
   it("lists the owner's properties and opens the edit screen on tap", async () => {
@@ -112,5 +125,73 @@ describe("WorkspaceScreen", () => {
 
     await waitFor(() => expect(getByText("Yes, it is!")).toBeTruthy());
     expect(respondToInquiry).toHaveBeenCalledWith("i1", { status: "responded", response: "Yes, it is!" });
+  });
+
+  it("shows received viewing requests in the Viewing requests segment and approves one", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { role: "landlord" } });
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [
+        {
+          _id: "v1",
+          status: "pending",
+          message: "Can I view this Saturday morning?",
+          property: { title: "Cozy studio" },
+          requester: { name: "Jane Doe" },
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+    updateViewingRequestStatus.mockResolvedValue({
+      _id: "v1",
+      status: "approved",
+      message: "Can I view this Saturday morning?",
+      property: { title: "Cozy studio" },
+      requester: { name: "Jane Doe" },
+    });
+
+    const { getByText } = await render(<WorkspaceScreen />);
+
+    fireEvent.press(getByText("Viewing requests"));
+
+    await waitFor(() => expect(getByText("Can I view this Saturday morning?")).toBeTruthy());
+
+    fireEvent.press(getByText("Approve"));
+
+    await waitFor(() => expect(updateViewingRequestStatus).toHaveBeenCalledWith("v1", { status: "approved" }));
+    await waitFor(() => expect(() => getByText("Approve")).toThrow());
+  });
+
+  it("rejects a pending viewing request", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { role: "landlord" } });
+    fetchReceivedViewingRequests.mockResolvedValue({
+      viewingRequests: [
+        {
+          _id: "v1",
+          status: "pending",
+          message: "Can I view this Saturday morning?",
+          property: { title: "Cozy studio" },
+          requester: { name: "Jane Doe" },
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+    updateViewingRequestStatus.mockResolvedValue({
+      _id: "v1",
+      status: "rejected",
+      message: "Can I view this Saturday morning?",
+      property: { title: "Cozy studio" },
+      requester: { name: "Jane Doe" },
+    });
+
+    const { getByText } = await render(<WorkspaceScreen />);
+
+    fireEvent.press(getByText("Viewing requests"));
+
+    await waitFor(() => expect(getByText("Can I view this Saturday morning?")).toBeTruthy());
+
+    fireEvent.press(getByText("Reject"));
+
+    await waitFor(() => expect(updateViewingRequestStatus).toHaveBeenCalledWith("v1", { status: "rejected" }));
+    await waitFor(() => expect(() => getByText("Reject")).toThrow());
   });
 });

@@ -137,6 +137,19 @@ export const createViewingRequest = async ({ property, requestedDate, message })
   return response.data;
 };
 
+export const fetchReceivedViewingRequests = async (query = {}) => {
+  const response = await apiFetch(`/api/viewings/received${buildQueryString(query)}`, { method: "GET" });
+  return { viewingRequests: response.data || [], pagination: response.pagination };
+};
+
+export const updateViewingRequestStatus = async (viewingRequestId, { status, reason }) => {
+  const response = await apiFetch(`/api/viewings/${viewingRequestId}/status`, {
+    method: "PUT",
+    body: { status, reason },
+  });
+  return response.data;
+};
+
 // --- Movers ---
 
 export const fetchMovers = async (query = {}) => {
