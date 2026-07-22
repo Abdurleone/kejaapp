@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 
 const AuthContext = createContext(null);
 
@@ -7,9 +7,12 @@ const AuthContext = createContext(null);
 // makes that state and the "open the sign-in modal" action available to any
 // page without threading them through every renderCurrentPage() call site.
 export function AuthProvider({ signedIn, currentUser, openAuthPanel, children }) {
-  return (
-    <AuthContext.Provider value={{ signedIn, currentUser, openAuthPanel }}>{children}</AuthContext.Provider>
+  const value = useMemo(
+    () => ({ signedIn, currentUser, openAuthPanel }),
+    [signedIn, currentUser, openAuthPanel]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
