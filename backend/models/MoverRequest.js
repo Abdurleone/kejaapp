@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { homeSizes } from "../utils/moverPricing.js";
 
 const moverRequestStatuses = ["pending", "accepted", "declined", "cancelled", "completed"];
 
@@ -40,6 +41,16 @@ const moverRequestSchema = new mongoose.Schema(
         type: [Number],
         default: undefined,
       },
+    },
+    // Home-size category the tenant is moving from, used alongside
+    // pickup-to-dropoff distance to compute a price estimate (see
+    // utils/moverPricing.js). Optional at the schema level so pre-existing
+    // requests aren't invalidated - required going forward via
+    // createMoverRequestSchema.
+    homeSize: {
+      type: String,
+      enum: homeSizes,
+      default: null,
     },
     message: {
       type: String,

@@ -1,4 +1,5 @@
 import { moverRequestStatuses } from "../models/MoverRequest.js";
+import { homeSizes } from "../utils/moverPricing.js";
 
 const manageableMoverRequestStatuses = ["accepted", "declined", "cancelled", "completed"];
 
@@ -21,6 +22,11 @@ const createMoverRequestSchema = {
   },
   property: {
     type: "string",
+  },
+  homeSize: {
+    required: true,
+    type: "string",
+    enum: homeSizes,
   },
   message: {
     type: "string",

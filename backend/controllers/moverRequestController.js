@@ -7,6 +7,7 @@ import {
 } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { calculateMoverPriceEstimate } from "../utils/moverPricing.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 import { haversineDistanceKm } from "../utils/propertyFilters.js";
 import { assertValidTransition } from "../utils/statusTransitions.js";
@@ -44,6 +45,19 @@ const attachDistanceKm = (moverRequest) => {
   return plain;
 };
 
+// Weighs distance vs. the tenant's home-size selection into a single price
+// estimate (see utils/moverPricing.js) - left untouched, same as
+// attachDistanceKm above, when either input isn't available yet.
+const attachPriceEstimate = (moverRequest) => {
+  const priceEstimate = calculateMoverPriceEstimate({
+    distanceKm: moverRequest.distanceKm,
+    homeSize: moverRequest.homeSize,
+    basePrice: moverRequest.mover?.basePrice,
+  });
+
+  return priceEstimate === null ? moverRequest : { ...moverRequest, priceEstimate };
+};
+
 const createMoverRequest = asyncHandler(async (req, res) => {
   const mover = await Mover.findById(req.body.mover);
 
@@ -62,6 +76,7 @@ const createMoverRequest = asyncHandler(async (req, res) => {
     moverAccount: mover.user,
     tenant: req.user._id,
     property: req.body.property || null,
+    homeSize: req.body.homeSize,
     message: req.body.message,
     preferredDate: req.body.preferredDate,
     pickupLocation: hasPickupCoordinates
@@ -73,7 +88,7 @@ const createMoverRequest = asyncHandler(async (req, res) => {
   await notifyMoverRequestCreated({ mover, moverRequest });
 
   res.status(httpStatus.CREATED).json({
-    data: attachDistanceKm(moverRequest),
+    data: attachPriceEstimate(attachDistanceKm(moverRequest)),
   });
 });
 
@@ -91,7 +106,7 @@ const listMyMoverRequests = asyncHandler(async (req, res) => {
   ]);
 
   res.status(httpStatus.OK).json({
-    data: moverRequests.map(attachDistanceKm),
+    data: moverRequests.map((moverRequest) => attachPriceEstimate(attachDistanceKm(moverRequest))),
     pagination: formatPagination(page, limit, total),
   });
 });
@@ -110,7 +125,7 @@ const listReceivedMoverRequests = asyncHandler(async (req, res) => {
   ]);
 
   res.status(httpStatus.OK).json({
-    data: moverRequests.map(attachDistanceKm),
+    data: moverRequests.map((moverRequest) => attachPriceEstimate(attachDistanceKm(moverRequest))),
     pagination: formatPagination(page, limit, total),
   });
 });
@@ -145,7 +160,7 @@ const updateMoverRequestStatus = asyncHandler(async (req, res) => {
   await notifyMoverRequestStatusChanged(moverRequest);
 
   res.status(httpStatus.OK).json({
-    data: attachDistanceKm(moverRequest),
+    data: attachPriceEstimate(attachDistanceKm(moverRequest)),
   });
 });
 

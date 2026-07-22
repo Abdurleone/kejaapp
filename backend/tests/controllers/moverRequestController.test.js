@@ -222,6 +222,47 @@ describe("moverRequestController", () => {
     assert.ok(res.body.data[0].distanceKm < 15);
   });
 
+  it("attaches a price estimate once distance and home size are both available", async () => {
+    const expectedData = [
+      {
+        status: "pending",
+        homeSize: "studio",
+        pickupLocation: { type: "Point", coordinates: [36.8219, -1.2921] },
+        property: { title: "Modern Kilimani Apartment", location: { coordinates: { coordinates: [36.8172, -1.3833] } } },
+        mover: { name: "SwiftMove Nairobi", basePrice: 1000 },
+      },
+    ];
+    const query = {
+      sort() {
+        return this;
+      },
+      skip() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
+      populate() {
+        return this;
+      },
+      lean() {
+        return expectedData;
+      },
+    };
+    mock.method(MoverRequest, "find", () => query);
+    mock.method(MoverRequest, "countDocuments", async () => 1);
+    const req = { query: {}, user: { _id: new mongoose.Types.ObjectId() } };
+    const res = createResponse();
+
+    await listMyMoverRequests(req, res, (error) => {
+      throw error;
+    });
+
+    assert.ok(res.body.data[0].distanceKm > 0);
+    assert.ok(Number.isFinite(res.body.data[0].priceEstimate));
+    assert.ok(res.body.data[0].priceEstimate > 1000);
+  });
+
   it("omits distanceKm when the request has no pickup location", async () => {
     const expectedData = [
       { status: "pending", property: { title: "Modern Kilimani Apartment", location: { coordinates: { coordinates: [36.8172, -1.3833] } } } },
