@@ -70,7 +70,7 @@ describe("frontend page component contracts", () => {
     assert.match(appSource, /view: "notifications", label: "Notifications"/);
     assert.match(appSource, /case "notifications":/);
     assert.match(appSource, /canAccessView\(currentUser\?\.role, "notifications"\)/);
-    assert.match(appSource, /<NotificationsPage \/>/);
+    assert.match(appSource, /<NotificationsPage currentUser={currentUser} onNavigateToRequest={navigateToRequest} \/>/);
   });
 
   it("lists notifications, filters unread, and marks them read", () => {

@@ -2,7 +2,28 @@ import { useCallback, useEffect, useState } from "react";
 import NotificationRow from "../components/NotificationRow.jsx";
 import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "../../app-utils.js";
 
-export default function NotificationsPage() {
+// Only wired up for the actionable recipient of a request - the mover
+// opening a mover_request notification, or the property owner opening a
+// viewing/inquiry notification. The other side (e.g. a tenant being told
+// their viewing was approved) has no "my sent requests" tracking view to
+// land on yet, so those notifications stay read-only for now.
+export const resolveNotificationTarget = (notification, role) => {
+  if (notification.type === "mover_request" && role === "mover") {
+    return { view: "movers", highlightId: notification.data?.moverRequest };
+  }
+
+  if (notification.type === "viewing" && (role === "landlord" || role === "agency")) {
+    return { view: "owner", highlightId: notification.data?.viewingRequest };
+  }
+
+  if (notification.type === "inquiry" && (role === "landlord" || role === "agency")) {
+    return { view: "owner", highlightId: notification.data?.inquiry };
+  }
+
+  return null;
+};
+
+export default function NotificationsPage({ currentUser, onNavigateToRequest }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,6 +92,16 @@ export default function NotificationsPage() {
     [unreadOnly]
   );
 
+  const handleOpenNotification = useCallback(
+    (notification, target) => {
+      if (!notification.isRead) {
+        handleMarkRead(notification._id);
+      }
+      onNavigateToRequest?.(target);
+    },
+    [handleMarkRead, onNavigateToRequest]
+  );
+
   return (
     <div className="view active-view">
       <div className="view-header">
@@ -121,14 +152,18 @@ export default function NotificationsPage() {
           </p>
         ) : (
           <div className="property-grid compact-grid">
-            {notifications.map((item) => (
-              <NotificationRow
-                key={item._id}
-                notification={item}
-                isMarking={markingId === item._id}
-                onMarkRead={handleMarkRead}
-              />
-            ))}
+            {notifications.map((item) => {
+              const target = resolveNotificationTarget(item, currentUser?.role);
+              return (
+                <NotificationRow
+                  key={item._id}
+                  notification={item}
+                  isMarking={markingId === item._id}
+                  onMarkRead={handleMarkRead}
+                  onOpen={target ? () => handleOpenNotification(item, target) : undefined}
+                />
+              );
+            })}
           </div>
         )}
       </div>
