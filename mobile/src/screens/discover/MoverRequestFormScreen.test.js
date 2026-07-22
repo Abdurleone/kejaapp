@@ -39,19 +39,31 @@ describe("MoverRequestFormScreen", () => {
     expect(createMoverRequest).not.toHaveBeenCalled();
   });
 
-  it("submits with the device's resolved pickup location and no preferred date chosen", async () => {
-    getCurrentPositionOrNull.mockResolvedValue({ lat: -1.28, lng: 36.82 });
-    createMoverRequest.mockResolvedValue({ _id: "r1" });
-
-    const { getByText, getByPlaceholderText, findByText } = await renderScreen();
+  it("requires a home size before submitting", async () => {
+    const { getByText, getByPlaceholderText } = await renderScreen();
 
     await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
     await fireEvent.press(getByText("Send request"));
 
-    expect(await findByText("Nairobi Movers will respond soon.")).toBeTruthy();
+    expect(getByText("Home size is required.")).toBeTruthy();
+    expect(createMoverRequest).not.toHaveBeenCalled();
+  });
+
+  it("submits with the device's resolved pickup location, home size, and no preferred date chosen", async () => {
+    getCurrentPositionOrNull.mockResolvedValue({ lat: -1.28, lng: 36.82 });
+    createMoverRequest.mockResolvedValue({ _id: "r1", priceEstimate: 4950 });
+
+    const { getByText, getByPlaceholderText, findByText } = await renderScreen();
+
+    await fireEvent.press(getByText("2 Bedroom"));
+    await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
+    await fireEvent.press(getByText("Send request"));
+
+    expect(await findByText(/Nairobi Movers will respond soon\..*Estimated price: Ksh\s*4,950\./)).toBeTruthy();
     expect(createMoverRequest).toHaveBeenCalledWith({
       mover: "m1",
       property: "p1",
+      homeSize: "2br",
       message: "Moving a 2-bedroom flat",
       preferredDate: undefined,
       pickupLat: -1.28,
@@ -72,6 +84,7 @@ describe("MoverRequestFormScreen", () => {
 
       const { getByText, getByPlaceholderText, findByText } = await renderScreen();
 
+      await fireEvent.press(getByText("2 Bedroom"));
       await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
       await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), "2020-01-01");
       await fireEvent.press(getByText("Send request"));
@@ -87,6 +100,7 @@ describe("MoverRequestFormScreen", () => {
 
       const { getByText, getByPlaceholderText, findByText } = await renderScreen();
 
+      await fireEvent.press(getByText("2 Bedroom"));
       await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
       await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), "2026-08-01");
       await fireEvent.press(getByText("Send request"));
@@ -103,6 +117,7 @@ describe("MoverRequestFormScreen", () => {
 
     const { getByText, getByPlaceholderText, findByText } = await renderScreen();
 
+    await fireEvent.press(getByText("2 Bedroom"));
     await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
     await fireEvent.press(getByText("Send request"));
 
@@ -118,6 +133,7 @@ describe("MoverRequestFormScreen", () => {
 
     const { getByText, getByPlaceholderText, findByText } = await renderScreen({ moverName: undefined });
 
+    await fireEvent.press(getByText("2 Bedroom"));
     await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
     await fireEvent.press(getByText("Send request"));
 
@@ -130,6 +146,7 @@ describe("MoverRequestFormScreen", () => {
 
     const { getByText, getByPlaceholderText, findByText } = await renderScreen();
 
+    await fireEvent.press(getByText("2 Bedroom"));
     await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
     await fireEvent.press(getByText("Send request"));
 
@@ -143,6 +160,7 @@ describe("MoverRequestFormScreen", () => {
 
     const { getByText, getByPlaceholderText, findByText } = await renderScreen({}, { goBack });
 
+    await fireEvent.press(getByText("2 Bedroom"));
     await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
     await fireEvent.press(getByText("Send request"));
     await findByText("Nairobi Movers will respond soon.");
