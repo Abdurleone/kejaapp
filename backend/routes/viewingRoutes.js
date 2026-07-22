@@ -2,6 +2,7 @@ import express from "express";
 import {
   createViewingRequest,
   listMyViewingRequests,
+  listReceivedViewingRequests,
   updateViewingRequestStatus,
 } from "../controllers/viewingController.js";
 import { roleGroups } from "../constants/rbac.js";
@@ -20,6 +21,8 @@ router
   .route("/")
   .get(authorizeGroup(roleGroups.tenantOnly), listMyViewingRequests)
   .post(authorizeGroup(roleGroups.tenantOnly), validateRequest(createViewingRequestSchema), createViewingRequest);
+
+router.get("/received", authorizeGroup(roleGroups.listingManagers), listReceivedViewingRequests);
 
 router.put("/:id/status", validateRequest(updateViewingStatusSchema), updateViewingRequestStatus);
 
