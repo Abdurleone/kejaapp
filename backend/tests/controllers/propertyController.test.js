@@ -55,7 +55,7 @@ describe("propertyController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve([]);
+          return { lean: () => Promise.resolve([]) };
         },
       };
     });
@@ -88,7 +88,7 @@ describe("propertyController", () => {
         return this;
       },
       limit() {
-        return Promise.resolve([]);
+        return { lean: () => Promise.resolve([]) };
       },
     }));
     mock.method(Property, "countDocuments", () => Promise.resolve(0));
@@ -130,7 +130,7 @@ describe("propertyController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve([]);
+          return { lean: () => Promise.resolve([]) };
         },
       };
     });
@@ -176,7 +176,7 @@ describe("propertyController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve([]);
+          return { lean: () => Promise.resolve([]) };
         },
       };
     });
@@ -215,7 +215,7 @@ describe("propertyController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve([]);
+          return { lean: () => Promise.resolve([]) };
         },
       };
     });
@@ -249,7 +249,7 @@ describe("propertyController", () => {
           return this;
         },
         limit() {
-          return Promise.resolve([]);
+          return { lean: () => Promise.resolve([]) };
         },
       };
     });
