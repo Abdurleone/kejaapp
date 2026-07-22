@@ -420,7 +420,7 @@ function MoverProfilePanel({ profile, onSaved, styles }) {
   );
 }
 
-function MoverRequestRow({ request, onStatusChange, styles }) {
+const MoverRequestRow = memo(function MoverRequestRow({ request, onStatusChange, styles }) {
   const [response, setResponse] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -486,7 +486,7 @@ function MoverRequestRow({ request, onStatusChange, styles }) {
       ) : null}
     </View>
   );
-}
+});
 
 function MoverDashboard({ styles }) {
   const [profile, setProfile] = useState(null);
@@ -524,9 +524,9 @@ function MoverDashboard({ styles }) {
     setRefreshing(false);
   };
 
-  const handleRequestStatusChange = (updated) => {
+  const handleRequestStatusChange = useCallback((updated) => {
     setRequests((current) => current.map((request) => (request._id === updated._id ? updated : request)));
-  };
+  }, []);
 
   if (loading) {
     return (
