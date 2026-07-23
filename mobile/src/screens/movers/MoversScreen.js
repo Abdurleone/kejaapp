@@ -12,7 +12,7 @@ import {
 } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
-import { formatKes, formatStatusLabel } from "../../utils/format.js";
+import { formatKes, formatStatusLabel, homeSizeOptions } from "../../utils/format.js";
 import MessageView from "../../components/MessageView.js";
 
 const listingManagerRoles = ["landlord", "agency"];
@@ -448,8 +448,16 @@ const MoverRequestRow = memo(function MoverRequestRow({ request, onStatusChange,
         </View>
       </View>
       {request.property?.title ? <Text style={styles.cardSubtitle}>Re: {request.property.title}</Text> : null}
+      {request.homeSize ? (
+        <Text style={styles.cardSubtitle}>
+          Home size: {homeSizeOptions.find((option) => option.value === request.homeSize)?.label || request.homeSize}
+        </Text>
+      ) : null}
       {request.distanceKm !== undefined ? (
         <Text style={styles.cardSubtitle}>Pickup to drop-off: ~{request.distanceKm} km</Text>
+      ) : null}
+      {request.priceEstimate !== undefined ? (
+        <Text style={styles.cardSubtitle}>Estimated price: {formatKes(request.priceEstimate)}</Text>
       ) : null}
       <Text style={styles.cardMessage}>{request.message}</Text>
       {request.preferredDate ? (
