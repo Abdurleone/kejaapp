@@ -116,13 +116,23 @@ describe("MoversScreen (mover dashboard)", () => {
       location: { town: "Westlands", county: "Nairobi" },
     });
     fetchReceivedMoverRequests.mockResolvedValue([
-      { _id: "req1", status: "pending", message: "Need help moving", tenant: { name: "Jane" } },
+      {
+        _id: "req1",
+        status: "pending",
+        message: "Need help moving",
+        tenant: { name: "Jane" },
+        homeSize: "2br",
+        distanceKm: 4.2,
+        priceEstimate: 7520,
+      },
     ]);
     updateMoverRequestStatus.mockResolvedValue({ _id: "req1", status: "accepted", message: "Need help moving" });
 
     const { getByText } = await render(<MoversScreen />);
 
     await waitFor(() => expect(getByText("Need help moving")).toBeTruthy());
+    expect(getByText("Home size: 2 Bedroom")).toBeTruthy();
+    expect(getByText("Estimated price: Ksh 7,520")).toBeTruthy();
 
     fireEvent.press(getByText("Accept"));
 

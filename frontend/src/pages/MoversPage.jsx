@@ -519,8 +519,16 @@ function MoverRequestRow({ request, onStatusChange, isHighlighted }) {
           <span className={`status-pill ${statusTone(request.status)}`}>{formatStatusLabel(request.status)}</span>
         </div>
         {request.property?.title && <p className="muted-copy">Re: {request.property.title}</p>}
+        {request.homeSize && (
+          <p className="muted-copy">
+            Home size: {homeSizeOptions.find((option) => option.value === request.homeSize)?.label || request.homeSize}
+          </p>
+        )}
         {request.distanceKm !== undefined && (
           <p className="muted-copy">Pickup to drop-off: ~{request.distanceKm} km</p>
+        )}
+        {request.priceEstimate !== undefined && (
+          <p className="muted-copy">Estimated price: {formatKes(request.priceEstimate)}</p>
         )}
         <p>{request.message}</p>
         {request.preferredDate && (

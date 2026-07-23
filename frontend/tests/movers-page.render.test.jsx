@@ -201,7 +201,15 @@ describe("MoversPage - mover dashboard", () => {
       location: { town: "Westlands", county: "Nairobi" },
     });
     fetchReceivedMoverRequests.mockResolvedValue([
-      { _id: "req-1", status: "pending", message: "Need help moving", tenant: { name: "Jane Tenant" } },
+      {
+        _id: "req-1",
+        status: "pending",
+        message: "Need help moving",
+        tenant: { name: "Jane Tenant" },
+        homeSize: "2br",
+        distanceKm: 4.2,
+        priceEstimate: 7520,
+      },
     ]);
     updateMoverRequestStatus.mockResolvedValue({ _id: "req-1", status: "accepted", message: "Need help moving" });
     const user = userEvent.setup();
@@ -210,6 +218,8 @@ describe("MoversPage - mover dashboard", () => {
 
     expect(await screen.findByText("Speedy Movers")).toBeInTheDocument();
     expect(await screen.findByText("Need help moving")).toBeInTheDocument();
+    expect(screen.getByText("Home size: 2 Bedroom")).toBeInTheDocument();
+    expect(screen.getByText("Estimated price: Ksh 7,520")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Accept" }));
 
