@@ -52,6 +52,17 @@ Per the [Data Protection Policy §12](data-protection-policy.md#12-breach-notifi
 - Document: what happened, when it was detected, the response timeline, root cause, and what's changing to prevent recurrence (a code fix, a new automated check, a process change).
 - Feed any process gap discovered back into this plan, the [Data Protection Impact Assessment](data-protection-impact-assessment.md) (if it reveals a risk not previously assessed), or the [ISO/IEC 27001 Statement of Applicability](iso27001-statement-of-applicability.md) (if it reveals a missing control).
 
+### 3.7 Evidence handling
+
+Applies throughout 3.1–3.6, not just at the end — evidence is easiest to lose in the first hours of an incident, before anyone's thought to write anything down.
+
+- **What counts as evidence**: the app/access logs implicated (`backend/logs/app-YYYY-MM-DD.log`, `access-YYYY-MM-DD.log`), the specific database records involved (a `UserViolation`, `AuthSession`, or account document), and any screenshot/export a reporter or admin captured.
+- **Preserve before you act**: where practical, copy the relevant log lines and export the relevant database record(s) to a dated file *before* containment steps that might change them (revoking a session, suspending an account, patching the code path) — containment can proceed without waiting for this, but do it as close to immediately-after as possible.
+- **Don't overwrite the source**: never edit a log file or database record in place to "clean up" evidence, even after the incident is resolved — work from the preserved copy.
+- **Record who touched it**: note, in the incident's own post-incident review (3.6), who accessed which evidence and when — this project's normal DB/log access controls (5.15, 8.15) are the access-control mechanism; this is just the log of who actually looked, kept alongside the incident write-up rather than in a separate system.
+
+This is an informal, engineering-team-authored procedure appropriate to this project's current scale — not a substitute for a forensic specialist or legal counsel's evidence-handling standards if an incident ever escalates to a legal or regulatory proceeding.
+
 ## 4. Roles
 
 | Role | Responsibility |
