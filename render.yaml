@@ -43,6 +43,13 @@ services:
         fromService:
           name: kejaapp-redis
           property: connectionString
+      - key: CLAMAV_HOST
+        fromService:
+          name: kejaapp-clamav
+          type: pserv
+          property: host
+      - key: CLAMAV_PORT
+        value: "3310"
 
   - type: web
     name: kejaapp-frontend
@@ -64,3 +71,14 @@ services:
     name: kejaapp-redis
     plan: free
     ipAllowList: []
+
+  # Private (internal-only) service running ClamAV for malware scanning on
+  # property-image uploads. No "free" plan option here deliberately - ClamAV's
+  # signature database needs roughly 1-2GB of RAM, well past the free plan's
+  # 512MB, so this is the one piece of the stack that isn't free to run.
+  - type: pserv
+    name: kejaapp-clamav
+    runtime: image
+    image:
+      url: docker.io/clamav/clamav:stable
+    plan: starter

@@ -213,6 +213,11 @@ const env = {
   storageDriver,
   ...s3Config,
   redisUrl: process.env.REDIS_URL || "",
+  // Optional, same pattern as redisUrl above: unset means malware scanning is
+  // skipped entirely (an explicit, honest "not enabled" state) rather than a
+  // silent no-op. Points at a clamd process speaking the INSTREAM protocol.
+  clamavHost: process.env.CLAMAV_HOST || "",
+  clamavPort: parsePositiveInteger(process.env.CLAMAV_PORT, 3310, "CLAMAV_PORT"),
   propertiesCacheTtlMs: parsePositiveInteger(
     process.env.PROPERTIES_CACHE_TTL_MS,
     30 * 1000,

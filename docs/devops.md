@@ -15,7 +15,7 @@
 
 - `backend/Dockerfile` — Node 22 Alpine, production dependencies only, non-root working dir, `HEALTHCHECK` against `GET /api/health/live`.
 - `frontend/Dockerfile` — multi-stage: Node 22 Alpine builds the Vite bundle, then Nginx Alpine serves the static output. `frontend/nginx.conf` handles SPA routing (`try_files ... /index.html`) and long-cache headers for hashed `/assets/`.
-- `docker-compose.yml` (repo root) — wires `mongo`, `redis`, `backend`, and `frontend` together for a full local stack: `backend` talks to `mongo`/`redis` by service name, `frontend` is built with `VITE_API_BASE_URL` pointing at the host-exposed backend port.
+- `docker-compose.yml` (repo root) — wires `mongo`, `redis`, `clamav`, `backend`, and `frontend` together for a full local stack: `backend` talks to `mongo`/`redis`/`clamav` by service name, `frontend` is built with `VITE_API_BASE_URL` pointing at the host-exposed backend port. `clamav` (`clamav/clamav:stable`) provides malware scanning on property-image uploads (`backend/services/malwareScanService.js`) — it isn't exposed to the host, only reachable from `backend` on the compose network, and its signature database persists in the `clamav-data` volume so it isn't re-downloaded on every `docker compose up`.
 
 Run the full stack:
 
@@ -45,6 +45,7 @@ Already implemented in `backend/routes/healthRoutes.js` / `backend/controllers/h
 - **kejaapp-backend** — web service, built from `backend/Dockerfile`. Render injects `PORT` itself; `backend/config/env.js` already reads `process.env.PORT`, so no code change was needed.
 - **kejaapp-frontend** — static site, built with `npm ci && npm run build` in `frontend/`, publishing `frontend/dist`. A catch-all rewrite (`/* -> /index.html`) handles SPA routing (Render static sites don't use `frontend/nginx.conf`/`frontend/Dockerfile` — those stay in use for `docker compose` and the CI `docker` job).
 - **kejaapp-redis** — Render's managed Key Value (Redis-compatible) service, wired into the backend via `REDIS_URL`.
+- **kejaapp-clamav** — a private (internal-only, no public URL) service running the `clamav/clamav:stable` image for malware scanning on property-image uploads (`backend/services/malwareScanService.js`), wired into the backend via `CLAMAV_HOST`/`CLAMAV_PORT`. Deliberately has no free-plan option: ClamAV's signature database needs roughly 1-2GB of RAM, well past the free plan's 512MB. **Note**: this private-service wiring (the `pserv` type, `fromService`/`property: host` syntax) hasn't been deployed against a live Render account — verify it against current Render Blueprint docs before relying on it, the same caveat this document already carries for the Kubernetes/Docker Compose paths not being battle-tested at scale.
 
 MongoDB is **not** provisioned by the blueprint — Render has no managed MongoDB, so this stays on the existing MongoDB Atlas instance (or whatever `MONGODB_URI` you already use).
 
@@ -88,12 +89,13 @@ Note: `removePropertyImage` now deletes the underlying object (or local file) wh
 Files:
 
 - `namespace.yaml` — the `kejaapp` namespace everything else lives in.
-- `backend-configmap.yaml` — non-secret backend env vars (CORS origin, S3 bucket/endpoint, in-cluster Redis URL, etc.).
+- `backend-configmap.yaml` — non-secret backend env vars (CORS origin, S3 bucket/endpoint, in-cluster Redis/ClamAV addresses, etc.).
 - `backend-secret.example.yaml` — template for the one Secret the backend needs (`MONGODB_URI`, `JWT_SECRET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`). Copy to `backend-secret.yaml` (gitignored) and fill in real values before applying — never commit the filled-in version.
 - `backend-deployment.yaml` — Deployment (2 replicas) + Service, wired to the ConfigMap/Secret via `envFrom`, with `livenessProbe`/`readinessProbe` on the existing `/api/health/live` and `/api/health/ready` endpoints.
 - `backend-hpa.yaml` — HorizontalPodAutoscaler (2-6 replicas, scales on CPU). Requires `metrics-server` in the cluster.
 - `frontend-deployment.yaml` — Deployment (2 replicas) + Service for the Nginx-served static build.
 - `redis-statefulset.yaml` — in-cluster Redis (StatefulSet + 1Gi PVC on the cluster's default StorageClass) for rate limiting/caching. Not used for data that needs to survive losing the whole cluster.
+- `clamav-statefulset.yaml` — in-cluster ClamAV (StatefulSet + 2Gi PVC, so the ~100MB signature database isn't re-downloaded on every pod restart) for malware scanning on property-image uploads (`backend/services/malwareScanService.js`). A cold signature-load takes roughly 10s in local testing, hence the readiness probe's `initialDelaySeconds: 30`; scanning fails closed (rejects the upload) if the backend can't reach it, rather than silently skipping the check, so a slow/crashed ClamAV pod shows up as upload failures, not a silent gap.
 - `backend-cronjob.yaml` — CronJob running `node scripts/runScheduledJobs.js` (the time-based notification sweeps: stale inquiry/viewing nudges, viewing reminders, etc. — see `backend/jobs/`) every 15 minutes, reusing the same backend image/ConfigMap/Secret. `concurrencyPolicy: Forbid` guarantees exactly one run at a time regardless of how many `kejaapp-backend` Deployment replicas are up, so a naive in-process `setInterval` (which would fire once per replica and double-send notifications) was deliberately avoided. Each job is also idempotent on its own (it marks the records it's already acted on), so an overlapping or re-run is harmless even without the concurrency guard. Each sweep's threshold (48h nudge, 24h reminder, 14-day freshness/lookback windows) is an env var (`STALE_NUDGE_THRESHOLD_HOURS`, `VIEWING_REMINDER_WINDOW_HOURS`, `STALE_LISTING_FRESHNESS_DAYS`, `REVIEW_PROMPT_LOOKBACK_DAYS` — see `backend/.env.example`) — add them to the ConfigMap to retune cadence without a code change.
 - `ingress.yaml` — routes two hosts to the two Services. Assumes `ingress-nginx` is installed; no TLS/cert-manager wired up (same "left for later" posture as the Docker Compose stack).
 

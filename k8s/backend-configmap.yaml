@@ -21,3 +21,6 @@ data:
   S3_PUBLIC_BASE_URL: https://cdn.kejaapp.example.com
   # In-cluster Redis (k8s/redis-statefulset.yaml), addressed by Service name.
   REDIS_URL: redis://kejaapp-redis:6379
+  # In-cluster ClamAV (k8s/clamav-statefulset.yaml), addressed by Service name.
+  CLAMAV_HOST: kejaapp-clamav
+  CLAMAV_PORT: "3310"
