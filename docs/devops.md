@@ -114,6 +114,44 @@ docker push ghcr.io/<owner>/kejaapp-frontend:latest
 
 then update `CORS_ORIGIN` in `backend-configmap.yaml` to match your frontend domain.
 
+### Capacity planning
+
+`backend-hpa.yaml` scales the backend 2-6 replicas on CPU, and the thresholds haven't been revisited since they were first set. Review them against real usage on a recurring basis (quarterly is a reasonable default for a project this size) — check actual CPU/memory utilization against the HPA's target, whether 6 replicas has ever actually been hit, and whether ClamAV's/Redis's own resource requests (`clamav-statefulset.yaml`, `redis-statefulset.yaml`) still match their real footprint. There's no dashboard or reminder wired up for this yet — it's a manual, calendar-driven check, tracked here as the process itself rather than as tooling.
+
+### Network topology
+
+The request path is the same shape on both deployment targets — Render's managed services stand in for the Kubernetes manifests one-to-one:
+
+```mermaid
+flowchart LR
+    User(["Tenant / Landlord / Agency / Mover<br/>(browser or mobile app)"])
+
+    subgraph Edge["Edge (per deployment target)"]
+        direction TB
+        RenderEdge["Render: static-site host + web-service URL"]
+        K8sEdge["Kubernetes: ingress-nginx (ingress.yaml)<br/>two hosts, no shared path routing"]
+    end
+
+    Frontend["Frontend<br/>(Nginx-served static Vite build)"]
+    Backend["Backend<br/>(Node/Express, 2+ replicas)"]
+    Mongo[("MongoDB Atlas<br/>(external to both targets)")]
+    Redis[("Redis<br/>rate limiting + response cache")]
+    ClamAV[("ClamAV<br/>malware scanning")]
+    Storage[("S3-compatible object storage<br/>(property images)")]
+    Expo[("Expo push service")]
+
+    User --> Edge
+    Edge --> Frontend
+    Edge --> Backend
+    Backend --> Mongo
+    Backend --> Redis
+    Backend --> ClamAV
+    Backend --> Storage
+    Backend --> Expo
+```
+
+Not shown: the `backend-cronjob.yaml` CronJob, which talks to the same Mongo/notification path as the backend Deployment but isn't reachable from outside the cluster at all — it has no Service, only scheduled internal execution. This diagram (control `8.20`/`8.22` in the [ISO 27001 SoA](iso27001-statement-of-applicability.md)) documents the intended topology; it hasn't been cross-checked against a live running cluster's actual `kubectl get all` output.
+
 ### First-time setup
 
 1. Point DNS for both hosts in `ingress.yaml` at your ingress controller's load balancer IP/hostname (or edit the hosts to your own domain — see above).

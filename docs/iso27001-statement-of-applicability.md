@@ -8,7 +8,7 @@ A Statement of Applicability (SoA) is the core artifact of an ISO/IEC 27001 Info
 
 A follow-up check while considering whether to add a required status check found something more significant: the `CI` GitHub Actions workflow itself has been in state `disabled_manually` since 2026-07-06 (confirmed via `gh api repos/.../actions/workflows`), not merely "not required" — it has not run on a single push or PR since that date, including every PR merged in this session. The team's own account of why: a GitHub Actions pricing/billing notification prompted disabling it as a precaution. This repository is public, and standard GitHub-hosted runners are free and unlimited for public repos, so that concern may no longer apply — this was raised and the team chose to **keep CI disabled for now** rather than re-enable it during this review. `8.4`, `8.25`, `8.29`, and `8.32` below are corrected to reflect that no automated CI currently runs at all; verification for every change in this period has been manual (local `npm test`/`npm run lint` runs before each PR, per the CHANGELOG's established convention), not automated. A `CodeQL` (SAST) workflow is also configured but has only ever run once, on 2026-07-06, and that run failed — it is not currently a working control either.
 
-Two Phase 2 roadmap items have since been implemented and are upgraded to Y below: field-level log masking (`8.11`) and malware scanning on property-image uploads (`8.7`, self-hosted ClamAV, live-verified with a genuine EICAR test file) — see the [Remediation roadmap](#7-remediation-roadmap).
+Two Phase 2 roadmap items have since been implemented and are upgraded to Y below: field-level log masking (`8.11`) and malware scanning on property-image uploads (`8.7`, self-hosted ClamAV, live-verified with a genuine EICAR test file). All five Phase 3 items (process/documentation, no new tooling) are also now done, upgrading `5.8`, `5.12`, `5.13`, `8.6`, and `8.22` to Y — see the [Remediation roadmap](#7-remediation-roadmap).
 
 **Status key**:
 
@@ -28,12 +28,12 @@ Two Phase 2 roadmap items have since been implemented and are upgraded to Y belo
 | 5.5 | Contact with authorities | Y | [Incident Response Plan §3.4](incident-response-plan.md#34-notification-only-where-personal-data-is-implicated) names the ODPC notification duty. |
 | 5.6 | Contact with special interest groups | N | No CERT/ISAC or equivalent membership established. |
 | 5.7 | Threat intelligence | P | Dependabot advisories are the only current feed; no broader threat-intel source. |
-| 5.8 | Information security in project management | P | Security is considered ad hoc in PR review; no formal security gate in the SDLC. |
+| 5.8 | Information security in project management | Y | `.github/PULL_REQUEST_TEMPLATE.md` (added since the previous review) carries a Security section — auth/ownership checks, input validation, and no hardcoded secrets — on every PR. A lightweight, non-blocking checklist rather than a hard gate, but it turns "ad hoc" into a repeatable prompt. |
 | 5.9 | Inventory of information and other associated assets | Y | [Records of Processing Activities](records-of-processing-activities.md) plus the README's Project Structure section. |
 | 5.10 | Acceptable use of information and other associated assets | Y | [Acceptable Use Policy](acceptable-use-policy.md). |
 | 5.11 | Return of assets | N/A | Employment-related control, outside codebase scope. |
-| 5.12 | Classification of information | P | Data Protection Policy distinguishes personal vs. sensitive personal data; no formal internal classification labels beyond that. |
-| 5.13 | Labelling of information | N | Not implemented. |
+| 5.12 | Classification of information | Y | [RoPA §2](records-of-processing-activities.md#2-information-classification-scheme) (added since the previous review) defines a four-level scheme (Public/Internal/Confidential/Restricted), on top of the Data Protection Policy's personal-vs-sensitive distinction. Informal — not a DLP-enforced label attached to the data itself. |
+| 5.13 | Labelling of information | Y | Every row of the [RoPA register](records-of-processing-activities.md#3-register) is labelled with its classification tier. Same informality caveat as `5.12`. |
 | 5.14 | Information transfer | Y | HTTPS required in production; CORS origin allow-list restricts browser access. |
 | 5.15 | Access control | Y | JWT + RBAC (`protect`/`authorize` middleware) enforced on every protected endpoint; CSRF protection (`backend/middlewares/csrfProtection.js`, added since the previous review) requires an `Authorization` header on every state-changing request, closing the cookie-riding-along gap that a same-site-none session cookie otherwise leaves open. |
 | 5.16 | Identity management | Y | `User` model enforces unique email and username per identity. |
@@ -102,7 +102,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.3 | Information access restriction | Y | Ownership + role checks scope every list/detail endpoint (e.g. `fetchMyProperties`, `/inquiries/received`). |
 | 8.4 | Access to source code | P | Git-based repo permissions; a GitHub ruleset on `main` blocks direct pushes, force-pushes, and branch deletion, and requires a PR — but verified via `gh api repos/.../rulesets` that `required_approving_review_count` is **0** and no `required_status_checks` rule exists, so neither a second reviewer's approval nor a passing CI run is actually enforced before merge. Both were considered and deliberately left as-is: a required status check isn't meaningful while CI itself is disabled (see `8.25`), and a required-approval count would block the current solo/AI-assisted merge workflow without a second human reviewer in place. In practice every change has gone through review by convention, not by enforcement. |
 | 8.5 | Secure authentication | Y | JWT + hashed refresh sessions, HTTP-only cookie option, generic invalid-credentials messaging (no user-enumeration leak). |
-| 8.6 | Capacity management | P | Kubernetes HPA scales the backend; no formal capacity-planning review process. |
+| 8.6 | Capacity management | Y | Kubernetes HPA scales the backend 2-6 replicas on CPU. `docs/devops.md`'s new "Capacity planning" section (added since the previous review) establishes a recurring (quarterly) manual review of HPA thresholds against real usage — a calendar-driven process, not tooling-backed, but a documented one. |
 | 8.7 | Protection against malware | Y | Uploaded property images are scanned via a self-hosted ClamAV daemon (`backend/services/malwareScanService.js`, added since the previous review) before ever reaching storage — fails closed (rejects the upload) if the scanner is configured but unreachable, rather than silently letting an unscanned file through. Live-verified with a genuine EICAR test file through the real upload endpoint (correctly rejected) and an ordinary file (correctly accepted). Wired into `docker-compose.yml` and `k8s/clamav-statefulset.yaml`; the `render.yaml` private-service wiring hasn't been deployed against a live Render account. |
 | 8.8 | Management of technical vulnerabilities | Y | Dependabot weekly updates; CI runs tests/lint on every change. |
 | 8.9 | Configuration management | Y | Centralized, validated environment config (`backend/config/env.js`); no hardcoded secrets in source. |
@@ -116,9 +116,9 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.17 | Clock synchronization | Y | Server timestamps standardized to `Africa/Nairobi` across logs and audit records. |
 | 8.18 | Use of privileged utility programs | N/A | No direct production shell/utility-access pattern documented; relies on standard hosting-provider consoles. |
 | 8.19 | Installation of software on operational systems | Y | Docker images are the only deployment artifact; no ad hoc software installation on running containers. |
-| 8.20 | Networks security | P | CORS allow-list (fails closed on an unrecognized origin) and Helmet security headers; tiered rate limiting on `/api` (stricter on `/api/auth`, `backend/middlewares/rateLimiter.js`, added since the previous review) mitigates brute-force/basic-DoS exposure; no separate network-segmentation documentation beyond the hosting provider's. |
+| 8.20 | Networks security | Y | CORS allow-list (fails closed on an unrecognized origin) and Helmet security headers; tiered rate limiting on `/api` (stricter on `/api/auth`, `backend/middlewares/rateLimiter.js`, added since the previous review) mitigates brute-force/basic-DoS exposure. `docs/devops.md`'s new "Network topology" diagram (added since the previous review) documents the request path across both deployment targets. |
 | 8.21 | Security of network services | Y | Redis/MongoDB connections are credentialed via environment variables, not exposed publicly by default. |
-| 8.22 | Segregation of networks | P | Delegated to the Kubernetes/Render network model; no explicit internal segmentation diagram. |
+| 8.22 | Segregation of networks | Y | Still delegated to the Kubernetes/Render network model rather than an explicit internal segmentation control, but `docs/devops.md`'s new "Network topology" diagram (added since the previous review) documents it — not cross-checked against a live cluster's actual `kubectl get all` output. |
 | 8.23 | Web filtering | N/A | Not applicable to this application's threat model. |
 | 8.24 | Use of cryptography | Y | HTTPS in production, hashed passwords/tokens, JWT signing. |
 | 8.25 | Secure development life cycle | P | The `CI` GitHub Actions workflow (`.github/workflows/ci.yml`, lint + tests for all three packages) has been in state `disabled_manually` since 2026-07-06 — a precaution against a GitHub Actions pricing notification, kept off deliberately even after confirming this public repo's standard runners are free/unlimited. No automated CI has run on any push or PR since. Verification is currently manual: `npm test`/`npm run lint` run locally before each PR, per the CHANGELOG's established convention — a real discipline, but not an automated gate. |
@@ -129,12 +129,12 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.30 | Outsourced development | N/A | No outsourced development arrangement currently in place. |
 | 8.31 | Separation of development, test and production environments | Y | `TEST_MONGODB_URI` opt-in for integration tests; separate `.env` configuration per environment; CI isolated from production. |
 | 8.32 | Change management | P | PR-based workflow is the practiced convention — every merged change in this project's history has gone through a PR — but it isn't fully enforced: the `main` ruleset requires a PR to exist, not an approval or a passing CI run, and CI itself is currently disabled (see `8.4`, `8.25`). |
-| 8.33 | Test information | P | Tests use seeded/synthetic demo data (`backend/seeders/seedDemoData.js`), not real user data; no formal written policy on this beyond convention. |
+| 8.33 | Test information | Y | Tests use seeded/synthetic demo data (`backend/seeders/seedDemoData.js`), not real user data. `CONTRIBUTING.md`'s new "Test data policy" section (added since the previous review) makes this an explicit written policy rather than an unstated convention. |
 | 8.34 | Protection of information systems during audit testing | N/A | No formal third-party audit has been conducted yet. |
 
 ## 6. Pending items (every P and N control)
 
-Every control below is currently either **P** (partial/informal) or **N** (not implemented) — 30 of the 93 Annex A controls (26 are **N/A** to a codebase-level assessment, mostly A.7 Physical and employment-related A.6 controls; the remaining 37 are **Y**). Grouped by theme rather than control number, since that's closer to how these would actually get worked.
+Every control below is currently either **P** (partial/informal) or **N** (not implemented) — 23 of the 93 Annex A controls (26 are **N/A** to a codebase-level assessment, mostly A.7 Physical and employment-related A.6 controls; the remaining 44 are **Y**). Grouped by theme rather than control number, since that's closer to how these would actually get worked.
 
 ### Engineering / SDLC process
 | # | Control | Status | Gap |
@@ -142,9 +142,7 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | 8.4 | Access to source code | P | `main` ruleset requires a PR but 0 approving reviews and no required status check — review is convention, not enforcement. Both considered and deliberately left as-is this pass. |
 | 8.25 | Secure development life cycle | P | The `CI` workflow has been manually disabled since 2026-07-06 (a billing precaution, kept off even after confirming this public repo's runners are free); verification is currently manual per-PR only. |
 | 8.32 | Change management | P | Same root cause as `8.4`/`8.25` — PR convention exists, but nothing (review, CI) actually gates the merge. |
-| 5.8 | Information security in project management | P | Security is considered ad hoc in PR review; no formal security gate/checklist in the SDLC. |
 | 8.29 | Security testing in development and acceptance | P | 446 backend unit/integration tests, run manually; `CodeQL` is configured but has run once (2026-07-06) and failed; no penetration test or DAST tool run yet. |
-| 8.33 | Test information | P | Synthetic seeded data used by convention; no written policy requiring it. |
 
 ### Data resilience and continuity
 | # | Control | Status | Gap |
@@ -153,7 +151,6 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | 8.13 | Information backup | N | No automated backup schedule exists for MongoDB Atlas data. |
 | 5.29 | Information security during disruption | P | Health/liveness/readiness endpoints and HPA replicas exist; no documented continuity plan beyond that. |
 | 8.16 | Monitoring activities | P | Health endpoints exist; nothing pages a human when they fail — no alerting/dashboarding layer. |
-| 8.6 | Capacity management | P | Kubernetes HPA scales the backend; no formal capacity-planning review cadence. |
 
 ### Supplier / third-party risk
 | # | Control | Status | Gap |
@@ -168,8 +165,6 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | # | Control | Status | Gap |
 |---|---|---|---|
 | 8.12 | Data leakage prevention | P | No dedicated DLP tool — a real PII-leak instance (owner email/phone on public endpoints) was only caught by code review, since fixed. |
-| 8.20 | Networks security | P | CORS allow-list + Helmet + rate limiting exist; no network-segmentation documentation beyond the hosting provider's. |
-| 8.22 | Segregation of networks | P | Delegated to the Kubernetes/Render network model; no explicit internal segmentation diagram. |
 
 ### Governance and information handling
 | # | Control | Status | Gap |
@@ -177,8 +172,6 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | 5.2 | Information security roles and responsibilities | P | Incident Response Plan names roles informally; no formal org chart (not a registered company with staff yet). |
 | 5.6 | Contact with special interest groups | N | No CERT/ISAC or equivalent membership established. |
 | 5.7 | Threat intelligence | P | Dependabot advisories are the only current feed. |
-| 5.12 | Classification of information | P | Personal vs. sensitive-personal data is distinguished in the Data Protection Policy; no formal internal classification labels beyond that. |
-| 5.13 | Labelling of information | N | Not implemented at all. |
 | 5.28 | Collection of evidence | P | Audit/access/app logs exist; no formal forensic evidence-handling procedure. |
 | 5.33 | Protection of records | P | DB access is credentialed/role-restricted; no separate records-retention/immutability control beyond normal DB permissions. |
 | 5.35 | Independent review of information security | N | No external/accredited audit has ever been performed. |
@@ -203,12 +196,13 @@ If either constraint changes (CI re-enabled and shown to pass reliably; a second
 2. ~~Malware scanning on uploads~~ — **done**: a self-hosted ClamAV daemon (`backend/services/malwareScanService.js`) now scans every property-image upload before it reaches storage, wired into `docker-compose.yml`/`k8s/clamav-statefulset.yaml`/`render.yaml` and live-verified with a genuine EICAR test file. See `8.7` above.
 3. **Minimal alerting on the existing health endpoints** (`8.16`) — a free-tier uptime monitor (UptimeRobot, Better Uptime) pointed at `/health/live` and `/health/ready` gets a human paged with near-zero engineering effort; a fuller dashboard can come later.
 
-### Phase 3 — Process and documentation (no new tooling required)
-1. **A lightweight security checklist in the PR template** (`5.8`) — a few checkboxes (auth/ownership checked? input validated? secrets handled?) turns "ad hoc in review" into a repeatable step.
-2. **A written test-data policy** (`8.33`) — codify the existing synthetic-seeded-data convention as an actual one-paragraph policy.
-3. **A basic information-classification scheme** (`5.12`, `5.13`) — even an informal "public / internal / confidential / restricted" label applied to the RoPA's data inventory would close both controls partially.
-4. **A capacity-planning review cadence** (`8.6`) — a recurring (e.g. quarterly) check of HPA scaling thresholds against real usage, documented in `docs/devops.md`.
-5. **A network-topology diagram** (`8.20`, `8.22`) — one diagram of the actual Kubernetes/Render request path closes the documentation half of both controls.
+### Phase 3 — Process and documentation (no new tooling required) — done
+All five items completed in one pass:
+1. ~~A lightweight security checklist in the PR template~~ — `.github/PULL_REQUEST_TEMPLATE.md` gained a Security section. Closes `5.8`.
+2. ~~A written test-data policy~~ — codified in `CONTRIBUTING.md`. Closes `8.33`.
+3. ~~A basic information-classification scheme~~ — a four-level scheme (Public/Internal/Confidential/Restricted) defined and applied to every row of the RoPA. Closes `5.12`, `5.13`.
+4. ~~A capacity-planning review cadence~~ — a recurring quarterly review documented in `docs/devops.md`. Closes `8.6`.
+5. ~~A network-topology diagram~~ — a Mermaid diagram of the actual Render/Kubernetes request path in `docs/devops.md`. Closes the documentation half of `8.20` (already Y) and `8.22`.
 
 ### Phase 4 — Requires external engagement or organizational maturity
 1. **Independent security testing** (`8.29`, `5.35`) — get the already-configured `CodeQL` workflow actually running and passing (it has failed its one and only run), plus a real penetration test or DAST tool, to validate what the unit/integration suite structurally can't.

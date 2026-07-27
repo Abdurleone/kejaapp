@@ -113,6 +113,14 @@ as the surrounding code. If you're fixing a bug, a regression test that
 fails before your fix and passes after it is the most useful thing you can
 add.
 
+### Test data policy
+
+Tests, fixtures, and the demo seeder (`backend/seeders/seedDemoData.js`) must
+use synthetic data only - invented names, `@example.com` emails, placeholder
+phone numbers - never real user data, even anonymized or sampled from a real
+account. This has been the convention throughout the project; this section
+just makes it an explicit, written policy rather than an unstated one.
+
 ## Reporting bugs and requesting features
 
 Open a [GitHub issue](https://github.com/Abdurleone/kejaapp/issues) with as
