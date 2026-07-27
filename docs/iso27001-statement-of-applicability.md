@@ -6,6 +6,8 @@ A Statement of Applicability (SoA) is the core artifact of an ISO/IEC 27001 Info
 
 **Last verified against the codebase:** 2026-07-23 (commit `df3ba4c`). This pass re-read every cited mechanism against current code rather than trusting the previous write-up, and found the document had drifted in both directions since its last update (2026-07-10, PR #33): two newly-shipped controls weren't credited yet (CSRF protection, tiered rate limiting — see `5.15`, `8.20`, `8.26`), and three controls were overstated (`8.4`, `8.25`, `8.32` — the `main` branch's GitHub ruleset was verified via `gh api` to require a PR but enforce **zero** required approving reviews and no required status check, so "branch protection requires PR review and CI checks" was not actually true of the live repo configuration). All three have been corrected below.
 
+A follow-up check while considering whether to add a required status check found something more significant: the `CI` GitHub Actions workflow itself has been in state `disabled_manually` since 2026-07-06 (confirmed via `gh api repos/.../actions/workflows`), not merely "not required" — it has not run on a single push or PR since that date, including every PR merged in this session. The team's own account of why: a GitHub Actions pricing/billing notification prompted disabling it as a precaution. This repository is public, and standard GitHub-hosted runners are free and unlimited for public repos, so that concern may no longer apply — this was raised and the team chose to **keep CI disabled for now** rather than re-enable it during this review. `8.4`, `8.25`, `8.29`, and `8.32` below are corrected to reflect that no automated CI currently runs at all; verification for every change in this period has been manual (local `npm test`/`npm run lint` runs before each PR, per the CHANGELOG's established convention), not automated. A `CodeQL` (SAST) workflow is also configured but has only ever run once, on 2026-07-06, and that run failed — it is not currently a working control either.
+
 **Status key**:
 
 - **Y** — Implemented, with the specific mechanism cited.
@@ -96,7 +98,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.1 | User endpoint devices | N/A | No device-management (MDM) requirement for a consumer mobile app. |
 | 8.2 | Privileged access rights | Y | Admin is a distinct, separately authorized role (`authorize("admin")`); admins cannot self-elevate. |
 | 8.3 | Information access restriction | Y | Ownership + role checks scope every list/detail endpoint (e.g. `fetchMyProperties`, `/inquiries/received`). |
-| 8.4 | Access to source code | P | Git-based repo permissions; a GitHub ruleset on `main` blocks direct pushes, force-pushes, and branch deletion, and requires a PR — but verified via `gh api repos/.../rulesets` that `required_approving_review_count` is **0** and no `required_status_checks` rule exists, so neither a second reviewer's approval nor a passing CI run is actually enforced before merge. In practice every change has gone through review by convention, not by enforcement. |
+| 8.4 | Access to source code | P | Git-based repo permissions; a GitHub ruleset on `main` blocks direct pushes, force-pushes, and branch deletion, and requires a PR — but verified via `gh api repos/.../rulesets` that `required_approving_review_count` is **0** and no `required_status_checks` rule exists, so neither a second reviewer's approval nor a passing CI run is actually enforced before merge. Both were considered and deliberately left as-is: a required status check isn't meaningful while CI itself is disabled (see `8.25`), and a required-approval count would block the current solo/AI-assisted merge workflow without a second human reviewer in place. In practice every change has gone through review by convention, not by enforcement. |
 | 8.5 | Secure authentication | Y | JWT + hashed refresh sessions, HTTP-only cookie option, generic invalid-credentials messaging (no user-enumeration leak). |
 | 8.6 | Capacity management | P | Kubernetes HPA scales the backend; no formal capacity-planning review process. |
 | 8.7 | Protection against malware | N | No malware scanning on uploaded property images; relies on file-type/size validation only. |
@@ -117,14 +119,14 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.22 | Segregation of networks | P | Delegated to the Kubernetes/Render network model; no explicit internal segmentation diagram. |
 | 8.23 | Web filtering | N/A | Not applicable to this application's threat model. |
 | 8.24 | Use of cryptography | Y | HTTPS in production, hashed passwords/tokens, JWT signing. |
-| 8.25 | Secure development life cycle | P | CI (`.github/workflows/ci.yml`) runs lint + tests on every PR, but merging to `main` isn't actually gated on it passing — see `8.4`'s ruleset finding. |
+| 8.25 | Secure development life cycle | P | The `CI` GitHub Actions workflow (`.github/workflows/ci.yml`, lint + tests for all three packages) has been in state `disabled_manually` since 2026-07-06 — a precaution against a GitHub Actions pricing notification, kept off deliberately even after confirming this public repo's standard runners are free/unlimited. No automated CI has run on any push or PR since. Verification is currently manual: `npm test`/`npm run lint` run locally before each PR, per the CHANGELOG's established convention — a real discipline, but not an automated gate. |
 | 8.26 | Application security requirements | Y | Request-validation middleware on every mutating endpoint; role/ownership checks documented per feature; CSRF protection and tiered rate limiting (both added since the previous review — see `5.15`, `8.20`) close gaps this document didn't previously credit. |
 | 8.27 | Secure system architecture and engineering principles | Y | Layered architecture (routes → middleware → controllers → models) with single chokepoints per concern (`asyncHandler`, `createNotification`, central error handler). |
 | 8.28 | Secure coding | Y | ESLint across all three packages in CI; centralized input validation rather than ad hoc checks. |
-| 8.29 | Security testing in development and acceptance | P | 446 backend unit/integration tests cover auth/authorization guard-rails; no dedicated penetration test or SAST/DAST tool run yet. |
+| 8.29 | Security testing in development and acceptance | P | 446 backend unit/integration tests cover auth/authorization guard-rails, run manually (see `8.25`). A `CodeQL` (SAST) workflow is configured but has only run once, on 2026-07-06, and that run failed — not currently a working control. No penetration test or DAST tool run yet either. |
 | 8.30 | Outsourced development | N/A | No outsourced development arrangement currently in place. |
 | 8.31 | Separation of development, test and production environments | Y | `TEST_MONGODB_URI` opt-in for integration tests; separate `.env` configuration per environment; CI isolated from production. |
-| 8.32 | Change management | P | PR-based workflow is the practiced convention — every merged change in this project's history has gone through a PR — but it isn't fully enforced: the `main` ruleset requires a PR to exist, not an approval or a passing CI run (see `8.4`). |
+| 8.32 | Change management | P | PR-based workflow is the practiced convention — every merged change in this project's history has gone through a PR — but it isn't fully enforced: the `main` ruleset requires a PR to exist, not an approval or a passing CI run, and CI itself is currently disabled (see `8.4`, `8.25`). |
 | 8.33 | Test information | P | Tests use seeded/synthetic demo data (`backend/seeders/seedDemoData.js`), not real user data; no formal written policy on this beyond convention. |
 | 8.34 | Protection of information systems during audit testing | N/A | No formal third-party audit has been conducted yet. |
 
@@ -135,11 +137,11 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 ### Engineering / SDLC process
 | # | Control | Status | Gap |
 |---|---|---|---|
-| 8.4 | Access to source code | P | `main` ruleset requires a PR but 0 approving reviews and no required status check — review/CI-passing are convention, not enforcement. |
-| 8.25 | Secure development life cycle | P | Same root cause as `8.4` — CI runs but doesn't gate merges. |
-| 8.32 | Change management | P | Same root cause as `8.4`. |
+| 8.4 | Access to source code | P | `main` ruleset requires a PR but 0 approving reviews and no required status check — review is convention, not enforcement. Both considered and deliberately left as-is this pass. |
+| 8.25 | Secure development life cycle | P | The `CI` workflow has been manually disabled since 2026-07-06 (a billing precaution, kept off even after confirming this public repo's runners are free); verification is currently manual per-PR only. |
+| 8.32 | Change management | P | Same root cause as `8.4`/`8.25` — PR convention exists, but nothing (review, CI) actually gates the merge. |
 | 5.8 | Information security in project management | P | Security is considered ad hoc in PR review; no formal security gate/checklist in the SDLC. |
-| 8.29 | Security testing in development and acceptance | P | 446+ backend unit/integration tests cover auth/authorization; no penetration test or SAST/DAST tool run yet. |
+| 8.29 | Security testing in development and acceptance | P | 446 backend unit/integration tests, run manually; `CodeQL` is configured but has run once (2026-07-06) and failed; no penetration test or DAST tool run yet. |
 | 8.33 | Test information | P | Synthetic seeded data used by convention; no written policy requiring it. |
 
 ### Data resilience and continuity
@@ -188,8 +190,13 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 
 Phased by effort and dependency, not strictly by the risk-ranking above — some of the highest-value fixes here are also the cheapest.
 
-### Phase 1 — Configuration-only, no engineering effort (do this week)
-Closes or substantially strengthens **8.4, 8.25, 8.32** in one action: turn on `required_approving_review_count: 1+` and add a `required_status_checks` rule (the `backend`/`frontend`/`mobile` CI jobs) to the existing `main` GitHub ruleset. This is a repo-settings change, not a code change — the single highest ratio of compliance-value to effort on this entire list, since it converts three controls from "practiced by habit" to "enforced by the platform."
+### Phase 1 — Configuration-only, no engineering effort (considered this pass, currently declined)
+The theoretical highest ratio of compliance-value to effort on this list — turning on `required_approving_review_count: 1+` and adding a `required_status_checks` rule to the existing `main` ruleset — was evaluated during this review and **not applied**, for two specific, documented reasons rather than by default or oversight:
+
+1. **Re-enabling CI is the actual prerequisite**, and the team chose to keep it disabled. The `CI` workflow has been in state `disabled_manually` since 2026-07-06 (a GitHub Actions billing-notification precaution); this repo is public, and standard GitHub-hosted runners are free/unlimited for public repos, so that original concern may no longer apply — this was raised during the review and the team opted to keep CI off for now regardless. A required status check against a disabled workflow would block every future merge indefinitely (this ruleset's `current_user_can_bypass` is `never`), so this cannot be revisited independently of the CI decision.
+2. **A required approving-review count would block the current solo/AI-assisted workflow** as-is — GitHub doesn't count a PR author's own approval, and there's no second human reviewer in the loop today. Enabling it would require either adding a reviewer to the loop or configuring a bypass exception that would quietly reintroduce the same gap in a different form.
+
+If either constraint changes (CI re-enabled and shown to pass reliably; a second reviewer joins), this becomes a same-day fix.
 
 ### Phase 2 — Short-term engineering work (single-PR-sized, no new vendor)
 1. **Automated database backup + one tested restore** (`5.30`, `8.13`) — MongoDB Atlas has built-in scheduled snapshots; enabling them plus running one real restore-to-a-scratch-cluster drill closes both controls. Still the single biggest gap by risk if left undone.
@@ -205,7 +212,7 @@ Closes or substantially strengthens **8.4, 8.25, 8.32** in one action: turn on `
 5. **A network-topology diagram** (`8.20`, `8.22`) — one diagram of the actual Kubernetes/Render request path closes the documentation half of both controls.
 
 ### Phase 4 — Requires external engagement or organizational maturity
-1. **Independent security testing** (`8.29`, `5.35`) — a real penetration test or a SAST/DAST tool wired into CI (e.g. Semgrep, CodeQL) would validate what the unit/integration suite structurally can't.
+1. **Independent security testing** (`8.29`, `5.35`) — get the already-configured `CodeQL` workflow actually running and passing (it has failed its one and only run), plus a real penetration test or DAST tool, to validate what the unit/integration suite structurally can't.
 2. **Signed supplier/processor agreements** (`5.19`, `5.20`, `5.21`, `5.22`) — formal DPAs with MongoDB Atlas, the storage provider, and Expo, plus a recurring vendor-risk review cadence.
 3. **Formal security-awareness training** (`6.3`) and a **staff disciplinary process** (`6.4`) — both contingent on this becoming a registered company with actual staff; premature to formalize before then.
 4. **CERT/ISAC membership or equivalent threat-intel source** (`5.6`).
