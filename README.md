@@ -931,6 +931,7 @@ Data protection and privacy:
 
 Security and operations:
 - [Incident Response Plan](docs/incident-response-plan.md) — the internal runbook for handling a security/data incident, distinct from [SECURITY.md](SECURITY.md)'s vulnerability-reporting instructions.
+- [Records Retention & Protection Policy](docs/records-retention-and-protection-policy.md) — how operational/business records (audit logs, moderation records) are protected and retained, distinct from the Data Protection Policy's user-facing personal-data lifecycle.
 - [ISO/IEC 27001 Statement of Applicability](docs/iso27001-statement-of-applicability.md) — a self-assessment mapping KejaApp's real security controls to the ISO/IEC 27001 Annex A control set, gaps included.
 - [Accessibility Statement](docs/accessibility-statement.md) — what's implemented against WCAG 2.1 AA today, and what isn't yet.
 
@@ -1001,6 +1002,7 @@ docs/
 ├── records-of-processing-activities.md
 ├── data-protection-impact-assessment.md
 ├── incident-response-plan.md
+├── records-retention-and-protection-policy.md
 ├── iso27001-statement-of-applicability.md
 ├── accessibility-statement.md
 ├── user-manual/
