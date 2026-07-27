@@ -327,10 +327,11 @@ Authorization: Bearer <token>
 
 The backend enforces role-based access:
 
-- **tenant**: Can view properties, save favorites, inquire about properties
+- **tenant**: Can view properties, save favorites, inquire about properties, request movers
 - **landlord**: Can manage own properties, view inquiries, add property images
-- **agency**: Can manage properties, view inquiries, manage clients
-- **admin**: Can access admin console, moderate violations, verify agencies
+- **agency**: Can manage properties, view inquiries, manage clients, submit for verification
+- **mover**: Can manage their own business profile, submit for verification, respond to service requests — does not browse property listings
+- **admin**: Can access admin console, moderate violations, verify agencies/movers
 
 Protected endpoints check the user's role:
 ```javascript

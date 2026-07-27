@@ -102,9 +102,11 @@ Aligned with ISO/IEC 27001 Annex A control themes (access control, cryptography,
 - JWT-based authentication with HTTP-only auth cookies as an alternative to bearer tokens; role-based authorization enforced on every protected endpoint.
 - HTTPS is required in production deployments (see [Deployment](https://github.com/Abdurleone/kejaapp/wiki/Deployment)) so data is encrypted in transit.
 - Configurable rate limiting (Redis-backed in production) mitigates credential-stuffing and scraping.
+- CSRF protection requires an `Authorization` header (not just the session cookie) on every state-changing request, closing the cross-site-request gap a `sameSite: "none"` cookie otherwise leaves open in production.
 - Centralized request validation and error handling reduce the risk of malformed input reaching the data layer.
 - Admin actions that change account status are logged with an actor, reason, and timestamp, forming an audit trail (see [Code of Ethics §2.6](code-of-ethics.md#26-conflict-of-interest) on how that audit trail is used).
-- Uploaded property images are fingerprinted to detect and flag duplicate/fraudulent reuse across accounts.
+- Uploaded property images are scanned for malware by a self-hosted ClamAV daemon before being stored, and separately fingerprinted to detect and flag duplicate/fraudulent reuse across accounts.
+- Email addresses and phone numbers embedded in server log output are partially masked before being written to disk.
 
 ## 12. Breach notification
 
@@ -143,4 +145,4 @@ Data protection questions, rights requests, and breach reports: `privacy@kejaapp
 
 ## 17. Review
 
-This policy is maintained in `docs/data-protection-policy.md` and should be revisited whenever a new data category, third-party processor, or user role is introduced — most recently updated alongside the mover role and mover request/verification workflows.
+This policy is maintained in `docs/data-protection-policy.md` and should be revisited whenever a new data category, third-party processor, or user role is introduced — most recently updated to credit CSRF protection, malware scanning on uploads, and log-level PII masking in the Security Measures section.

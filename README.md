@@ -77,12 +77,12 @@ Development and testing:
 - Insomnia
 
 DevOps:
-- GitHub Actions CI (lint + tests for backend/frontend/mobile, frontend build, Docker build, image publish to GHCR on `main`) — `.github/workflows/ci.yml`
-- Dependabot for weekly dependency updates across all three `package.json`s and GitHub Actions — `.github/dependabot.yml`
-- Docker + docker-compose for a local/staging stack (backend, frontend, MongoDB, Redis)
+- GitHub Actions CI (lint + tests for backend/frontend/mobile, frontend build, Docker build, image publish to GHCR on `main`) — `.github/workflows/ci.yml`. **Currently disabled** at the GitHub Actions level (a billing-notification precaution) — see the [ISO 27001 SoA](docs/iso27001-statement-of-applicability.md) for the full story and the "Next" section below.
+- Dependabot for weekly dependency updates across all three `package.json`s and GitHub Actions — `.github/dependabot.yml`, with `ignore` rules on `eslint`/`jest` major versions in frontend/mobile to stop a recurring auto-merged incompatibility from reintroducing itself.
+- Docker + docker-compose for a local/staging stack (backend, frontend, MongoDB, Redis, ClamAV for malware-scanned uploads)
 - Two independent deployment paths, both using S3-compatible object storage for uploads — see `docs/devops.md`:
-  - Render Blueprint (`render.yaml`): backend web service (Docker), frontend static site, managed Redis.
-  - Kubernetes manifests (`k8s/`): backend + frontend Deployments (HPA on the backend), in-cluster Redis StatefulSet, Ingress — cluster-agnostic, images published by CI to GHCR.
+  - Render Blueprint (`render.yaml`): backend web service (Docker), frontend static site, managed Redis, a private ClamAV service.
+  - Kubernetes manifests (`k8s/`): backend + frontend Deployments (HPA on the backend), in-cluster Redis/ClamAV StatefulSets, Ingress — cluster-agnostic, images published by CI to GHCR.
 
 ## Implemented Backend
 
@@ -93,7 +93,7 @@ Application foundation:
 - Health endpoint with database status and configured database path.
 - Load-balancer liveness and readiness endpoints.
 - CORS, Helmet, Morgan logging, centralized async handling, and error middleware.
-- Daily-rotated log files in `backend/logs/` (`access-YYYY-MM-DD.log` for HTTP requests, `app-YYYY-MM-DD.log` for connection/cache/rate-limit warnings and 5xx errors with stack traces), in addition to console output. Disabled during tests. Configurable via `LOG_DIR`. Timestamps (and the daily file rollover boundary) are in Nairobi time (`Africa/Nairobi`, a stable UTC+3 with no daylight saving), not UTC.
+- Daily-rotated log files in `backend/logs/` (`access-YYYY-MM-DD.log` for HTTP requests, `app-YYYY-MM-DD.log` for connection/cache/rate-limit warnings and 5xx errors with stack traces), in addition to console output. Disabled during tests. Configurable via `LOG_DIR`. Timestamps (and the daily file rollover boundary) are in Nairobi time (`Africa/Nairobi`, a stable UTC+3 with no daylight saving), not UTC. Email addresses and Kenyan phone numbers embedded in any log message are partially masked before being written (`backend/utils/logger.js`'s `maskPii`) — a best-effort safety net, not a guarantee against every format.
 - Nodemon watch configuration for backend auto-refresh.
 - Configurable API and auth rate limiting, backed by Redis when `REDIS_URL` is set (falls back to per-process in-memory limits otherwise).
 - Response caching for public property and mover listings, with immediate invalidation on writes; long-lived immutable `Cache-Control` headers on uploaded property images.
@@ -127,6 +127,7 @@ Properties and pricing:
 - Cost summary enrichment on property responses.
 - Protected image URL and alt text management for property galleries.
 - Protected property image upload storage with file metadata, backed by local disk or an S3-compatible bucket (`STORAGE_DRIVER`).
+- Malware scanning on every uploaded property image via a self-hosted ClamAV daemon (`CLAMAV_HOST`) before it reaches storage — fails closed (rejects the upload) if scanning is configured but the daemon is unreachable; unset `CLAMAV_HOST` skips scanning entirely.
 - Property image fingerprinting for duplicate image detection.
 - Admin violation review for suspicious duplicate property images.
 - Listing-specific contact method, contact hours, and contact notes for landlords and agencies.
@@ -1203,8 +1204,9 @@ Next:
 - Keep payments off-platform unless the product scope changes later.
 - Username is currently immutable (assigned once at registration, no "change username" flow on web, mobile, or the API) — revisit if users ask to customize it.
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
-- DevOps: pick a real hosting target and wire up an actual deploy step (currently CI builds images but doesn't push/deploy anywhere).
-- `jest-expo`'s `@react-native/jest-preset` (tied to RN 0.86) pins `babel-jest`/`jest-environment-node` to `^29.7.0`, incompatible with `jest@30` — mobile's `jest` stays held back until a compatible `jest-expo` release publishes. (Mobile's `eslint` was in the same situation — pinned to `^10.6.0` despite `eslint-config-expo`'s vendored `eslint-plugin-react@7.37.5` only supporting up to `eslint@^9.7` — but that one's now fixed: pinned to `^9.39.0`, matching the frontend package's convention, so `npm run lint:mobile` actually runs and passes again instead of crashing on the first file.)
+- DevOps: two real hosting paths now exist (Render Blueprint, Kubernetes manifests — see `docs/devops.md`) and CI's `publish` job pushes images to GHCR; what's still missing is CI actually running at all (see the `CI` bullet below) and picking one path as the "real" deployed instance rather than maintaining both as equally-documented options.
+- `eslint`/`jest` in both `frontend/` and `mobile/` need to stay pinned below their next major version: `eslint-plugin-react`'s peer range tops out at `eslint ^9.7`, and mobile's `@react-native/jest-preset` (tied to this RN version) pins `babel-jest`/`jest-environment-node` to `^29.7.0`, incompatible with `jest@30`'s internal module-mocker API. This has already **regressed twice** via an auto-merged Dependabot group bump each time (each one silently breaking `npm install`/lint/tests until manually caught, since CI is currently disabled — see below) — `.github/dependabot.yml` now has explicit `ignore` rules blocking major-version bumps for these packages specifically, so this shouldn't recur a third time without a deliberate decision to lift the ignore rule once the ecosystem catches up.
+- `CI` (`.github/workflows/ci.yml`) is currently disabled at the GitHub Actions level (a billing-notification precaution, not a code issue) — re-enable it, since its absence is exactly why the eslint/jest regression above went unnoticed for as long as it did. See the [ISO 27001 SoA](docs/iso27001-statement-of-applicability.md) for the full story.
 - Push notifications only cover mobile (Expo) — web browser push (Web Push/VAPID + service worker) is a different mechanism and out of scope so far.
 
 ## License

@@ -32,7 +32,7 @@ anonymous.
 ## Scope
 
 This project handles user accounts, authentication (JWT + refresh tokens),
-and rental-listing data for tenants, landlords, agencies, and admins.
+and rental-listing data for tenants, landlords, agencies, movers, and admins.
 Reports involving any of the following are especially welcome:
 
 - Authentication/authorization bypass (e.g. accessing another user's data,
