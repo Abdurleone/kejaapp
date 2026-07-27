@@ -63,9 +63,13 @@ before submitting (CI runs these too, against a disposable database):
 TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=kejaapp_test npm run test:backend
 ```
 
-CI (`.github/workflows/ci.yml`) runs lint + tests for all three packages
-plus a frontend production build on every push and pull request — a PR
-won't be mergeable until it's green.
+CI (`.github/workflows/ci.yml`) is defined to run lint + tests for all three
+packages plus a frontend production build on every push and pull request —
+but as of this writing the workflow itself has been manually disabled (a
+billing-notification precaution; see the [ISO 27001 SoA](docs/iso27001-statement-of-applicability.md)
+for the full story), so it currently doesn't run at all. Run the commands
+above yourself before opening a PR; nothing automated will catch a red suite
+right now.
 
 ## Branching and commits
 
@@ -103,9 +107,12 @@ Every package uses a real test runner, not a homemade harness:
   the `mock`/`describe`/`it` helpers used throughout); a smaller set of
   integration tests hit a real MongoDB instance and are opt-in via
   `TEST_MONGODB_URI` (skipped otherwise).
-- **frontend**: also `node:test`, with source-regex assertions for React
-  components (see `frontend/tests/page-components.test.js` for the style)
-  rather than full DOM rendering.
+- **frontend**: two runners in one `npm test` — `node:test` for pure-function/
+  API-helper coverage, then Vitest + jsdom + React Testing Library for real
+  render/interaction tests of every page component (`frontend/tests/*.render.test.jsx`).
+  `frontend/tests/page-components.test.js` is a legacy `node:test` regex-source-matching
+  suite that predates the Vitest migration — most of what it covered has since
+  moved to dedicated `.render.test.jsx` files, but it hasn't been fully retired.
 - **mobile**: Jest + `jest-expo` + React Native Testing Library.
 
 New features and bug fixes should come with test coverage in the same style
