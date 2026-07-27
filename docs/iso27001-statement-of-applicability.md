@@ -8,7 +8,7 @@ A Statement of Applicability (SoA) is the core artifact of an ISO/IEC 27001 Info
 
 A follow-up check while considering whether to add a required status check found something more significant: the `CI` GitHub Actions workflow itself has been in state `disabled_manually` since 2026-07-06 (confirmed via `gh api repos/.../actions/workflows`), not merely "not required" — it has not run on a single push or PR since that date, including every PR merged in this session. The team's own account of why: a GitHub Actions pricing/billing notification prompted disabling it as a precaution. This repository is public, and standard GitHub-hosted runners are free and unlimited for public repos, so that concern may no longer apply — this was raised and the team chose to **keep CI disabled for now** rather than re-enable it during this review. `8.4`, `8.25`, `8.29`, and `8.32` below are corrected to reflect that no automated CI currently runs at all; verification for every change in this period has been manual (local `npm test`/`npm run lint` runs before each PR, per the CHANGELOG's established convention), not automated. A `CodeQL` (SAST) workflow is also configured but has only ever run once, on 2026-07-06, and that run failed — it is not currently a working control either.
 
-Roadmap Phase 2 item 1 (field-level log masking) has since been implemented: `8.11` is upgraded from P to Y below — see the [Remediation roadmap](#7-remediation-roadmap).
+Two Phase 2 roadmap items have since been implemented and are upgraded to Y below: field-level log masking (`8.11`) and malware scanning on property-image uploads (`8.7`, self-hosted ClamAV, live-verified with a genuine EICAR test file) — see the [Remediation roadmap](#7-remediation-roadmap).
 
 **Status key**:
 
@@ -103,7 +103,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.4 | Access to source code | P | Git-based repo permissions; a GitHub ruleset on `main` blocks direct pushes, force-pushes, and branch deletion, and requires a PR — but verified via `gh api repos/.../rulesets` that `required_approving_review_count` is **0** and no `required_status_checks` rule exists, so neither a second reviewer's approval nor a passing CI run is actually enforced before merge. Both were considered and deliberately left as-is: a required status check isn't meaningful while CI itself is disabled (see `8.25`), and a required-approval count would block the current solo/AI-assisted merge workflow without a second human reviewer in place. In practice every change has gone through review by convention, not by enforcement. |
 | 8.5 | Secure authentication | Y | JWT + hashed refresh sessions, HTTP-only cookie option, generic invalid-credentials messaging (no user-enumeration leak). |
 | 8.6 | Capacity management | P | Kubernetes HPA scales the backend; no formal capacity-planning review process. |
-| 8.7 | Protection against malware | N | No malware scanning on uploaded property images; relies on file-type/size validation only. |
+| 8.7 | Protection against malware | Y | Uploaded property images are scanned via a self-hosted ClamAV daemon (`backend/services/malwareScanService.js`, added since the previous review) before ever reaching storage — fails closed (rejects the upload) if the scanner is configured but unreachable, rather than silently letting an unscanned file through. Live-verified with a genuine EICAR test file through the real upload endpoint (correctly rejected) and an ordinary file (correctly accepted). Wired into `docker-compose.yml` and `k8s/clamav-statefulset.yaml`; the `render.yaml` private-service wiring hasn't been deployed against a live Render account. |
 | 8.8 | Management of technical vulnerabilities | Y | Dependabot weekly updates; CI runs tests/lint on every change. |
 | 8.9 | Configuration management | Y | Centralized, validated environment config (`backend/config/env.js`); no hardcoded secrets in source. |
 | 8.10 | Information deletion | Y | `DELETE /api/auth/me` cascades deletion across every model referencing the user — see [Data Protection Policy §9](data-protection-policy.md#9-retention-and-deletion). |
@@ -134,7 +134,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 
 ## 6. Pending items (every P and N control)
 
-Every control below is currently either **P** (partial/informal) or **N** (not implemented) — 31 of the 93 Annex A controls (26 are **N/A** to a codebase-level assessment, mostly A.7 Physical and employment-related A.6 controls; the remaining 36 are **Y**). Grouped by theme rather than control number, since that's closer to how these would actually get worked.
+Every control below is currently either **P** (partial/informal) or **N** (not implemented) — 30 of the 93 Annex A controls (26 are **N/A** to a codebase-level assessment, mostly A.7 Physical and employment-related A.6 controls; the remaining 37 are **Y**). Grouped by theme rather than control number, since that's closer to how these would actually get worked.
 
 ### Engineering / SDLC process
 | # | Control | Status | Gap |
@@ -167,7 +167,6 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 ### Application-level hardening
 | # | Control | Status | Gap |
 |---|---|---|---|
-| 8.7 | Protection against malware | N | Uploaded property images are validated by type/size only — no scanning for embedded malware. |
 | 8.12 | Data leakage prevention | P | No dedicated DLP tool — a real PII-leak instance (owner email/phone on public endpoints) was only caught by code review, since fixed. |
 | 8.20 | Networks security | P | CORS allow-list + Helmet + rate limiting exist; no network-segmentation documentation beyond the hosting provider's. |
 | 8.22 | Segregation of networks | P | Delegated to the Kubernetes/Render network model; no explicit internal segmentation diagram. |
@@ -200,8 +199,8 @@ The theoretical highest ratio of compliance-value to effort on this list — tur
 If either constraint changes (CI re-enabled and shown to pass reliably; a second reviewer joins), this becomes a same-day fix.
 
 ### Phase 2 — Short-term engineering work (single-PR-sized, no new vendor)
-1. **Automated database backup + one tested restore** (`5.30`, `8.13`) — MongoDB Atlas has built-in scheduled snapshots; enabling them plus running one real restore-to-a-scratch-cluster drill closes both controls. Still the single biggest gap by risk if left undone.
-2. **Malware scanning on uploads** (`8.7`) — a ClamAV sidecar or a hosted scanning API (e.g. the S3-compatible storage provider's built-in option, if any) in the image-upload path.
+1. **Automated database backup + one tested restore** (`5.30`, `8.13`) — MongoDB Atlas has built-in scheduled snapshots; enabling them plus running one real restore-to-a-scratch-cluster drill closes both controls. The single biggest gap by risk remaining on this list.
+2. ~~Malware scanning on uploads~~ — **done**: a self-hosted ClamAV daemon (`backend/services/malwareScanService.js`) now scans every property-image upload before it reaches storage, wired into `docker-compose.yml`/`k8s/clamav-statefulset.yaml`/`render.yaml` and live-verified with a genuine EICAR test file. See `8.7` above.
 3. **Minimal alerting on the existing health endpoints** (`8.16`) — a free-tier uptime monitor (UptimeRobot, Better Uptime) pointed at `/health/live` and `/health/ready` gets a human paged with near-zero engineering effort; a fuller dashboard can come later.
 
 ### Phase 3 — Process and documentation (no new tooling required)

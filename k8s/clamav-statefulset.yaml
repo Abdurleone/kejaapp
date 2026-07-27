@@ -1,0 +1,73 @@
+# In-cluster ClamAV for malware scanning on property-image uploads
+# (backend/services/malwareScanService.js's CLAMAV_HOST/CLAMAV_PORT) - not
+# used for data that must survive a full cluster loss, but the PVC avoids
+# re-downloading the ~100MB signature database on every pod restart.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kejaapp-clamav
+  namespace: kejaapp
+spec:
+  serviceName: kejaapp-clamav
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kejaapp
+      component: clamav
+  template:
+    metadata:
+      labels:
+        app: kejaapp
+        component: clamav
+    spec:
+      containers:
+        - name: clamav
+          image: clamav/clamav:stable
+          ports:
+            - containerPort: 3310
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          volumeMounts:
+            - name: clamav-data
+              mountPath: /var/lib/clamav
+          # The signature database takes time to load on a cold start (a
+          # locally-tested equivalent took ~10s for 3.6M signatures) - a low
+          # initialDelaySeconds just means a few failed probes before it's
+          # ready, not a hard failure.
+          readinessProbe:
+            tcpSocket:
+              port: 3310
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3310
+            initialDelaySeconds: 60
+            periodSeconds: 30
+  volumeClaimTemplates:
+    - metadata:
+        name: clamav-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kejaapp-clamav
+  namespace: kejaapp
+spec:
+  clusterIP: None
+  selector:
+    app: kejaapp
+    component: clamav
+  ports:
+    - port: 3310
