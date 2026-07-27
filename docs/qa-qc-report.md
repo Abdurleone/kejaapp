@@ -2,7 +2,7 @@
 
 A point-in-time quality report for all three packages (backend, frontend, mobile), split per package into **QA** (the testing methodology/process in place — what's covered and how) and **QC** (the actual current results of running it). Regenerate the QC numbers with `npm test`/`npm run lint` (root-level scripts fan out to all three; see `package.json`) whenever this needs refreshing — they're a snapshot, not a live dashboard.
 
-**Snapshot taken:** 2026-07-17, commit `6010028` (`main`), immediately after the 28-item general health-check remediation roadmap (PRs #80–#107) completed. All three packages were clean at this point with zero uncommitted changes other than the pre-existing, untouched `mobile/package.json`/`package-lock.json` Expo dependency drift (see CHANGELOG.md).
+**Snapshot taken:** 2026-07-27, commit `ac0363f` (`main`). Refreshed during a full documentation-accuracy pass; the previous snapshot (2026-07-17, commit `6010028`) was badly out of date — mobile in particular had a live regression (see mobile's QC section) that this refresh caught.
 
 ## How to reproduce
 
@@ -20,7 +20,7 @@ npm run lint            # all three, or npm run lint:backend / :frontend / :mobi
 ### QA — methodology
 
 - **Runner:** Node's built-in `node --test` (`backend/package.json`'s `test` script) — no third-party test framework.
-- **Layout:** `backend/tests/` mirrors the source tree 1:1: `controllers/` (18 files), `models/` (11), `services/` (11), `validators/` (9), `utils/` (9), `middlewares/` (6), `jobs/` (6), `config/` (4), `seeders/` (1), `docs/` (1) — 79 suites, 436 tests total.
+- **Layout:** `backend/tests/` mirrors the source tree 1:1: `controllers/` (18 files), `models/` (11), `services/` (12), `validators/` (10), `utils/` (10), `middlewares/` (6), `jobs/` (6), `config/` (4), `seeders/` (1), `docs/` (1) — 82 suites, 458 tests total.
 - **Unit vs. integration split:** the vast majority are unit-style, with dependencies (Mongoose models, external services) mocked. `backend/tests/integration/` holds two real-database suites (`apiFlows.integration.test.js`, `mongodb.integration.test.js`) that self-skip (`describe(..., { skip: !testMongoUri })`) unless `TEST_MONGODB_URI` is set — they don't run on a bare local `npm test`, but CI's `backend` job sets `TEST_MONGODB_URI` against a real `mongo:7` service container, so they do run there.
 - **Lint:** ESLint flat config (`backend/eslint.config.js`).
 - **CI:** `.github/workflows/ci.yml`'s `backend` job runs lint then test against the real MongoDB container on every push/PR to `main` (see `docs/devops.md`).
@@ -30,7 +30,7 @@ npm run lint            # all three, or npm run lint:backend / :frontend / :mobi
 
 | Check | Result |
 |---|---|
-| `npm test` | **436/436 passing**, 79 suites, 0 failures, 0 skipped |
+| `npm test` | **458/458 passing**, 82 suites, 0 failures, 0 skipped |
 | `npm run lint` | **0 errors, 0 warnings** |
 | Integration suites (`TEST_MONGODB_URI` set) | Both pass in CI against a real `mongo:7` container |
 
@@ -44,7 +44,7 @@ No findings.
 
 - **Two runners, one command:** `npm test` runs `node --test` first, then `vitest run` (`frontend/package.json`). Split scripts (`test:node`, `test:render`) exist for running either half alone.
 - **`node --test` suite** (`frontend/tests/*.test.js`, 6 files): pure-function/API-helper coverage (`api-helpers.test.js`, `app.test.js`, `request-cache.test.js`), a real-backend `auth-flow.integration.test.js`, `responsive-css.test.js` (regex-asserts specific CSS rules exist, used to guard mechanical CSS refactors), and `page-components.test.js` — a legacy regex-source-matching suite predating the Vitest render-test migration (see CHANGELOG's Phase 4 entries); most of what it once covered has since been superseded by dedicated `.render.test.jsx` files, but it hasn't been fully retired.
-- **Vitest + jsdom + React Testing Library suite** (`frontend/tests/*.render.test.jsx`, 15 files): real render + interaction tests for every page component (`AccountPage`, `AdminPage`, `App`, `AuthModal`, `DashboardPage`, `DiscoverPage`, `FeedbackPage`, loading skeletons, `MoversPage`, `NotificationsPage`, `PropertyCreatePage`, `PropertyDetailPage`, `PropertyEditPage`, `SavedPage`, `WorkspacePage`). This is the suite that actually exercises component behavior (clicks, form fills, async fetch/error/retry states, race-condition guards) rather than just asserting JSX source text exists.
+- **Vitest + jsdom + React Testing Library suite** (`frontend/tests/*.render.test.jsx`, 20 files): real render + interaction tests for every page component (`AccountPage`, `AdminPage`, `App`, `AuthContext`, `AuthModal`, `DashboardPage`, `DiscoverPage` (plus its grid-memoization variant), `FeedbackPage`, list-row memoization, loading skeletons, `MoversPage`, the notification badge, `NotificationsPage`, `PropertyCreatePage`, `PropertyDetailPage` (plus its image lazy-loading variant), `PropertyEditPage`, `SavedPage`, `WorkspacePage`). This is the suite that actually exercises component behavior (clicks, form fills, async fetch/error/retry states, race-condition guards) rather than just asserting JSX source text exists.
 - **Live/manual verification:** Playwright is used ad hoc during development (via a scratch driver script, not committed to the repo) to verify behavior that's impractical to unit test — real out-of-order network races, focus traps, print-stylesheet rendering, actual browser dialog semantics. This is **not** part of the automated `npm test` run; it's a manual step taken PR-by-PR for UI-visible changes (documented per-PR in CHANGELOG.md).
 - **Lint:** ESLint flat config (`frontend/eslint.config.js`).
 - **Build:** `vite build` — CI's `frontend` job runs it after tests to catch build-breaking errors.
@@ -55,9 +55,9 @@ No findings.
 | Check | Result |
 |---|---|
 | `node --test` (`npm run test:node`) | **80/80 passing**, 6 suites |
-| `vitest run` (`npm run test:render`) | **106/106 passing**, 15 files |
+| `vitest run` (`npm run test:render`) | **133/133 passing**, 20 files |
 | `npm run lint` | **0 errors, 0 warnings** |
-| `npm run build` | Succeeds (`dist/` ~301 KB JS / ~83 KB gzipped) |
+| `npm run build` | Succeeds (`dist/` ~308 KB JS / ~85 KB gzipped) |
 
 No findings.
 
@@ -74,7 +74,7 @@ No findings.
   - `Platform.OS` reports `"ios"` under Jest by default (not `"web"`), so screens that branch on platform (e.g. `DateTimePicker` vs. a web text-input fallback) need that accounted for — either stubbing the native module out (`jest.mock("@react-native-community/datetimepicker", () => "DateTimePicker")`) or deliberately overriding `Platform.OS` per-test.
   - Real (non-mocked) `setTimeout`-based debounce tests are isolated into their own file (e.g. `MoversScreen.debounce.test.js`, `AdminScreen.debounce.test.js`) rather than mixed into a screen's main synchronous test file — a stray timer callback from one test was found to leak into and corrupt a later, unrelated test otherwise.
   - `getByText` does not concatenate a `<Text>` element's multiple expression-children into one matchable string.
-- **Lint:** `expo lint` (ESLint flat config, `mobile/eslint.config.js`). `eslint`/`jest` are deliberately pinned back from their latest majors pending `eslint-config-expo`/`jest-expo` compatibility (see CHANGELOG's dependency-upgrade entries) — this is a known, intentional constraint, not an oversight.
+- **Lint:** `expo lint` (ESLint flat config, `mobile/eslint.config.js`). `eslint`/`jest` are deliberately pinned back from their latest majors pending `eslint-config-expo`/`jest-expo` compatibility (see CHANGELOG's dependency-upgrade entries) — this is a known, intentional constraint, not an oversight. It has been silently undone by an auto-merged Dependabot group bump twice now; `.github/dependabot.yml` gained explicit `ignore` rules for both packages' major versions after the second occurrence (see this report's QC findings below).
 - **Live device/emulator verification:** not part of the automated suite. Every PR in the recent health-check remediation roadmap that touched mobile screens explicitly disclosed whether a live emulator run happened (most didn't, per this project's established honesty convention over claiming untested behavior works) — see individual CHANGELOG entries for exactly which mobile changes are test-level-only versus emulator-verified.
 - **Coverage tooling:** none configured.
 
@@ -82,18 +82,19 @@ No findings.
 
 | Check | Result |
 |---|---|
-| `npm test` | **153/153 passing**, 31 suites |
+| `npm test` | **167/167 passing**, 31 suites |
 | `npm run lint` | **0 errors, 67 warnings** |
 
 The 67 warnings are all `import/first` ("Import in body of module; reorder to top"), stemming from this codebase's deliberate convention of placing `jest.mock(...)` calls before the imports they affect (a common Jest pattern that this particular ESLint rule doesn't recognize as intentional). Confirmed pre-existing and unrelated to any specific change — not a regression, not blocking.
 
-No test failures. No functional findings.
+**Finding from this refresh (found and fixed):** both `npm run lint` and `npm test` were completely broken immediately before this snapshot — an auto-merged Dependabot group bump (the "16 updates" PR) had silently reintroduced `eslint@10.7.0`/`jest@30.4.2`, undoing a previous pin-back and crashing lint outright (`TypeError: contextOrFilename.getFilename is not a function`) and every single test suite (`this._moduleMocker.clearMocksOnScope is not a function`, 0 of 31 suites able to even start). This went unnoticed because CI is currently disabled (see the ISO 27001 SoA). Separately, `jest.setup.js`'s `@react-native-async-storage/async-storage` mock import (`.../jest/async-storage-mock`) had gone stale against that package's own export-map change (the mock now lives at `.../jest`, not `.../jest/async-storage-mock`) — a second, independent breakage affecting 4 suites. Both fixed; `.github/dependabot.yml` now blocks major-version bumps for `eslint`/`jest` in this package specifically.
 
 ---
 
 ## Cross-cutting observations
 
-- **All three packages are currently clean**: 775 total automated tests passing (436 backend + 186 frontend + 153 mobile), 0 lint errors anywhere.
+- **All three packages are currently clean**: 838 total automated tests passing (458 backend + 213 frontend + 167 mobile), 0 lint errors anywhere.
 - **No code coverage tooling** is configured in any of the three packages. Breadth is currently maintained by convention (new source files get a corresponding test file) rather than measured by a coverage percentage or gate. Worth considering if coverage regressions become a concern as the codebase grows.
 - **Mobile has no automated device/emulator testing** — only Jest's simulated RN environment. Real Android-emulator verification happens ad hoc and is explicitly called out per-PR when it does (or doesn't) happen; iOS has never been verified on a real device/simulator (tracked in README's "Next" section).
 - **`mobile/package.json`/`mobile/package-lock.json`** show ongoing Expo-driven dependency drift, unrelated to any code change — flagged repeatedly across recent PRs rather than committed or reverted without understanding its origin.
+- **CI is currently disabled** (`.github/workflows/ci.yml`, manually disabled at the GitHub Actions level — see the [ISO 27001 SoA](iso27001-statement-of-applicability.md)). Every "CI runs X" statement elsewhere in this report describes what the workflow is *configured* to do, not something currently happening on every push/PR — this snapshot's numbers all come from running the commands manually. This is also precisely why the mobile regression noted above went uncaught for as long as it did.
