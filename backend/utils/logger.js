@@ -8,6 +8,37 @@ const fileLoggingEnabled = env.nodeEnv !== "test";
 
 const streams = {};
 
+// Best-effort PII masking for anything written to a log file - a safety net
+// against a future call site accidentally interpolating a user's email/phone
+// into a log message, not a guarantee against every possible format. Applied
+// to the message *before* it's prefixed with a timestamp, and to morgan's
+// already-formatted access-log lines.
+const emailPattern = /([a-zA-Z0-9._%+-])[a-zA-Z0-9._%+-]*(@)([a-zA-Z0-9])[a-zA-Z0-9.-]*(\.[a-zA-Z]{2,})/g;
+
+// Matches Kenyan phone numbers specifically (0XXXXXXXXX / 254XXXXXXXXX /
+// +254XXXXXXXXX, optionally space/dash-separated) rather than any long digit
+// run, so timestamps, ports, and IDs elsewhere in a message aren't masked.
+const phonePattern = /(?:\+?254|0)[\d\s-]{7,11}\d/g;
+
+const maskPhoneMatch = (match) => {
+  const digits = match.replace(/\D/g, "");
+
+  if (digits.length < 9) {
+    return match;
+  }
+
+  let seen = 0;
+  return match.replace(/\d/g, (digit) => {
+    seen += 1;
+    return seen > digits.length - 3 ? digit : "*";
+  });
+};
+
+const maskPii = (text) =>
+  String(text)
+    .replace(emailPattern, "$1***$2$3***$4")
+    .replace(phonePattern, maskPhoneMatch);
+
 const logTimeZone = "Africa/Nairobi";
 
 // Kenya (EAT) has no daylight saving, so this is always a stable +03:00 offset.
@@ -49,7 +80,7 @@ const accessLogStream = {
       return;
     }
 
-    getFileStream("access").write(line);
+    getFileStream("access").write(maskPii(line));
   },
 };
 
@@ -62,18 +93,21 @@ const writeAppLog = (level, message) => {
 };
 
 const logInfo = (message) => {
-  console.log(message);
-  writeAppLog("INFO", message);
+  const masked = maskPii(message);
+  console.log(masked);
+  writeAppLog("INFO", masked);
 };
 
 const logWarn = (message) => {
-  console.warn(message);
-  writeAppLog("WARN", message);
+  const masked = maskPii(message);
+  console.warn(masked);
+  writeAppLog("WARN", masked);
 };
 
 const logError = (message) => {
-  console.error(message);
-  writeAppLog("ERROR", message);
+  const masked = maskPii(message);
+  console.error(masked);
+  writeAppLog("ERROR", masked);
 };
 
-export { accessLogStream, logError, logInfo, logWarn, nairobiTimestamp };
+export { accessLogStream, logError, logInfo, logWarn, maskPii, nairobiTimestamp };
