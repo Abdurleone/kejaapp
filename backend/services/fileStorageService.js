@@ -2,7 +2,9 @@ import path from "node:path";
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
 import { getDriver } from "./storageDrivers/index.js";
+import { scanBuffer } from "./malwareScanService.js";
 import ApiError from "../utils/apiError.js";
+import { logWarn } from "../utils/logger.js";
 
 const allowedImageMimeTypes = {
   "image/jpeg": "jpg",
@@ -59,8 +61,28 @@ const createBytePerceptualHash = (buffer) => {
   return BigInt(`0b${bits}`).toString(16).padStart(16, "0");
 };
 
+// Fails closed when scanning is configured but unreachable/erroring: silently
+// letting an unscanned file through would defeat the point of opting into
+// this control. Fails open (skips entirely) only when CLAMAV_HOST isn't set
+// at all - an explicit "not enabled" state, not a runtime failure.
+const scanForMalware = async (buffer) => {
+  let result;
+
+  try {
+    result = await scanBuffer(buffer);
+  } catch (error) {
+    logWarn(`Malware scan unavailable, rejecting upload: ${error.message}`);
+    throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, "Image scanning is temporarily unavailable, try again shortly");
+  }
+
+  if (!result.clean) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "This file was flagged by malware scanning and cannot be uploaded");
+  }
+};
+
 const storePropertyImage = async ({ propertyId, imageId, fileName, mimeType, data }) => {
   const buffer = decodeImagePayload({ data, mimeType });
+  await scanForMalware(buffer);
   const extension = allowedImageMimeTypes[mimeType];
   const safeName = sanitizeFileName(fileName || `image.${extension}`);
   const finalName = `${imageId}-${safeName.endsWith(`.${extension}`) ? safeName : `${safeName}.${extension}`}`;
@@ -92,5 +114,6 @@ export {
   decodeImagePayload,
   deletePropertyImage,
   sanitizeFileName,
+  scanForMalware,
   storePropertyImage,
 };
