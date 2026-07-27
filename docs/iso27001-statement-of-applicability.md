@@ -8,6 +8,8 @@ A Statement of Applicability (SoA) is the core artifact of an ISO/IEC 27001 Info
 
 A follow-up check while considering whether to add a required status check found something more significant: the `CI` GitHub Actions workflow itself has been in state `disabled_manually` since 2026-07-06 (confirmed via `gh api repos/.../actions/workflows`), not merely "not required" — it has not run on a single push or PR since that date, including every PR merged in this session. The team's own account of why: a GitHub Actions pricing/billing notification prompted disabling it as a precaution. This repository is public, and standard GitHub-hosted runners are free and unlimited for public repos, so that concern may no longer apply — this was raised and the team chose to **keep CI disabled for now** rather than re-enable it during this review. `8.4`, `8.25`, `8.29`, and `8.32` below are corrected to reflect that no automated CI currently runs at all; verification for every change in this period has been manual (local `npm test`/`npm run lint` runs before each PR, per the CHANGELOG's established convention), not automated. A `CodeQL` (SAST) workflow is also configured but has only ever run once, on 2026-07-06, and that run failed — it is not currently a working control either.
 
+Roadmap Phase 2 item 1 (field-level log masking) has since been implemented: `8.11` is upgraded from P to Y below — see the [Remediation roadmap](#7-remediation-roadmap).
+
 **Status key**:
 
 - **Y** — Implemented, with the specific mechanism cited.
@@ -105,7 +107,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.8 | Management of technical vulnerabilities | Y | Dependabot weekly updates; CI runs tests/lint on every change. |
 | 8.9 | Configuration management | Y | Centralized, validated environment config (`backend/config/env.js`); no hardcoded secrets in source. |
 | 8.10 | Information deletion | Y | `DELETE /api/auth/me` cascades deletion across every model referencing the user — see [Data Protection Policy §9](data-protection-policy.md#9-retention-and-deletion). |
-| 8.11 | Data masking | P | Passwords/tokens are never returned in API responses or logs; no broader field-level masking (e.g. partial phone-number masking). |
+| 8.11 | Data masking | Y | Passwords/tokens are never returned in API responses or logs. `backend/utils/logger.js`'s `maskPii` (added since the previous review) partially masks email addresses and Kenyan phone numbers embedded in any app-log message or access-log line before it's written to disk — a regex-based, best-effort safety net against a future call site accidentally logging PII, not a guarantee against every possible format. |
 | 8.12 | Data leakage prevention | P | Centralized error handler avoids leaking stack traces in production; no dedicated DLP tool. A real instance of this gap was found and fixed since the previous review — public property endpoints were returning the owner's email/phone to anonymous callers — caught through ordinary code review during a health-check pass, not an automated scanner, which is itself evidence there's no dedicated DLP mechanism to catch the next one. |
 | 8.13 | Information backup | N | No documented/automated database backup-and-restore procedure — see [Section 7](#7-remediation-roadmap). |
 | 8.14 | Redundancy of information processing facilities | Y | Kubernetes HPA-scaled backend replicas; Render Blueprint as an alternative path. |
@@ -132,7 +134,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 
 ## 6. Pending items (every P and N control)
 
-Every control below is currently either **P** (partial/informal) or **N** (not implemented) — 32 of the 93 Annex A controls (26 are **N/A** to a codebase-level assessment, mostly A.7 Physical and employment-related A.6 controls; the remaining 35 are **Y**). Grouped by theme rather than control number, since that's closer to how these would actually get worked.
+Every control below is currently either **P** (partial/informal) or **N** (not implemented) — 31 of the 93 Annex A controls (26 are **N/A** to a codebase-level assessment, mostly A.7 Physical and employment-related A.6 controls; the remaining 36 are **Y**). Grouped by theme rather than control number, since that's closer to how these would actually get worked.
 
 ### Engineering / SDLC process
 | # | Control | Status | Gap |
@@ -166,7 +168,6 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | # | Control | Status | Gap |
 |---|---|---|---|
 | 8.7 | Protection against malware | N | Uploaded property images are validated by type/size only — no scanning for embedded malware. |
-| 8.11 | Data masking | P | Passwords/tokens are never returned; no broader field-level masking (e.g. partial phone-number masking in logs/support tooling). |
 | 8.12 | Data leakage prevention | P | No dedicated DLP tool — a real PII-leak instance (owner email/phone on public endpoints) was only caught by code review, since fixed. |
 | 8.20 | Networks security | P | CORS allow-list + Helmet + rate limiting exist; no network-segmentation documentation beyond the hosting provider's. |
 | 8.22 | Segregation of networks | P | Delegated to the Kubernetes/Render network model; no explicit internal segmentation diagram. |
@@ -202,7 +203,6 @@ If either constraint changes (CI re-enabled and shown to pass reliably; a second
 1. **Automated database backup + one tested restore** (`5.30`, `8.13`) — MongoDB Atlas has built-in scheduled snapshots; enabling them plus running one real restore-to-a-scratch-cluster drill closes both controls. Still the single biggest gap by risk if left undone.
 2. **Malware scanning on uploads** (`8.7`) — a ClamAV sidecar or a hosted scanning API (e.g. the S3-compatible storage provider's built-in option, if any) in the image-upload path.
 3. **Minimal alerting on the existing health endpoints** (`8.16`) — a free-tier uptime monitor (UptimeRobot, Better Uptime) pointed at `/health/live` and `/health/ready` gets a human paged with near-zero engineering effort; a fuller dashboard can come later.
-4. **Field-level masking in logs** (`8.11`) — partial phone-number/email masking in `backend/utils/logger.js`'s output, mirroring the existing password/token exclusion.
 
 ### Phase 3 — Process and documentation (no new tooling required)
 1. **A lightweight security checklist in the PR template** (`5.8`) — a few checkboxes (auth/ownership checked? input validated? secrets handled?) turns "ad hoc in review" into a repeatable step.
