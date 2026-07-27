@@ -23,6 +23,16 @@ updates:
     groups:
       frontend-dependencies:
         patterns: ["*"]
+    ignore:
+      # eslint-plugin-react's peer range tops out at eslint ^9.7 - a major
+      # bump here has broken `npm install`/lint twice already (each time
+      # unnoticed until manually caught, since CI is currently disabled).
+      # Remove this once eslint-plugin-react/eslint-config-expo publish
+      # eslint@10+ support.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /mobile
@@ -31,6 +41,17 @@ updates:
     groups:
       mobile-dependencies:
         patterns: ["*"]
+    ignore:
+      # Same eslint-plugin-react peer-range issue as frontend, plus:
+      # @react-native/jest-preset (tied to this RN version) pins
+      # babel-jest/jest-environment-node to ^29.7.0, incompatible with
+      # jest@30's internal module-mocker API. Both have already regressed
+      # twice via an auto-merged Dependabot group bump; ignored here rather
+      # than relying on manual vigilance a third time.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jest"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
