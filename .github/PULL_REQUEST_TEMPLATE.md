@@ -9,6 +9,15 @@
 
 <!-- e.g. "Closes #123" or "N/A" -->
 
+## Security
+
+<!-- Skim this even for small changes - most PRs will just check "N/A", but it's a repeatable prompt rather than relying on remembering to think about it. -->
+
+- [ ] New/changed endpoints have the right auth (`protect`) and role/ownership checks (`authorize`/`authorizeGroup` + an ownership check where relevant)
+- [ ] New/changed request bodies are validated (`validateRequest` + a schema in `validators/`)
+- [ ] No secrets, tokens, or credentials are hardcoded or logged in plain text
+- [ ] N/A - this change doesn't touch auth, data access, or user input
+
 ## Test plan
 
 <!-- How did you verify this works? Check off what applies, add more as needed. -->
