@@ -2,7 +2,9 @@
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push to `main` and every pull request:
+`.github/workflows/ci.yml` is **currently disabled** at the GitHub Actions level (`state: disabled_manually`, a billing-notification precaution — see the [ISO 27001 SoA](iso27001-statement-of-applicability.md) for the full story and why it's still off). Everything below describes what it's configured to do when enabled, not something currently happening on every push/PR — right now, nothing automated runs lint/tests/build on this repo at all.
+
+When enabled, it runs on every push to `main` and every pull request:
 
 - **backend** job: spins up a `mongo:7` service container, runs `npm test` against it (this also exercises `backend/tests/integration/mongodb.integration.test.js`, which otherwise self-skips without `TEST_MONGODB_URI`).
 - **frontend** job: runs `npm test`, then `npm run build` to catch build-breaking errors.
@@ -78,7 +80,7 @@ Note: `removePropertyImage` now deletes the underlying object (or local file) wh
 
 ### Known limitations of this setup
 
-- **Free plan**: both web services spin down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period.
+- **Free plan**: both web services spin down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period. **Not** free for the whole stack though — `kejaapp-clamav` (malware scanning) has no free-plan option, since ClamAV needs ~1-2GB RAM.
 - Single backend instance — no horizontal scaling. The existing Redis-backed rate limiting (`backend/config/env.js`'s `redisUrl`) already supports multiple instances if you do scale up.
 - Render auto-deploys on push to the connected branch by default; there's no GitHub Actions deploy step to maintain, but it also means a red CI run on `main` doesn't block Render from deploying. If that's undesirable, disable auto-deploy in the Render dashboard and trigger deploys manually instead.
 
