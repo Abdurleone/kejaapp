@@ -10,6 +10,7 @@ import {
   rejectMoverVerification,
 } from "../controllers/adminMoverController.js";
 import {
+  deleteUser,
   getUser,
   getUserSummary,
   listUserStatusHistory,
@@ -45,6 +46,7 @@ router.get("/users", listUsers);
 router.get("/users/:id/summary", getUserSummary);
 router.get("/users/:id/status-history", listUserStatusHistory);
 router.put("/users/:id/status", validateRequest(updateUserStatusSchema), updateUserStatus);
+router.delete("/users/:id", deleteUser);
 router.get("/users/:id", getUser);
 router.get("/reviews", listMyPropertyReviews);
 router.get("/agencies/verifications", listAgencyVerifications);

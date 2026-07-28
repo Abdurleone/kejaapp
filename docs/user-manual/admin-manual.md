@@ -24,6 +24,8 @@ From the Admin console:
 
 Treat every status change as auditable: it will show up in that user's history, visible to any admin who later reviews the account, and to the user themself.
 
+A separate, irreversible capability exists at the API level (`DELETE /api/admin/users/:id`, not yet exposed as a button in the Admin console) that fully deletes an account and everything it owns — the same cascade the self-service "delete my account" flow uses, not just a status change. Unlike a status change, this leaves no audit trail for the deleted account itself (its own status history is deleted along with it) — reserve it for clear administrative cleanup (e.g. spam or test accounts), not as an escalation of the suspend/ban workflow, which is deliberately the reversible, logged path for actual moderation decisions. You cannot delete your own account this way — use Account settings instead.
+
 ## 3. Reviewing verification requests
 
 Agency and mover verification requests both list `pending`/`approved`/`rejected` requests and use identical actions:
