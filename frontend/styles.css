@@ -235,6 +235,11 @@ button:disabled {
   gap: 8px;
   padding: 6px;
   overflow-x: auto;
+  /* Fades both scrollable edges so a narrow viewport (where the bar clips
+     mid-tab) has a visual hint that it scrolls, instead of just stopping
+     with no indication more tabs exist off-screen. */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -543,6 +548,23 @@ button:disabled {
   bottom: 10px;
   background: color-mix(in srgb, var(--surface) 90%, transparent);
   text-transform: capitalize;
+}
+
+.property-photo-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.property-photo-fallback span:first-child {
+  font-size: 1.8rem;
+  opacity: 0.6;
 }
 
 .image-thumb-grid {
