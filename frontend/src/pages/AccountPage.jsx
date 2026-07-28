@@ -26,7 +26,7 @@ function describeSavedSearch(savedSearch) {
   return parts.length > 0 ? parts.join(", ") : "Any listing";
 }
 
-function SavedSearchesPanel() {
+function SavedSearchesPanel({ onBrowse }) {
   const [savedSearches, setSavedSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -89,9 +89,16 @@ function SavedSearchesPanel() {
           </button>
         </div>
       ) : savedSearches.length === 0 ? (
-        <p className="muted-copy">
-          You have no saved searches yet. Save one from the Discover page&apos;s location filters.
-        </p>
+        <>
+          <p className="muted-copy">
+            You have no saved searches yet. Save one from the Discover page&apos;s location filters.
+          </p>
+          <div className="form-actions">
+            <button className="secondary-button" type="button" onClick={onBrowse}>
+              Go to Discover
+            </button>
+          </div>
+        </>
       ) : (
         <div className="detail-grid">
           {savedSearches.map((savedSearch) => (
@@ -296,7 +303,7 @@ function ChangePasswordPanel() {
   );
 }
 
-export default function AccountPage({ onAccountDeleted }) {
+export default function AccountPage({ onAccountDeleted, onBrowse }) {
   const { currentUser } = useAuth();
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
@@ -332,7 +339,7 @@ export default function AccountPage({ onAccountDeleted }) {
 
       <ChangePasswordPanel />
 
-      {currentUser?.role === "tenant" && <SavedSearchesPanel />}
+      {currentUser?.role === "tenant" && <SavedSearchesPanel onBrowse={onBrowse} />}
 
       <div className="panel stack danger-zone">
         <h3>Delete account</h3>

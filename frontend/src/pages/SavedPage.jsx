@@ -4,7 +4,7 @@ import { PropertyCardSkeletonGrid } from "../components/PropertyCardSkeleton.jsx
 import SavedPropertyCard from "../components/SavedPropertyCard.jsx";
 import { fetchFavorites, removeFavorite } from "../../app-utils.js";
 
-export default function SavedPage({ onOpenProperty }) {
+export default function SavedPage({ onOpenProperty, onBrowse }) {
   const [saved, setSaved] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
@@ -83,6 +83,9 @@ export default function SavedPage({ onOpenProperty }) {
       ) : saved.length === 0 ? (
         <div className="panel">
           <p className="muted-copy">No saved listings yet. Explore properties to add your favorites.</p>
+          <button className="primary-button" type="button" onClick={onBrowse}>
+            Browse listings
+          </button>
         </div>
       ) : (
         <>

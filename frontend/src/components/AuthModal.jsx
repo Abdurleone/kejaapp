@@ -14,6 +14,8 @@ export default function AuthModal({ onClose, onAuthenticated }) {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authForm, setAuthForm] = useState(emptyAuthForm);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [usernameSuggestions, setUsernameSuggestions] = useState([]);
   const panelRef = useRef(null);
 
@@ -58,6 +60,7 @@ export default function AuthModal({ onClose, onAuthenticated }) {
     setAuthMode(mode);
     setAuthError("");
     setUsernameSuggestions([]);
+    setConfirmPassword("");
   };
 
   const handleAuthChange = (field) => (event) => {
@@ -74,9 +77,15 @@ export default function AuthModal({ onClose, onAuthenticated }) {
 
   const handleAuthSubmit = async (event) => {
     event.preventDefault();
-    setAuthLoading(true);
     setAuthError("");
     setUsernameSuggestions([]);
+
+    if (authMode === "register" && authForm.password !== confirmPassword) {
+      setAuthError("Password and confirmation don't match.");
+      return;
+    }
+
+    setAuthLoading(true);
 
     try {
       const payload =
@@ -169,8 +178,36 @@ export default function AuthModal({ onClose, onAuthenticated }) {
           </label>
           <label>
             Password
-            <input type="password" value={authForm.password} onChange={handleAuthChange("password")} required />
+            <div className="password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={authForm.password}
+                onChange={handleAuthChange("password")}
+                minLength={authMode === "register" ? 8 : undefined}
+                required
+              />
+              <button
+                type="button"
+                className="text-button password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </label>
+          {authMode === "register" && (
+            <label>
+              Confirm password
+              <input
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                minLength={8}
+                required
+              />
+            </label>
+          )}
           {authError && <p className="error-text">{authError}</p>}
           <div className="form-actions">
             <button className="primary-button" type="submit" disabled={authLoading}>

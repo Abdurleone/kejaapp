@@ -40,12 +40,16 @@ describe("SavedPage", () => {
     expect(screen.getByText(/Ksh\s*45,000/)).toBeInTheDocument();
   });
 
-  it("shows the empty state when there are no saved listings", async () => {
+  it("shows the empty state with a Browse listings action when there are no saved listings", async () => {
     fetchFavorites.mockResolvedValue({ favorites: [], pagination: null });
+    const onBrowse = vi.fn();
+    const user = userEvent.setup();
 
-    render(<SavedPage onOpenProperty={vi.fn()} />);
+    render(<SavedPage onOpenProperty={vi.fn()} onBrowse={onBrowse} />);
 
     expect(await screen.findByText("No saved listings yet. Explore properties to add your favorites.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Browse listings" }));
+    expect(onBrowse).toHaveBeenCalledTimes(1);
   });
 
   it("shows an error state with a retry action when the fetch fails", async () => {

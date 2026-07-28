@@ -16,10 +16,17 @@ describe("responsive stylesheet", () => {
     assert.match(styles, /@media\s*\(max-width:\s*480px\)/);
   });
 
-  it("lets header actions wrap and stack instead of overflowing", () => {
+  it("lets header actions wrap onto their own row without stacking each action", () => {
     assert.match(styles, /\.app-header\s*{[^}]*position:\s*sticky;/s);
     assert.match(styles, /\.header-actions\s*,[\s\S]*?\.auth-panel-tabs\s*{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;/s);
-    assert.match(styles, /@media\s*\(max-width:\s*480px\)\s*{[\s\S]*?\.header-actions\s*,[\s\S]*?\.card-actions\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*1fr;/s);
+    assert.match(styles, /@media\s*\(max-width:\s*1180px\)\s*{[\s\S]*?\.header-actions\s*{[^}]*width:\s*100%;/s);
+    // .header-actions deliberately opts out of the narrow-screen grid-stack
+    // treatment .form-actions/.card-actions still get - a compact user menu
+    // (icon-only mode toggle + one name-pill button) fits on a single row
+    // even at 360px, so forcing it into a 1-column grid would waste vertical
+    // space it doesn't need to spend.
+    assert.match(styles, /@media\s*\(max-width:\s*480px\)\s*{[\s\S]*?\.form-actions\s*,[\s\S]*?\.card-actions\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*1fr;/s);
+    assert.doesNotMatch(styles, /@media\s*\(max-width:\s*480px\)\s*{[\s\S]*?\.header-actions\s*,/s);
   });
 
   it("keeps listing action buttons responsive", () => {

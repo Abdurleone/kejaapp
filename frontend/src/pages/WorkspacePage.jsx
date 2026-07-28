@@ -8,6 +8,7 @@ import {
   formatKes,
   formatStatusLabel,
   respondToInquiry,
+  statusTone,
   updateViewingRequestStatus,
 } from "../../app-utils.js";
 
@@ -176,7 +177,9 @@ export default function WorkspacePage({ onEditProperty, onCreateProperty, highli
                       <strong>{formatKes(property.price?.rent)}</strong>
                       <span>{property.location?.area || "Nairobi"}</span>
                     </div>
-                    <span className="status-pill">{formatStatusLabel(property.status)}</span>
+                    <span className={`status-pill ${statusTone(property.status)}`}>
+                      {formatStatusLabel(property.status)}
+                    </span>
                     <div className="card-actions">
                       <button
                         className="secondary-button"

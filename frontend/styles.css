@@ -211,6 +211,34 @@ button:disabled {
   outline-offset: 2px;
 }
 
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
+  border: 0;
+}
+
+.user-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 140px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-strong);
+}
+
+.user-menu-panel .text-button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+}
+
 .user-pill,
 .status-pill {
   display: inline-flex;
@@ -687,6 +715,24 @@ button:disabled {
   font-weight: 800;
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 64px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 0;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+}
+
 input,
 select,
 textarea {
@@ -1078,7 +1124,6 @@ dialog {
 }
 
 @media (max-width: 480px) {
-  .header-actions,
   .form-actions,
   .card-actions {
     display: grid;
