@@ -74,6 +74,7 @@ describe("AuthModal", () => {
     await user.type(screen.getByLabelText("Username"), "janelandlord");
     await user.type(screen.getByLabelText("Email"), "jane@example.com");
     await user.type(screen.getByLabelText("Password"), "password123");
+    await user.type(screen.getByLabelText("Confirm password"), "password123");
     await user.selectOptions(screen.getByLabelText("Role"), "landlord");
     const form = container.querySelector("form");
     await user.click(within(form).getByRole("button", { name: "Register" }));
@@ -102,6 +103,7 @@ describe("AuthModal", () => {
     await user.type(screen.getByLabelText("Username"), "janelandlord");
     await user.type(screen.getByLabelText("Email"), "jane@example.com");
     await user.type(screen.getByLabelText("Password"), "password123");
+    await user.type(screen.getByLabelText("Confirm password"), "password123");
     const form = container.querySelector("form");
     await user.click(within(form).getByRole("button", { name: "Register" }));
 
@@ -111,6 +113,47 @@ describe("AuthModal", () => {
 
     expect(screen.getByLabelText("Username")).toHaveValue("janelandlord2");
     expect(screen.queryByRole("button", { name: "janelandlord2" })).not.toBeInTheDocument();
+  });
+
+  it("only shows a confirm-password field in register mode", async () => {
+    const user = userEvent.setup();
+    render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    expect(screen.queryByLabelText("Confirm password")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    expect(screen.getByLabelText("Confirm password")).toBeInTheDocument();
+  });
+
+  it("rejects registration locally when the confirmation doesn't match, without calling the API", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    await user.type(screen.getByLabelText("Name"), "Jane Landlord");
+    await user.type(screen.getByLabelText("Username"), "janelandlord");
+    await user.type(screen.getByLabelText("Email"), "jane@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123");
+    await user.type(screen.getByLabelText("Confirm password"), "somethingelse");
+    const form = container.querySelector("form");
+    await user.click(within(form).getByRole("button", { name: "Register" }));
+
+    expect(await screen.findByText("Password and confirmation don't match.")).toBeInTheDocument();
+    expect(registerUser).not.toHaveBeenCalled();
+  });
+
+  it("toggles password visibility with the Show/Hide button", async () => {
+    const user = userEvent.setup();
+    render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    const passwordInput = screen.getByLabelText("Password");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: "Show password" }));
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    await user.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(passwordInput).toHaveAttribute("type", "password");
   });
 
   it("calls onClose from both the header Close button and the form Cancel button", async () => {

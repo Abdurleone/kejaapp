@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import kejaLogo from "../assets/keja-logo.png";
 import AuthModal from "./components/AuthModal.jsx";
+import UserMenu from "./components/UserMenu.jsx";
 import NotificationBadge from "./components/NotificationBadge.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
@@ -226,7 +227,12 @@ function App() {
           );
         }
 
-        return <SavedPage onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))} />;
+        return (
+          <SavedPage
+            onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))}
+            onBrowse={() => navigate(getViewPath("discover"))}
+          />
+        );
       case "propertyDetail":
         if (!canOpenPropertyDetails(currentUser?.role)) {
           return (
@@ -346,7 +352,12 @@ function App() {
           );
         }
 
-        return <AccountPage onAccountDeleted={handleAccountDeleted} />;
+        return (
+          <AccountPage
+            onAccountDeleted={handleAccountDeleted}
+            onBrowse={() => navigate(getViewPath("discover"))}
+          />
+        );
       case "privacy":
       case "dataProtection":
         // Kenya's Data Protection Act treats privacy and data protection as
@@ -398,12 +409,10 @@ function App() {
               ))}
             </div>
             {signedIn ? (
-              <>
-                <span className="user-pill">{currentUser?.name || currentUser?.email || "Signed in"}</span>
-                <button className="text-button" type="button" onClick={handleLogout}>
-                  Sign out
-                </button>
-              </>
+              <UserMenu
+                label={currentUser?.name || currentUser?.email || "Signed in"}
+                onSignOut={handleLogout}
+              />
             ) : (
               <button className="primary-button" type="button" onClick={openAuthPanel}>
                 Sign in
