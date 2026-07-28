@@ -22,6 +22,7 @@
     "dev": "nodemon server.js",
     "jobs": "node scripts/runScheduledJobs.js",
     "seed": "node seeders/seedDemoData.js",
+    "cleanup-test-data": "node scripts/cleanupTestData.js",
     "start": "node server.js",
     "test": "node --test",
     "lint": "eslint ."
