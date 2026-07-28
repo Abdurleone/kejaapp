@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { formatKes, formatRatingSummary, getPropertyImage } from "../../app-utils.js";
+import PropertyImage from "./PropertyImage.jsx";
 
 function PropertyCard({ property, isSaved, isSaving, signedIn, onSave, onOpenProperty }) {
   const propertyId = property._id || property.id;
@@ -12,7 +13,7 @@ function PropertyCard({ property, isSaved, isSaving, signedIn, onSave, onOpenPro
   return (
     <article className="property-card" onClick={() => onOpenProperty(propertyId)}>
       <div className="property-photo">
-        <img src={getPropertyImage(property)} alt={property.title || "Rental property"} loading="lazy" />
+        <PropertyImage src={getPropertyImage(property)} alt={property.title || "Rental property"} />
         <span className="status-pill">{property.status || "available"}</span>
       </div>
       <div className="property-body">

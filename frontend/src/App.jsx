@@ -363,7 +363,12 @@ function App() {
   };
 
   return (
-    <AuthProvider signedIn={signedIn} currentUser={currentUser} openAuthPanel={openAuthPanel}>
+    <AuthProvider
+      signedIn={signedIn}
+      currentUser={currentUser}
+      openAuthPanel={openAuthPanel}
+      setCurrentUser={setCurrentUser}
+    >
       <div className="app-shell">
         <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
           <div className="brand-block">

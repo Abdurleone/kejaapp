@@ -27,6 +27,8 @@ import {
   uploadPropertyImage,
   getAuthToken,
   setAuthToken,
+  updateCurrentUser,
+  changeCurrentUserPassword,
 } from "../app-utils.js";
 
 const jsonResponse = (body) =>
@@ -389,5 +391,39 @@ describe("frontend API helpers", () => {
       response: "Sure, it's available.",
     });
     assert.deepEqual(result, { _id: "i1", status: "responded", response: "Sure, it's available." });
+  });
+
+  it("updates the current user's name/phone", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ user: { id: "u1", name: "Jane Updated", phone: "+254711111111" } });
+    };
+
+    const result = await updateCurrentUser({ name: "Jane Updated", phone: "+254711111111" });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/auth/me");
+    assert.equal(capturedOptions.method, "PUT");
+    assert.deepEqual(JSON.parse(capturedOptions.body), { name: "Jane Updated", phone: "+254711111111" });
+    assert.deepEqual(result, { id: "u1", name: "Jane Updated", phone: "+254711111111" });
+  });
+
+  it("changes the current user's password", async () => {
+    let capturedUrl;
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedUrl = url;
+      capturedOptions = options;
+      return jsonResponse({ message: "Password updated" });
+    };
+
+    const result = await changeCurrentUserPassword({ currentPassword: "old1", newPassword: "new12345" });
+
+    assert.equal(capturedUrl, "http://localhost:5000/api/auth/password");
+    assert.equal(capturedOptions.method, "PUT");
+    assert.deepEqual(JSON.parse(capturedOptions.body), { currentPassword: "old1", newPassword: "new12345" });
+    assert.deepEqual(result, { message: "Password updated" });
   });
 });

@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import { deleteCurrentAccount, deleteSavedSearch, fetchSavedSearches } from "../../app-utils.js";
+import {
+  changeCurrentUserPassword,
+  deleteCurrentAccount,
+  deleteSavedSearch,
+  fetchSavedSearches,
+  updateCurrentUser,
+} from "../../app-utils.js";
 
 function describeSavedSearch(savedSearch) {
   const parts = [];
@@ -107,6 +113,189 @@ function SavedSearchesPanel() {
   );
 }
 
+function ProfilePanel() {
+  const { currentUser, setCurrentUser } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(currentUser?.name || "");
+  const [phone, setPhone] = useState(currentUser?.phone || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [savedMessage, setSavedMessage] = useState("");
+
+  const startEditing = () => {
+    setName(currentUser?.name || "");
+    setPhone(currentUser?.phone || "");
+    setError("");
+    setSavedMessage("");
+    setEditing(true);
+  };
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const updated = await updateCurrentUser({ name: name.trim(), phone: phone.trim() });
+      setCurrentUser?.(updated);
+      setEditing(false);
+      setSavedMessage("Profile updated.");
+    } catch (err) {
+      setError(err.message || "Could not update your profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="panel stack">
+      <div className="view-header">
+        <h3>Profile</h3>
+        {!editing && (
+          <button className="secondary-button" type="button" onClick={startEditing}>
+            Edit
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <form className="stack" onSubmit={handleSave}>
+          <label>
+            Name
+            <input
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              minLength={2}
+              required
+            />
+          </label>
+          <label>
+            Phone
+            <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} />
+          </label>
+          {error && <p className="error-text">{error}</p>}
+          <div className="form-actions">
+            <button className="primary-button" type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save changes"}
+            </button>
+            <button className="secondary-button" type="button" onClick={() => setEditing(false)} disabled={saving}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          {savedMessage && <p className="success-text">{savedMessage}</p>}
+          <div className="detail-grid">
+            <span>
+              <strong>Name</strong>
+              {currentUser?.name || "Not set"}
+            </span>
+            <span>
+              <strong>Username</strong>
+              {currentUser?.username || "Not set"}
+            </span>
+            <span>
+              <strong>Email</strong>
+              {currentUser?.email || "Not set"}
+            </span>
+            <span>
+              <strong>Role</strong>
+              {currentUser?.role || "Not set"}
+            </span>
+            <span>
+              <strong>Phone</strong>
+              {currentUser?.phone || "Not set"}
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ChangePasswordPanel() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSuccessMessage("");
+
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirmation don't match.");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      await changeCurrentUserPassword({ currentPassword, newPassword });
+      setSuccessMessage("Password updated.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err.message || "Could not change your password.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="panel stack">
+      <h3>Change password</h3>
+      <form className="stack" onSubmit={handleSubmit}>
+        <label>
+          Current password
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(event) => setCurrentPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </label>
+        <label>
+          New password
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </label>
+        <label>
+          Confirm new password
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </label>
+        {error && <p className="error-text">{error}</p>}
+        {successMessage && <p className="success-text">{successMessage}</p>}
+        <div className="form-actions">
+          <button className="primary-button" type="submit" disabled={saving}>
+            {saving ? "Updating..." : "Update password"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function AccountPage({ onAccountDeleted }) {
   const { currentUser } = useAuth();
   const [confirmation, setConfirmation] = useState("");
@@ -139,31 +328,9 @@ export default function AccountPage({ onAccountDeleted }) {
         </div>
       </div>
 
-      <div className="panel stack">
-        <h3>Profile</h3>
-        <div className="detail-grid">
-          <span>
-            <strong>Name</strong>
-            {currentUser?.name || "Not set"}
-          </span>
-          <span>
-            <strong>Username</strong>
-            {currentUser?.username || "Not set"}
-          </span>
-          <span>
-            <strong>Email</strong>
-            {currentUser?.email || "Not set"}
-          </span>
-          <span>
-            <strong>Role</strong>
-            {currentUser?.role || "Not set"}
-          </span>
-          <span>
-            <strong>Phone</strong>
-            {currentUser?.phone || "Not set"}
-          </span>
-        </div>
-      </div>
+      <ProfilePanel />
+
+      <ChangePasswordPanel />
 
       {currentUser?.role === "tenant" && <SavedSearchesPanel />}
 
