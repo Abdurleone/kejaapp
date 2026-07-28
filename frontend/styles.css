@@ -28,6 +28,13 @@
   --ink: #f2f2f2;
   --muted: #a8a8a5;
   --line: #3a3a38;
+  /* Lightened tints of the same flag hues - the light-mode values are tuned
+     for dark text on a white surface and read as near-invisible dark-on-dark
+     when reused verbatim here (e.g. #003d00 on #121212 is ~1.4:1 contrast). */
+  --green: #4caf50;
+  --red: #f2777a;
+  --amber: #e0a640;
+  --teal: #4fb3bf;
   --shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.36);
 }
@@ -503,6 +510,7 @@ button:disabled {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
+  cursor: pointer;
   transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
 }
 
@@ -833,7 +841,11 @@ dialog {
   align-items: center;
   gap: clamp(24px, 5vw, 56px);
   padding: clamp(28px, 6vw, 72px);
-  padding-top: clamp(104px, 16vw, 160px);
+  /* Below 1180px .app-header switches to a stacked (column) layout and gets
+     taller - measured 129px there vs ~64px for the single-row header this
+     clamp was originally tuned for, so the floor needs raising to match or
+     the hero heading renders underneath it. */
+  padding-top: clamp(150px, 16vw, 170px);
   color: #ffffff;
   overflow: hidden;
   background:
@@ -1032,7 +1044,10 @@ dialog {
   .landing-page {
     min-height: 100svh;
     padding: 22px;
-    padding-top: 132px;
+    /* Header grows to ~169px at this width (stacked layout plus the
+       header-actions row wrapping) - 132px left the hero heading's top
+       edge rendering underneath it. */
+    padding-top: 200px;
   }
 
   .landing-copy h2 {

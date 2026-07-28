@@ -10,7 +10,7 @@ function PropertyCard({ property, isSaved, isSaving, signedIn, onSave, onOpenPro
   const bathrooms = property.bathrooms ?? property.details?.bathrooms;
 
   return (
-    <article className="property-card">
+    <article className="property-card" onClick={() => onOpenProperty(propertyId)}>
       <div className="property-photo">
         <img src={getPropertyImage(property)} alt={property.title || "Rental property"} loading="lazy" />
         <span className="status-pill">{property.status || "available"}</span>
@@ -41,11 +41,21 @@ function PropertyCard({ property, isSaved, isSaving, signedIn, onSave, onOpenPro
             className="primary-button"
             type="button"
             disabled={isSaved || isSaving}
-            onClick={() => onSave(propertyId)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSave(propertyId);
+            }}
           >
             {isSaving ? "Saving..." : isSaved ? "Saved" : signedIn ? "Save" : "Sign in to save"}
           </button>
-          <button className="secondary-button" type="button" onClick={() => onOpenProperty(propertyId)}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenProperty(propertyId);
+            }}
+          >
             Details
           </button>
         </div>
