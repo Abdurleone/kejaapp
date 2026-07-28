@@ -128,6 +128,12 @@ phone numbers - never real user data, even anonymized or sampled from a real
 account. This has been the convention throughout the project; this section
 just makes it an explicit, written policy rather than an unstated one.
 
+If you're testing manually against a shared dev database, clean up
+throwaway accounts afterward rather than leaving them - `npm run
+cleanup-test-data` (dry run by default, `--confirm` to execute) removes
+anything that isn't one of `seedDemoData.js`'s known accounts. 57 ad-hoc
+QA/test accounts accumulated this way across sessions before this existed.
+
 ## Reporting bugs and requesting features
 
 Open a [GitHub issue](https://github.com/Abdurleone/kejaapp/issues) with as

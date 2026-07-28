@@ -2,7 +2,7 @@
 
 A point-in-time quality report for all three packages (backend, frontend, mobile), split per package into **QA** (the testing methodology/process in place — what's covered and how) and **QC** (the actual current results of running it). Regenerate the QC numbers with `npm test`/`npm run lint` (root-level scripts fan out to all three; see `package.json`) whenever this needs refreshing — they're a snapshot, not a live dashboard.
 
-**Snapshot taken:** 2026-07-27, commit `ac0363f` (`main`). Refreshed during a full documentation-accuracy pass; the previous snapshot (2026-07-17, commit `6010028`) was badly out of date — mobile in particular had a live regression (see mobile's QC section) that this refresh caught.
+**Snapshot taken:** 2026-07-28, commit `8ae7413` (`main`). Refreshed after a live UI/UX appraisal and its four-phase remediation, plus a dev-database cleanup that added a new backend service/endpoint/script. The previous snapshot (2026-07-27, commit `ac0363f`) is superseded below; mobile wasn't touched this pass, so its numbers carry forward unchanged.
 
 ## How to reproduce
 
@@ -20,7 +20,7 @@ npm run lint            # all three, or npm run lint:backend / :frontend / :mobi
 ### QA — methodology
 
 - **Runner:** Node's built-in `node --test` (`backend/package.json`'s `test` script) — no third-party test framework.
-- **Layout:** `backend/tests/` mirrors the source tree 1:1: `controllers/` (18 files), `models/` (11), `services/` (12), `validators/` (10), `utils/` (10), `middlewares/` (6), `jobs/` (6), `config/` (4), `seeders/` (1), `docs/` (1) — 82 suites, 458 tests total.
+- **Layout:** `backend/tests/` mirrors the source tree 1:1: `controllers/` (18 files), `models/` (11), `services/` (12), `validators/` (10), `utils/` (10), `middlewares/` (6), `jobs/` (6), `config/` (4), `seeders/` (1), `docs/` (1), `scripts/` (1, new — covers `cleanupTestData.js`'s account-identification logic) — 83 suites, 465 tests total.
 - **Unit vs. integration split:** the vast majority are unit-style, with dependencies (Mongoose models, external services) mocked. `backend/tests/integration/` holds two real-database suites (`apiFlows.integration.test.js`, `mongodb.integration.test.js`) that self-skip (`describe(..., { skip: !testMongoUri })`) unless `TEST_MONGODB_URI` is set — they don't run on a bare local `npm test`, but CI's `backend` job sets `TEST_MONGODB_URI` against a real `mongo:7` service container, so they do run there.
 - **Lint:** ESLint flat config (`backend/eslint.config.js`).
 - **CI:** `.github/workflows/ci.yml`'s `backend` job runs lint then test against the real MongoDB container on every push/PR to `main` (see `docs/devops.md`).
@@ -30,7 +30,7 @@ npm run lint            # all three, or npm run lint:backend / :frontend / :mobi
 
 | Check | Result |
 |---|---|
-| `npm test` | **458/458 passing**, 82 suites, 0 failures, 0 skipped |
+| `npm test` | **465/465 passing**, 83 suites, 0 failures, 0 skipped |
 | `npm run lint` | **0 errors, 0 warnings** |
 | Integration suites (`TEST_MONGODB_URI` set) | Both pass in CI against a real `mongo:7` container |
 
@@ -44,8 +44,8 @@ No findings.
 
 - **Two runners, one command:** `npm test` runs `node --test` first, then `vitest run` (`frontend/package.json`). Split scripts (`test:node`, `test:render`) exist for running either half alone.
 - **`node --test` suite** (`frontend/tests/*.test.js`, 6 files): pure-function/API-helper coverage (`api-helpers.test.js`, `app.test.js`, `request-cache.test.js`), a real-backend `auth-flow.integration.test.js`, `responsive-css.test.js` (regex-asserts specific CSS rules exist, used to guard mechanical CSS refactors), and `page-components.test.js` — a legacy regex-source-matching suite predating the Vitest render-test migration (see CHANGELOG's Phase 4 entries); most of what it once covered has since been superseded by dedicated `.render.test.jsx` files, but it hasn't been fully retired.
-- **Vitest + jsdom + React Testing Library suite** (`frontend/tests/*.render.test.jsx`, 20 files): real render + interaction tests for every page component (`AccountPage`, `AdminPage`, `App`, `AuthContext`, `AuthModal`, `DashboardPage`, `DiscoverPage` (plus its grid-memoization variant), `FeedbackPage`, list-row memoization, loading skeletons, `MoversPage`, the notification badge, `NotificationsPage`, `PropertyCreatePage`, `PropertyDetailPage` (plus its image lazy-loading variant), `PropertyEditPage`, `SavedPage`, `WorkspacePage`). This is the suite that actually exercises component behavior (clicks, form fills, async fetch/error/retry states, race-condition guards) rather than just asserting JSX source text exists.
-- **Live/manual verification:** Playwright is used ad hoc during development (via a scratch driver script, not committed to the repo) to verify behavior that's impractical to unit test — real out-of-order network races, focus traps, print-stylesheet rendering, actual browser dialog semantics. This is **not** part of the automated `npm test` run; it's a manual step taken PR-by-PR for UI-visible changes (documented per-PR in CHANGELOG.md).
+- **Vitest + jsdom + React Testing Library suite** (`frontend/tests/*.render.test.jsx`, 22 files): real render + interaction tests for every page component (`AccountPage`, `AdminPage`, `App`, `AuthContext`, `AuthModal`, `DashboardPage`, `DiscoverPage` (plus its grid-memoization variant), `FeedbackPage`, list-row memoization, loading skeletons, `MoversPage`, the notification badge, `NotificationsPage`, `PropertyCreatePage`, `PropertyDetailPage` (plus its image lazy-loading and broken-image-fallback variants), `PropertyEditPage`, `SavedPage`, `WorkspacePage`, `UserMenu`). This is the suite that actually exercises component behavior (clicks, form fills, async fetch/error/retry states, race-condition guards) rather than just asserting JSX source text exists.
+- **Live/manual verification:** Playwright is used ad hoc during development (via a scratch driver script, not committed to the repo) to verify behavior that's impractical to unit test — real out-of-order network races, focus traps, print-stylesheet rendering, actual browser dialog semantics. This is **not** part of the automated `npm test` run; it's a manual step taken PR-by-PR for UI-visible changes (documented per-PR in CHANGELOG.md). This same scratch-driver approach was also the primary method for a full UI/UX appraisal (screenshot evidence across five roles, both color modes, desktop + mobile viewports) that produced the fixes described in CHANGELOG's "Phase 1"–"Phase 3" entries; every finding was traced to an exact source line and, where fixed, re-verified live rather than by the unit-test suite passing alone.
 - **Lint:** ESLint flat config (`frontend/eslint.config.js`).
 - **Build:** `vite build` — CI's `frontend` job runs it after tests to catch build-breaking errors.
 - **Coverage tooling:** none configured, same as backend.
@@ -54,12 +54,12 @@ No findings.
 
 | Check | Result |
 |---|---|
-| `node --test` (`npm run test:node`) | **80/80 passing**, 6 suites |
-| `vitest run` (`npm run test:render`) | **133/133 passing**, 20 files |
+| `node --test` (`npm run test:node`) | **82/82 passing**, 6 suites |
+| `vitest run` (`npm run test:render`) | **152/152 passing**, 22 files |
 | `npm run lint` | **0 errors, 0 warnings** |
-| `npm run build` | Succeeds (`dist/` ~308 KB JS / ~85 KB gzipped) |
+| `npm run build` | Succeeds (numbers not re-measured this pass) |
 
-No findings.
+**Findings from this refresh (found and fixed via the UI/UX appraisal above):** dark mode never re-themed `--green`/`--red`/`--amber`/`--teal`, leaving several text elements at ~1.4:1 contrast against the dark background; the landing page's hero heading rendered clipped under the header on every phone-width viewport; a mover with no town on file displayed as literally "Kenya,"; property cards only opened via their small "Details" button; the Account page had no way to actually edit a profile despite the Data Protection Policy promising one; a broken property image rendered the browser's bare broken-image icon instead of a placeholder; the mobile tab bar clipped mid-label with no scroll affordance; Workspace's listing status pill was never color-coded; empty states gave no actionable button; the registration password field had no show/hide or confirmation; and the signed-in mobile header stacked three separate full-width rows. All eleven fixed and re-verified live; see CHANGELOG's "Phase 1"–"Phase 3" entries for specifics.
 
 ---
 
@@ -93,7 +93,9 @@ The 67 warnings are all `import/first` ("Import in body of module; reorder to to
 
 ## Cross-cutting observations
 
-- **All three packages are currently clean**: 838 total automated tests passing (458 backend + 213 frontend + 167 mobile), 0 lint errors anywhere.
+- **All three packages are currently clean**: 864 total automated tests passing (465 backend + 234 frontend + 167 mobile), 0 lint errors anywhere.
+- **A live Android emulator attempt this session OOM-crashed** three separate times (across two sessions) before finishing a cold boot, unrelated to any code change - the host currently has 0 swap available (disabled while troubleshooting a prior crash, and not restorable from inside this container - needs `wsl --shutdown` run from a Windows-side terminal). Backend/frontend dev servers were unaffected each time. This is why the UI/UX appraisal above covers only the web frontend, not the native mobile app.
+- **The dev database was cleaned of accumulated QA/test accounts** this session: 57 of 73 users were ad-hoc test data from prior manual testing sessions, never removed afterward. A reusable `deleteUserCascade` service and a dry-run-first cleanup script now exist (`backend/scripts/cleanupTestData.js`) so this doesn't require one-off scripting again - see CHANGELOG's "admin user-deletion" entry.
 - **No code coverage tooling** is configured in any of the three packages. Breadth is currently maintained by convention (new source files get a corresponding test file) rather than measured by a coverage percentage or gate. Worth considering if coverage regressions become a concern as the codebase grows.
 - **Mobile has no automated device/emulator testing** — only Jest's simulated RN environment. Real Android-emulator verification happens ad hoc and is explicitly called out per-PR when it does (or doesn't) happen; iOS has never been verified on a real device/simulator (tracked in README's "Next" section).
 - **`mobile/package.json`/`mobile/package-lock.json`** show ongoing Expo-driven dependency drift, unrelated to any code change — flagged repeatedly across recent PRs rather than committed or reverted without understanding its origin.
