@@ -9,6 +9,7 @@ import UserStatusLog from "../models/UserStatusLog.js";
 import UserViolation from "../models/UserViolation.js";
 import ViewingRequest from "../models/ViewingRequest.js";
 import { notifyUserStatusChanged } from "../services/notificationService.js";
+import { deleteUserCascade } from "../services/userDeletionService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { escapeRegExp } from "../utils/regex.js";
@@ -210,4 +211,16 @@ const listUserStatusHistory = asyncHandler(async (req, res) => {
   });
 });
 
-export { getUser, getUserSummary, listUserStatusHistory, listUsers, updateUserStatus };
+const deleteUser = asyncHandler(async (req, res) => {
+  if (req.params.id === req.user._id.toString()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Use Account settings to delete your own account");
+  }
+
+  await deleteUserCascade(req.params.id);
+
+  res.status(httpStatus.OK).json({
+    message: "User and associated data deleted",
+  });
+});
+
+export { deleteUser, getUser, getUserSummary, listUserStatusHistory, listUsers, updateUserStatus };

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
+  deleteUser,
   getUser,
   getUserSummary,
   listUserStatusHistory,
@@ -9,11 +10,19 @@ import {
   updateUserStatus,
 } from "../../controllers/adminUserController.js";
 import AgencyVerification from "../../models/AgencyVerification.js";
+import AuthSession from "../../models/AuthSession.js";
 import DeviceToken from "../../models/DeviceToken.js";
 import Favorite from "../../models/Favorite.js";
+import Feedback from "../../models/Feedback.js";
 import Inquiry from "../../models/Inquiry.js";
+import Mover from "../../models/Mover.js";
+import MoverRequest from "../../models/MoverRequest.js";
+import MoverVerification from "../../models/MoverVerification.js";
 import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
+import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
+import Review from "../../models/Review.js";
+import SavedSearch from "../../models/SavedSearch.js";
 import User from "../../models/User.js";
 import UserStatusLog from "../../models/UserStatusLog.js";
 import UserViolation from "../../models/UserViolation.js";
@@ -401,6 +410,86 @@ describe("adminUserController", () => {
     let nextError;
 
     await listUserStatusHistory(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 404);
+    assert.equal(nextError.message, "User not found");
+  });
+
+  it("deletes a user and their associated data", async () => {
+    const adminId = new mongoose.Types.ObjectId();
+    const targetId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: targetId,
+      async deleteOne() {},
+    };
+
+    mock.method(User, "findById", async () => user);
+    mock.method(Property, "find", () => ({
+      select: async () => [],
+    }));
+    mock.method(Review, "distinct", async () => []);
+
+    for (const Model of [
+      AuthSession,
+      Favorite,
+      Inquiry,
+      ViewingRequest,
+      Review,
+      Notification,
+      AgencyVerification,
+      PropertyImageFingerprint,
+      UserViolation,
+      UserStatusLog,
+      Property,
+      Mover,
+      MoverVerification,
+      MoverRequest,
+      Feedback,
+      SavedSearch,
+      DeviceToken,
+    ]) {
+      mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
+    }
+    mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
+
+    const req = { params: { id: targetId.toString() }, user: { _id: adminId } };
+    const res = createResponse();
+
+    await deleteUser(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.message, "User and associated data deleted");
+  });
+
+  it("refuses to delete the admin's own account through this route", async () => {
+    const adminId = new mongoose.Types.ObjectId();
+    const req = { params: { id: adminId.toString() }, user: { _id: adminId } };
+    const res = createResponse();
+    let nextError;
+
+    await deleteUser(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.equal(nextError.message, "Use Account settings to delete your own account");
+  });
+
+  it("returns not found when deleting a nonexistent user", async () => {
+    mock.method(User, "findById", async () => null);
+    const req = {
+      params: { id: new mongoose.Types.ObjectId().toString() },
+      user: { _id: new mongoose.Types.ObjectId() },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await deleteUser(req, res, (error) => {
       nextError = error;
     });
 
