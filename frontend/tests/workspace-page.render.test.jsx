@@ -91,6 +91,18 @@ describe("WorkspacePage", () => {
     expect(onEditProperty).toHaveBeenCalledWith("prop-1");
   });
 
+  it("color-codes a listing's status pill instead of leaving every status the same neutral tone", async () => {
+    fetchMyProperties.mockResolvedValue({
+      properties: [{ ...sampleProperty, status: "taken" }],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+    fetchReceivedInquiries.mockResolvedValue(noInquiries);
+
+    render(<WorkspacePage onEditProperty={vi.fn()} onCreateProperty={vi.fn()} />);
+
+    expect(await screen.findByText("Taken")).toHaveClass("status-pill", "status-suspended");
+  });
+
   it("shows empty states for all three sections when there's no data", async () => {
     fetchMyProperties.mockResolvedValue(noProperties);
     fetchReceivedInquiries.mockResolvedValue(noInquiries);

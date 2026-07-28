@@ -37,6 +37,18 @@ describe("AccountPage", () => {
     expect(screen.getByText("tenant")).toBeInTheDocument();
   });
 
+  it("shows a Go to Discover action alongside the empty saved-searches state", async () => {
+    fetchSavedSearches.mockResolvedValue([]);
+    const onBrowse = vi.fn();
+    const user = userEvent.setup();
+
+    renderWithAuth(<AccountPage onAccountDeleted={vi.fn()} onBrowse={onBrowse} />, { currentUser: tenantUser });
+    await screen.findByText(/no saved searches yet/);
+
+    await user.click(screen.getByRole("button", { name: "Go to Discover" }));
+    expect(onBrowse).toHaveBeenCalledTimes(1);
+  });
+
   it("shows saved searches only for tenants", async () => {
     fetchSavedSearches.mockResolvedValue([{ _id: "ss-1", county: "Nairobi", bedrooms: 2 }]);
 
