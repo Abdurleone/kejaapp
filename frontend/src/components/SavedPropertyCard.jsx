@@ -5,7 +5,7 @@ function SavedPropertyCard({ property, isRemoving, onOpenProperty, onRemove }) {
   const propertyId = property._id || property.id;
 
   return (
-    <article className="property-card">
+    <article className="property-card" onClick={() => onOpenProperty(propertyId)}>
       <div className="property-body">
         <h3 className="property-title">{property.title || "Rental property"}</h3>
         <p className="property-rating">{formatRatingSummary(property.ratingAverage, property.ratingCount)}</p>
@@ -14,14 +14,24 @@ function SavedPropertyCard({ property, isRemoving, onOpenProperty, onRemove }) {
           <span>{property.location?.area || "Nairobi"}</span>
         </div>
         <div className="card-actions">
-          <button className="secondary-button" type="button" onClick={() => onOpenProperty(propertyId)}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenProperty(propertyId);
+            }}
+          >
             Details
           </button>
           <button
             className="secondary-button"
             type="button"
             disabled={isRemoving}
-            onClick={() => onRemove(propertyId)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove(propertyId);
+            }}
           >
             Remove
           </button>
