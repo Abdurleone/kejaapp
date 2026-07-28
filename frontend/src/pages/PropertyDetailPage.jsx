@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PropertyDetailSkeleton from "../components/PropertyDetailSkeleton.jsx";
+import PropertyImage from "../components/PropertyImage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
   buildEmailUrl,
@@ -403,7 +404,7 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
 
       <div className="panel detail-panel">
         <div className="property-photo">
-          <img src={getPropertyImage(property, apiBaseUrl)} alt={property.title || "Rental property"} />
+          <PropertyImage src={getPropertyImage(property, apiBaseUrl)} alt={property.title || "Rental property"} eager />
           <span className="status-pill">{property.status || "available"}</span>
         </div>
 

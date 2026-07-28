@@ -5,5 +5,12 @@ import { AuthProvider } from "../../src/context/AuthContext.jsx";
 // from AuthContext instead of receiving them as props (see App.jsx) - render
 // tests for those pages need this wrapper instead of passing those as props
 // directly to the component under test.
-export const renderWithAuth = (ui, { signedIn = false, currentUser = null, openAuthPanel = () => {} } = {}) =>
-  render(<AuthProvider signedIn={signedIn} currentUser={currentUser} openAuthPanel={openAuthPanel}>{ui}</AuthProvider>);
+export const renderWithAuth = (
+  ui,
+  { signedIn = false, currentUser = null, openAuthPanel = () => {}, setCurrentUser = () => {} } = {}
+) =>
+  render(
+    <AuthProvider signedIn={signedIn} currentUser={currentUser} openAuthPanel={openAuthPanel} setCurrentUser={setCurrentUser}>
+      {ui}
+    </AuthProvider>
+  );

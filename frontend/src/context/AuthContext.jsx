@@ -6,10 +6,10 @@ const AuthContext = createContext(null);
 // the session-restore effect and the login/logout handlers) - this just
 // makes that state and the "open the sign-in modal" action available to any
 // page without threading them through every renderCurrentPage() call site.
-export function AuthProvider({ signedIn, currentUser, openAuthPanel, children }) {
+export function AuthProvider({ signedIn, currentUser, openAuthPanel, setCurrentUser, children }) {
   const value = useMemo(
-    () => ({ signedIn, currentUser, openAuthPanel }),
-    [signedIn, currentUser, openAuthPanel]
+    () => ({ signedIn, currentUser, openAuthPanel, setCurrentUser }),
+    [signedIn, currentUser, openAuthPanel, setCurrentUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

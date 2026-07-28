@@ -528,6 +528,15 @@ export const fetchCurrentUser = async () => {
   return response.user;
 };
 
+export const updateCurrentUser = async (updates) => {
+  const response = await apiFetch("/api/auth/me", { method: "PUT", body: updates });
+  return response.user;
+};
+
+export const changeCurrentUserPassword = async ({ currentPassword, newPassword }) => {
+  return apiFetch("/api/auth/password", { method: "PUT", body: { currentPassword, newPassword } });
+};
+
 export const fetchFavorites = async (query = {}) => {
   const queryString = buildQueryString(query);
   const cacheKey = `favorites:${queryString}`;
