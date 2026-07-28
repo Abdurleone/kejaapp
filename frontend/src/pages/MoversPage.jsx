@@ -106,6 +106,11 @@ function MoverRequestForm({ moverId, onCancel, onSent }) {
   );
 }
 
+function formatMoverLocation(location) {
+  const parts = [location?.town, location?.county].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "Location not set";
+}
+
 function MoverCard({ mover, currentUser, onRequireAuth, onAffiliateChange }) {
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
@@ -138,9 +143,7 @@ function MoverCard({ mover, currentUser, onRequireAuth, onAffiliateChange }) {
             {mover.verified ? "Verified" : "Unverified"}
           </span>
         </div>
-        <p className="muted-copy">
-          {mover.location?.town || "Kenya"}, {mover.location?.county || ""}
-        </p>
+        <p className="muted-copy">{formatMoverLocation(mover.location)}</p>
         <p className="muted-copy">
           {(mover.serviceTypes || []).map((type) => formatStatusLabel(type)).join(", ") || "General moving"}
         </p>
