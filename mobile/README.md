@@ -70,7 +70,7 @@ For a physical device, run the app in a development build or Expo Go's dev clien
 
 ### Demo accounts
 
-Same seeded accounts as the backend (see the root README), e.g. `tenant@example.com` / `password123`.
+For the shared seeded demo accounts and password reference, see **[docs/demo-credentials.md](../docs/demo-credentials.md)**.
 
 ## Producing a real installable build
 
