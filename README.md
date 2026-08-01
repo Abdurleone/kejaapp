@@ -1,6 +1,6 @@
 # KejaApp
 
-KejaApp is a location-first rental platform for tenants, landlords, agencies, admins, and movers. It combines property discovery, verification workflows, transparent pricing, notifications, and move-management in a single product.
+KejaApp is a location-first rental platform for tenants, landlords, agencies, admins, and movers. It combines property discovery, verification workflows, transparent pricing, notifications, and move coordination in a single product.
 
 ## Current Status
 
@@ -13,14 +13,18 @@ KejaApp is currently in active MVP development. The repository includes:
 
 ## Overview
 
-The platform is designed for the full rental lifecycle:
+KejaApp is designed to support the full rental lifecycle:
 
 - tenants can discover and save properties
 - landlords and agencies can manage listings and owner workflows
 - admins can moderate users and verification requests
 - movers can register, get verified, and receive service requests
 
-The product aims to make rental discovery more transparent, more trusted, and more operationally complete than a basic listing portal.
+The goal is to make rental discovery more transparent, more trusted, and more operationally complete than a basic listing portal.
+
+## Payment Boundary
+
+KejaApp is a discovery and coordination platform. It does not process, hold, or mediate rent, deposits, agency fees, or mover charges. Those arrangements are agreed and settled directly between the parties involved.
 
 ## Key Features
 
@@ -48,9 +52,7 @@ The repository is organized into a few major areas:
 
 ## Quick Start
 
-### Prerequisites
-
-Before running the project locally, make sure you have:
+To get the project running locally, make sure you have:
 
 - Node.js and npm
 - Docker and Docker Compose
@@ -111,7 +113,7 @@ npm --prefix backend run seed
 
 ## Development Workflow
 
-The workspace root exposes a few convenience scripts for common developer tasks:
+The workspace root includes a small set of convenience scripts for common development tasks:
 
 ```bash
 npm run dev
