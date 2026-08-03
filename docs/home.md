@@ -29,7 +29,7 @@ This wiki is a navigable companion to the repository documentation. The [README]
 | Mobile | React Native (Expo), iOS + Android from one codebase |
 | Auth | JWT + HTTP-only refresh-token cookies, login by email or username |
 | Tests | Node's built-in `node:test` (backend, frontend), Jest + RNTL (mobile) |
-| License | [MIT](../LICENSE) |
+| License | All rights reserved (source-available, [see LICENSE](../LICENSE)) |
 
 ## Repo layout at a glance
 

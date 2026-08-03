@@ -209,12 +209,10 @@ For more detail, see [docs/devops.md](docs/devops.md).
 
 ## Contributing
 
-Contributions are welcome. For a clean development loop:
-
-1. create a feature branch
-2. run the relevant tests and lint checks
-3. keep documentation in sync with behavior changes
-4. open a pull request with a clear summary of the work
+This is a closed, all-rights-reserved project (see [License](#license)) — the
+source is publicly viewable but not open for unsolicited forks or pull
+requests. If you'd like to contribute, contact the copyright holder first to
+get express permission before doing any work.
 
 ## License
 

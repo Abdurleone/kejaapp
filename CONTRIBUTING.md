@@ -1,7 +1,10 @@
 # Contributing to KejaApp
 
-Thanks for your interest in contributing! This document covers everything
-you need to get set up, make a change, and get it merged.
+This is a closed, all-rights-reserved project (see [LICENSE](./LICENSE)) —
+the source is publicly viewable but not open for unsolicited forks or pull
+requests. **Contact the copyright holder and get express written permission
+before doing any work.** Once permission is granted, this document covers
+everything you need to get set up, make a change, and get it merged.
 
 Please also read our [Code of Conduct](./CODE_OF_CONDUCT.md) — participation
 in this project means agreeing to abide by it.
@@ -146,5 +149,6 @@ Found a security vulnerability? Please don't open a public issue — see
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under
-this project's [MIT License](./LICENSE).
+By contributing (with express permission as described above), you agree that
+your contributions become part of the Software under this project's
+[all-rights-reserved license](./LICENSE).
