@@ -52,6 +52,15 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "jest"
         update-types: ["version-update:semver-major"]
+      # @react-native-async-storage/async-storage's major version is tied
+      # to the installed Expo SDK (`npx expo install --check` is the source
+      # of truth, not semver) - a major-version group bump (#157) landed
+      # 3.1.1 against an SDK 57 project expecting 2.2.0, breaking AsyncStorage
+      # at runtime ("Native module is null") with zero test-suite signal,
+      # since the test suite mocks AsyncStorage entirely. Unnoticed until a
+      # live emulator run surfaced it, since CI is currently disabled.
+      - dependency-name: "@react-native-async-storage/async-storage"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
