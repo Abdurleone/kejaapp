@@ -25,6 +25,7 @@
     "cleanup-test-data": "node scripts/cleanupTestData.js",
     "start": "node server.js",
     "test": "node --test",
+    "test:coverage": "node --experimental-test-coverage --test",
     "lint": "eslint ."
   },
   "dependencies": {
