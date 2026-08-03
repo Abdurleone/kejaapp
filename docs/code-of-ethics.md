@@ -7,7 +7,7 @@ This Code of Ethics sets out the principles that govern how KejaApp is built, op
 - The KejaApp team (engineering, product, support, and anyone with administrative access to the platform).
 - Every user role the platform serves — tenants, landlords, agencies, movers, and admins.
 
-It is a **platform and business ethics policy** — how KejaApp treats the people who use it and the decisions its operators make. It is distinct from [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md), which governs behavior of contributors to the open-source codebase itself (based on the Contributor Covenant).
+It is a **platform and business ethics policy** — how KejaApp treats the people who use it and the decisions its operators make. It is distinct from [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md), which governs behavior of permitted contributors to the codebase itself (based on the Contributor Covenant).
 
 The principles here are made enforceable in the [Terms of Service](terms-of-service.md) and the [Acceptable Use Policy](acceptable-use-policy.md); how KejaApp handles disagreements — between users, or about an enforcement decision — is covered in the [Dispute Resolution & Complaints Policy](dispute-resolution-policy.md).
 
