@@ -39,6 +39,7 @@ POST   /api/auth/refresh
 POST   /api/auth/logout
 GET    /api/auth/me
 PUT    /api/auth/me
+DELETE /api/auth/me                                          full cascade delete of the current user's own account
 PUT    /api/auth/password
 ```
 
