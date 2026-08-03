@@ -185,12 +185,16 @@ npm test
 
 ## Documentation
 
-Useful documents in this repository:
+This README is a quick-start landing page, not the full reference. For everything else — API reference, per-role user stories, architecture, roadmap, governance/policy docs, and the user manual — see the [project Wiki](https://github.com/Abdurleone/kejaapp/wiki).
 
+Other documents kept in this repository:
+
+- [CHANGELOG.md](CHANGELOG.md) — detailed, chronological history of what's been built.
 - [AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)
 - [docs/devops.md](docs/devops.md)
 - [docs/scaling-load-balancing.md](docs/scaling-load-balancing.md)
 - [docs/qa-qc-report.md](docs/qa-qc-report.md)
+- [docs/demo-credentials.md](docs/demo-credentials.md)
 - [mobile/README.md](mobile/README.md)
 
 ## Deployment

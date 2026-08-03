@@ -28,5 +28,5 @@ Use these as the stable, human-friendly demo identities for local testing:
 
 - You can sign in with either the account email or that account's generated username.
 - The password for every seeded account is the same shared value above.
-- The exact username values are generated during seeding and are not guaranteed to be stable across reseeds.
+- Usernames are randomly generated only the first time an account is created: `upsertUsers()` in the seeder does a `findOne` by email first, and only assigns a new username via `generateUniqueUsername()` when no account exists yet — an existing account's username is left untouched on every subsequent reseed. So for a given database, once seeded, each demo account's username stays stable across reseeds; it just isn't predictable in advance for a database that hasn't been seeded yet (e.g. a fresh environment).
 - The full seeded roster is defined in `backend/seeders/seedDemoData.js`; this page intentionally keeps only the stable primary examples for day-to-day testing.

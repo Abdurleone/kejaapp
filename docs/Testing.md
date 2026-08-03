@@ -62,7 +62,7 @@ Two tracks, run together by `npm test`:
 
 ## Mobile tests
 
-Jest + `jest-expo` + React Native Testing Library (29 suites, 139 tests), covering:
+Jest + `jest-expo` + React Native Testing Library (31 suites, 167 tests), covering:
 
 - API client logic (query string building, auth token/base URL storage, `apiFetch` success/error paths including `suggestions` passthrough).
 - Formatting utilities (currency, rating summary, status labels).
