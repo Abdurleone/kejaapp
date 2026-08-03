@@ -23,6 +23,12 @@ const pushReceiptSchema = new mongoose.Schema(
   }
 );
 
+// pollExpoPushReceipts.js's only two queries against this model both filter
+// or sort on createdAt alone (find({}).sort("createdAt") and a deleteMany
+// createdAt range) - without this, both are a full collection scan on every
+// 15-minute run.
+pushReceiptSchema.index({ createdAt: 1 });
+
 const PushReceipt = mongoose.model("PushReceipt", pushReceiptSchema);
 
 export default PushReceipt;
