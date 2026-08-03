@@ -65,6 +65,9 @@ describe("SavedScreen", () => {
     const { getByText } = await render(<SavedScreen />);
 
     await waitFor(() => expect(getByText("No saved listings yet")).toBeTruthy());
+
+    fireEvent.press(getByText("Browse listings"));
+    expect(mockNavigate).toHaveBeenCalledWith("Discover");
   });
 
   it("shows a retry action when loading fails", async () => {

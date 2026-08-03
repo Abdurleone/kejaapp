@@ -121,6 +121,8 @@ export default function SavedScreen() {
       <MessageView
         title="No saved listings yet"
         message="Explore properties in Discover to add your favorites."
+        actionLabel="Browse listings"
+        onAction={() => navigation.navigate("Discover")}
       />
     );
   }
