@@ -24,6 +24,3 @@ export const darkColors = {
   red: "#bb0a1e",
   white: "#ffffff",
 };
-
-// Default export kept as the light palette for any lingering static usage.
-export default lightColors;

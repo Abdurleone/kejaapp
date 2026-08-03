@@ -68,7 +68,6 @@ const updateMoverRequestStatusSchema = {
 
 export {
   createMoverRequestSchema,
-  manageableMoverRequestStatuses,
   moverRequestStatuses,
   updateMoverRequestStatusSchema,
 };

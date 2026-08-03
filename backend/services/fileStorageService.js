@@ -109,7 +109,6 @@ const deletePropertyImage = async ({ storagePath }) => {
 };
 
 export {
-  allowedImageMimeTypes,
   createBytePerceptualHash,
   decodeImagePayload,
   deletePropertyImage,
