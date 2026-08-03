@@ -714,7 +714,7 @@ const createStyles = (colors) =>
     costValue: {
       fontSize: 15,
       fontWeight: "800",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     costLabel: {
       fontSize: 12,
@@ -729,7 +729,7 @@ const createStyles = (colors) =>
     badgeText: {
       fontSize: 11,
       fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     error: {
       color: colors.red,

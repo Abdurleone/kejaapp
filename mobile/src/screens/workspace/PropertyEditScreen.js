@@ -157,7 +157,7 @@ export default function PropertyEditScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.greenDark} />
+        <ActivityIndicator color={colors.accentText} />
       </View>
     );
   }
@@ -254,7 +254,7 @@ export default function PropertyEditScreen({ route, navigation }) {
         {!photoError && photoNotice ? <Text style={styles.notice}>{photoNotice}</Text> : null}
         <Pressable style={styles.secondaryButton} onPress={handleAddPhoto} disabled={uploadingPhoto}>
           {uploadingPhoto ? (
-            <ActivityIndicator color={colors.greenDark} />
+            <ActivityIndicator color={colors.accentText} />
           ) : (
             <Text style={styles.secondaryButtonText}>Add photo</Text>
           )}
@@ -460,7 +460,7 @@ const createStyles = (colors) =>
       fontSize: 13,
     },
     notice: {
-      color: colors.greenDark,
+      color: colors.accentText,
       fontSize: 13,
     },
     primaryButton: {
@@ -475,13 +475,13 @@ const createStyles = (colors) =>
     },
     secondaryButton: {
       borderWidth: 1,
-      borderColor: colors.greenDark,
+      borderColor: colors.accentText,
       borderRadius: 8,
       paddingVertical: 14,
       alignItems: "center",
     },
     secondaryButtonText: {
-      color: colors.greenDark,
+      color: colors.accentText,
       fontWeight: "800",
     },
     photoGrid: {

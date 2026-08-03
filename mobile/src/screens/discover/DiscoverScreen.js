@@ -443,7 +443,7 @@ const createStyles = (colors) =>
     paddingBottom: 4,
   },
   inlineMessage: {
-    color: colors.greenDark,
+    color: colors.accentText,
     fontSize: 12,
     paddingHorizontal: 16,
     paddingBottom: 4,

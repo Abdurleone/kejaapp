@@ -32,7 +32,7 @@ export default function WorkspaceStack() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               {canManageListings ? (
                 <Pressable onPress={() => navigation.navigate("PropertyCreate")} hitSlop={10}>
-                  <Text style={{ color: colors.greenDark, fontWeight: "700" }}>New listing</Text>
+                  <Text style={{ color: colors.accentText, fontWeight: "700" }}>New listing</Text>
                 </Pressable>
               ) : null}
               <ColorModeToggle />
