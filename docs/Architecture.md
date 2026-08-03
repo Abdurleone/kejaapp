@@ -61,11 +61,19 @@ docs/
 ├── records-of-processing-activities.md
 ├── data-protection-impact-assessment.md
 ├── incident-response-plan.md
+├── records-retention-and-protection-policy.md
 ├── iso27001-statement-of-applicability.md
 ├── accessibility-statement.md
+├── qa-qc-report.md
+├── demo-credentials.md
 ├── user-manual/         # general + one manual per role
 ├── devops.md
-└── kejaapp-insomnia.json
+├── scaling-load-balancing.md
+├── kejaapp-insomnia.json
+├── home.md, _Sidebar.md, _Footer.md         # wiki source pages
+└── Getting-Started.md, Architecture.md, Authentication.md, Deployment.md,
+    Features-and-User-Stories.md, Testing.md, Troubleshooting.md,
+    API-Reference.md, Roadmap.md, Governance-and-Policies.md, Keja-App.md   # mirrored to the wiki, this is the master copy
 
 k8s/           Kubernetes manifests (see Deployment)
 docker-compose.yml

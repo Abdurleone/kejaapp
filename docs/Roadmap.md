@@ -1,6 +1,6 @@
 # Roadmap
 
-The canonical version of this list is the [README's Roadmap section](https://github.com/Abdurleone/kejaapp#roadmap) — check there first if this looks stale.
+The canonical, detailed history is [CHANGELOG.md](https://github.com/Abdurleone/kejaapp/blob/main/CHANGELOG.md) in the repo — this page is a summarized Completed/Next view for wiki readers.
 
 ## Completed
 
