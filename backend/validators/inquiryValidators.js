@@ -46,6 +46,5 @@ export {
   contactPreferences,
   createInquirySchema,
   inquiryStatuses,
-  manageableInquiryStatuses,
   updateInquirySchema,
 };

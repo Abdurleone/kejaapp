@@ -218,7 +218,6 @@ const unaffiliateMover = asyncHandler(async (req, res) => {
 
 export {
   affiliateMover,
-  buildMoverFilters,
   getMover,
   getMoverProfile,
   listMovers,
