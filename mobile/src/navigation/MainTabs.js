@@ -106,7 +106,7 @@ export default function MainTabs() {
 
   const screenOptions = useCallback(
     ({ route }) => ({
-      tabBarActiveTintColor: colors.greenDark,
+      tabBarActiveTintColor: colors.accentText,
       tabBarInactiveTintColor: colors.muted,
       tabBarIcon: ({ color, size }) => (
         <Ionicons name={icons[route.name]} size={size} color={color} />

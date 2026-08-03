@@ -203,7 +203,7 @@ const createStyles = (colors) =>
   tileValue: {
     fontSize: 20,
     fontWeight: "800",
-    color: colors.greenDark,
+    color: colors.accentText,
   },
   tileLabel: {
     fontSize: 12,

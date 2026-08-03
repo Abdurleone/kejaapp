@@ -7,7 +7,7 @@ export default function LoadingView({ label = "Loading..." }) {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator color={colors.greenDark} size="large" />
+      <ActivityIndicator color={colors.accentText} size="large" />
       <Text style={styles.label}>{label}</Text>
     </View>
   );

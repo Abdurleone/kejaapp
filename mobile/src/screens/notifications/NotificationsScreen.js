@@ -329,7 +329,7 @@ const createStyles = (colors) =>
     markReadText: {
       fontSize: 13,
       fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     badge: {
       backgroundColor: colors.surfaceSoft,
@@ -340,6 +340,6 @@ const createStyles = (colors) =>
     badgeText: {
       fontSize: 11,
       fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
   });

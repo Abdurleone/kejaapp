@@ -278,7 +278,7 @@ const createStyles = (colors) =>
     fontSize: 15,
   },
   link: {
-    color: colors.greenDark,
+    color: colors.accentText,
     fontWeight: "700",
     textAlign: "center",
     marginTop: 8,
