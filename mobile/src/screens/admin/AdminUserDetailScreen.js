@@ -86,7 +86,7 @@ export default function AdminUserDetailScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.greenDark} />
+        <ActivityIndicator color={colors.accentText} />
       </View>
     );
   }
@@ -251,7 +251,7 @@ const createStyles = (colors) =>
     statValueLarge: {
       fontSize: 20,
       fontWeight: "800",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     badge: {
       alignSelf: "flex-start",
@@ -263,7 +263,7 @@ const createStyles = (colors) =>
     badgeText: {
       fontSize: 11,
       fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     field: {
       gap: 8,
@@ -317,7 +317,7 @@ const createStyles = (colors) =>
       fontSize: 13,
     },
     notice: {
-      color: colors.greenDark,
+      color: colors.accentText,
       fontSize: 13,
     },
     primaryButton: {

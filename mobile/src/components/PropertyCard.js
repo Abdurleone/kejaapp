@@ -96,7 +96,7 @@ const createStyles = (colors) =>
     imagePlaceholderText: {
       fontSize: 32,
       fontWeight: "800",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     statusPill: {
       position: "absolute",
@@ -136,7 +136,7 @@ const createStyles = (colors) =>
     verifiedBadgeText: {
       fontSize: 11,
       fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     costRow: {
       flexDirection: "row",
@@ -146,7 +146,7 @@ const createStyles = (colors) =>
     price: {
       fontSize: 17,
       fontWeight: "800",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     priceLabel: {
       fontSize: 12,
@@ -175,7 +175,7 @@ const createStyles = (colors) =>
     detailsLink: {
       fontSize: 13,
       fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.accentText,
     },
     saveButton: {
       alignSelf: "flex-start",

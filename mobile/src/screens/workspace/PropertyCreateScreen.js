@@ -192,7 +192,7 @@ export default function PropertyCreateScreen({ navigation }) {
       )}
       <Pressable style={styles.secondaryButton} onPress={handleAddPhotos} disabled={pickingPhotos}>
         {pickingPhotos ? (
-          <ActivityIndicator color={colors.greenDark} />
+          <ActivityIndicator color={colors.accentText} />
         ) : (
           <Text style={styles.secondaryButtonText}>Select photos</Text>
         )}
@@ -393,13 +393,13 @@ const createStyles = (colors) =>
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: colors.greenDark,
+    borderColor: colors.accentText,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
   },
   secondaryButtonText: {
-    color: colors.greenDark,
+    color: colors.accentText,
     fontWeight: "800",
   },
   photoGrid: {

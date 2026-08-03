@@ -19,7 +19,7 @@ export default function ColorModeToggle({ color }) {
       <Ionicons
         name={colorMode === "dark" ? "moon" : "sunny"}
         size={20}
-        color={color || colors.greenDark}
+        color={color || colors.accentText}
       />
     </Pressable>
   );

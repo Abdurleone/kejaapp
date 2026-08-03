@@ -364,7 +364,7 @@ const createStyles = (colors) =>
   imagePlaceholderText: {
     fontSize: 48,
     fontWeight: "800",
-    color: colors.greenDark,
+    color: colors.accentText,
   },
   title: {
     fontSize: 22,
@@ -377,7 +377,7 @@ const createStyles = (colors) =>
   },
   rating: {
     fontSize: 13,
-    color: colors.greenDark,
+    color: colors.accentText,
     fontWeight: "700",
   },
   metaRow: {
@@ -418,7 +418,7 @@ const createStyles = (colors) =>
   verifiedBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: colors.greenDark,
+    color: colors.accentText,
   },
   moverGroup: {
     gap: 8,
@@ -472,7 +472,7 @@ const createStyles = (colors) =>
     color: colors.ink,
   },
   costValueEmphasis: {
-    color: colors.greenDark,
+    color: colors.accentText,
     fontSize: 14,
   },
   contactLine: {
@@ -481,7 +481,7 @@ const createStyles = (colors) =>
   },
   contactLineLink: {
     fontSize: 13,
-    color: colors.greenDark,
+    color: colors.accentText,
     fontWeight: "700",
     textDecorationLine: "underline",
   },

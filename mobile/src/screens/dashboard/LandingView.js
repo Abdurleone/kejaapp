@@ -191,7 +191,11 @@ const createStyles = (colors, windowHeight) =>
     borderRadius: 8,
   },
   ctaLabel: {
-    color: colors.ink,
+    // Literal, not colors.ink - this button's background is always white
+    // (branding choice against the hero gradient), so its text must stay
+    // dark regardless of color mode, unlike colors.ink which flips to
+    // near-white in dark mode and would otherwise vanish against it.
+    color: "#141414",
     fontWeight: "800",
     fontSize: 15,
   },
