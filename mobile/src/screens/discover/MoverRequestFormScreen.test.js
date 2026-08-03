@@ -100,9 +100,11 @@ describe("MoverRequestFormScreen", () => {
 
       const { getByText, getByPlaceholderText, findByText } = await renderScreen();
 
+      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
       await fireEvent.press(getByText("2 Bedroom"));
       await fireEvent.changeText(getByPlaceholderText("Tell them about your move..."), "Moving a 2-bedroom flat");
-      await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), "2026-08-01");
+      await fireEvent.changeText(getByPlaceholderText("YYYY-MM-DD"), futureDate);
       await fireEvent.press(getByText("Send request"));
 
       expect(await findByText("Nairobi Movers will respond soon.")).toBeTruthy();

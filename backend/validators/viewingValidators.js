@@ -54,7 +54,6 @@ const updateViewingStatusSchema = {
 };
 
 export {
-  actionableViewingStatuses,
   createViewingRequestSchema,
   updateViewingStatusSchema,
   viewingStatuses,

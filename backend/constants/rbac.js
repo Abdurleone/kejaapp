@@ -13,7 +13,6 @@ const roleGroups = Object.freeze({
   propertyOwners: [roles.landlord, roles.agency],
   agencies: [roles.agency],
   movers: [roles.mover],
-  admins: [roles.admin],
 });
 
 const roleList = Object.freeze(Object.values(roles));

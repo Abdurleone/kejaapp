@@ -259,11 +259,9 @@ const uploadPropertyImageSchema = {
 
 export {
   costCalculationSchema,
-  contactMethods,
   createPropertySchema,
   propertyStatuses,
   propertyImageSchema,
   uploadPropertyImageSchema,
   updatePropertySchema,
-  viewingTypes,
 };

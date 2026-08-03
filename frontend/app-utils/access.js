@@ -9,10 +9,7 @@ export const roles = Object.freeze({
 export const roleGroups = Object.freeze({
   tenantOnly: [roles.tenant],
   listingManagers: [roles.landlord, roles.agency],
-  propertyOwners: [roles.landlord, roles.agency],
-  agencies: [roles.agency],
   movers: [roles.mover],
-  admins: [roles.admin],
 });
 
 export const hasRole = (role, allowedRoles) => allowedRoles.includes(role);
