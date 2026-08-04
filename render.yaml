@@ -54,8 +54,13 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # "kejaapp-backend" was already taken by another Render user globally
+      # (Render subdomains are unique across all accounts, not just yours),
+      # so Render assigned this real deployment "kejaapp-backend-7iu3"
+      # instead. Update this if you ever recreate the backend service under
+      # a different assigned name.
       - key: VITE_API_BASE_URL
-        value: https://kejaapp-backend.onrender.com
+        value: https://kejaapp-backend-7iu3.onrender.com
     routes:
       - type: rewrite
         source: /*
