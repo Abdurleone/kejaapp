@@ -27,7 +27,7 @@ Pricing fields are landlord/agency-only — tenants and admins cannot set or edi
 
 ## 4. Mover affiliates
 
-If you work with movers you trust, mark them as **affiliates** from the Movers tab (add/remove). An affiliated mover appears under **"Recommended by the owner"** on every one of your properties' detail pages, ahead of the general "movers nearby" list — a way to vouch for movers you've had a good experience with, without KejaApp itself endorsing them.
+If you work with movers you trust, mark them as **affiliates** from Movers (its own tab on web; on mobile, via **More → Movers**) (add/remove). An affiliated mover appears under **"Recommended by the owner"** on every one of your properties' detail pages, ahead of the general "movers nearby" list — a way to vouch for movers you've had a good experience with, without KejaApp itself endorsing them.
 
 ## 5. Agency verification
 

@@ -41,8 +41,8 @@ mobile/
 │   ├── api/            # apiFetch client + domain functions
 │   ├── components/     # Shared UI (PropertyCard, MessageView, Skeletons)
 │   ├── context/        # AuthContext, SettingsContext, ThemeContext (light/dark mode)
-│   ├── navigation/      # Root stack, bottom tabs, per-tab stacks (incl. Movers stack)
-│   ├── screens/         # auth/, dashboard/, discover/, saved/, workspace/, movers/, requests/, account/, feedback/
+│   ├── navigation/      # Root stack, bottom tabs (2 pinned + More; roleTabs.js), per-tab stacks (incl. Movers, More stacks)
+│   ├── screens/         # auth/, dashboard/, discover/, saved/, workspace/, movers/, requests/, notifications/, feedback/, account/, admin/, more/
 │   ├── theme/           # Shared color tokens (mirrors frontend/styles.css; light + dark variants)
 │   └── utils/           # Formatting helpers, contact.js (tel:/mailto:/wa.me link builders)
 ├── App.js
