@@ -51,7 +51,7 @@ MongoDB is **not** provisioned — bring your own Atlas (or other) connection st
 3. Create an object storage bucket (see below) and set the five `sync: false` secrets: `S3_BUCKET`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`.
 4. Deploy. If Render assigns different subdomains than the defaults baked into `render.yaml` (`CORS_ORIGIN`, `VITE_API_BASE_URL`), update those and redeploy.
 
-**Known limitations:** both services spin down after 15 min idle on the free plan (cold start on next request, though uploaded images aren't affected if using the `s3` driver); single backend instance (no horizontal scaling, though Redis-backed rate limiting already supports it if you scale up); auto-deploys on push with no CI gate (a red `main` doesn't block a Render deploy unless you disable auto-deploy).
+**Known limitations:** both services spin down after 15 min idle on the free plan (cold start on next request, though uploaded images aren't affected if using the `s3` driver); single backend instance (no horizontal scaling, though Redis-backed rate limiting already supports it if you scale up); auto-deploys on push with no CI gate (a red `main` doesn't block a Render deploy unless you disable auto-deploy). This Blueprint (backend + frontend + Redis) is entirely on free plans — malware scanning (ClamAV) is deliberately left off this path since it needs more RAM than the free plan allows; uploads just skip scanning rather than erroring (see `docs/devops.md` for adding it back on a paid plan).
 
 ## Object storage
 
