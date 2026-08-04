@@ -38,6 +38,10 @@ export const changeCurrentUserPassword = async (payload) => {
   return apiFetch("/api/auth/password", { method: "PUT", body: payload });
 };
 
+export const deleteCurrentAccount = async () => {
+  return apiFetch("/api/auth/me", { method: "DELETE" });
+};
+
 // --- Dashboard ---
 
 export const fetchDashboardSummary = async () => {

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
   changeCurrentUserPassword,
+  deleteCurrentAccount,
   deleteSavedSearch,
   fetchSavedSearches,
   updateCurrentUser,
@@ -11,6 +12,17 @@ import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 
 const minPasswordLength = 8;
+const deleteConfirmationPhrase = "DELETE";
+
+// Not deployed yet - update this to the real production domain once it
+// exists. Terms/Privacy content lives only on the web app (frontend/src/pages/
+// TermsPage.jsx, DataProtectionPage.jsx) - mobile links out rather than
+// duplicating that content natively, so it can't drift out of sync.
+const webAppBaseUrl = "https://kejaapp.example.com";
+
+const openLegalPage = (path) => {
+  Linking.openURL(`${webAppBaseUrl}${path}`).catch(() => {});
+};
 
 function describeSavedSearch(savedSearch) {
   const parts = [];
@@ -263,6 +275,65 @@ function ChangePasswordCard({ styles }) {
   );
 }
 
+function DangerZoneCard({ styles, logout }) {
+  const [confirmation, setConfirmation] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+  const canDelete = confirmation.trim() === deleteConfirmationPhrase;
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+
+    try {
+      await deleteCurrentAccount();
+      await logout();
+    } catch (err) {
+      setError(err.message || "Could not delete your account.");
+      setDeleting(false);
+    }
+  };
+
+  const confirmDelete = () => {
+    Alert.alert(
+      "Delete account",
+      "This permanently deletes your profile, sessions, saved homes, notifications, inquiries, viewing requests, reviews, agency verification records, and any listings you own. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete my account", style: "destructive", onPress: handleDelete },
+      ]
+    );
+  };
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Delete account</Text>
+      <Text style={styles.subtitleSmall}>
+        Delete your profile, sessions, saved homes, notifications, inquiries, viewing requests, reviews,
+        agency verification records, and any listings you own.
+      </Text>
+      <View style={styles.field}>
+        <Text style={styles.label}>Type {deleteConfirmationPhrase} to confirm</Text>
+        <TextInput
+          style={styles.input}
+          value={confirmation}
+          onChangeText={setConfirmation}
+          autoCapitalize="characters"
+          accessibilityLabel={`Type ${deleteConfirmationPhrase} to confirm`}
+        />
+      </View>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Pressable
+        style={[styles.dangerButton, !canDelete && styles.dangerButtonDisabled]}
+        onPress={confirmDelete}
+        disabled={!canDelete || deleting}
+      >
+        <Text style={styles.dangerButtonText}>{deleting ? "Deleting..." : "Delete my account"}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function AccountScreen() {
   const navigation = useNavigation();
   const { user, signedIn, logout, updateUser } = useAuth();
@@ -302,6 +373,17 @@ export default function AccountScreen() {
       <Pressable style={styles.dangerButton} onPress={confirmSignOut}>
         <Text style={styles.dangerButtonText}>Sign out</Text>
       </Pressable>
+
+      <View style={styles.legalLinks}>
+        <Pressable onPress={() => openLegalPage("/terms")}>
+          <Text style={styles.legalLink}>Terms of Service</Text>
+        </Pressable>
+        <Pressable onPress={() => openLegalPage("/privacy")}>
+          <Text style={styles.legalLink}>Privacy & Data Protection</Text>
+        </Pressable>
+      </View>
+
+      <DangerZoneCard styles={styles} logout={logout} />
     </ScrollView>
   );
 }
@@ -477,8 +559,21 @@ const createStyles = (colors) =>
       paddingVertical: 14,
       alignItems: "center",
     },
+    dangerButtonDisabled: {
+      opacity: 0.5,
+    },
     dangerButtonText: {
       color: colors.white,
       fontWeight: "800",
+    },
+    legalLinks: {
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 20,
+    },
+    legalLink: {
+      color: colors.muted,
+      fontSize: 13,
+      textDecorationLine: "underline",
     },
   });
