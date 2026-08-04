@@ -34,10 +34,10 @@ Enter either your **email or your username**, plus your password. For security, 
 
 ## 5. Features every signed-in user has
 
-- **Dashboard** — your home screen after signing in, showing counts and status relevant to your role (unread notifications for everyone, plus role-specific sections).
-- **Notifications** — a real inbox of everything that's happened on your account (inquiries, viewing/mover-request updates, verification decisions, feedback responses, and proactive reminders). A bell icon shows your unread count and clears the moment you open the tab. If a notification is something you can act on directly — a mover request addressed to you, or a viewing/inquiry on a property you own — opening it shows a "View request" action that jumps straight to the relevant screen with that request highlighted, ready to respond to (see the [Mover](mover-manual.md) and [Landlord & Agency](landlord-agency-manual.md) manuals). Other notifications stay read-only.
-- **Account** — update your name/phone, change your password, manage saved searches (tenants), and delete your account.
-- **Feedback** — tell KejaApp how the platform is working for you. An admin response to your feedback is published as a public testimonial on the landing page.
+- **Dashboard** — your home screen after signing in, showing counts and status relevant to your role (unread notifications for everyone, plus role-specific sections). On mobile it's one of only two tabs pinned to the bottom bar for every role (alongside your role's one signature feature); everything below is reached via the third **More** tab instead of its own button. On web these all remain their own tabs in the nav.
+- **Notifications** (web: its own tab; on mobile, via **More → Notifications**) — a real inbox of everything that's happened on your account (inquiries, viewing/mover-request updates, verification decisions, feedback responses, and proactive reminders). A bell icon shows your unread count, which only drops once you actually mark something read — opening the list alone doesn't silently clear it. If a notification is something you can act on directly — a mover request addressed to you, or a viewing/inquiry on a property you own — opening it shows a "View request" action that jumps straight to the relevant screen with that request highlighted, ready to respond to (see the [Mover](mover-manual.md) and [Landlord & Agency](landlord-agency-manual.md) manuals). Other notifications stay read-only.
+- **Account** (web: its own tab; on mobile, via **More → Account**) — update your name/phone, change your password, manage saved searches (tenants), and delete your account.
+- **Feedback** (web: its own tab; on mobile, via **More → Feedback**) — tell KejaApp how the platform is working for you. An admin response to your feedback is published as a public testimonial on the landing page.
 - **Light/dark mode** — a toggle present on every screen, remembered across sessions.
 
 ## 6. Your data and privacy
@@ -50,7 +50,7 @@ See the [Data Protection Policy](../data-protection-policy.md) for what KejaApp 
 
 ## 7. Getting help
 
-- **In-app**: the Feedback tab.
+- **In-app**: Feedback (web: its own tab; on mobile, via **More → Feedback**).
 - **Data/privacy questions or rights requests**: `privacy@kejaapp.com` (see the [Data Protection Policy](../data-protection-policy.md#10-data-subject-rights)).
 - **A dispute with another user, or an appeal of an account action**: see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md).
 - **Security vulnerability reports**: see [SECURITY.md](../../SECURITY.md).
@@ -61,6 +61,6 @@ See the [Data Protection Policy](../data-protection-policy.md) for what KejaApp 
 | Problem | What to check |
 |---|---|
 | Can't sign in | Confirm you're using the right email/username and password; if you recently changed your password, sign in with the new one |
-| Not seeing a page/tab you expect | Some tabs are role-specific — check the manual for your role above |
-| Notifications bell not clearing | It clears when you open the Notifications tab itself, not just the Dashboard's unread count preview |
+| Not seeing a page/tab you expect | Some pages are role-specific — check the manual for your role above. On mobile, most pages besides Dashboard and your role's signature tab live under the **More** tab, not the bottom bar itself |
+| Notifications badge not clearing | It only drops once you actually mark something read (per-item or "Mark all as read") — just opening Notifications, or the Dashboard's unread count preview, doesn't clear it |
 | A listing/mover you saw before is gone | Owners can mark listings unavailable/archived; movers can update their own profile — this isn't a bug |

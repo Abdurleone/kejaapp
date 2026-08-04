@@ -20,7 +20,7 @@ Once you open full details, you'll see:
 
 ## 3. Saving properties
 
-Tap/click the save (favorite) action on any listing you like. Your saved list is available from the **Saved** tab, and duplicates are automatically prevented.
+Tap/click the save (favorite) action on any listing you like. Your saved list is available from **Saved** (its own tab on web; on mobile, via **More → Saved**), and duplicates are automatically prevented.
 
 ## 4. Contacting an owner
 
@@ -42,7 +42,7 @@ On Discover, once you've set a location and radius, use **"Save this search"** �
 Two ways to reach a mover:
 
 - From a property's **"Movers for this move"** section, tap **"Request service"** on a specific mover.
-- From the **Movers** tab, browse the full mover directory (filter by service type, county, rating) and request from any listed mover.
+- From **Movers** (its own tab on web; on mobile, via **More → Movers**), browse the full mover directory (filter by service type, county, rating) and request from any listed mover.
 
 You must choose a **home-size category** (Studio/1BR/2BR/3BR/4BR+) when requesting — it's how KejaApp gauges how much you're moving. KejaApp also asks your device for your current location (a one-time permission prompt) so the mover can see the approximate **pickup-to-drop-off distance** for your move; this part is entirely optional — declining the location prompt still lets you submit the request, just without the distance estimate. If your request is tied to a specific property (so your drop-off location is already known), you'll see a **price estimate** once you submit, weighing that distance against your home size — whichever is smaller counts less toward the total, on top of the mover's base price; requesting straight from the Movers directory (no property attached) skips this estimate since there's no drop-off to measure against yet. Your request appears in your own request history with its status (pending/accepted/declined/completed), and you can cancel a pending request yourself.
 
@@ -52,7 +52,7 @@ You must choose a **home-size category** (Studio/1BR/2BR/3BR/4BR+) when requesti
 - View another user's account or moderate anything — that's an admin capability.
 - Process payments through the app — rent, deposits, and mover charges are arranged directly with the other party.
 
-If a landlord, agency, or mover doesn't hold up their end of an arrangement, KejaApp doesn't mediate that disagreement directly — see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md) for what support is and isn't available. If you believe someone violated the [Acceptable Use Policy](../acceptable-use-policy.md) (a fake listing, discriminatory treatment, harassment), that's reportable via the Feedback tab.
+If a landlord, agency, or mover doesn't hold up their end of an arrangement, KejaApp doesn't mediate that disagreement directly — see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md) for what support is and isn't available. If you believe someone violated the [Acceptable Use Policy](../acceptable-use-policy.md) (a fake listing, discriminatory treatment, harassment), that's reportable via Feedback (its own tab on web; on mobile, via **More → Feedback**).
 
 ## 9. Deleting your account
 

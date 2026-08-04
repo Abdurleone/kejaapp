@@ -18,7 +18,7 @@
 - Movers are full accounts (a `mover` role), going through the same admin verification workflow as agencies. Landlords/agencies can mark specific movers as trusted affiliates; tenants see a property's affiliated movers plus general movers within a radius of it, and can send a service request directly to a mover, who can accept, decline, or complete it — and now sees a pickup-to-dropoff distance for each request, computed from the tenant's device location at request time against the destination property's coordinates. Requests also carry a required home-size category (Studio/1BR/2BR/3BR/4BR+); when sent from a property page (drop-off already known), the tenant sees a price estimate weighing distance against home size — whichever is smaller (below a 10km threshold) plays a reduced role while the other dominates, on top of the mover's base price.
 - A "Verified agency" badge shown wherever a listing's owner is displayed (Discover cards, property detail), driven by the same admin-approval decision as agency verification.
 - Role-scoped property visibility: only tenants (and anonymous visitors) browse the general Discover list; landlords/agencies see and manage only their own listings everywhere, including full property detail pages; movers don't see property listings at all, only their service requests.
-- A notification bell (web nav, mobile bottom tab) showing the unread count, which clears the moment you open Notifications. Actionable notifications (a mover request for the addressed mover, a viewing/inquiry for the addressed property owner) also open straight into the relevant screen with that request highlighted, ready to act on.
+- An unread-count badge (a bell icon in web nav; on mobile, a badge on the Notifications row inside the More menu, mirrored onto the More tab itself) that only drops once notifications are actually marked read — opening the list alone doesn't silently mark everything read. Actionable notifications (a mover request for the addressed mover, a viewing/inquiry for the addressed property owner) also open straight into the relevant screen with that request highlighted, ready to act on.
 - Property owners can approve/reject viewing requests directly from a "Viewing requests" panel/segment on the Workspace tab (web and mobile), across all of their properties in one place — previously only possible via a raw API call despite the backend supporting it from the start.
 - Platform feedback from tenants, landlords, agencies, and movers, with admin responses published as public testimonials on the landing page.
 - Sign in with either your email or a username you choose at registration.
@@ -181,11 +181,11 @@ As an admin, I want to review agency and mover verification requests, so that on
 
 As a user, I want to receive notifications for important account and listing activity — both things that just happened and things I might otherwise miss — so that I do not miss updates that need my attention.
 
-- Given I am logged in, when I request my notifications, then I only see notifications that belong to me, with a real inbox to browse them (web: a `Notifications` tab; mobile: a `Notifications` bottom tab), not just an unread count.
+- Given I am logged in, when I request my notifications, then I only see notifications that belong to me, with a real inbox to browse them (web: a `Notifications` tab; mobile: `Notifications`, reached via the More tab), not just an unread count.
 - Given I mark a notification as read, then it no longer appears as unread, and this persists across reloads/app restarts.
 - Given I only want to see what's new, when I toggle "Unread only" (web) / the "Unread" filter (mobile), then read notifications are hidden.
-- Given I have unread notifications, then a bell badge on the Notifications tab (web nav, mobile bottom tab) shows the unread count, refreshed roughly every 30 seconds.
-- Given I open the Notifications tab, then the bell badge clears immediately and every notification is marked read in the background — I don't have to mark each one individually for the badge to go away.
+- Given I have unread notifications, then a bell badge (web nav; on mobile, a badge on the More tab plus the Notifications row inside it) shows the unread count, refreshed roughly every 30 seconds.
+- Given I open Notifications (web: the Notifications tab; mobile: More → Notifications), then I see every notification, but the badge count only drops once I actually mark something read — via a per-item "Mark as read" action or the bulk "Mark all as read" button — opening the list alone does not silently mark everything read.
 - Given a relevant event happens directly (agency verification, a property review, an inquiry/viewing request/response, a feedback response), then a notification is created immediately.
 - Given a landlord or agency hasn't responded to an inquiry or viewing request within 48 hours, when the scheduled sweep runs, then they get a one-time nudge (no repeat nudges for the same item).
 - Given an approved viewing is happening within the next 24 hours, when the scheduled sweep runs, then both the tenant and the owner get a one-time reminder.
@@ -199,7 +199,7 @@ As a user, I want to receive notifications for important account and listing act
 
 As a tenant, I want to save a Discover search (location + radius today), so that I'm notified when a new listing matches it instead of having to keep re-checking manually.
 
-- Given I've set a location and radius on Discover, when I save the search, then it appears in my saved searches (Account page on web, Account tab on mobile).
+- Given I've set a location and radius on Discover, when I save the search, then it appears in my saved searches (Account page on web; mobile: More → Account).
 - Given I have a saved search, when a landlord/agency publishes a new listing matching it, then I get a notification (and a push notification, if I have a mobile device registered or browser notifications enabled).
 - Given I no longer want a saved search, when I remove it, then it stops matching future listings.
 - Given I am not signed in, when I try to save a search, then I'm prompted to sign in first.
