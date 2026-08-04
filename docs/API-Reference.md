@@ -119,6 +119,16 @@ POST   /api/device-tokens                                    upsert by token
 DELETE /api/device-tokens                                    body: { token }
 ```
 
+## Push subscriptions (web browser push notifications)
+
+```text
+GET    /api/push-subscriptions/vapid-public-key              no auth required; empty string if web push isn't configured
+POST   /api/push-subscriptions                                upsert by endpoint; body: { endpoint, keys: { p256dh, auth } }
+DELETE /api/push-subscriptions                                body: { endpoint }
+```
+
+A separate delivery mechanism from Device tokens above (mobile via Expo) - web push subscriptions have a structured `{endpoint, keys}` shape rather than a single opaque token, so they're stored in their own `PushSubscription` model. Every notification the backend creates is delivered to both channels independently (one failing doesn't block the other).
+
 ## Agencies
 
 ```text
