@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { deleteSavedSearch, fetchSavedSearches } from "../../api/index.js";
+import {
+  changeCurrentUserPassword,
+  deleteSavedSearch,
+  fetchSavedSearches,
+  updateCurrentUser,
+} from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
+
+const minPasswordLength = 8;
 
 function describeSavedSearch(savedSearch) {
   const parts = [];
@@ -85,9 +92,180 @@ function SavedSearchesCard({ styles }) {
   );
 }
 
+function ProfileCard({ styles, user, updateUser }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user?.name || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [savedMessage, setSavedMessage] = useState("");
+
+  const startEditing = () => {
+    setName(user?.name || "");
+    setPhone(user?.phone || "");
+    setError("");
+    setSavedMessage("");
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const updated = await updateCurrentUser({ name: name.trim(), phone: phone.trim() });
+      updateUser?.(updated);
+      setEditing(false);
+      setSavedMessage("Profile updated.");
+    } catch (err) {
+      setError(err.message || "Could not update your profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeaderRow}>
+        <Text style={styles.cardTitle}>Profile</Text>
+        {!editing ? (
+          <Pressable onPress={startEditing}>
+            <Text style={styles.editLink}>Edit</Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      {editing ? (
+        <>
+          <View style={styles.field}>
+            <Text style={styles.label}>Name</Text>
+            <TextInput style={styles.input} value={name} onChangeText={setName} accessibilityLabel="Name" />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              accessibilityLabel="Phone"
+            />
+          </View>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <View style={styles.editActions}>
+            <Pressable style={styles.primaryButtonSmall} onPress={handleSave} disabled={saving}>
+              <Text style={styles.primaryButtonText}>{saving ? "Saving..." : "Save"}</Text>
+            </Pressable>
+            <Pressable
+              style={styles.secondaryButtonSmall}
+              onPress={() => setEditing(false)}
+              disabled={saving}
+            >
+              <Text style={styles.secondaryButtonText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </>
+      ) : (
+        <>
+          <DetailRow label="Name" value={user?.name || "Not set"} styles={styles} />
+          <DetailRow label="Username" value={user?.username || "Not set"} styles={styles} />
+          <DetailRow label="Email" value={user?.email || "Not set"} styles={styles} />
+          <DetailRow label="Role" value={user?.role || "Not set"} styles={styles} />
+          <DetailRow label="Phone" value={user?.phone || "Not set"} styles={styles} />
+          {savedMessage ? <Text style={styles.success}>{savedMessage}</Text> : null}
+        </>
+      )}
+    </View>
+  );
+}
+
+function ChangePasswordCard({ styles }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const handleSubmit = async () => {
+    setError("");
+    setSuccessMessage("");
+
+    if (newPassword.length < minPasswordLength) {
+      setError(`New password must be at least ${minPasswordLength} characters.`);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirmation don't match.");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      await changeCurrentUserPassword({ currentPassword, newPassword });
+      setSuccessMessage("Password updated.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err.message || "Could not change your password.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Change password</Text>
+      <View style={styles.field}>
+        <Text style={styles.label}>Current password</Text>
+        <TextInput
+          style={styles.input}
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry
+          accessibilityLabel="Current password"
+        />
+      </View>
+      <View style={styles.field}>
+        <Text style={styles.label}>New password</Text>
+        <TextInput
+          style={styles.input}
+          value={newPassword}
+          onChangeText={setNewPassword}
+          secureTextEntry
+          accessibilityLabel="New password"
+        />
+      </View>
+      <View style={styles.field}>
+        <Text style={styles.label}>Confirm new password</Text>
+        <TextInput
+          style={styles.input}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          accessibilityLabel="Confirm new password"
+        />
+      </View>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+      <Pressable style={styles.primaryButtonSmall} onPress={handleSubmit} disabled={saving}>
+        <Text style={styles.primaryButtonText}>{saving ? "Updating..." : "Change password"}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function AccountScreen() {
   const navigation = useNavigation();
-  const { user, signedIn, logout } = useAuth();
+  const { user, signedIn, logout, updateUser } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -115,13 +293,9 @@ export default function AccountScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
-        <DetailRow label="Name" value={user?.name || "Not set"} styles={styles} />
-        <DetailRow label="Username" value={user?.username || "Not set"} styles={styles} />
-        <DetailRow label="Email" value={user?.email || "Not set"} styles={styles} />
-        <DetailRow label="Role" value={user?.role || "Not set"} styles={styles} />
-        <DetailRow label="Phone" value={user?.phone || "Not set"} styles={styles} />
-      </View>
+      <ProfileCard styles={styles} user={user} updateUser={updateUser} />
+
+      <ChangePasswordCard styles={styles} />
 
       {user?.role === "tenant" ? <SavedSearchesCard styles={styles} /> : null}
 
@@ -191,6 +365,53 @@ const createStyles = (colors) =>
       fontWeight: "800",
       color: colors.ink,
     },
+    cardHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    editLink: {
+      color: colors.accentText,
+      fontWeight: "700",
+      fontSize: 13,
+    },
+    field: {
+      gap: 6,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.muted,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.bg,
+      color: colors.ink,
+    },
+    editActions: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    primaryButtonSmall: {
+      backgroundColor: colors.greenDark,
+      borderRadius: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      alignItems: "center",
+    },
+    secondaryButtonSmall: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      alignItems: "center",
+    },
     subtitleSmall: {
       fontSize: 13,
       color: colors.muted,
@@ -198,6 +419,11 @@ const createStyles = (colors) =>
     error: {
       fontSize: 13,
       color: colors.red,
+    },
+    success: {
+      fontSize: 13,
+      color: colors.accentText,
+      fontWeight: "700",
     },
     savedSearchRow: {
       flexDirection: "row",

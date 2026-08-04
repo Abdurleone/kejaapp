@@ -29,6 +29,15 @@ export const fetchCurrentUser = async () => {
   return response.user;
 };
 
+export const updateCurrentUser = async (payload) => {
+  const response = await apiFetch("/api/auth/me", { method: "PUT", body: payload });
+  return response.user;
+};
+
+export const changeCurrentUserPassword = async (payload) => {
+  return apiFetch("/api/auth/password", { method: "PUT", body: payload });
+};
+
 // --- Dashboard ---
 
 export const fetchDashboardSummary = async () => {
