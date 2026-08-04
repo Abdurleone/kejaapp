@@ -4,18 +4,39 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import AccountPage from "../src/pages/AccountPage.jsx";
 import { renderWithAuth } from "./helpers/renderWithAuth.jsx";
 
-const { fetchSavedSearches, deleteSavedSearch, deleteCurrentAccount, updateCurrentUser, changeCurrentUserPassword } =
-  vi.hoisted(() => ({
-    fetchSavedSearches: vi.fn(),
-    deleteSavedSearch: vi.fn(),
-    deleteCurrentAccount: vi.fn(),
-    updateCurrentUser: vi.fn(),
-    changeCurrentUserPassword: vi.fn(),
-  }));
+const {
+  fetchSavedSearches,
+  deleteSavedSearch,
+  deleteCurrentAccount,
+  updateCurrentUser,
+  changeCurrentUserPassword,
+  fetchVapidPublicKey,
+  subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
+} = vi.hoisted(() => ({
+  fetchSavedSearches: vi.fn(),
+  deleteSavedSearch: vi.fn(),
+  deleteCurrentAccount: vi.fn(),
+  updateCurrentUser: vi.fn(),
+  changeCurrentUserPassword: vi.fn(),
+  fetchVapidPublicKey: vi.fn(),
+  subscribeToPushNotifications: vi.fn(),
+  unsubscribeFromPushNotifications: vi.fn(),
+}));
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, fetchSavedSearches, deleteSavedSearch, deleteCurrentAccount, updateCurrentUser, changeCurrentUserPassword };
+  return {
+    ...actual,
+    fetchSavedSearches,
+    deleteSavedSearch,
+    deleteCurrentAccount,
+    updateCurrentUser,
+    changeCurrentUserPassword,
+    fetchVapidPublicKey,
+    subscribeToPushNotifications,
+    unsubscribeFromPushNotifications,
+  };
 });
 
 const tenantUser = { name: "Jane Tenant", username: "janetenant", email: "jane@example.com", role: "tenant", phone: "+254700000000" };
@@ -255,5 +276,113 @@ describe("AccountPage", () => {
     await user.click(screen.getByRole("button", { name: "Update password" }));
 
     expect(await screen.findByText("Current password is incorrect")).toBeInTheDocument();
+  });
+});
+
+// jsdom has no real serviceWorker/PushManager/Notification support, so the
+// panel returns null in every test above (matching the real behavior of an
+// unsupported browser) - these tests stub the browser APIs it needs to
+// exercise the enable/disable flow itself.
+describe("AccountPage push notifications panel", () => {
+  const originalServiceWorker = navigator.serviceWorker;
+  const originalPushManager = window.PushManager;
+  const originalNotification = window.Notification;
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    Object.defineProperty(navigator, "serviceWorker", { value: originalServiceWorker, configurable: true });
+    window.PushManager = originalPushManager;
+    window.Notification = originalNotification;
+  });
+
+  const stubPushApis = ({ existingSubscription = null } = {}) => {
+    const pushSubscription = {
+      endpoint: "https://push.example.com/abc",
+      toJSON: () => ({ endpoint: "https://push.example.com/abc", keys: { p256dh: "p", auth: "a" } }),
+      unsubscribe: vi.fn().mockResolvedValue(true),
+    };
+    const registration = {
+      pushManager: {
+        getSubscription: vi.fn().mockResolvedValue(existingSubscription),
+        subscribe: vi.fn().mockResolvedValue(pushSubscription),
+      },
+    };
+
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: { register: vi.fn().mockResolvedValue(registration) },
+      configurable: true,
+    });
+    window.PushManager = function PushManager() {};
+    window.Notification = { requestPermission: vi.fn().mockResolvedValue("granted") };
+
+    return { registration, pushSubscription };
+  };
+
+  it("does not render when the browser has no push support", async () => {
+    Object.defineProperty(navigator, "serviceWorker", { value: undefined, configurable: true });
+    delete window.PushManager;
+    fetchSavedSearches.mockResolvedValue([]);
+
+    renderWithAuth(<AccountPage onAccountDeleted={vi.fn()} />, { currentUser: tenantUser });
+    await screen.findByText("janetenant");
+
+    expect(screen.queryByText("Browser notifications")).not.toBeInTheDocument();
+  });
+
+  it("subscribes when the toggle is pressed and the browser grants permission", async () => {
+    fetchSavedSearches.mockResolvedValue([]);
+    fetchVapidPublicKey.mockResolvedValue("dGVzdC12YXBpZC1rZXk"); // base64url, no padding needed for this length
+    subscribeToPushNotifications.mockResolvedValue({});
+    const { registration } = stubPushApis();
+    const user = userEvent.setup();
+
+    renderWithAuth(<AccountPage onAccountDeleted={vi.fn()} />, { currentUser: tenantUser });
+    await screen.findByRole("button", { name: "Enable browser notifications" });
+
+    await user.click(screen.getByRole("button", { name: "Enable browser notifications" }));
+
+    await waitFor(() => expect(registration.pushManager.subscribe).toHaveBeenCalledTimes(1));
+    expect(subscribeToPushNotifications).toHaveBeenCalledWith({
+      endpoint: "https://push.example.com/abc",
+      keys: { p256dh: "p", auth: "a" },
+    });
+    expect(await screen.findByRole("button", { name: "Disable browser notifications" })).toBeInTheDocument();
+  });
+
+  it("shows an inline error and stays unsubscribed if permission is denied", async () => {
+    fetchSavedSearches.mockResolvedValue([]);
+    stubPushApis();
+    window.Notification.requestPermission = vi.fn().mockResolvedValue("denied");
+    const user = userEvent.setup();
+
+    renderWithAuth(<AccountPage onAccountDeleted={vi.fn()} />, { currentUser: tenantUser });
+    await screen.findByRole("button", { name: "Enable browser notifications" });
+
+    await user.click(screen.getByRole("button", { name: "Enable browser notifications" }));
+
+    expect(await screen.findByText("Browser notification permission was not granted.")).toBeInTheDocument();
+    expect(subscribeToPushNotifications).not.toHaveBeenCalled();
+  });
+
+  it("unsubscribes when already subscribed and the toggle is pressed", async () => {
+    fetchSavedSearches.mockResolvedValue([]);
+    unsubscribeFromPushNotifications.mockResolvedValue({});
+    const existingSubscription = {
+      endpoint: "https://push.example.com/existing",
+      unsubscribe: vi.fn().mockResolvedValue(true),
+    };
+    stubPushApis({ existingSubscription });
+    const user = userEvent.setup();
+
+    renderWithAuth(<AccountPage onAccountDeleted={vi.fn()} />, { currentUser: tenantUser });
+    await screen.findByRole("button", { name: "Disable browser notifications" });
+
+    await user.click(screen.getByRole("button", { name: "Disable browser notifications" }));
+
+    await waitFor(() =>
+      expect(unsubscribeFromPushNotifications).toHaveBeenCalledWith("https://push.example.com/existing")
+    );
+    expect(existingSubscription.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole("button", { name: "Enable browser notifications" })).toBeInTheDocument();
   });
 });
