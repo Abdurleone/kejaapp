@@ -14,11 +14,12 @@ import { useTheme } from "../../context/ThemeContext.js";
 const minPasswordLength = 8;
 const deleteConfirmationPhrase = "DELETE";
 
-// Not deployed yet - update this to the real production domain once it
-// exists. Terms/Privacy content lives only on the web app (frontend/src/pages/
+// Matches render.yaml's kejaapp-frontend service name/URL - update this if
+// you deploy under a different Render service name or a custom domain.
+// Terms/Privacy content lives only on the web app (frontend/src/pages/
 // TermsPage.jsx, DataProtectionPage.jsx) - mobile links out rather than
 // duplicating that content natively, so it can't drift out of sync.
-const webAppBaseUrl = "https://kejaapp.example.com";
+const webAppBaseUrl = "https://kejaapp-frontend.onrender.com";
 
 const openLegalPage = (path) => {
   Linking.openURL(`${webAppBaseUrl}${path}`).catch(() => {});
