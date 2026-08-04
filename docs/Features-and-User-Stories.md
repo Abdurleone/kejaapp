@@ -13,7 +13,7 @@
 - Viewing request flow (scheduled or open viewings) between tenants and property owners.
 - Reviews and rating aggregation.
 - Agency verification workflow, with admin approval/rejection.
-- A real notification inbox (web and mobile), plus proactive/scheduled nudges: stale inquiry/viewing-request reminders, upcoming-viewing reminders, post-viewing review prompts, and stale-listing nudges — delivered in-app and as mobile push notifications.
+- A real notification inbox (web and mobile), plus proactive/scheduled nudges: stale inquiry/viewing-request reminders, upcoming-viewing reminders, post-viewing review prompts, and stale-listing nudges — delivered in-app, as mobile push notifications (Expo), and as browser push notifications on web (Web Push/VAPID).
 - Saved location + radius searches for tenants, with an alert when a new listing matches one.
 - Movers are full accounts (a `mover` role), going through the same admin verification workflow as agencies. Landlords/agencies can mark specific movers as trusted affiliates; tenants see a property's affiliated movers plus general movers within a radius of it, and can send a service request directly to a mover, who can accept, decline, or complete it — and now sees a pickup-to-dropoff distance for each request, computed from the tenant's device location at request time against the destination property's coordinates. Requests also carry a required home-size category (Studio/1BR/2BR/3BR/4BR+); when sent from a property page (drop-off already known), the tenant sees a price estimate weighing distance against home size — whichever is smaller (below a 10km threshold) plays a reduced role while the other dominates, on top of the mover's base price.
 - A "Verified agency" badge shown wherever a listing's owner is displayed (Discover cards, property detail), driven by the same admin-approval decision as agency verification.
@@ -35,6 +35,7 @@ As a user, I want to manage my profile and password, so that my account informat
 - Given I try to update protected fields like email or role through the profile endpoint, then those fields are ignored.
 - Given I change my password with the correct current password, then the new password is saved securely.
 - Given I change my password with the wrong current password, then the API rejects the request.
+- Given I want to delete my account (web: type DELETE to confirm; mobile: the same confirmation text plus a native confirm dialog), then my profile, sessions, saved homes, notifications, inquiries, viewing requests, reviews, agency/mover verification records, and any listings I own are all removed in one cascade.
 
 ### Role-Aware Dashboard
 
@@ -191,6 +192,7 @@ As a user, I want to receive notifications for important account and listing act
 - Given an approved viewing's date has passed, when the scheduled sweep runs, then the viewing is marked `completed` and the tenant gets a one-time prompt to leave a review — unless they already reviewed that property, in which case the viewing is still marked completed but no prompt is sent.
 - Given a listing has been available for 14+ days with zero inquiries, when the scheduled sweep runs, then its owner gets a one-time nudge to refresh photos or price.
 - Given I've registered a mobile device and I'm signed in, when any of the above create a notification for me, then I also receive it as a push notification (best-effort — a failed push never blocks the underlying action).
+- Given I've enabled browser notifications on web (Account page toggle) and I'm signed in, when any of the above create a notification for me, then I also receive it as a browser push notification — independent of mobile push, so one channel failing never blocks the other.
 - Given a notification is about a mover request addressed to me (as the mover) or a viewing/inquiry addressed to me (as the property owner), when I open it, then I'm taken straight to the Movers or Workspace tab with that specific request highlighted, ready to act on, and the notification is marked read as a side effect. Given it isn't something I can act on, opening it stays read-only.
 
 ### Saved Searches
@@ -198,7 +200,7 @@ As a user, I want to receive notifications for important account and listing act
 As a tenant, I want to save a Discover search (location + radius today), so that I'm notified when a new listing matches it instead of having to keep re-checking manually.
 
 - Given I've set a location and radius on Discover, when I save the search, then it appears in my saved searches (Account page on web, Account tab on mobile).
-- Given I have a saved search, when a landlord/agency publishes a new listing matching it, then I get a notification (and a push notification, if I have a device registered).
+- Given I have a saved search, when a landlord/agency publishes a new listing matching it, then I get a notification (and a push notification, if I have a mobile device registered or browser notifications enabled).
 - Given I no longer want a saved search, when I remove it, then it stops matching future listings.
 - Given I am not signed in, when I try to save a search, then I'm prompted to sign in first.
 
