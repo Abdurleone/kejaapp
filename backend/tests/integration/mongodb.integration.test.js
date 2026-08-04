@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { after, before, describe, it } from "../helpers/nodeTestCompat.js";
 import User from "../../models/User.js";
 import PushReceipt from "../../models/PushReceipt.js";
+import PushSubscription from "../../models/PushSubscription.js";
 
 const testMongoUri = process.env.TEST_MONGODB_URI;
 
@@ -13,11 +14,13 @@ describe("MongoDB integration", { skip: !testMongoUri }, () => {
     });
     await User.deleteMany({ email: /integration\+.*@example\.com/ });
     await PushReceipt.deleteMany({ ticketId: /^integration-/ });
+    await PushSubscription.deleteMany({ endpoint: /^https:\/\/integration\.example\.com/ });
   });
 
   after(async () => {
     await User.deleteMany({ email: /integration\+.*@example\.com/ });
     await PushReceipt.deleteMany({ ticketId: /^integration-/ });
+    await PushSubscription.deleteMany({ endpoint: /^https:\/\/integration\.example\.com/ });
     await mongoose.disconnect();
   });
 
@@ -53,5 +56,25 @@ describe("MongoDB integration", { skip: !testMongoUri }, () => {
     );
 
     await PushReceipt.deleteOne({ _id: receipt._id });
+  });
+
+  it("builds a unique index on PushSubscription.endpoint, so a re-subscribe upserts instead of duplicating", async () => {
+    // autoIndex only builds indexes once the collection actually exists -
+    // insert a throwaway document first so there's something for Mongoose
+    // to have indexed against.
+    const subscription = await PushSubscription.create({
+      user: new mongoose.Types.ObjectId(),
+      endpoint: "https://integration.example.com/push/endpoint-index-check",
+      keys: { p256dh: "integration-p256dh", auth: "integration-auth" },
+    });
+
+    const indexes = await PushSubscription.collection.getIndexes();
+
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(indexes, "endpoint_1"),
+      `expected an endpoint_1 index, got: ${Object.keys(indexes).join(", ")}`
+    );
+
+    await PushSubscription.deleteOne({ _id: subscription._id });
   });
 });

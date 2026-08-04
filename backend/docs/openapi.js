@@ -782,6 +782,39 @@ const openApiSpec = {
         },
       },
     },
+    "/api/push-subscriptions/vapid-public-key": {
+      get: {
+        tags: ["Push subscriptions"],
+        summary: "Get the VAPID public key used to create a web push subscription",
+        responses: {
+          200: {
+            description: "VAPID public key (empty string if web push isn't configured)",
+          },
+        },
+      },
+    },
+    "/api/push-subscriptions": {
+      post: {
+        tags: ["Push subscriptions"],
+        summary: "Register (upsert by endpoint) a web push subscription",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Push subscription registered",
+          },
+        },
+      },
+      delete: {
+        tags: ["Push subscriptions"],
+        summary: "Remove a web push subscription",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Push subscription removed",
+          },
+        },
+      },
+    },
     "/api/agencies/verify": {
       post: {
         tags: ["Agencies"],

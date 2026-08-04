@@ -218,6 +218,13 @@ const env = {
   // silent no-op. Points at a clamd process speaking the INSTREAM protocol.
   clamavHost: process.env.CLAMAV_HOST || "",
   clamavPort: parsePositiveInteger(process.env.CLAMAV_PORT, 3310, "CLAMAV_PORT"),
+  // Optional, same "empty = disabled" pattern as redisUrl/clamavHost above:
+  // unset means web push delivery is skipped entirely (mobile push via Expo
+  // is unaffected either way). Generate a real pair with
+  // `npx web-push generate-vapid-keys`.
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || "",
+  vapidSubject: process.env.VAPID_SUBJECT || "mailto:support@kejaapp.example",
   propertiesCacheTtlMs: parsePositiveInteger(
     process.env.PROPERTIES_CACHE_TTL_MS,
     30 * 1000,

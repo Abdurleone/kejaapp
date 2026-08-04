@@ -1,18 +1,28 @@
 import Notification from "../models/Notification.js";
 import { logError } from "../utils/logger.js";
-import { sendPushNotifications } from "./pushNotificationService.js";
+import { sendPushNotifications, sendWebPushNotifications } from "./pushNotificationService.js";
 
 const createNotification = async (payload) => {
   const notification = await Notification.create(payload);
 
-  try {
-    await sendPushNotifications(payload.user, {
-      title: payload.title,
-      body: payload.message,
-      data: payload.data,
-    });
-  } catch (error) {
-    logError(`Push notification failed: ${error.message}`);
+  const pushPayload = {
+    title: payload.title,
+    body: payload.message,
+    data: payload.data,
+  };
+
+  // allSettled, not separate try/catches: an Expo failure must not stop the
+  // web push attempt or vice versa - they're independent delivery channels
+  // for the same notification.
+  const results = await Promise.allSettled([
+    sendPushNotifications(payload.user, pushPayload),
+    sendWebPushNotifications(payload.user, pushPayload),
+  ]);
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      logError(`Push notification failed: ${result.reason?.message || result.reason}`);
+    }
   }
 
   return notification;

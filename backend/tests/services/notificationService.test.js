@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { Expo } from "expo-server-sdk";
+import webpush from "web-push";
 import { describe, it, mock } from "../helpers/nodeTestCompat.js";
 import DeviceToken from "../../models/DeviceToken.js";
 import Notification from "../../models/Notification.js";
+import PushSubscription from "../../models/PushSubscription.js";
+import env from "../../config/env.js";
 import {
   notifyAgencyVerificationDecision,
   notifyFeedbackResponded,
@@ -355,6 +358,41 @@ describe("notificationService", () => {
     assert.equal(notification.type, "feedback");
     assert.ok(consoleErrorCalls.some((message) => /Push notification failed: Expo push service unreachable/.test(message)));
     // Restore the DeviceToken mock back to the no-tokens default for any later tests.
+    mock.method(DeviceToken, "find", async () => []);
+  });
+
+  it("delivers via both Expo and web push independently, and one failing doesn't block the other", async () => {
+    const originalVapidPublicKey = env.vapidPublicKey;
+    const originalVapidPrivateKey = env.vapidPrivateKey;
+    env.vapidPublicKey = "public-key";
+    env.vapidPrivateKey = "private-key";
+
+    mock.method(Notification, "create", async (payload) => payload);
+    mock.method(DeviceToken, "find", async () => [{ token: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }]);
+    mock.method(Expo.prototype, "sendPushNotificationsAsync", async () => {
+      throw new Error("Expo unreachable");
+    });
+    mock.method(PushSubscription, "find", async () => [
+      { endpoint: "https://push.example.com/x", keys: { p256dh: "p", auth: "a" } },
+    ]);
+    const webPushSend = mock.method(webpush, "sendNotification", async () => ({}));
+    const consoleErrorCalls = [];
+    mock.method(console, "error", (message) => {
+      consoleErrorCalls.push(message);
+    });
+
+    const notification = await notifyFeedbackResponded({
+      _id: new mongoose.Types.ObjectId(),
+      submitter: new mongoose.Types.ObjectId(),
+      status: "responded",
+    });
+
+    assert.equal(notification.type, "feedback");
+    assert.equal(webPushSend.mock.callCount(), 1);
+    assert.ok(consoleErrorCalls.some((message) => /Push notification failed: Expo unreachable/.test(message)));
+
+    env.vapidPublicKey = originalVapidPublicKey;
+    env.vapidPrivateKey = originalVapidPrivateKey;
     mock.method(DeviceToken, "find", async () => []);
   });
 
