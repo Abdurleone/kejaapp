@@ -80,12 +80,12 @@ Once you're ready for an actual `.ipa` or `.apk`/`.aab` (e.g. to install on a de
 ```bash
 npm install -g eas-cli
 eas login
-eas build:configure
-eas build --platform android
-eas build --platform ios
+eas init          # links this project to your Expo account, sets extra.eas.projectId in app.json
+eas build --platform android --profile production
+eas build --platform ios --profile production
 ```
 
-`eas build` runs in Expo's cloud, so it works without a local Mac even for the iOS build. Follow the prompts — first run creates an `eas.json` and asks for bundle identifiers (already set in `app.json` as `com.kejaapp.mobile`, feel free to change before your first submission). See [Expo's EAS Build docs](https://docs.expo.dev/build/introduction/) for store submission steps.
+`eas build` runs in Expo's cloud, so it works without a local Mac even for the iOS build. `eas.json` already exists (`development`/`preview`/`production` profiles — the first two produce an installable `.apk` directly, `production` builds an `.aab` for store submission with auto-incrementing version codes via `appVersionSource: "remote"`), so `eas init` is the only one-time step needed before your first build — it's what actually registers the project and writes `extra.eas.projectId`. Bundle identifiers are already set in `app.json` as `com.kejaapp.mobile` (feel free to change before your first submission). **Free tier**: EAS Build gives 30 builds/month (up to 15 iOS) at no cost — plenty for occasional releases; for day-to-day dev/testing, Expo Go needs no build at all. See [Expo's EAS Build docs](https://docs.expo.dev/build/introduction/) for store submission steps.
 
 ## Project structure
 

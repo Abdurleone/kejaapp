@@ -47,7 +47,8 @@ Already implemented in `backend/routes/healthRoutes.js` / `backend/controllers/h
 - **kejaapp-backend** — web service, built from `backend/Dockerfile`. Render injects `PORT` itself; `backend/config/env.js` already reads `process.env.PORT`, so no code change was needed.
 - **kejaapp-frontend** — static site, built with `npm ci && npm run build` in `frontend/`, publishing `frontend/dist`. A catch-all rewrite (`/* -> /index.html`) handles SPA routing (Render static sites don't use `frontend/nginx.conf`/`frontend/Dockerfile` — those stay in use for `docker compose` and the CI `docker` job).
 - **kejaapp-redis** — Render's managed Key Value (Redis-compatible) service, wired into the backend via `REDIS_URL`.
-- **kejaapp-clamav** — a private (internal-only, no public URL) service running the `clamav/clamav:stable` image for malware scanning on property-image uploads (`backend/services/malwareScanService.js`), wired into the backend via `CLAMAV_HOST`/`CLAMAV_PORT`. Deliberately has no free-plan option: ClamAV's signature database needs roughly 1-2GB of RAM, well past the free plan's 512MB. **Note**: this private-service wiring (the `pserv` type, `fromService`/`property: host` syntax) hasn't been deployed against a live Render account — verify it against current Render Blueprint docs before relying on it, the same caveat this document already carries for the Kubernetes/Docker Compose paths not being battle-tested at scale.
+
+No ClamAV service is defined here — it's the one piece of the stack (docker-compose/Kubernetes) that isn't free to run (its signature database needs roughly 1-2GB of RAM, well past the free plan's 512MB), so this Blueprint deliberately leaves `CLAMAV_HOST` unset and lets `malwareScanService.js`'s existing "empty = disabled" convention silently skip scanning on this path. Add a `pserv` service running `clamav/clamav:stable` on a paid plan, wired via `CLAMAV_HOST`/`CLAMAV_PORT`, if you want scanning back.
 
 MongoDB is **not** provisioned by the blueprint — Render has no managed MongoDB, so this stays on the existing MongoDB Atlas instance (or whatever `MONGODB_URI` you already use).
 
@@ -80,7 +81,7 @@ Note: `removePropertyImage` now deletes the underlying object (or local file) wh
 
 ### Known limitations of this setup
 
-- **Free plan**: both web services spin down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period. **Not** free for the whole stack though — `kejaapp-clamav` (malware scanning) has no free-plan option, since ClamAV needs ~1-2GB RAM.
+- **Free plan**: both web services spin down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period. This Blueprint (backend + frontend + Redis) is fully free as configured — malware scanning is the one feature deliberately left off this path (see above) rather than a hidden cost.
 - Single backend instance — no horizontal scaling. The existing Redis-backed rate limiting (`backend/config/env.js`'s `redisUrl`) already supports multiple instances if you do scale up.
 - Render auto-deploys on push to the connected branch by default; there's no GitHub Actions deploy step to maintain, but it also means a red CI run on `main` doesn't block Render from deploying. If that's undesirable, disable auto-deploy in the Render dashboard and trigger deploys manually instead.
 
