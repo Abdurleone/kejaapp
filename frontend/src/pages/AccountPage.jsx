@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { usePushSubscription } from "../hooks/usePushSubscription.js";
 import {
   changeCurrentUserPassword,
   deleteCurrentAccount,
@@ -303,6 +304,35 @@ function ChangePasswordPanel() {
   );
 }
 
+function PushNotificationsPanel() {
+  const { supported, subscribed, subscribe, unsubscribe, loading, error } = usePushSubscription();
+
+  if (!supported) {
+    return null;
+  }
+
+  return (
+    <div className="panel stack">
+      <h3>Browser notifications</h3>
+      <p className="muted-copy">
+        Get a notification in this browser when something happens - a new inquiry response, a mover request
+        update, and more.
+      </p>
+      {error && <p className="error-text">{error}</p>}
+      <div className="form-actions">
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={loading}
+          onClick={subscribed ? unsubscribe : subscribe}
+        >
+          {loading ? "Working..." : subscribed ? "Disable browser notifications" : "Enable browser notifications"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AccountPage({ onAccountDeleted, onBrowse }) {
   const { currentUser } = useAuth();
   const [confirmation, setConfirmation] = useState("");
@@ -338,6 +368,8 @@ export default function AccountPage({ onAccountDeleted, onBrowse }) {
       <ProfilePanel />
 
       <ChangePasswordPanel />
+
+      <PushNotificationsPanel />
 
       {currentUser?.role === "tenant" && <SavedSearchesPanel onBrowse={onBrowse} />}
 

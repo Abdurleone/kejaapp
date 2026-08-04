@@ -537,6 +537,19 @@ export const changeCurrentUserPassword = async ({ currentPassword, newPassword }
   return apiFetch("/api/auth/password", { method: "PUT", body: { currentPassword, newPassword } });
 };
 
+export const fetchVapidPublicKey = async () => {
+  const response = await apiFetch("/api/push-subscriptions/vapid-public-key", { method: "GET" });
+  return response.data.publicKey;
+};
+
+export const subscribeToPushNotifications = async (subscription) => {
+  return apiFetch("/api/push-subscriptions", { method: "POST", body: subscription });
+};
+
+export const unsubscribeFromPushNotifications = async (endpoint) => {
+  return apiFetch("/api/push-subscriptions", { method: "DELETE", body: { endpoint } });
+};
+
 export const fetchFavorites = async (query = {}) => {
   const queryString = buildQueryString(query);
   const cacheKey = `favorites:${queryString}`;
