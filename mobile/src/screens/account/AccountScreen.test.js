@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import AccountScreen from "./AccountScreen.js";
 import { lightColors } from "../../theme/colors.js";
@@ -11,6 +11,7 @@ jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));
 jest.mock("../../api/index.js", () => ({
   changeCurrentUserPassword: jest.fn(),
+  deleteCurrentAccount: jest.fn(),
   deleteSavedSearch: jest.fn(),
   fetchSavedSearches: jest.fn(),
   updateCurrentUser: jest.fn(),
@@ -20,6 +21,7 @@ import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import {
   changeCurrentUserPassword,
+  deleteCurrentAccount,
   deleteSavedSearch,
   fetchSavedSearches,
   updateCurrentUser,
@@ -189,5 +191,87 @@ describe("AccountScreen", () => {
     fireEvent.press(getByText("Sign out"));
 
     expect(logout).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the Terms and Privacy pages via the device browser", async () => {
+    useAuth.mockReturnValue({
+      signedIn: true,
+      user: { name: "Jane Doe", role: "tenant" },
+      logout: jest.fn(),
+    });
+    fetchSavedSearches.mockResolvedValue([]);
+    jest.spyOn(Linking, "openURL").mockResolvedValue();
+
+    const { getByText } = await render(<AccountScreen />);
+
+    await fireEvent.press(getByText("Terms of Service"));
+    expect(Linking.openURL).toHaveBeenCalledWith(expect.stringContaining("/terms"));
+
+    await fireEvent.press(getByText("Privacy & Data Protection"));
+    expect(Linking.openURL).toHaveBeenCalledWith(expect.stringContaining("/privacy"));
+  });
+
+  it("keeps the delete-account button disabled until the confirmation text exactly matches DELETE", async () => {
+    useAuth.mockReturnValue({
+      signedIn: true,
+      user: { name: "Jane Doe", role: "tenant" },
+      logout: jest.fn(),
+    });
+    fetchSavedSearches.mockResolvedValue([]);
+    jest.spyOn(Alert, "alert").mockImplementation(() => {});
+
+    const { getByText, getByLabelText } = await render(<AccountScreen />);
+
+    await fireEvent.changeText(getByLabelText("Type DELETE to confirm"), "delete");
+    await fireEvent.press(getByText("Delete my account"));
+    expect(Alert.alert).not.toHaveBeenCalled();
+
+    await fireEvent.changeText(getByLabelText("Type DELETE to confirm"), "DELETE");
+    await fireEvent.press(getByText("Delete my account"));
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
+  });
+
+  it("deletes the account and signs out after confirming", async () => {
+    const logout = jest.fn();
+    useAuth.mockReturnValue({
+      signedIn: true,
+      user: { name: "Jane Doe", role: "tenant" },
+      logout,
+    });
+    fetchSavedSearches.mockResolvedValue([]);
+    deleteCurrentAccount.mockResolvedValue({ message: "Account and associated data deleted" });
+    jest.spyOn(Alert, "alert").mockImplementation((title, message, buttons) => {
+      buttons.find((button) => button.text === "Delete my account").onPress();
+    });
+
+    const { getByText, getByLabelText } = await render(<AccountScreen />);
+
+    await fireEvent.changeText(getByLabelText("Type DELETE to confirm"), "DELETE");
+    await fireEvent.press(getByText("Delete my account"));
+
+    await waitFor(() => expect(deleteCurrentAccount).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows an error and stays signed in if account deletion fails", async () => {
+    const logout = jest.fn();
+    useAuth.mockReturnValue({
+      signedIn: true,
+      user: { name: "Jane Doe", role: "tenant" },
+      logout,
+    });
+    fetchSavedSearches.mockResolvedValue([]);
+    deleteCurrentAccount.mockRejectedValue(new Error("Network down"));
+    jest.spyOn(Alert, "alert").mockImplementation((title, message, buttons) => {
+      buttons.find((button) => button.text === "Delete my account").onPress();
+    });
+
+    const { getByText, getByLabelText } = await render(<AccountScreen />);
+
+    await fireEvent.changeText(getByLabelText("Type DELETE to confirm"), "DELETE");
+    await fireEvent.press(getByText("Delete my account"));
+
+    await waitFor(() => expect(getByText("Network down")).toBeTruthy());
+    expect(logout).not.toHaveBeenCalled();
   });
 });
