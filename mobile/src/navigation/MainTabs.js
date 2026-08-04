@@ -4,53 +4,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchDashboardSummary } from "../api/index.js";
 import { useAuth } from "../context/AuthContext.js";
-import DashboardScreen from "../screens/dashboard/DashboardScreen.js";
-import DiscoverStack from "./DiscoverStack.js";
-import SavedScreen from "../screens/saved/SavedScreen.js";
-import WorkspaceStack from "./WorkspaceStack.js";
-import MoversStack from "./MoversStack.js";
-import RequestsScreen from "../screens/requests/RequestsScreen.js";
-import NotificationsScreen from "../screens/notifications/NotificationsScreen.js";
-import FeedbackScreen from "../screens/feedback/FeedbackScreen.js";
-import AccountScreen from "../screens/account/AccountScreen.js";
-import AdminStack from "./AdminStack.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
-import { getVisibleTabs } from "./roleTabs.js";
+import { icons, screens } from "./tabScreens.js";
+import MoreStack from "./MoreStack.js";
+import { getPrimaryTabs, getHiddenTabs } from "./roleTabs.js";
 
 const Tab = createBottomTabNavigator();
-
-const icons = {
-  Dashboard: "grid",
-  Discover: "search",
-  Saved: "heart",
-  Workspace: "briefcase",
-  Movers: "car",
-  Requests: "chatbubbles",
-  Notifications: "notifications",
-  Feedback: "chatbox-ellipses",
-  Account: "person-circle",
-  Admin: "shield-checkmark",
-};
-
-const screens = {
-  Dashboard: { component: DashboardScreen },
-  Discover: { component: DiscoverStack, options: { headerShown: false } },
-  Saved: { component: SavedScreen },
-  Workspace: { component: WorkspaceStack, options: { headerShown: false } },
-  Movers: { component: MoversStack, options: { headerShown: false } },
-  Requests: { component: RequestsScreen },
-  Notifications: { component: NotificationsScreen },
-  Feedback: { component: FeedbackScreen },
-  Account: { component: AccountScreen },
-  Admin: { component: AdminStack, options: { headerShown: false } },
-};
 
 export default function MainTabs() {
   const { user, signedIn } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const visibleTabs = getVisibleTabs(signedIn, user?.role);
+  const primaryTabs = getPrimaryTabs(signedIn, user?.role);
+  const hiddenTabs = getHiddenTabs(signedIn, user?.role);
   const [unreadCount, setUnreadCount] = useState(0);
   const mountedRef = useRef(true);
 
@@ -122,7 +89,7 @@ export default function MainTabs() {
 
   return (
     <Tab.Navigator initialRouteName="Dashboard" screenOptions={screenOptions}>
-      {visibleTabs.map((name) => (
+      {primaryTabs.map((name) => (
         <Tab.Screen
           key={name}
           name={name}
@@ -156,23 +123,22 @@ export default function MainTabs() {
                   tabBarInactiveTintColor: "rgba(255, 255, 255, 0.6)",
                 }
               : {}),
-            ...(name === "Notifications" && unreadCount > 0
-              ? { tabBarBadge: unreadCount > 99 ? "99+" : unreadCount }
-              : {}),
           }}
-          listeners={
-            name === "Notifications"
-              ? {
-                  // NotificationsScreen no longer marks everything read just by being
-                  // opened - read state only changes via explicit user action there.
-                  // So tapping this tab doesn't zero the badge; it eagerly re-syncs
-                  // with the real count instead of waiting up to 30s for the next poll.
-                  tabPress: () => refreshUnreadCount(),
-                }
-              : undefined
-          }
         />
       ))}
+      <Tab.Screen
+        name="More"
+        options={{
+          headerShown: false,
+          ...(hiddenTabs.includes("Notifications") && unreadCount > 0
+            ? { tabBarBadge: unreadCount > 99 ? "99+" : unreadCount }
+            : {}),
+        }}
+      >
+        {() => (
+          <MoreStack hiddenTabs={hiddenTabs} unreadCount={unreadCount} onOpenNotifications={refreshUnreadCount} />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
