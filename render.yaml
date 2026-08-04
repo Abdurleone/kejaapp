@@ -42,6 +42,7 @@ services:
       - key: REDIS_URL
         fromService:
           name: kejaapp-redis
+          type: keyvalue
           property: connectionString
 
   - type: web
