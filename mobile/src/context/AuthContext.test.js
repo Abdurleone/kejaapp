@@ -21,7 +21,7 @@ import {
 } from "../services/pushNotifications.js";
 
 function Consumer() {
-  const { user, signedIn, loading, login, register, logout } = useAuth();
+  const { user, signedIn, loading, login, register, logout, updateUser } = useAuth();
 
   return (
     <View>
@@ -34,6 +34,9 @@ function Consumer() {
       </Pressable>
       <Pressable onPress={logout}>
         <Text>logout</Text>
+      </Pressable>
+      <Pressable onPress={() => updateUser({ name: "Jane Updated" })}>
+        <Text>updateUser</Text>
       </Pressable>
     </View>
   );
@@ -123,6 +126,19 @@ describe("AuthContext", () => {
     await waitFor(() => expect(getByText("signed-out")).toBeTruthy());
     expect(unregisterForPushNotifications).toHaveBeenCalledTimes(1);
     expect(logoutUser).toHaveBeenCalledTimes(1);
+  });
+
+  it("updateUser replaces the current user with server-fresh data", async () => {
+    getAuthToken.mockResolvedValue("stored-token");
+    fetchCurrentUser.mockResolvedValue({ name: "Jane" });
+
+    const { getByText } = await renderConsumer();
+
+    await waitFor(() => expect(getByText("signed-in:Jane")).toBeTruthy());
+
+    await fireEvent.press(getByText("updateUser"));
+
+    await waitFor(() => expect(getByText("signed-in:Jane Updated")).toBeTruthy());
   });
 
   it("keeps the same login/register/logout function references across a sign-in that changes user", async () => {
