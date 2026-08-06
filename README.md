@@ -9,7 +9,7 @@ KejaApp is currently in active MVP development. The repository includes:
 - a Node.js/Express backend API
 - a Vite + React web frontend
 - an Expo React Native mobile app
-- deployment and infrastructure assets for Docker, Render, and Kubernetes
+- deployment and infrastructure assets for Docker, Render (the live production deployment), and Kubernetes (a reference/alternative path)
 
 ## Overview
 
@@ -202,8 +202,8 @@ Other documents kept in this repository:
 The repository supports multiple deployment paths:
 
 - Docker and Docker Compose for local and staging-style runs
-- Render Blueprint via [render.yaml](render.yaml)
-- Kubernetes manifests in [k8s](k8s)
+- **Render Blueprint via [render.yaml](render.yaml) — the actual live production deployment** (`kejaapp-frontend.onrender.com`)
+- Kubernetes manifests in [k8s](k8s) — a reference/alternative path, exercised by CI's `k8s-smoke-test` job but not currently deployed anywhere
 
 For more detail, see [docs/devops.md](docs/devops.md).
 
