@@ -1,12 +1,12 @@
 # Deployment
 
-KejaApp has three deployment-related setups: local Docker Compose, a Render Blueprint, and Kubernetes manifests. MongoDB is **external** (Atlas or your own instance) in all three — nothing here provisions a database.
+KejaApp has three deployment-related setups: local Docker Compose, a Render Blueprint (the actual live production deployment), and Kubernetes manifests (a reference/alternative path, not currently deployed anywhere). MongoDB is **external** (Atlas or your own instance) in all three — nothing here provisions a database.
 
 For the full detail behind every section here, see [docs/devops.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/devops.md) in the repo.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push to `main` and every PR:
+`.github/workflows/ci.yml` is enabled on GitHub Actions, but currently every job fails to start with "your account is locked due to a billing issue" — an account-level GitHub billing lock, not a workflow/code problem. Needs clearing at github.com/settings/billing before any of this actually runs. Once unblocked, it runs on every push to `main` and every PR:
 
 - **backend** — spins up a `mongo:7` service container, runs the full test suite against it (this is what exercises the opt-in MongoDB integration tests).
 - **frontend** — tests, then `npm run build` to catch build-breaking errors.
@@ -35,9 +35,9 @@ Frontend at `http://localhost:8080`, backend at `http://localhost:5000`. Single 
 - `GET /api/health/ready` — readiness: actively pings MongoDB, `503` if unreachable. Point a load balancer's health check here.
 - `GET /api/health/database` — DB connectivity only.
 
-## Deployment: Render
+## Deployment: Render — production
 
-`render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
+This is the actual live deployed instance: `kejaapp-frontend.onrender.com` / `kejaapp-backend-7iu3.onrender.com`, both confirmed working end-to-end. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
 
 - **kejaapp-backend** — web service, built from `backend/Dockerfile`.
 - **kejaapp-frontend** — static site (`npm ci && npm run build`, publishes `frontend/dist`), with a catch-all SPA rewrite.
@@ -64,9 +64,9 @@ Render (and Kubernetes) have no reliable persistent disk, so `backend/services/f
 
 AWS S3, Backblaze B2, and MinIO work the same way (MinIO/path-style-only providers also need `S3_FORCE_PATH_STYLE=true`).
 
-## Deployment: Kubernetes
+## Deployment: Kubernetes — reference/alternative
 
-`k8s/` is a second, independent deployment path (plain manifests, no Helm/Kustomize) for any conformant cluster (EKS, GKE, AKS, DigitalOcean, kind, minikube).
+`k8s/` is a reference deployment path, not currently deployed anywhere (plain manifests, no Helm/Kustomize) for any conformant cluster (EKS, GKE, AKS, DigitalOcean, kind, minikube). CI's **k8s-smoke-test** job keeps these manifests proven to actually work together on every push/PR, even though nothing runs on them in production today.
 
 | File | Purpose |
 |---|---|

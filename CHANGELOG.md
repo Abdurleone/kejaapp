@@ -27,6 +27,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Mobile Bottom Navigation Simplification](#mobile-bottom-navigation-simplification)
 - [Free-Tier Deployment Readiness](#free-tier-deployment-readiness)
 - [Theme System: System-Preference Mode on Web and Mobile](#theme-system-system-preference-mode-on-web-and-mobile)
+- [CI Re-enabled and Render Designated the Primary Deployment](#ci-re-enabled-and-render-designated-the-primary-deployment)
 
 ---
 
@@ -296,3 +297,10 @@ A running, chronological (oldest first) record of what was built and why — inc
 - Web: `App.jsx`'s color-mode radiogroup gained a third "◐ Match system" button alongside the existing ☀/☾ options. The resolved mode (what's actually written to `document.documentElement.dataset.colorMode`, driving the existing CSS) now comes from `window.matchMedia("(prefers-color-scheme: dark)")` when the stored preference is `"system"`, and updates live via that query's `change` event if the user's OS theme flips while the tab is open - no reload needed. The stored `localStorage` value is still the user's *preference* (`"system"`, not the resolved light/dark), so returning to system mode later still tracks the OS again rather than freezing at whatever it last resolved to.
 - Mobile: `ThemeContext.js` gained the same three-state preference, resolved against `Appearance.getColorScheme()` and kept live via `Appearance.addChangeListener`. Since the mobile header only has room for a single icon button (not a segmented control like web), `ColorModeToggle` now cycles system → light → dark → system on each tap, swapping its icon between a new "contrast" glyph (system) and the existing sun/moon.
 - Test coverage: 5 new web render tests (`app.render.test.jsx`) covering the system default, OS-dark resolution, manual override + persistence, and live OS-change syncing (required a `window.matchMedia` stub in `tests/render-setup.js`, since jsdom doesn't implement it at all); `ThemeContext.test.js` rewritten for the three-state cycle and live `Appearance.addChangeListener` updates. 82 node:test + 161 Vitest (frontend), 32/32 suites - 188/188 tests (mobile), lint clean on both.
+
+---
+
+## CI Re-enabled and Render Designated the Primary Deployment
+
+- Two standing DevOps gaps, addressed together now that a real live deployment exists to anchor the decision. The `CI` GitHub Actions workflow (`.github/workflows/ci.yml`) had been in state `disabled_manually` since 2026-07-06 - a precaution against a GitHub Actions billing notification, kept off even after a prior review confirmed standard GitHub-hosted runners are free/unlimited for this public repo. Re-enabled via `gh workflow enable "CI"` - but the workflow still isn't actually completing: every job on the PR that shipped this change failed immediately with "your account is locked due to a billing issue", a separate, account-level GitHub billing lock that re-enabling the workflow can't fix on its own. This is now a known, documented blocker (`docs/devops.md`, `docs/Deployment.md`) rather than an assumed-fixed gap - left as-is for now at the account owner's call; automated CI still isn't actually running on this repo.
+- With two equally-documented hosting paths (Render Blueprint, Kubernetes manifests) and Render now the actual confirmed-working live deployment, docs (`README.md`, `docs/devops.md`/`Deployment.md`, repo and wiki) now say so explicitly: Render is the production path; the Kubernetes manifests in `k8s/` are reframed as a reference/alternative for anyone who wants a real cluster instead - still kept honest by CI's existing `k8s-smoke-test` job on every push/PR, just no longer presented as an equally-live option.
