@@ -2,9 +2,9 @@
 
 ## CI
 
-`.github/workflows/ci.yml` is **currently disabled** at the GitHub Actions level (`state: disabled_manually`, a billing-notification precaution — see the [ISO 27001 SoA](iso27001-statement-of-applicability.md) for the full story and why it's still off). Everything below describes what it's configured to do when enabled, not something currently happening on every push/PR — right now, nothing automated runs lint/tests/build on this repo at all.
+`.github/workflows/ci.yml` had been disabled at the GitHub Actions level (`state: disabled_manually`) since 2026-07-06 as a billing-notification precaution. Re-enabled via `gh workflow enable`, but the workflow still isn't actually completing: every job fails immediately with "The job was not started because your account is locked due to a billing issue" (confirmed 2026-08-06, PR #196). That's a separate, account-level GitHub billing lock — not something a workflow or code change can fix — and needs to be cleared at [github.com/settings/billing](https://github.com/settings/billing) before any of this actually runs again. See the [ISO 27001 SoA](iso27001-statement-of-applicability.md) for the fuller history.
 
-When enabled, it runs on every push to `main` and every pull request:
+Once unblocked, it runs the following jobs:
 
 - **backend** job: spins up a `mongo:7` service container, runs `npm test` against it (this also exercises `backend/tests/integration/mongodb.integration.test.js`, which otherwise self-skips without `TEST_MONGODB_URI`).
 - **frontend** job: runs `npm test`, then `npm run build` to catch build-breaking errors.
@@ -40,9 +40,9 @@ Already implemented in `backend/routes/healthRoutes.js` / `backend/controllers/h
 - `GET /api/health/ready` — readiness: actively pings MongoDB, returns `503` if it's unreachable. Point a load balancer's health check here to pull an instance out of rotation during a DB outage.
 - `GET /api/health/database` — DB connectivity only.
 
-## Deployment (Render)
+## Deployment (Render) — production
 
-`render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
+This is the actual live deployed instance: `kejaapp-frontend.onrender.com` / `kejaapp-backend-7iu3.onrender.com`, both confirmed working end-to-end. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
 
 - **kejaapp-backend** — web service, built from `backend/Dockerfile`. Render injects `PORT` itself; `backend/config/env.js` already reads `process.env.PORT`, so no code change was needed.
 - **kejaapp-frontend** — static site, built with `npm ci && npm run build` in `frontend/`, publishing `frontend/dist`. A catch-all rewrite (`/* -> /index.html`) handles SPA routing (Render static sites don't use `frontend/nginx.conf`/`frontend/Dockerfile` — those stay in use for `docker compose` and the CI `docker` job).
@@ -85,9 +85,9 @@ Note: `removePropertyImage` now deletes the underlying object (or local file) wh
 - Single backend instance — no horizontal scaling. The existing Redis-backed rate limiting (`backend/config/env.js`'s `redisUrl`) already supports multiple instances if you do scale up.
 - Render auto-deploys on push to the connected branch by default; there's no GitHub Actions deploy step to maintain, but it also means a red CI run on `main` doesn't block Render from deploying. If that's undesirable, disable auto-deploy in the Render dashboard and trigger deploys manually instead.
 
-## Deployment (Kubernetes)
+## Deployment (Kubernetes) — reference/alternative
 
-`k8s/` (repo root) is a second, independent deployment path — plain manifests (no Helm/Kustomize), for anyone who wants a real cluster instead of Render. It targets any conformant cluster (EKS, GKE, AKS, DigitalOcean, kind, minikube), not a specific provider.
+`k8s/` (repo root) is a reference deployment path, not currently deployed anywhere — plain manifests (no Helm/Kustomize), for anyone who wants a real cluster instead of Render. It targets any conformant cluster (EKS, GKE, AKS, DigitalOcean, kind, minikube), not a specific provider. CI's **k8s-smoke-test** job keeps these manifests proven to actually work together (not just build) on every push/PR, even though nothing runs on them in production today.
 
 Files:
 
