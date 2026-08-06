@@ -25,6 +25,8 @@ services:
         value: "true"
       - key: CORS_ORIGIN
         value: https://kejaapp-frontend.onrender.com
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: STORAGE_DRIVER
         value: s3
       - key: S3_BUCKET

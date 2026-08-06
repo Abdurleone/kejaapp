@@ -504,7 +504,7 @@ If getting CORS errors:
 ## Future Enhancements
 
 - [ ] Add password reset flow
-- [ ] Add OAuth2 / social auth integration
+- [x] Add OAuth2 / social auth integration — Google Sign-In only (`POST /api/auth/google`, see `docs/Authentication.md`); no other provider added
 - [ ] Add multi-factor authentication (MFA)
 - [ ] Add session timeout and automatic refresh
 - [ ] Add device/browser-based auth limits
