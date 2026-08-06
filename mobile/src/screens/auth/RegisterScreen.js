@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import GoogleSignInButton from "../../components/GoogleSignInButton.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 
@@ -192,6 +193,11 @@ export default function RegisterScreen({ navigation }) {
         <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={loading}>
           <Text style={styles.primaryButtonText}>{loading ? "Creating account..." : "Create account"}</Text>
         </Pressable>
+
+        <GoogleSignInButton
+          onAuthenticated={() => navigation.goBack()}
+          onError={(message) => setError(message)}
+        />
 
         <Pressable onPress={() => navigation.navigate("Login")}>
           <Text style={styles.link}>Already have an account? Sign in</Text>

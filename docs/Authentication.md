@@ -67,8 +67,11 @@ Same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/`VAPID_*`: with 
 
 **First-time setup** (Google Cloud Console, one-time, manual):
 1. Create/select a Google Cloud project, then configure the OAuth consent screen (External; scopes `email`/`profile`/`openid` only — this stays under Google's threshold for requiring a full verification review).
-2. Create one **Web application** OAuth client ID. Authorized JavaScript origins: the live Render frontend URL and `http://localhost:5173` for local dev.
-3. Set that client ID as `GOOGLE_CLIENT_ID` (backend) and `VITE_GOOGLE_CLIENT_ID` (frontend build) in Render's dashboard, and in local `.env` files for dev. The same Web client ID is reused by mobile's `expo-auth-session` flow — no separate iOS/Android client ID is needed for Expo Go development (see `docs/Roadmap.md`'s "Next" section for the known production-build caveat).
+2. Create a **Web application** OAuth client ID. Authorized JavaScript origins: the live Render frontend URL and `http://localhost:5173` for local dev. Set it as `GOOGLE_CLIENT_ID` (backend) and `VITE_GOOGLE_CLIENT_ID` (frontend build) in Render's dashboard, and in local `.env` files for dev.
+3. Mobile needs its own **iOS** and **Android** OAuth client IDs — `expo-auth-session/providers/google` requires a client ID for whichever platform it's actually running on (there's no single ID that works everywhere, unlike a plain web redirect flow):
+   - **iOS**: bundle identifier `com.kejaapp.mobile` (`mobile/app.json`'s `ios.bundleIdentifier`). No SHA-1/keystore needed.
+   - **Android**: package name `com.kejaapp.mobile` (`mobile/app.json`'s `android.package`), plus the signing certificate's SHA-1 fingerprint — get it from EAS (`eas credentials`, since builds are signed via EAS per `mobile/eas.json`) or a local debug keystore (`keytool -list -v -keystore ~/.android/debug.keystore` for local Expo Go/dev-client testing).
+   - Set the three resulting IDs as `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (mobile reuses the Web ID above as its "any other platform" fallback) — see `mobile/.env.example`. Unset means the button doesn't render at all (same "empty = disabled" convention), rather than the app crashing.
 
 ## Tokens and sessions
 
