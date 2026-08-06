@@ -78,8 +78,25 @@ const refreshTokenSchema = {
   },
 };
 
+const googleAuthSchema = {
+  idToken: {
+    required: true,
+    type: "string",
+  },
+};
+
+const confirmRoleSchema = {
+  role: {
+    required: true,
+    type: "string",
+    enum: roleGroups.publicRegistration,
+  },
+};
+
 export {
   changePasswordSchema,
+  confirmRoleSchema,
+  googleAuthSchema,
   loginUserSchema,
   refreshTokenSchema,
   registerUserSchema,

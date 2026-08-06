@@ -127,6 +127,17 @@ const openApiSpec = {
         },
       },
     },
+    "/api/auth/google": {
+      post: {
+        tags: ["Auth"],
+        summary: "Sign in or register with a verified Google ID token",
+        responses: {
+          200: {
+            description: "Authenticated user and access token",
+          },
+        },
+      },
+    },
     "/api/auth/refresh": {
       post: {
         tags: ["Auth"],
@@ -177,6 +188,18 @@ const openApiSpec = {
         responses: {
           200: {
             description: "Account deleted",
+          },
+        },
+      },
+    },
+    "/api/auth/role": {
+      put: {
+        tags: ["Auth"],
+        summary: "Confirm the current user's role (first sign-in after Google Sign-In)",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Updated user profile with roleConfirmed: true",
           },
         },
       },

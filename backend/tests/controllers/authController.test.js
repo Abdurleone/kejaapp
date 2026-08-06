@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
+import { OAuth2Client } from "google-auth-library";
 import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
+import env from "../../config/env.js";
 import {
   changePassword,
+  confirmRole,
   deleteCurrentUser,
+  googleAuth,
   loginUser,
   refreshAccessToken,
   registerUser,
@@ -525,5 +529,244 @@ describe("authController", () => {
     assert.equal(res.body.user.email, "tenant@example.com");
     assert.equal(typeof res.body.token, "string");
     assert.equal(typeof res.body.refreshToken, "string");
+  });
+
+  describe("googleAuth", () => {
+    const originalGoogleClientId = env.googleClientId;
+
+    afterEach(() => {
+      env.googleClientId = originalGoogleClientId;
+    });
+
+    it("rejects when Google sign-in is not configured", async () => {
+      env.googleClientId = "";
+      const req = { body: { idToken: "some-token" } };
+      const res = createResponse();
+      let nextError;
+
+      await googleAuth(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 503);
+      assert.equal(nextError.message, "Google sign-in is not configured");
+    });
+
+    it("rejects an invalid Google credential", async () => {
+      env.googleClientId = "test-client-id";
+      mock.method(OAuth2Client.prototype, "verifyIdToken", async () => {
+        throw new Error("Token used too late");
+      });
+
+      const req = { body: { idToken: "bad-token" } };
+      const res = createResponse();
+      let nextError;
+
+      await googleAuth(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 401);
+      assert.equal(nextError.message, "Invalid Google credential");
+    });
+
+    it("rejects a Google account with an unverified email", async () => {
+      env.googleClientId = "test-client-id";
+      mock.method(OAuth2Client.prototype, "verifyIdToken", async () => ({
+        getPayload: () => ({
+          sub: "google-sub-1",
+          email: "unverified@example.com",
+          email_verified: false,
+          name: "Unverified Googler",
+        }),
+      }));
+
+      const req = { body: { idToken: "some-token" } };
+      const res = createResponse();
+      let nextError;
+
+      await googleAuth(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 401);
+      assert.equal(nextError.message, "Google account email is not verified");
+    });
+
+    it("creates a new tenant account with roleConfirmed false on first sign-in", async () => {
+      env.googleClientId = "test-client-id";
+      mock.method(OAuth2Client.prototype, "verifyIdToken", async () => ({
+        getPayload: () => ({
+          sub: "google-sub-2",
+          email: "newgoogler@example.com",
+          email_verified: true,
+          name: "New Googler",
+        }),
+      }));
+      mock.method(User, "findOne", async () => null);
+      mock.method(User, "exists", async () => false);
+      let createdPayload;
+      mock.method(User, "create", async (payload) => {
+        createdPayload = payload;
+        return {
+          _id: new mongoose.Types.ObjectId(),
+          name: payload.name,
+          email: payload.email,
+          username: payload.username,
+          role: payload.role,
+          roleConfirmed: payload.roleConfirmed,
+          phone: payload.phone,
+        };
+      });
+      mock.method(AuthSession, "create", async (payload) => payload);
+
+      const req = { body: { idToken: "some-token" }, headers: {} };
+      const res = createResponse();
+
+      await googleAuth(req, res, (error) => {
+        throw error;
+      });
+
+      assert.equal(res.statusCode, 200);
+      assert.equal(createdPayload.googleId, "google-sub-2");
+      assert.equal(createdPayload.role, "tenant");
+      assert.equal(createdPayload.roleConfirmed, false);
+      assert.equal(createdPayload.password, undefined);
+      assert.equal(res.body.user.roleConfirmed, false);
+    });
+
+    it("logs in an existing user by googleId without creating a new account", async () => {
+      env.googleClientId = "test-client-id";
+      mock.method(OAuth2Client.prototype, "verifyIdToken", async () => ({
+        getPayload: () => ({
+          sub: "google-sub-3",
+          email: "existing@example.com",
+          email_verified: true,
+          name: "Existing Googler",
+        }),
+      }));
+      const existingUser = {
+        _id: new mongoose.Types.ObjectId(),
+        name: "Existing Googler",
+        email: "existing@example.com",
+        username: "existinggoogler",
+        role: "landlord",
+        roleConfirmed: true,
+        phone: "",
+      };
+      let findFilters;
+      mock.method(User, "findOne", async (filter) => {
+        findFilters = filter;
+        return existingUser;
+      });
+      let createCalled = false;
+      mock.method(User, "create", async () => {
+        createCalled = true;
+      });
+      mock.method(AuthSession, "create", async (payload) => payload);
+
+      const req = { body: { idToken: "some-token" }, headers: {} };
+      const res = createResponse();
+
+      await googleAuth(req, res, (error) => {
+        throw error;
+      });
+
+      assert.deepEqual(findFilters, { googleId: "google-sub-3" });
+      assert.equal(createCalled, false);
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.user.role, "landlord");
+    });
+
+    it("links an existing local account by email instead of erroring or resetting its role", async () => {
+      env.googleClientId = "test-client-id";
+      mock.method(OAuth2Client.prototype, "verifyIdToken", async () => ({
+        getPayload: () => ({
+          sub: "google-sub-4",
+          email: "localaccount@example.com",
+          email_verified: true,
+          name: "Local Account",
+        }),
+      }));
+      const localUser = {
+        _id: new mongoose.Types.ObjectId(),
+        name: "Local Account",
+        email: "localaccount@example.com",
+        username: "localaccount",
+        role: "agency",
+        roleConfirmed: true,
+        phone: "",
+        googleId: undefined,
+        async save() {},
+      };
+      mock.method(User, "findOne", async (filter) => {
+        if (filter.googleId) {
+          return null;
+        }
+        return localUser;
+      });
+      let createCalled = false;
+      mock.method(User, "create", async () => {
+        createCalled = true;
+      });
+      mock.method(AuthSession, "create", async (payload) => payload);
+
+      const req = { body: { idToken: "some-token" }, headers: {} };
+      const res = createResponse();
+
+      await googleAuth(req, res, (error) => {
+        throw error;
+      });
+
+      assert.equal(localUser.googleId, "google-sub-4");
+      assert.equal(createCalled, false);
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.user.role, "agency");
+    });
+  });
+
+  describe("confirmRole", () => {
+    it("sets the role and marks it confirmed", async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const user = {
+        _id: userId,
+        name: "Fresh Googler",
+        email: "fresh@example.com",
+        username: "freshgoogler",
+        role: "tenant",
+        roleConfirmed: false,
+        phone: "",
+        async save() {},
+      };
+      mock.method(User, "findById", async () => user);
+
+      const req = { body: { role: "landlord" }, user: { _id: userId } };
+      const res = createResponse();
+
+      await confirmRole(req, res, (error) => {
+        throw error;
+      });
+
+      assert.equal(user.role, "landlord");
+      assert.equal(user.roleConfirmed, true);
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.user.role, "landlord");
+      assert.equal(res.body.user.roleConfirmed, true);
+    });
+
+    it("returns not found for a missing user", async () => {
+      mock.method(User, "findById", async () => null);
+
+      const req = { body: { role: "landlord" }, user: { _id: new mongoose.Types.ObjectId() } };
+      const res = createResponse();
+      let nextError;
+
+      await confirmRole(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 404);
+      assert.equal(nextError.message, "User not found");
+    });
   });
 });

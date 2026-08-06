@@ -47,6 +47,29 @@ For the complete code walkthrough (frontend state shape, exact request/response 
 
 `identifier` accepts **either** the account's email or its username (case-insensitive). Invalid credentials of either kind return the same generic `401` message, so a failed attempt never reveals whether the email/username existed.
 
+## Google Sign-In
+
+`POST /api/auth/google`
+
+```json
+{ "idToken": "<Google ID token from the client SDK>" }
+```
+
+The backend verifies the token server-side (`google-auth-library`, checking the token's audience against `GOOGLE_CLIENT_ID` and requiring a verified email) rather than trusting anything the client claims. Three outcomes, in order:
+
+1. **Existing `googleId` match** — logs in as that user.
+2. **No `googleId` match, but the (Google-verified) email matches an existing password account** — the Google identity is linked to that existing account (no new account created, no error). A password-only user who later signs in with Google on the same email keeps their existing role and history.
+3. **Neither matches** — a new account is created with `role: "tenant"` and `roleConfirmed: false`, plus an auto-generated username (Google supplies no username — same generator used to backfill pre-username accounts, see above).
+
+Google never supplies a role, so a fresh signup's `role: "tenant"` is just a safe placeholder — `roleConfirmed: false` is the real signal. Both clients check this on every login/session-restore and force a one-time role picker (`PUT /api/auth/role`, below) before the account can do anything role-specific.
+
+Same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/`VAPID_*`: with `GOOGLE_CLIENT_ID` unset, this endpoint 503s instead of silently failing.
+
+**First-time setup** (Google Cloud Console, one-time, manual):
+1. Create/select a Google Cloud project, then configure the OAuth consent screen (External; scopes `email`/`profile`/`openid` only — this stays under Google's threshold for requiring a full verification review).
+2. Create one **Web application** OAuth client ID. Authorized JavaScript origins: the live Render frontend URL and `http://localhost:5173` for local dev.
+3. Set that client ID as `GOOGLE_CLIENT_ID` (backend) and `VITE_GOOGLE_CLIENT_ID` (frontend build) in Render's dashboard, and in local `.env` files for dev. The same Web client ID is reused by mobile's `expo-auth-session` flow — no separate iOS/Android client ID is needed for Expo Go development (see `docs/Roadmap.md`'s "Next" section for the known production-build caveat).
+
 ## Tokens and sessions
 
 - A short-lived **JWT** (`{ id, role }` payload) is returned in the response body and set as an HTTP-only cookie.
@@ -59,8 +82,9 @@ For the complete code walkthrough (frontend state shape, exact request/response 
 ## Other auth endpoints
 
 ```text
-GET  /api/auth/me         Current user (name, email, username, role, phone)
+GET  /api/auth/me         Current user (name, email, username, role, roleConfirmed, phone)
 PUT  /api/auth/me         Update name/phone only — email, username, and role are ignored even if sent
+PUT  /api/auth/role       Set role + roleConfirmed: true (first sign-in after Google Sign-In only)
 PUT  /api/auth/password   Change password, requires the current password
 ```
 

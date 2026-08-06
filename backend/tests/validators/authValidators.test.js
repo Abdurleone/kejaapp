@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   changePasswordSchema,
+  confirmRoleSchema,
+  googleAuthSchema,
   loginUserSchema,
   registerUserSchema,
   updateProfileSchema,
@@ -32,5 +34,15 @@ describe("authValidators", () => {
     assert.equal(registerUserSchema.username.pattern, undefined);
     assert.equal(registerUserSchema.username.validate("   "), "username is required");
     assert.equal(registerUserSchema.username.validate("johnkamau"), undefined);
+  });
+
+  it("requires an idToken for Google sign-in", () => {
+    assert.equal(googleAuthSchema.idToken.required, true);
+    assert.equal(googleAuthSchema.idToken.type, "string");
+  });
+
+  it("only allows public roles (never admin) when confirming a role", () => {
+    assert.equal(confirmRoleSchema.role.required, true);
+    assert.deepEqual(confirmRoleSchema.role.enum, ["tenant", "landlord", "agency", "mover"]);
   });
 });
