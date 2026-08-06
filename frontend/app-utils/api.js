@@ -612,3 +612,18 @@ export const registerUser = async (userData) => {
   clearRequestCache();
   return response;
 };
+
+export const loginWithGoogle = async (idToken) => {
+  const response = await apiFetch("/api/auth/google", {
+    method: "POST",
+    body: { idToken },
+  });
+  setAuthToken(response.token);
+  clearRequestCache();
+  return response;
+};
+
+export const confirmRole = async (role) => {
+  const response = await apiFetch("/api/auth/role", { method: "PUT", body: { role } });
+  return response.user;
+};

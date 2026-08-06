@@ -30,6 +30,15 @@ export default function DataProtectionPage() {
       </section>
 
       <section className="panel stack">
+        <h3>Signing in with Google</h3>
+        <p className="muted-copy">
+          If you choose to sign in or register with Google, Google shares your name, email address, and profile
+          photo with KejaApp so an account can be created or matched to an existing one — nothing else. KejaApp does
+          not receive your Google password, and does not access any other Google data (contacts, files, etc.).
+        </p>
+      </section>
+
+      <section className="panel stack">
         <h3>Your rights as a data subject</h3>
         <p className="muted-copy">
           Consistent with the Act (s. 26), you have the right to be informed, to access your own data, to correct it,

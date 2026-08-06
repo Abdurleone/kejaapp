@@ -799,6 +799,17 @@ textarea:focus {
   font-weight: 800;
 }
 
+.google-signin-button {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.auth-panel-divider {
+  text-align: center;
+  margin: 8px 0;
+}
+
 .auth-panel-form {
   display: grid;
   gap: 12px;
