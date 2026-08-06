@@ -30,6 +30,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [CI Re-enabled and Render Designated the Primary Deployment](#ci-re-enabled-and-render-designated-the-primary-deployment)
 - [Google Sign-In: Backend Foundation](#google-sign-in-backend-foundation)
 - [Google Sign-In: Web Frontend](#google-sign-in-web-frontend)
+- [Google Sign-In: Mobile](#google-sign-in-mobile)
 
 ---
 
@@ -327,3 +328,14 @@ A running, chronological (oldest first) record of what was built and why — inc
 - `DataProtectionPage.jsx` gained a new section disclosing that Google Sign-In shares name/email/profile photo with KejaApp (nothing else, never the Google password).
 - `render.yaml`: `VITE_GOOGLE_CLIENT_ID` added to `kejaapp-frontend` as `sync: false` rather than a literal value - unlike `VITE_API_BASE_URL` (this project's own known URL), the real client ID depends on the account owner's own Google Cloud Console setup and isn't known ahead of time.
 - 10 new tests: `GoogleSignInButton` (renders nothing when unconfigured, initializes once the script loads including the load-event-wait path, calls `loginWithGoogle` then `onAuthenticated` on success, calls `onError` on rejection), `SelectRolePage` (submits the chosen role, surfaces an error without calling back on failure), `App.jsx` (forces the picker for an unconfirmed role regardless of path, renders normally once confirmed, completes the full pick-a-role-then-proceed flow), plus `access.js`/`resolveViewFromPath`/`getViewPath` unit assertions for the new view. 82 node:test + 171 Vitest tests passing, lint clean.
+
+---
+
+## Google Sign-In: Mobile
+
+- Third and final PR of this feature. Added `expo-auth-session`/`expo-web-browser`, a `GoogleSignInButton` on `LoginScreen`/`RegisterScreen`, and a `SelectRoleScreen` gated into `RootNavigator` exactly like `App.jsx`'s web gating (a signed-in user with `roleConfirmed: false` sees the role picker instead of the tab navigator, regardless of anything else).
+- **A real assumption from the plan turned out to be wrong, caught while writing tests, not after shipping**: the plan (and this changelog's earlier "known limitation" framing) assumed a single Web OAuth client ID would work via `expo-auth-session` in Expo Go, based on Expo's older `auth.expo.io` proxy behavior. That proxy is gone. The installed `expo-auth-session`'s Google provider (`@deprecated`, still functional) throws synchronously without a platform-specific client ID (`iosClientId` on iOS, `androidClientId` on Android) - there is no working single-ID fallback for native platforms, Expo Go included. Corrected by registering separate iOS/Android/Web OAuth client IDs upfront (`EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, `mobile/.env.example`) instead of deferring it - `docs/Authentication.md` documents the corrected setup, including where to get Android's SHA-1 fingerprint (`eas credentials` or a local debug keystore).
+- `GoogleSignInButton` always calls the hook (Rules of Hooks) with a placeholder for whichever client ID field is missing, so it never crashes - but renders nothing (same "empty = disabled" convention as the backend/web) unless the one for the *current* platform (`Platform.select`) is actually configured.
+- `AuthContext` gained `loginWithGoogle(idToken)`, mirroring `login`/`register`'s exact shape (`setUser` + `registerForPushNotifications`) rather than duplicating that flow ad hoc. `RootNavigator.js` gained one more `loading`-style short-circuit for `user?.roleConfirmed === false`.
+- 15 new tests across `GoogleSignInButton` (renders nothing unconfigured, uses the platform-specific client ID once set, prompts/handles success/error), `SelectRoleScreen` (submit + error), `RootNavigator` (loading/role-picker/normal-tabs branches - the first component-level test this navigator has ever had), and `AuthContext`'s `loginWithGoogle`. `LoginScreen`/`RegisterScreen`'s existing tests mock `GoogleSignInButton` (it has its own dedicated suite) since the real component needs a live Expo runtime for scheme resolution. 35/35 suites, 201/201 tests passing (up from 32/188), lint clean.
+- This closes out the three-PR Google Sign-In effort (backend, web, mobile).
