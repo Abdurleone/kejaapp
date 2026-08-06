@@ -30,6 +30,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1101.0",
+    "@sentry/node": "^10.69.0",
+    "@sentry/tracing": "^7.120.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
