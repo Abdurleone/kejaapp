@@ -21,6 +21,7 @@ import TermsPage from "./pages/TermsPage.jsx";
 import DataProtectionPage from "./pages/DataProtectionPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import {
+  defaultApiBaseUrl,
   normalizeApiBaseUrl,
   resolveViewFromPath,
   getPropertyIdFromPath,
@@ -39,11 +40,7 @@ import {
   canSearchListings,
 } from "../app-utils.js";
 
-const apiBaseUrl = normalizeApiBaseUrl(
-  localStorage.getItem("keja_base_url") ||
-    import.meta.env.VITE_API_BASE_URL ||
-    "http://localhost:5000",
-);
+const apiBaseUrl = normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
 
 const navItems = [
   { view: "dashboard", label: "Dashboard", path: getViewPath("dashboard") },
