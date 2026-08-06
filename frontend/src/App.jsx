@@ -20,6 +20,7 @@ import AccountPage from "./pages/AccountPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
 import DataProtectionPage from "./pages/DataProtectionPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
+import SelectRolePage from "./pages/SelectRolePage.jsx";
 import {
   defaultApiBaseUrl,
   normalizeApiBaseUrl,
@@ -129,9 +130,13 @@ function App() {
 
           // A restored session landing on the bare root has no meaningful
           // default (resolveViewFromPath always maps "/" to "discover"),
-          // so send non-tenant roles to their own default view instead.
+          // so send non-tenant roles to their own default view instead -
+          // unless their role isn't confirmed yet (first sign-in after
+          // Google Sign-In), which takes priority over any default view.
           if (path === "/") {
-            navigate(getViewPath(getDefaultViewForRole(user.role)));
+            navigate(
+              getViewPath(user.roleConfirmed === false ? "selectRole" : getDefaultViewForRole(user.role))
+            );
           }
         }
       } catch {
@@ -156,6 +161,12 @@ function App() {
   }, []);
 
   const view = useMemo(() => resolveViewFromPath(path), [path]);
+  // Forces the role-picker regardless of whatever path was requested - a
+  // fresh Google signup has no role yet, so nothing else should render
+  // until this is resolved. Doesn't touch `path`/the URL bar itself; the
+  // navigate() calls below additionally route here so the URL agrees with
+  // what's on screen.
+  const effectiveView = currentUser?.roleConfirmed === false ? "selectRole" : view;
   const showSplash = shouldShowSplash({ isSignedIn: signedIn, path });
 
   const openAuthPanel = () => setAuthPanelOpen(true);
@@ -166,6 +177,13 @@ function App() {
     setCurrentUser(user);
     setSignedIn(true);
     setAuthPanelOpen(false);
+    navigate(
+      getViewPath(user.roleConfirmed === false ? "selectRole" : getDefaultViewForRole(user.role))
+    );
+  };
+
+  const handleRoleConfirmed = (user) => {
+    setCurrentUser(user);
     navigate(getViewPath(getDefaultViewForRole(user.role)));
   };
 
@@ -194,10 +212,12 @@ function App() {
   // terms, deleteAccount) have no tab of their own showing as selected -
   // leave the panel unlabelled rather than pointing aria-labelledby at a
   // tab id that doesn't exist for those.
-  const activeTabId = navigationItems.some((item) => item.view === view) ? `tab-${view}` : undefined;
+  const activeTabId = navigationItems.some((item) => item.view === effectiveView)
+    ? `tab-${effectiveView}`
+    : undefined;
 
   const renderCurrentPage = () => {
-    switch (view) {
+    switch (effectiveView) {
       case "dashboard":
         if (!signedIn) {
           return (
@@ -367,6 +387,16 @@ function App() {
             onBrowse={() => navigate(getViewPath("discover"))}
           />
         );
+      case "selectRole":
+        if (!signedIn) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in to continue.</p>
+            </div>
+          );
+        }
+
+        return <SelectRolePage onRoleConfirmed={handleRoleConfirmed} />;
       case "privacy":
       case "dataProtection":
         // Kenya's Data Protection Act treats privacy and data protection as
@@ -440,7 +470,7 @@ function App() {
             <div className="workspace">
               <div className="tabs" role="tablist" aria-label="Main navigation">
                 {navigationItems.map((item, index) => {
-                  const isSelected = view === item.view;
+                  const isSelected = effectiveView === item.view;
 
                   return (
                     <button
@@ -462,7 +492,7 @@ function App() {
                       {item.view === "notifications" ? (
                         <>
                           <span aria-hidden="true">🔔</span> {item.label}
-                          <NotificationBadge view={view} />
+                          <NotificationBadge view={effectiveView} />
                         </>
                       ) : (
                         item.label

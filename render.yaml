@@ -63,6 +63,11 @@ services:
       # a different assigned name.
       - key: VITE_API_BASE_URL
         value: https://kejaapp-backend-7iu3.onrender.com
+      # Public by nature (baked into the built JS bundle either way), but
+      # left as sync: false rather than a literal value here since it's set
+      # once in Google Cloud Console and may not exist yet on a fresh clone.
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
     routes:
       - type: rewrite
         source: /*
