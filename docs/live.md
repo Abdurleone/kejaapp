@@ -45,6 +45,5 @@ System/Light/Dark on both web and mobile — System (OS-preference-following, li
 - **Custom domain**: still on default `*.onrender.com` subdomains.
 - **Mobile iOS verification**: only ever verified on a real Android emulator; iOS device/simulator testing is still outstanding.
 - **`eslint`/`jest` version pinning**: both `frontend/` and `mobile/` are deliberately held back a major version (peer-dependency incompatibilities) — revisit once `eslint-config-expo`/`jest-expo`/`eslint-plugin-react` catch up.
-- **Username changes**: usernames are permanent after registration by design — revisit only if users actually ask for it.
 
 See [Roadmap.md](Roadmap.md)'s "Next" section for the full, evolving list — this page just calls out the ones with the most immediate user-facing or operational impact.
