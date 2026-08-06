@@ -24,10 +24,17 @@ mongoose.connection.on("reconnected", () => {
 const mongoOptions = {
   family: 4,
   maxPoolSize: 10,
-  minPoolSize: 0,
+  // minPoolSize: 0 let the whole pool idle down to zero connections between
+  // requests on a low-traffic deployment - the next request then had to
+  // establish a brand-new TCP+TLS+SCRAM-auth connection from scratch before
+  // it could run a query, and on a free-tier host with a fraction of a CPU
+  // core, that sometimes took longer than serverSelectionTimeoutMS allowed,
+  // surfacing as "buffering timed out" on an otherwise-healthy cluster.
+  // Keeping one connection warm avoids paying that cost on every idle gap.
+  minPoolSize: 1,
   retryReads: true,
   retryWrites: true,
-  serverSelectionTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 20000,
   socketTimeoutMS: 45000,
 };
 
