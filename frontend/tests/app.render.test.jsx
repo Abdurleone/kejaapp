@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../src/App.jsx";
 
-const { fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials } = vi.hoisted(() => ({
+const { confirmRole, fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials } = vi.hoisted(() => ({
+  confirmRole: vi.fn(),
   fetchCurrentUser: vi.fn(),
   fetchDashboardSummary: vi.fn(),
   fetchPublicTestimonials: vi.fn(),
@@ -11,7 +12,7 @@ const { fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials } = vi.
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials };
+  return { ...actual, confirmRole, fetchCurrentUser, fetchDashboardSummary, fetchPublicTestimonials };
 });
 
 // The main nav's ARIA tablist pattern (role=tab, aria-selected, roving
@@ -201,5 +202,68 @@ describe("App - color mode", () => {
     });
 
     expect(document.documentElement.dataset.colorMode).toBe("light");
+  });
+});
+
+describe("App - Google Sign-In role gating", () => {
+  beforeEach(() => {
+    localStorage.setItem("keja_token", "fake-token");
+    window.history.pushState({}, "", "/dashboard");
+    fetchDashboardSummary.mockResolvedValue({ notifications: { unread: 0 } });
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("forces the role-picker for a signed-in user whose role isn't confirmed yet, regardless of the requested path", async () => {
+    fetchCurrentUser.mockResolvedValue({
+      _id: "g1",
+      name: "New Googler",
+      role: "tenant",
+      roleConfirmed: false,
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "One more thing" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Dashboard", selected: true })).not.toBeInTheDocument();
+  });
+
+  it("renders the requested view normally once the role is already confirmed", async () => {
+    fetchCurrentUser.mockResolvedValue({
+      _id: "g2",
+      name: "Existing User",
+      role: "tenant",
+      roleConfirmed: true,
+    });
+
+    render(<App />);
+
+    const dashboardTab = await screen.findByRole("tab", { name: "Dashboard" });
+    expect(dashboardTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("heading", { name: "One more thing" })).not.toBeInTheDocument();
+  });
+
+  it("lets the user pick a role, after which the requested view renders normally", async () => {
+    const user = userEvent.setup();
+    fetchCurrentUser.mockResolvedValue({
+      _id: "g3",
+      name: "New Googler",
+      role: "tenant",
+      roleConfirmed: false,
+    });
+    confirmRole.mockResolvedValue({ id: "g3", name: "New Googler", role: "landlord", roleConfirmed: true });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "One more thing" });
+    await user.selectOptions(screen.getByLabelText("I am a"), "landlord");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    const dashboardTab = await screen.findByRole("tab", { name: "Dashboard" });
+    await waitFor(() => expect(dashboardTab).toHaveAttribute("aria-selected", "true"));
+    expect(screen.queryByRole("heading", { name: "One more thing" })).not.toBeInTheDocument();
   });
 });

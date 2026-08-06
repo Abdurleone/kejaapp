@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { loginUser, registerUser } from "../../app-utils.js";
+import GoogleSignInButton from "./GoogleSignInButton.jsx";
 
 const emptyAuthForm = { name: "", email: "", username: "", password: "", phone: "", role: "tenant" };
 const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
@@ -127,6 +128,15 @@ export default function AuthModal({ onClose, onAuthenticated }) {
             Register
           </button>
         </div>
+        {Boolean(import.meta.env?.VITE_GOOGLE_CLIENT_ID) && (
+          <>
+            <GoogleSignInButton
+              onAuthenticated={onAuthenticated}
+              onError={(message) => setAuthError(message)}
+            />
+            <p className="muted-copy auth-panel-divider">or</p>
+          </>
+        )}
         <form className="auth-panel-form" onSubmit={handleAuthSubmit}>
           {authMode === "register" && (
             <>
