@@ -67,4 +67,47 @@ describe("User model", () => {
 
     assert.equal(user.username, "swiftcheetah284");
   });
+
+  it("requires a password for a non-Google account", async () => {
+    const user = new User({
+      name: "No Password",
+      email: "nopassword@example.com",
+      username: "nopassworduser",
+    });
+
+    await assert.rejects(() => user.validate());
+  });
+
+  it("does not require a password when googleId is set", async () => {
+    const user = new User({
+      name: "Google User",
+      email: "googleuser@example.com",
+      username: "googleuser",
+      googleId: "google-sub-123",
+    });
+
+    await user.validate();
+  });
+
+  it("defaults roleConfirmed to true", () => {
+    const user = new User({
+      name: "Local User",
+      email: "localuser@example.com",
+      username: "localuser",
+      password: "password123",
+    });
+
+    assert.equal(user.roleConfirmed, true);
+  });
+
+  it("matchPassword returns false instead of throwing when there is no password hash", async () => {
+    const user = new User({
+      name: "Google User",
+      email: "googleuser2@example.com",
+      username: "googleuser2",
+      googleId: "google-sub-456",
+    });
+
+    assert.equal(await user.matchPassword("anything"), false);
+  });
 });

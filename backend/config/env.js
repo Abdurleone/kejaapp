@@ -225,6 +225,13 @@ const env = {
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || "",
   vapidSubject: process.env.VAPID_SUBJECT || "mailto:support@kejaapp.example",
+  // Optional, same "empty = disabled" pattern as redisUrl/clamavHost/vapid*
+  // above: unset means POST /api/auth/google 503s instead of trying (and
+  // failing) to verify a Google ID token against a client ID that doesn't
+  // exist. The same Web OAuth client ID is reused by both the frontend's
+  // Google Identity Services button and the mobile app's expo-auth-session
+  // flow - see docs/Authentication.md for how to create one.
+  googleClientId: process.env.GOOGLE_CLIENT_ID || "",
   propertiesCacheTtlMs: parsePositiveInteger(
     process.env.PROPERTIES_CACHE_TTL_MS,
     30 * 1000,

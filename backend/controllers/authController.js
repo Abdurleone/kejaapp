@@ -1,5 +1,7 @@
+import { OAuth2Client } from "google-auth-library";
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
+import { roleGroups } from "../constants/rbac.js";
 import AuthSession from "../models/AuthSession.js";
 import User from "../models/User.js";
 import { deleteUserCascade } from "../services/userDeletionService.js";
@@ -8,7 +10,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
-import { suggestUsernames } from "../utils/usernameGenerator.js";
+import { generateUniqueUsername, suggestUsernames } from "../utils/usernameGenerator.js";
 
 // --- EXISTING UTILITIES ---
 const getCookieOptions = () => ({
@@ -66,6 +68,7 @@ const sendAuthResponse = async (req, res, statusCode, user) => {
       email: user.email,
       username: user.username,
       role: user.role,
+      roleConfirmed: user.roleConfirmed,
       phone: user.phone,
     },
     token,
@@ -133,6 +136,96 @@ const loginUser = asyncHandler(async (req, res) => {
   await sendAuthResponse(req, res, httpStatus.OK, user);
 });
 
+const googleClient = new OAuth2Client();
+
+const googleAuth = asyncHandler(async (req, res) => {
+  if (!env.googleClientId) {
+    throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, "Google sign-in is not configured");
+  }
+
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "idToken is required");
+  }
+
+  let payload;
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: env.googleClientId,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid Google credential");
+  }
+
+  if (!payload?.email_verified) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Google account email is not verified");
+  }
+
+  const { sub: googleId, email, name } = payload;
+  const normalizedEmail = email.toLowerCase();
+
+  let user = await User.findOne({ googleId });
+
+  if (!user) {
+    // A Google-verified email matching an existing password account is the
+    // same real person signing in a different way - link rather than error.
+    user = await User.findOne({ email: normalizedEmail });
+
+    if (user) {
+      user.googleId = googleId;
+      await user.save();
+    }
+  }
+
+  if (!user) {
+    const username = await generateUniqueUsername(User);
+
+    user = await User.create({
+      email: normalizedEmail,
+      name: name || normalizedEmail,
+      username,
+      googleId,
+      // Google supplies no role - default to the least-privileged option
+      // and force a one-time role-picker via roleConfirmed: false. Never
+      // grants a role from roleGroups.publicRegistration blindly beyond
+      // this safe default.
+      role: roleGroups.publicRegistration[0],
+      roleConfirmed: false,
+    });
+  }
+
+  await sendAuthResponse(req, res, httpStatus.OK, user);
+});
+
+const confirmRole = asyncHandler(async (req, res) => {
+  const { role } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  user.role = role;
+  user.roleConfirmed = true;
+  await user.save();
+
+  res.status(httpStatus.OK).json({
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      roleConfirmed: user.roleConfirmed,
+      phone: user.phone,
+    },
+  });
+});
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const refreshToken = getRefreshTokenFromRequest(req);
 
@@ -169,6 +262,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
       email: req.user.email,
       username: req.user.username,
       role: req.user.role,
+      roleConfirmed: req.user.roleConfirmed,
       phone: req.user.phone,
     },
   });
@@ -198,6 +292,7 @@ const updateCurrentUser = asyncHandler(async (req, res) => {
       email: user.email,
       username: user.username,
       role: user.role,
+      roleConfirmed: user.roleConfirmed,
       phone: user.phone,
     },
   });
@@ -274,8 +369,10 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 export {
   changePassword,
+  confirmRole,
   deleteCurrentUser,
   getCurrentUser,
+  googleAuth,
   loginUser,
   logoutUser,
   refreshAccessToken,
