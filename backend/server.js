@@ -1,3 +1,4 @@
+import "./instrument.js";
 import app from "./app.js";
 import connectDB, { disconnectDB } from "./config/db.js";
 import env from "./config/env.js";

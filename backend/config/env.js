@@ -232,6 +232,10 @@ const env = {
   // Google Identity Services button and the mobile app's expo-auth-session
   // flow - see docs/Authentication.md for how to create one.
   googleClientId: process.env.GOOGLE_CLIENT_ID || "",
+  // Optional, same "empty = disabled" pattern as googleClientId above: unset
+  // means errors are only logged locally (see errorMiddleware.js) instead of
+  // also being reported to Sentry. Create a project at sentry.io to get a DSN.
+  sentryDsn: process.env.SENTRY_DSN || "",
   propertiesCacheTtlMs: parsePositiveInteger(
     process.env.PROPERTIES_CACHE_TTL_MS,
     30 * 1000,
