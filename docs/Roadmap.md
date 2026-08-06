@@ -24,7 +24,7 @@ The canonical, detailed history is [CHANGELOG.md](https://github.com/Abdurleone/
 - **Platform feedback and testimonials**: tenants/landlords/agencies submit feedback, only admins respond, responding immediately publishes it as a landing-page testimonial. Surfaced and fixed a caching bug where the public feedback list wasn't invalidated on response.
 - **Username login**: registration assigns (later: lets users choose) a username as an alternate login identifier. See [Authentication](Authentication) for the current behavior.
 - Small alignment fixes on the Discover radius/location filters (web `.header-actions` vertical alignment, mobile "Near me" button touch-target height).
-- **Follow-up to username login**: users now choose their own username at registration (free text) instead of receiving an auto-generated one, with up to 3 available suggestions shown on conflict. Generalized the backend's `ApiError`/error handler to carry structured extra data through to error responses.
+- **Follow-up to username login**: users now choose their own username at registration (free text) instead of receiving an auto-generated one, with up to 3 available suggestions shown on conflict. Generalized the backend's `ApiError`/error handler to carry structured extra data through to error responses. Usernames staying immutable after registration (no "change username" flow anywhere) is a **permanent** product decision, not an open item — there's no plan to revisit it.
 - Community health files: `LICENSE`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, PR template, issue templates.
 - **Real notification inbox** on web (`Notifications` tab) and mobile (a `Notifications` bottom tab) — the notification API existed already, but nothing before this called it; notifications only ever showed up as a bare unread count.
 - **Saved-search alerts**: tenants save a Discover location + radius search; publishing a new listing that matches one notifies its owner. The matching logic reuses the exact same filter/geo-radius code the property list endpoint already used, extracted to a shared util to avoid a circular import.
@@ -165,8 +165,6 @@ Excluded from this list by design: mobile's orphaned review-list API functions (
 
 ## Next
 
-- Keep payments off-platform unless the product scope changes later.
-- Username is currently immutable (assigned once at registration, no "change username" flow on web, mobile, or the API) — revisit if users ask to customize it.
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
 - `eslint`/`jest` in both `frontend/` and `mobile/` need to stay pinned below their next major version: `eslint-plugin-react`'s peer range tops out at `eslint ^9.7`, and mobile's `@react-native/jest-preset` pins `babel-jest`/`jest-environment-node` to `^29.7.0`, incompatible with `jest@30`'s internal module-mocker API. This has already **regressed twice** via an auto-merged Dependabot group bump each time - `.github/dependabot.yml` now has explicit `ignore` rules blocking major-version bumps for these packages specifically.
 - `CI` (`.github/workflows/ci.yml`) is enabled on GitHub Actions again, but every job fails immediately with "your account is locked due to a billing issue" (confirmed 2026-08-06, PR #196) - an account-level GitHub billing lock at [github.com/settings/billing](https://github.com/settings/billing), not something fixable from this repo. Left as-is for now at the account owner's call; automated CI still isn't actually running until that's cleared.
