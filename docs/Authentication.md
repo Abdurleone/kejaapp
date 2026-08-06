@@ -49,6 +49,8 @@ For the complete code walkthrough (frontend state shape, exact request/response 
 
 ## Google Sign-In
 
+**Status**: live and verified in production on backend + web (`GOOGLE_CLIENT_ID`/`VITE_GOOGLE_CLIENT_ID` are set on Render). Mobile's code is merged but paused — step 3 below needs the account owner's own EAS login (not something doable on their behalf), so it's deferred until that happens.
+
 `POST /api/auth/google`
 
 ```json

@@ -504,7 +504,7 @@ If getting CORS errors:
 ## Future Enhancements
 
 - [ ] Add password reset flow
-- [x] Add OAuth2 / social auth integration — Google Sign-In only (`POST /api/auth/google`, see `docs/Authentication.md`); no other provider added
+- [x] Add OAuth2 / social auth integration — Google Sign-In only (`POST /api/auth/google`, see `docs/Authentication.md`); no other provider added. Live in production on backend + web; mobile's code is merged but paused pending the account owner's own Google Cloud Console + EAS credentials setup.
 - [ ] Add multi-factor authentication (MFA)
 - [ ] Add session timeout and automatic refresh
 - [ ] Add device/browser-based auth limits
