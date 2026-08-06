@@ -6,7 +6,7 @@ For the full detail behind every section here, see [docs/devops.md](https://gith
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push to `main` and every PR:
+`.github/workflows/ci.yml` is enabled on GitHub Actions, but currently every job fails to start with "your account is locked due to a billing issue" — an account-level GitHub billing lock, not a workflow/code problem. Needs clearing at github.com/settings/billing before any of this actually runs. Once unblocked, it runs on every push to `main` and every PR:
 
 - **backend** — spins up a `mongo:7` service container, runs the full test suite against it (this is what exercises the opt-in MongoDB integration tests).
 - **frontend** — tests, then `npm run build` to catch build-breaking errors.

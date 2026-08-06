@@ -2,9 +2,9 @@
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push to `main` and every pull request. It had been disabled at the GitHub Actions level (`state: disabled_manually`) since 2026-07-06 as a billing-notification precaution — re-enabled via `gh workflow enable` once that turned out to be a stale concern (standard GitHub-hosted runners are free/unlimited for public repos). See the [ISO 27001 SoA](iso27001-statement-of-applicability.md) for the history of the gap this left.
+`.github/workflows/ci.yml` had been disabled at the GitHub Actions level (`state: disabled_manually`) since 2026-07-06 as a billing-notification precaution. Re-enabled via `gh workflow enable`, but the workflow still isn't actually completing: every job fails immediately with "The job was not started because your account is locked due to a billing issue" (confirmed 2026-08-06, PR #196). That's a separate, account-level GitHub billing lock — not something a workflow or code change can fix — and needs to be cleared at [github.com/settings/billing](https://github.com/settings/billing) before any of this actually runs again. See the [ISO 27001 SoA](iso27001-statement-of-applicability.md) for the fuller history.
 
-It runs the following jobs:
+Once unblocked, it runs the following jobs:
 
 - **backend** job: spins up a `mongo:7` service container, runs `npm test` against it (this also exercises `backend/tests/integration/mongodb.integration.test.js`, which otherwise self-skips without `TEST_MONGODB_URI`).
 - **frontend** job: runs `npm test`, then `npm run build` to catch build-breaking errors.
