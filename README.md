@@ -24,7 +24,7 @@ The goal is to make rental discovery more transparent, more trusted, and more op
 
 ## Payment Boundary
 
-KejaApp is a discovery and coordination platform. It does not process, hold, or mediate rent, deposits, agency fees, or mover charges. Those arrangements are agreed and settled directly between the parties involved.
+KejaApp is a discovery and coordination platform. It does not process, hold, or mediate rent, deposits, agency fees, or mover charges. Those arrangements are agreed and settled directly between the parties involved. This is a **permanent** product boundary, not a placeholder pending a future payments feature.
 
 ## Key Features
 
