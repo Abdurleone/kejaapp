@@ -79,6 +79,14 @@ AWS S3, Backblaze B2, and MinIO all work the same way — swap in their endpoint
 
 Note: `removePropertyImage` now deletes the underlying object (or local file) when a property image is removed, for either driver — previously images were only detached from the Property document and the file was left orphaned on disk.
 
+### Error tracking (Sentry)
+
+`backend/instrument.js` calls `Sentry.init()` if `SENTRY_DSN` is set, then `backend/app.js` wires `Sentry.setupExpressErrorHandler(app)` between `notFound` and the app's own `errorHandler` — Sentry only reports errors that would already reach `errorHandler` with a 5xx status (its default `shouldHandleError` matches the same threshold `errorMiddleware.js` already logs at), so nothing changes about which errors are treated as noteworthy, only where they're also reported.
+
+Same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/`GOOGLE_CLIENT_ID`: leave `SENTRY_DSN` unset and errors are only logged locally (`backend/utils/logger.js`), same as before this was added.
+
+Setup: create a project at [sentry.io](https://sentry.io) (Node/Express platform), copy its DSN, set `SENTRY_DSN` on **kejaapp-backend**.
+
 ### Known limitations of this setup
 
 - **Free plan**: both web services spin down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period. This Blueprint (backend + frontend + Redis) is fully free as configured — malware scanning is the one feature deliberately left off this path (see above) rather than a hidden cost.
