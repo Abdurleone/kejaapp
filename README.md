@@ -30,6 +30,7 @@ KejaApp is a discovery and coordination platform. It does not process, hold, or 
 
 A short summary of the most important product capabilities:
 
+- email/password authentication, plus Google Sign-In on web (mobile pending Google Cloud Console setup — see [Authentication](docs/Authentication.md))
 - map-based and location-first property discovery
 - saved properties and saved searches
 - landlord/agency property management
@@ -190,6 +191,7 @@ This README is a quick-start landing page, not the full reference. For everythin
 Other documents kept in this repository:
 
 - [CHANGELOG.md](CHANGELOG.md) — detailed, chronological history of what's been built.
+- [docs/live.md](docs/live.md) — what's actually deployed and working right now, and what's still pending.
 - [AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)
 - [docs/devops.md](docs/devops.md)
 - [docs/scaling-load-balancing.md](docs/scaling-load-balancing.md)

@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.0.1",
+    "eas-cli": "^21.6.0",
     "eslint": "^9.39.0",
     "eslint-config-expo": "~57.0.1",
     "globals": "^17.7.0",
