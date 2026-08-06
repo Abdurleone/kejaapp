@@ -55,7 +55,10 @@ const navItems = [
 ];
 
 function App() {
-  const [colorMode, setColorMode] = useState(localStorage.getItem("keja_color_mode") || "light");
+  const [colorMode, setColorMode] = useState(() => localStorage.getItem("keja_color_mode") || "system");
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
   const [path, setPath] = useState(window.location.pathname);
   const [signedIn, setSignedIn] = useState(Boolean(localStorage.getItem("keja_token")));
   const [currentUser, setCurrentUser] = useState(null);
@@ -64,9 +67,18 @@ function App() {
   const tabRefs = useRef(new Map());
 
   useEffect(() => {
-    document.documentElement.dataset.colorMode = colorMode;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event) => setSystemPrefersDark(event.matches);
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
+  const resolvedColorMode = colorMode === "system" ? (systemPrefersDark ? "dark" : "light") : colorMode;
+
+  useEffect(() => {
+    document.documentElement.dataset.colorMode = resolvedColorMode;
     localStorage.setItem("keja_color_mode", colorMode);
-  }, [colorMode]);
+  }, [colorMode, resolvedColorMode]);
 
   const navigate = (nextPath) => {
     if (nextPath === path) return;
@@ -391,7 +403,7 @@ function App() {
 
           <div className="header-actions">
             <div className="mode-toggle" role="radiogroup" aria-label="Color mode">
-              {["light", "dark"].map((mode) => (
+              {["system", "light", "dark"].map((mode) => (
                 <label key={mode} className={`mode-option${colorMode === mode ? " active" : ""}`}>
                   <input
                     type="radio"
@@ -399,9 +411,9 @@ function App() {
                     value={mode}
                     checked={colorMode === mode}
                     onChange={() => setColorMode(mode)}
-                    aria-label={mode === "light" ? "Light mode" : "Dark mode"}
+                    aria-label={mode === "system" ? "Match system" : mode === "light" ? "Light mode" : "Dark mode"}
                   />
-                  <span aria-hidden="true">{mode === "light" ? "☀" : "☾"}</span>
+                  <span aria-hidden="true">{mode === "system" ? "◐" : mode === "light" ? "☀" : "☾"}</span>
                 </label>
               ))}
             </div>
