@@ -3,6 +3,7 @@ import {
   fetchCurrentUser,
   getAuthToken,
   loginUser,
+  loginWithGoogle as loginWithGoogleRequest,
   logoutUser,
   registerUser,
 } from "../api/index.js";
@@ -55,6 +56,13 @@ export function AuthProvider({ children }) {
     return response.user;
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken) => {
+    const response = await loginWithGoogleRequest(idToken);
+    setUser(response.user);
+    registerForPushNotifications();
+    return response.user;
+  }, []);
+
   const logout = useCallback(async () => {
     await unregisterForPushNotifications();
     await logoutUser();
@@ -66,8 +74,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, signedIn: Boolean(user), loading, login, register, logout, updateUser }),
-    [user, loading, login, register, logout, updateUser]
+    () => ({
+      user,
+      signedIn: Boolean(user),
+      loading,
+      login,
+      register,
+      loginWithGoogle,
+      logout,
+      updateUser,
+    }),
+    [user, loading, login, register, loginWithGoogle, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

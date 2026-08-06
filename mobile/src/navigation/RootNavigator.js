@@ -3,16 +3,24 @@ import { useAuth } from "../context/AuthContext.js";
 import MainTabs from "./MainTabs.js";
 import LoginScreen from "../screens/auth/LoginScreen.js";
 import RegisterScreen from "../screens/auth/RegisterScreen.js";
+import SelectRoleScreen from "../screens/auth/SelectRoleScreen.js";
 import LoadingView from "../components/LoadingView.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
 
   if (loading) {
     return <LoadingView label="Loading KejaApp..." />;
+  }
+
+  // A fresh Google Sign-In account has no role yet - force this screen
+  // ahead of the tab navigator regardless of anything else, same as the
+  // web frontend's /select-role gating in App.jsx.
+  if (user?.roleConfirmed === false) {
+    return <SelectRoleScreen />;
   }
 
   return (

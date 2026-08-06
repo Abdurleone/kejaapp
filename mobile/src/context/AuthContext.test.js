@@ -6,6 +6,7 @@ jest.mock("../api/index.js", () => ({
   fetchCurrentUser: jest.fn(),
   getAuthToken: jest.fn(),
   loginUser: jest.fn(),
+  loginWithGoogle: jest.fn(),
   logoutUser: jest.fn(),
   registerUser: jest.fn(),
 }));
@@ -14,14 +15,22 @@ jest.mock("../services/pushNotifications.js", () => ({
   unregisterForPushNotifications: jest.fn(),
 }));
 
-import { fetchCurrentUser, getAuthToken, loginUser, logoutUser, registerUser } from "../api/index.js";
+import {
+  fetchCurrentUser,
+  getAuthToken,
+  loginUser,
+  loginWithGoogle,
+  logoutUser,
+  registerUser,
+} from "../api/index.js";
 import {
   registerForPushNotifications,
   unregisterForPushNotifications,
 } from "../services/pushNotifications.js";
 
 function Consumer() {
-  const { user, signedIn, loading, login, register, logout, updateUser } = useAuth();
+  const { user, signedIn, loading, login, register, loginWithGoogle: loginWithGoogleFn, logout, updateUser } =
+    useAuth();
 
   return (
     <View>
@@ -31,6 +40,9 @@ function Consumer() {
       </Pressable>
       <Pressable onPress={() => register({ name: "Jane" })}>
         <Text>register</Text>
+      </Pressable>
+      <Pressable onPress={() => loginWithGoogleFn("fake-id-token")}>
+        <Text>loginWithGoogle</Text>
       </Pressable>
       <Pressable onPress={logout}>
         <Text>logout</Text>
@@ -108,6 +120,21 @@ describe("AuthContext", () => {
     fireEvent.press(getByText("register"));
 
     await waitFor(() => expect(getByText("signed-in:Jane")).toBeTruthy());
+    expect(registerForPushNotifications).toHaveBeenCalledTimes(1);
+  });
+
+  it("loginWithGoogle signs the user in and registers for push", async () => {
+    getAuthToken.mockResolvedValue("");
+    loginWithGoogle.mockResolvedValue({ user: { name: "Jane" } });
+
+    const { getByText } = await renderConsumer();
+
+    await waitFor(() => expect(getByText("signed-out")).toBeTruthy());
+
+    fireEvent.press(getByText("loginWithGoogle"));
+
+    await waitFor(() => expect(getByText("signed-in:Jane")).toBeTruthy());
+    expect(loginWithGoogle).toHaveBeenCalledWith("fake-id-token");
     expect(registerForPushNotifications).toHaveBeenCalledTimes(1);
   });
 
