@@ -91,6 +91,8 @@ describe("frontend app utilities", () => {
     assert.equal(getViewPath("dashboard"), "/dashboard");
     assert.equal(getViewPath("dataProtection"), "/data-protection");
     assert.equal(resolveViewFromPath("/data-protection"), "dataProtection");
+    assert.equal(getViewPath("selectRole"), "/select-role");
+    assert.equal(resolveViewFromPath("/select-role"), "selectRole");
   });
 
   it("routes property detail paths to the propertyDetail view and back", () => {
@@ -142,6 +144,11 @@ describe("frontend app utilities", () => {
     assert.equal(canAccessView("admin", "owner"), false);
     assert.equal(canAccessView("admin", "dashboard"), true);
     assert.equal(canAccessView(undefined, "dataProtection"), true);
+    // Always reachable regardless of role - App.jsx forces this view itself
+    // whenever the signed-in user's role isn't confirmed yet.
+    assert.equal(canAccessView(undefined, "selectRole"), true);
+    assert.equal(canAccessView("tenant", "selectRole"), true);
+    assert.equal(canAccessView("admin", "selectRole"), true);
     assert.equal(getDefaultViewForRole("tenant"), "dashboard");
     assert.equal(getDefaultViewForRole("landlord"), "dashboard");
     assert.equal(getDefaultViewForRole("admin"), "dashboard");

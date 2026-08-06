@@ -23,7 +23,10 @@ const roleViewAccess = {
 };
 
 export const canAccessView = (role, view) => {
-  if (["privacy", "terms", "dataProtection", "deleteAccount"].includes(view)) {
+  // selectRole is forced by App.jsx whenever the signed-in user's role isn't
+  // confirmed yet (first sign-in after Google Sign-In) - reachable
+  // regardless of role, same as the always-on legal pages below.
+  if (["privacy", "terms", "dataProtection", "deleteAccount", "selectRole"].includes(view)) {
     return true;
   }
 
@@ -64,6 +67,7 @@ const viewPaths = {
   notifications: "/notifications",
   feedback: "/feedback",
   account: "/account",
+  selectRole: "/select-role",
   privacy: "/privacy",
   terms: "/terms",
   dataProtection: "/data-protection",
