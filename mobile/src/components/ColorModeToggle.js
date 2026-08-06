@@ -2,9 +2,21 @@ import { Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext.js";
 
-// Icon-only color-mode switch, mirroring the web app's sun/moon toggle but
-// as a single tap target (mobile header space is tighter than a segmented
-// control) rather than wording like "Dark mode".
+const iconByMode = {
+  system: "contrast-outline",
+  light: "sunny",
+  dark: "moon",
+};
+
+const labelByMode = {
+  system: "Color mode: matching system. Double tap to switch to light mode.",
+  light: "Color mode: light. Double tap to switch to dark mode.",
+  dark: "Color mode: dark. Double tap to switch to matching system.",
+};
+
+// Icon-only color-mode control, mirroring the web app's System/Light/Dark
+// choice but as a single tap target (mobile header space is tighter than a
+// segmented control) that cycles system -> light -> dark -> system.
 export default function ColorModeToggle({ color }) {
   const { colorMode, toggleColorMode, colors } = useTheme();
 
@@ -13,14 +25,10 @@ export default function ColorModeToggle({ color }) {
       onPress={toggleColorMode}
       style={styles.button}
       hitSlop={10}
-      accessibilityLabel={colorMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      accessibilityLabel={labelByMode[colorMode]}
       accessibilityRole="button"
     >
-      <Ionicons
-        name={colorMode === "dark" ? "moon" : "sunny"}
-        size={20}
-        color={color || colors.accentText}
-      />
+      <Ionicons name={iconByMode[colorMode]} size={20} color={color || colors.accentText} />
     </Pressable>
   );
 }

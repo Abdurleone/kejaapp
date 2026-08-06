@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Appearance } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { darkColors, lightColors } from "../theme/colors.js";
 
@@ -7,14 +8,22 @@ const COLOR_MODE_KEY = "keja_color_mode";
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [colorMode, setColorModeState] = useState("light");
+  const [colorMode, setColorModeState] = useState("system");
+  const [systemColorScheme, setSystemColorScheme] = useState(() => Appearance.getColorScheme() || "light");
 
   useEffect(() => {
     AsyncStorage.getItem(COLOR_MODE_KEY).then((stored) => {
-      if (stored === "dark" || stored === "light") {
+      if (stored === "dark" || stored === "light" || stored === "system") {
         setColorModeState(stored);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemColorScheme(colorScheme || "light");
+    });
+    return () => subscription.remove();
   }, []);
 
   const setColorMode = useCallback(async (mode) => {
@@ -22,19 +31,25 @@ export function ThemeProvider({ children }) {
     await AsyncStorage.setItem(COLOR_MODE_KEY, mode);
   }, []);
 
+  // Header space is too tight for a 3-way segmented control (see web's
+  // radiogroup instead), so the single icon button cycles through all
+  // three states: system -> light -> dark -> system.
   const toggleColorMode = useCallback(
-    () => setColorMode(colorMode === "dark" ? "light" : "dark"),
+    () => setColorMode(colorMode === "system" ? "light" : colorMode === "light" ? "dark" : "system"),
     [colorMode, setColorMode]
   );
+
+  const resolvedColorMode = colorMode === "system" ? systemColorScheme : colorMode;
 
   const value = useMemo(
     () => ({
       colorMode,
-      colors: colorMode === "dark" ? darkColors : lightColors,
+      resolvedColorMode,
+      colors: resolvedColorMode === "dark" ? darkColors : lightColors,
       setColorMode,
       toggleColorMode,
     }),
-    [colorMode, setColorMode, toggleColorMode]
+    [colorMode, resolvedColorMode, setColorMode, toggleColorMode]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
