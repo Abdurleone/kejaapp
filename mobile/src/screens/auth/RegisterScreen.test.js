@@ -4,6 +4,10 @@ import { lightColors } from "../../theme/colors.js";
 
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));
+// Has its own dedicated test suite (GoogleSignInButton.test.js) - the real
+// component calls the actual expo-auth-session/expo-linking scheme
+// resolution, which isn't set up outside a real Expo runtime.
+jest.mock("../../components/GoogleSignInButton.js", () => () => null);
 
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";

@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import GoogleSignInButton from "../../components/GoogleSignInButton.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
@@ -103,6 +104,11 @@ export default function LoginScreen({ navigation }) {
           <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={loading}>
             <Text style={styles.primaryButtonText}>{loading ? "Signing in..." : "Sign in"}</Text>
           </Pressable>
+
+          <GoogleSignInButton
+            onAuthenticated={() => navigation.goBack()}
+            onError={(message) => setError(message)}
+          />
 
           <Pressable onPress={() => navigation.navigate("Register")}>
             <Text style={styles.link}>Need an account? Register</Text>

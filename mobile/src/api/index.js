@@ -16,6 +16,17 @@ export const registerUser = async (payload) => {
   return response;
 };
 
+export const loginWithGoogle = async (idToken) => {
+  const response = await apiFetch("/api/auth/google", { method: "POST", body: { idToken } });
+  await setAuthToken(response.token);
+  return response;
+};
+
+export const confirmRole = async (role) => {
+  const response = await apiFetch("/api/auth/role", { method: "PUT", body: { role } });
+  return response.user;
+};
+
 export const logoutUser = async () => {
   try {
     await apiFetch("/api/auth/logout", { method: "POST" });
