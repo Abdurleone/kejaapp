@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../src/App.jsx";
@@ -115,5 +115,91 @@ describe("App - signed-out landing page legal links", () => {
 
     expect(printSpy).toHaveBeenCalledTimes(1);
     printSpy.mockRestore();
+  });
+});
+
+describe("App - color mode", () => {
+  let changeListeners;
+  let matchesDark;
+
+  beforeEach(() => {
+    window.history.pushState({}, "", "/");
+    fetchPublicTestimonials.mockResolvedValue([]);
+    changeListeners = [];
+    matchesDark = false;
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      get matches() {
+        return matchesDark;
+      },
+      media: query,
+      addEventListener: (event, handler) => {
+        if (event === "change") changeListeners.push(handler);
+      },
+      removeEventListener: (event, handler) => {
+        changeListeners = changeListeners.filter((listener) => listener !== handler);
+      },
+    }));
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+    delete document.documentElement.dataset.colorMode;
+  });
+
+  it("defaults to system mode, resolved to light when the OS prefers light", async () => {
+    render(<App />);
+
+    const systemOption = await screen.findByRole("radio", { name: "Match system" });
+    expect(systemOption).toBeChecked();
+    expect(document.documentElement.dataset.colorMode).toBe("light");
+  });
+
+  it("resolves system mode to dark when the OS prefers dark", async () => {
+    matchesDark = true;
+
+    render(<App />);
+
+    await screen.findByRole("radio", { name: "Match system" });
+    expect(document.documentElement.dataset.colorMode).toBe("dark");
+  });
+
+  it("lets a manual choice override the system preference and persists it", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByRole("radio", { name: "Dark mode" }));
+
+    expect(document.documentElement.dataset.colorMode).toBe("dark");
+    expect(localStorage.getItem("keja_color_mode")).toBe("dark");
+  });
+
+  it("updates live when the OS preference changes while still in system mode", async () => {
+    render(<App />);
+
+    await screen.findByRole("radio", { name: "Match system" });
+    expect(document.documentElement.dataset.colorMode).toBe("light");
+
+    await act(async () => {
+      matchesDark = true;
+      changeListeners.forEach((handler) => handler({ matches: true }));
+    });
+
+    await waitFor(() => expect(document.documentElement.dataset.colorMode).toBe("dark"));
+  });
+
+  it("does not react to OS changes once a manual mode has been chosen", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByRole("radio", { name: "Light mode" }));
+    expect(document.documentElement.dataset.colorMode).toBe("light");
+
+    await act(async () => {
+      matchesDark = true;
+      changeListeners.forEach((handler) => handler({ matches: true }));
+    });
+
+    expect(document.documentElement.dataset.colorMode).toBe("light");
   });
 });
