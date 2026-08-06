@@ -1,6 +1,17 @@
 node_modules
 npm-debug.log*
+.env
+.env.local
+.env.*.local
 tests
 coverage
 dist
 *.md
+.git
+.gitignore
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode
+.idea
