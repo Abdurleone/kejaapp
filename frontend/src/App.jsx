@@ -434,7 +434,9 @@ function App() {
               <img className="brand-mark" src={kejaLogo} alt="" />
             </button>
             <div>
-              <h1>KejaApp</h1>
+              <h1>
+                Keja<span className="brand-word-accent">App</span>
+              </h1>
               {!showSplash && <p>Real rental pages powered by React.</p>}
             </div>
           </div>
