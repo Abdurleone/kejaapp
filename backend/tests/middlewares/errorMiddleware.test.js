@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
+import env from "../../config/env.js";
 import { errorHandler } from "../../middlewares/errorMiddleware.js";
 
 const createResponse = () => {
@@ -52,5 +53,47 @@ describe("errorMiddleware", () => {
     errorHandler(error, {}, response, () => {});
 
     assert.equal("details" in response.body, false);
+  });
+
+  describe("unclassified 500s in production", () => {
+    const originalNodeEnv = env.nodeEnv;
+
+    afterEach(() => {
+      env.nodeEnv = originalNodeEnv;
+    });
+
+    it("replaces a raw, unclassified exception's message with a generic one", () => {
+      env.nodeEnv = "production";
+      const error = new Error("ENOENT: no such file or directory, open '/app/secrets/internal.json'");
+      const response = createResponse();
+
+      errorHandler(error, { method: "GET", originalUrl: "/api/properties" }, response, () => {});
+
+      assert.equal(response.statusCode, 500);
+      assert.equal(response.body.message, "Internal server error");
+    });
+
+    it("still returns the real message outside production", () => {
+      env.nodeEnv = "development";
+      const error = new Error("ENOENT: no such file or directory, open '/app/secrets/internal.json'");
+      const response = createResponse();
+
+      errorHandler(error, { method: "GET", originalUrl: "/api/properties" }, response, () => {});
+
+      assert.equal(response.statusCode, 500);
+      assert.equal(response.body.message, error.message);
+    });
+
+    it("still returns a deliberately-thrown ApiError's message in production", () => {
+      env.nodeEnv = "production";
+      const error = new Error("Google sign-in is not configured");
+      error.statusCode = 503;
+      const response = createResponse();
+
+      errorHandler(error, { method: "POST", originalUrl: "/api/auth/google" }, response, () => {});
+
+      assert.equal(response.statusCode, 503);
+      assert.equal(response.body.message, "Google sign-in is not configured");
+    });
   });
 });

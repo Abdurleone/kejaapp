@@ -16,8 +16,13 @@ describe("KejaApp API", () => {
 
     assert.equal(response.status, 200);
     assert.equal(response.body.status, "degraded");
-    assert.equal(response.body.database.path, "/kejaapp");
     assert.equal(response.body.database.status, "disconnected");
+    // host/name/path (the live Mongo hostname/db name/connection-string
+    // path) are deliberately redacted - this is a public, unauthenticated
+    // endpoint.
+    assert.equal(response.body.database.host, undefined);
+    assert.equal(response.body.database.name, undefined);
+    assert.equal(response.body.database.path, undefined);
   });
 
   it("returns liveness status for load balancers", async () => {

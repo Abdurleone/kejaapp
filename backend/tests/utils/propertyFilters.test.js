@@ -16,6 +16,21 @@ describe("buildPropertyFilters", () => {
     assert.throws(() => buildPropertyFilters({ status: "not-a-status" }), /status must be one of/);
   });
 
+  it("rejects an unsupported type, listedBy, or viewingType", () => {
+    assert.throws(() => buildPropertyFilters({ type: "not-a-type" }), /type must be one of/);
+    assert.throws(() => buildPropertyFilters({ listedBy: "not-a-lister" }), /listedBy must be one of/);
+    assert.throws(() => buildPropertyFilters({ viewingType: "not-a-viewing-type" }), /viewingType must be one of/);
+  });
+
+  it("rejects NoSQL operator injection via type/listedBy/viewingType query params", () => {
+    // Express's qs parser turns `?type[$ne]=x` into `{ type: { $ne: "x" } }` -
+    // buildPropertyFilters must reject a non-string value outright rather
+    // than passing a raw operator object through to Property.find().
+    assert.throws(() => buildPropertyFilters({ type: { $ne: "studio" } }), /type must be one of/);
+    assert.throws(() => buildPropertyFilters({ listedBy: { $ne: "owner" } }), /listedBy must be one of/);
+    assert.throws(() => buildPropertyFilters({ viewingType: { $ne: "scheduled" } }), /viewingType must be one of/);
+  });
+
   it("filters by a minRent/maxRent range", () => {
     const filters = buildPropertyFilters({ minRent: "10000", maxRent: "20000" });
     assert.deepEqual(filters["price.rent"], { $gte: 10000, $lte: 20000 });
