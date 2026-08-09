@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-09T13:00:00Z",
+  "title": "Design System: KejaApp",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Registry Green",
+        "canonical": "#003d00",
+        "tonalRamp": [
+          "#001a00",
+          "#00280a",
+          "#003d00",
+          "#0a5c1e",
+          "#237d38",
+          "#4caf50",
+          "#8fd39a",
+          "#d6f0da"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Flag Red",
+        "canonical": "#ce1126",
+        "tonalRamp": [
+          "#3d0308",
+          "#650a13",
+          "#9b0e1e",
+          "#ce1126",
+          "#e0424f",
+          "#ee7178",
+          "#f6a7ac",
+          "#fbd7d9"
+        ]
+      },
+      "tertiary": {
+        "role": "tertiary",
+        "displayName": "Notice Amber",
+        "canonical": "#a86416",
+        "tonalRamp": [
+          "#2e1c06",
+          "#4d2f0a",
+          "#7a4b10",
+          "#a86416",
+          "#c9862f",
+          "#e0a640",
+          "#eec27c",
+          "#f7e2bd"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#f7f7f6",
+        "tonalRamp": [
+          "#121212",
+          "#242424",
+          "#5c5c59",
+          "#a8a8a5",
+          "#dcdcda",
+          "#eef0ee",
+          "#f7f7f6",
+          "#ffffff"
+        ]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "Registry White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#1c1c1c",
+          "#242424",
+          "#3a3a38",
+          "#5c5c59",
+          "#a8a8a5",
+          "#dcdcda",
+          "#f2f2f2",
+          "#ffffff"
+        ]
+      },
+      "neutral-surface-soft": {
+        "role": "neutral",
+        "displayName": "Soft Fill",
+        "canonical": "#eef0ee",
+        "tonalRamp": [
+          "#161816",
+          "#242424",
+          "#3a3a38",
+          "#8a8f8a",
+          "#c4c9c4",
+          "#dfe4df",
+          "#eef0ee",
+          "#f7f9f7"
+        ]
+      },
+      "neutral-ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#000000",
+          "#141414",
+          "#333333",
+          "#5c5c59",
+          "#8f8f8c",
+          "#c7c7c4",
+          "#e8e8e6",
+          "#f2f2f2"
+        ]
+      },
+      "neutral-muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#5c5c59",
+        "tonalRamp": [
+          "#1c1c1a",
+          "#2f2f2d",
+          "#464644",
+          "#5c5c59",
+          "#7d7d79",
+          "#a8a8a5",
+          "#c9c9c6",
+          "#e6e6e4"
+        ]
+      },
+      "neutral-line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#dcdcda",
+        "tonalRamp": [
+          "#1c1c1a",
+          "#3a3a38",
+          "#57574f",
+          "#8a8a86",
+          "#b5b5b1",
+          "#dcdcda",
+          "#ececea",
+          "#f7f7f6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The landing page's single hero headline only. Nowhere else."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page-level view titles (Discover, Workspace, Admin, etc.)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text everywhere; the implicit browser/RN default, not an explicit override."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, tabs, status pills, badge counts \u2014 emphasis via weight, not size."
+      }
+    },
+    "shadows": [
+      {
+        "name": "resting",
+        "value": "0 16px 36px rgba(10, 10, 10, 0.08)",
+        "purpose": "Default panel/card shadow at rest. Dark mode: 0 16px 36px rgba(0, 0, 0, 0.26)."
+      },
+      {
+        "name": "lifted",
+        "value": "0 22px 54px rgba(10, 10, 10, 0.14)",
+        "purpose": "property-card hover only. Dark mode: 0 24px 60px rgba(0, 0, 0, 0.36)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "The one easing token (--ease) used for property-card hover transform/shadow transitions."
+      },
+      {
+        "name": "button-lift",
+        "value": "transform 0.18s",
+        "purpose": "Buttons/tabs translateY(-1px) on hover \u2014 the only hover treatment they get."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "~600px",
+        "purpose": "Where the landing hero's clamp() steps down and the header switches to a stacked layout. No named breakpoint tokens exist; this is an observed threshold, not a declared variable."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action button \u2014 Registry Green fill, bold white label.",
+      "html": "<button class=\"ds-btn-primary\">Start searching</button>",
+      "css": ".ds-btn-primary { background: #003d00; color: #ffffff; border: 1px solid transparent; border-radius: 6px; padding: 8px 12px; min-height: 38px; font-weight: 800; line-height: 1.1; cursor: pointer; transition: transform 0.15s; } .ds-btn-primary:hover { transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 3px solid rgba(0, 61, 0, 0.22); border-color: #003d00; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Lower-emphasis action \u2014 white surface, line border, ink text.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #000000; border: 1px solid #dcdcda; border-radius: 6px; padding: 8px 12px; min-height: 38px; font-weight: 800; line-height: 1.1; cursor: pointer; transition: transform 0.15s; } .ds-btn-secondary:hover { transform: translateY(-1px); }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action \u2014 Flag Red fill, same shape as primary.",
+      "html": "<button class=\"ds-btn-danger\">Delete account</button>",
+      "css": ".ds-btn-danger { background: #ce1126; color: #ffffff; border: 1px solid transparent; border-radius: 6px; padding: 8px 12px; min-height: 38px; font-weight: 800; line-height: 1.1; cursor: pointer; transition: transform 0.15s; } .ds-btn-danger:hover { transform: translateY(-1px); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard field \u2014 white surface, line border, dual-signal focus.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search location\" />",
+      "css": ".ds-input { width: 100%; min-height: 40px; border: 1px solid #dcdcda; border-radius: 6px; padding: 8px 12px; background: #ffffff; color: #000000; } .ds-input:focus-visible { outline: 3px solid rgba(0, 61, 0, 0.22); border-color: #003d00; }"
+    },
+    {
+      "name": "Property Card",
+      "kind": "card",
+      "refersTo": "card-panel",
+      "description": "The signature content card \u2014 flat at rest, lifts and gains a stronger shadow on hover.",
+      "html": "<article class=\"ds-property-card\"><div class=\"ds-property-photo\"></div><div class=\"ds-property-body\"><strong>2BR, Kilimani</strong><span>KSh 45,000 / mo</span></div></article>",
+      "css": ".ds-property-card { min-width: 0; overflow: hidden; border: 1px solid #dcdcda; border-radius: 8px; background: #ffffff; box-shadow: 0 16px 36px rgba(10, 10, 10, 0.08); cursor: pointer; transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), box-shadow 0.18s cubic-bezier(0.4,0,0.2,1); } .ds-property-card:hover { transform: translateY(-3px); box-shadow: 0 22px 54px rgba(10, 10, 10, 0.14); } .ds-property-photo { aspect-ratio: 16 / 10; background: #eef0ee; } .ds-property-body { padding: 18px; display: flex; flex-direction: column; gap: 4px; font-weight: 400; } .ds-property-body strong { font-weight: 700; }"
+    },
+    {
+      "name": "Nav Tab",
+      "kind": "nav",
+      "refersTo": "nav-tab",
+      "description": "Inline nav tab \u2014 transparent/muted at rest, solid green fill when active.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab ds-tab-active\">Discover</button><button class=\"ds-tab\">Saved</button></div>",
+      "css": ".ds-tabs { display: flex; gap: 6px; } .ds-tab { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #5c5c59; border: 1px solid transparent; border-radius: 6px; padding: 8px 12px; min-height: 38px; font-weight: 800; cursor: pointer; } .ds-tab-active { background: #003d00; color: #ffffff; }"
+    },
+    {
+      "name": "Badge Count",
+      "kind": "chip",
+      "refersTo": "badge-count",
+      "description": "The only fully-round shape in the system \u2014 a small red numeric count, e.g. unread notifications.",
+      "html": "<span class=\"ds-badge-count\">3</span>",
+      "css": ".ds-badge-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ce1126; color: #ffffff; font-size: 0.7rem; font-weight: 800; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Text-color-only status indicator \u2014 no fill, no border. Amber for suspended, red for banned.",
+      "html": "<span class=\"ds-status-pill ds-status-suspended\">Suspended</span>",
+      "css": ".ds-status-pill { font-weight: 800; font-size: 0.82rem; } .ds-status-suspended { color: #a86416; } .ds-status-banned { color: #ce1126; }"
+    },
+    {
+      "name": "Landing Sticker Badge",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Landing page only. A tilted, thick-stroked decal (e.g. 'Karibu Nyumbani') sitting above the hero headline - a physical sticker object, not a typographic eyebrow/kicker.",
+      "html": "<span class=\"ds-sticker\">Karibu Nyumbani</span>",
+      "css": ".ds-sticker { display: inline-flex; align-items: center; gap: 8px; background: #f0a500; color: #17130d; border: 3px solid #17130d; border-radius: 999px; padding: 7px 16px 7px 12px; transform: rotate(-3deg); box-shadow: 3px 3px 0 #17130d; font-family: 'Work Sans', sans-serif; font-weight: 800; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }"
+    },
+    {
+      "name": "Landing CTA + Ghost Link",
+      "kind": "button",
+      "refersTo": null,
+      "description": "Landing page only. Bungee/Work Sans world's primary action pair - a hard-shadow pill button plus a gold-underlined text link, in that order, above the trust badges.",
+      "html": "<div class=\"ds-landing-actions\"><button class=\"ds-landing-cta\">Start searching</button><a class=\"ds-landing-ghost\" href=\"#\">See how it works</a></div>",
+      "css": ".ds-landing-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; } .ds-landing-cta { font-family: 'Work Sans', sans-serif; font-weight: 800; background: #d21023; color: #fffaf0; border: 3px solid #17130d; border-radius: 999px; box-shadow: 6px 6px 0 #17130d; padding: 15px 30px; } .ds-landing-ghost { font-family: 'Work Sans', sans-serif; font-weight: 700; font-size: 0.96rem; text-decoration: underline; text-decoration-color: #f0a500; text-decoration-thickness: 3px; text-underline-offset: 5px; color: #17130d; }"
+    },
+    {
+      "name": "Flip-Mode Testimonials Card",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Landing page only. Half-width (max 620px), and inverts relative to the page's own light/dark mode - dark card on the light page, light card on the dark page - via its own --mp-band* tokens, distinct from the page-wide ink/paper pair. Accent colors differ by direction (gold/red on dark, red/green on light) for contrast, not a literal inversion of the same two hues.",
+      "html": "<div class=\"ds-testimonial-card\"><h3>What our users say</h3><p class=\"ds-testimonial-empty\">No shared experiences yet - real tenant, landlord, agency, and mover stories will show up here as they come in.</p></div>",
+      "css": ".ds-testimonial-card { max-width: 620px; padding: 24px; border-radius: 20px; background: #17130d; } .ds-testimonial-card h3 { margin: 0 0 4px; color: #ffc93c; font-family: Bungee, sans-serif; text-transform: uppercase; font-size: 1.1rem; } .ds-testimonial-empty { margin: 0; padding: 14px 16px; border: 2.5px dashed rgba(255,201,60,0.55); border-radius: 12px; color: #f3ead2; font-family: 'Work Sans', sans-serif; font-size: 0.92rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The County Registry",
+    "overview": "KejaApp's current, shipped visual system reads like a well-run civic registry office, not a marketplace app performing trust \u2014 plain type, the Kenyan flag's own palette carried at low saturation, small radii, and almost no decoration beyond what a state changes (a border tint on a warning, a color shift on a status pill). Nothing asks to be noticed for its own sake; the design gets out of the way of the actual task, which fits a product whose whole legal positioning is staying out of the tenancy and the money entirely. Depth is rare and earned \u2014 panels sit flat until a property card is actually interactive under a cursor, and only then does it lift.\n\nThere is no confirmed anti-reference on file; \"flashy fintech/marketplace\" was considered as a naming point during this document's own drafting but was not adopted as a stated rejection, so treat it as absent rather than binding.",
+    "keyCharacteristics": [
+      "Flag-derived palette (black, white, red, dark green) at restrained saturation, applied as accent, not wallpaper - plus one non-flag warning amber.",
+      "One typographic voice for the whole system \u2014 no separate display face; hierarchy comes from size and weight alone.",
+      "Small, consistent radii (6-8px); a single 999px pill for counts and status only.",
+      "Flat by default; shadow appears only as a response to hover/interaction, never as ambient decoration.",
+      "Heavily bold (700-900 weight) labels on buttons and badges, ordinary weight everywhere else."
+    ],
+    "rules": [
+      {
+        "name": "The Accent-on-State Rule",
+        "body": "Green, red, and amber only ever appear attached to a specific state or action \u2014 never as a decorative fill, gradient, or background wash.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shout-Don't-Grow Rule",
+        "body": "Interactive labels get heavy weight (800-900), not larger size, to stand out from body text.",
+        "section": "typography"
+      },
+      {
+        "name": "The Earned-Shadow Rule",
+        "body": "A stronger shadow is a response to interaction (hover), never an ambient decoration applied at rest.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Scoped-World Rule",
+        "body": "A surface may run its own visual world entirely apart from the global system (the landing page's matatu-poster identity vs. the rest of the app's County Registry), but only by explicit commission, never by a builder's default - and it doesn't leak to any other route without the same kind of deliberate decision.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do reach for weight (700-900) before size or color when a label needs emphasis.",
+      "Do keep shadows a response to hover/interaction, never an ambient resting decoration.",
+      "Do keep the accent colors (green/red/amber) tied to a specific action or state.",
+      "Do use the 6px/8px radius pair for nearly everything; reserve 999px for counts and fully-round pills only.",
+      "Do treat a commissioned surface-scoped world (like the landing page's) as owned by that surface only - reference its own tokens, not the global ones, and vice versa."
+    ],
+    "donts": [
+      "Don't assume web's and mobile's \"same\" brand colors already match - they currently don't.",
+      "Don't treat Calibri as a meaningful part of the type identity - it's a stale leading fallback most visitors never actually render.",
+      "Don't invent a second display typeface without updating this file first.",
+      "Don't add a spacing/breakpoint token system to only one platform's file.",
+      "Don't reuse the gold accent for text on the testimonials card's light-mode state - it measures ~1.8:1 on cream, well under WCAG AA; use red/green for that direction of the flip instead."
+    ]
+  }
+}

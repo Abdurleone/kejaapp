@@ -39,6 +39,26 @@
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.36);
 }
 
+/* Self-hosted (not Google Fonts CDN - avoids leaking visitor IPs to a third
+   party on every page load, which would sit oddly next to this app's own
+   data-protection documentation) for the landing page's "matatu poster"
+   prototype only - see .landing-page below. Not used anywhere else yet. */
+@font-face {
+  font-family: "Bungee";
+  src: url("assets/fonts/bungee-v17-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("assets/fonts/work-sans-v24-latin-variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -81,6 +101,61 @@ button:disabled {
 
 .app-shell {
   min-height: 100vh;
+  /* "Matatu poster" prototype tokens - defined here (not on .landing-page)
+     so the splash header can share them too; they only affect Header/
+     LandingPage.jsx elements below since nothing else references them. */
+  --mp-ink: #17130d;
+  --mp-paper: #f6ecd2;
+  --mp-paper-raised: #fffaec;
+  --mp-panel: #fff8e6;
+  --mp-red: #d21023;
+  --mp-green: #054a2b;
+  --mp-gold: #f0a500;
+  --mp-stroke: #17130d;
+  --mp-grain: rgba(23, 19, 13, 0.05);
+  --mp-shadow-pop: 6px 6px 0 var(--mp-stroke);
+  --mp-shadow-pop-sm: 3px 3px 0 var(--mp-stroke);
+  /* Flip design, on purpose: the testimonials card always shows the OPPOSITE
+     of whatever the page's current mode is - a dark card on the light page,
+     a light card on the dark page - rather than matching or staying fixed.
+     Values here are page-light-mode defaults (card renders dark); the dark
+     override below swaps them to page-dark-mode (card renders light). */
+  --mp-band: #17130d;
+  --mp-band-card: #1f1912;
+  --mp-band-ink: #f3ead2;
+  --mp-band-accent: #ffc93c;
+  --mp-band-accent2: #ff3b4e;
+}
+
+/* "Matatu at night": the ink-black outline/shadow convention switches to a
+   warm gold glow instead of inverting to plain white-on-black - the same
+   idea as the concept mockup's dark mode, not a generic dark-mode flip. */
+:root[data-color-mode="dark"] .app-shell {
+  --mp-ink: #f3ead2;
+  --mp-paper: #100d09;
+  --mp-paper-raised: #1b160f;
+  --mp-panel: #1f1912;
+  --mp-red: #ff3b4e;
+  --mp-green: #2fbf71;
+  --mp-gold: #ffc93c;
+  --mp-stroke: #ffc93c;
+  --mp-grain: rgba(255, 201, 60, 0.06);
+  --mp-shadow-pop: 6px 6px 0 rgba(255, 201, 60, 0.55);
+  --mp-shadow-pop-sm: 3px 3px 0 rgba(255, 201, 60, 0.5);
+  /* The flip: page is dark now, so the testimonials card swaps to the
+     light-mode surface/ink/accent values instead of re-asserting the dark
+     ones - the actual inversion the fixed "always-dark band" version above
+     this comment used to skip. */
+  --mp-band: #f6ecd2;
+  --mp-band-card: #fffaec;
+  --mp-band-ink: #17130d;
+  /* Not gold here: gold-on-cream measures ~1.8:1 contrast, well under WCAG AA's
+     4.5:1 floor for text - swapped for red (~4.7:1) and green (~8.8:1), the
+     same pairing this design already uses for text against light surfaces
+     elsewhere, so the flipped card doesn't introduce a new, worse-contrast
+     combination just to keep literally the same two hues in both states. */
+  --mp-band-accent: #d21023;
+  --mp-band-accent2: #054a2b;
 }
 
 .app-header {
@@ -903,16 +978,47 @@ dialog {
   left: 0;
   right: 0;
   z-index: 20;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, rgba(6, 11, 8, 0.55), rgba(6, 11, 8, 0));
+  border-bottom: 3px solid var(--mp-stroke);
+  background: var(--mp-paper);
   backdrop-filter: none;
 }
 
-.app-header--splash .brand-block h1,
-.app-header--splash .text-button {
-  color: #ffffff;
+.app-header--splash .brand-mark {
+  border-radius: 50%;
+  border: 2px solid var(--mp-stroke);
+  box-shadow: var(--mp-shadow-pop-sm);
 }
 
+.app-header--splash .brand-block h1 {
+  font-family: "Bungee", ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  color: var(--mp-ink);
+}
+
+.app-header--splash .brand-word-accent {
+  color: var(--mp-red);
+}
+
+.app-header--splash .text-button {
+  color: var(--mp-ink);
+}
+
+.app-header--splash .header-actions .primary-button {
+  font-family: "Work Sans", sans-serif;
+  font-weight: 800;
+  background: var(--mp-green);
+  color: #fffaf0;
+  border: 2.5px solid var(--mp-stroke);
+  border-radius: 999px;
+  box-shadow: var(--mp-shadow-pop-sm);
+}
+
+/* "Matatu poster" prototype world for the landing page only (see DESIGN.md
+   for the rest of the app's current "County Registry" system, which this
+   deliberately replaces on this one surface - not a global token change).
+   Tokens are scoped to .landing-page so nothing else in the app is touched. */
 .landing-page {
   min-height: 100vh;
   display: grid;
@@ -925,31 +1031,77 @@ dialog {
      clamp was originally tuned for, so the floor needs raising to match or
      the hero heading renders underneath it. */
   padding-top: clamp(150px, 16vw, 170px);
-  color: #ffffff;
+  color: var(--mp-ink);
   overflow: hidden;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--green) 85%, transparent) 0%, color-mix(in srgb, #0d2318 85%, transparent) 55%, color-mix(in srgb, #060b08 85%, transparent) 100%),
-    url("assets/keja-logo.png") center/50% no-repeat,
-    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--green) 38%, transparent), transparent 55%),
-    linear-gradient(135deg, var(--green) 0%, #0d2318 55%, #060b08 100%);
+  position: relative;
+  background-color: var(--mp-paper);
+  background-image: radial-gradient(circle at 1px 1px, var(--mp-grain) 1.2px, transparent 0);
+  background-size: 15px 15px;
+}
+
+.landing-skyline {
+  position: absolute;
+  z-index: 0;
+  right: -5%;
+  bottom: -8%;
+  width: min(52%, 480px);
+  height: auto;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* The buildings/bus outline follows the day/night ink-outline convention
+   (--mp-stroke) the rest of the surface uses - the * covers descendants that
+   carry their own stroke="..." presentation attribute directly (a real CSS
+   rule beats it; plain inheritance from the parent <g> would not, since
+   those elements already have their own specified stroke). Fill colors
+   (building/bus body colors) stay fixed - only the outline responds. */
+.landing-skyline .mp-outline,
+.landing-skyline .mp-outline * {
+  stroke: var(--mp-stroke);
+}
+
+.landing-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  background: var(--mp-gold);
+  color: var(--mp-ink);
+  border: 3px solid var(--mp-stroke);
+  border-radius: 999px;
+  padding: 7px 16px 7px 12px;
+  transform: rotate(-3deg);
+  box-shadow: var(--mp-shadow-pop-sm);
+  font-family: "Work Sans", sans-serif;
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .landing-copy {
   display: grid;
   gap: 18px;
   max-width: 620px;
+  position: relative;
+  z-index: 1;
 }
 
 .landing-copy h2 {
   margin: 0;
-  font-size: clamp(2.35rem, 5.2vw, 4.6rem);
-  line-height: 1.02;
+  font-family: "Bungee", ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(2.4rem, 5.6vw, 4.1rem);
+  line-height: 0.98;
+  text-wrap: balance;
 }
 
 .landing-copy p {
   max-width: 540px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.86);
+  font-family: "Work Sans", sans-serif;
+  color: color-mix(in srgb, var(--mp-ink) 82%, var(--mp-paper));
   font-size: 1.05rem;
   line-height: 1.55;
 }
@@ -957,73 +1109,125 @@ dialog {
 .landing-proof {
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
+  gap: 12px;
 }
 
 .landing-proof span {
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-family: "Work Sans", sans-serif;
+  padding: 8px 16px;
+  border: 2.5px solid var(--mp-stroke);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--mp-panel);
+  box-shadow: var(--mp-shadow-pop-sm);
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.landing-proof span:nth-child(1) { transform: rotate(-2deg); }
+.landing-proof span:nth-child(2) { transform: rotate(1.5deg); }
+.landing-proof span:nth-child(3) { transform: rotate(-1deg); }
+
+.landing-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .landing-cta {
   width: fit-content;
-  background: #ffffff;
-  color: #121715;
+  font-family: "Work Sans", sans-serif;
+  font-weight: 800;
+  background: var(--mp-red);
+  color: #fffaf0;
+  border: 3px solid var(--mp-stroke);
+  border-radius: 999px;
+  box-shadow: var(--mp-shadow-pop);
+  padding: 15px 30px;
+  transition: transform 0.15s ease;
+}
+
+.landing-cta:hover {
+  transform: translate(-2px, -2px);
+}
+
+.landing-ghost {
+  font-family: "Work Sans", sans-serif;
+  font-weight: 700;
+  font-size: 0.96rem;
+  padding: 13px 4px;
+  text-decoration: underline;
+  text-decoration-color: var(--mp-gold);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 5px;
+  color: var(--mp-ink);
 }
 
 .landing-showcase {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   align-self: end;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: var(--radius);
-  background: rgba(15, 22, 18, 0.54);
-  backdrop-filter: blur(14px);
+  padding: 14px;
+  border: 3px solid var(--mp-stroke);
+  border-radius: 20px;
+  background: var(--mp-panel);
+  box-shadow: var(--mp-shadow-pop);
+  position: relative;
+  z-index: 1;
 }
 
 .landing-showcase div {
   display: grid;
   gap: 5px;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--mp-paper-raised);
+  border: 1.5px solid color-mix(in srgb, var(--mp-stroke) 18%, transparent);
 }
 
 .landing-showcase strong {
+  font-family: "Work Sans", sans-serif;
   font-size: 0.95rem;
+  font-weight: 800;
 }
 
 .landing-showcase span {
-  color: rgba(255, 255, 255, 0.78);
+  font-family: "Work Sans", sans-serif;
+  color: color-mix(in srgb, var(--mp-ink) 78%, var(--mp-paper));
   font-size: 0.84rem;
   line-height: 1.45;
 }
 
 .landing-testimonials {
-  grid-column: 1 / -1;
+  grid-column: 1;
+  max-width: 620px;
   display: grid;
   gap: 14px;
-  padding-top: 12px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--mp-band);
+  position: relative;
+  z-index: 1;
 }
 
 .landing-testimonials h3 {
-  margin: 0;
-  color: #ffffff;
+  margin: 0 0 4px;
+  color: var(--mp-band-accent);
+  font-family: "Bungee", ui-sans-serif, system-ui, sans-serif;
+  text-transform: uppercase;
   font-size: 1.1rem;
 }
 
 .landing-testimonials blockquote {
   margin: 0;
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  border: 2.5px solid var(--mp-band-accent);
+  border-radius: 12px;
+  background: var(--mp-band-card);
+  color: var(--mp-band-ink);
+  font-family: "Work Sans", sans-serif;
   font-size: 0.92rem;
   line-height: 1.5;
 }
@@ -1032,17 +1236,34 @@ dialog {
   display: block;
   margin-top: 8px;
   font-style: normal;
+  font-weight: 800;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--mp-band-accent2);
+}
+
+.landing-testimonials-empty {
+  margin: 0;
+  padding: 14px 16px;
+  border: 2.5px dashed color-mix(in srgb, var(--mp-band-accent) 55%, transparent);
+  border-radius: 12px;
+  color: color-mix(in srgb, var(--mp-band-ink) 78%, var(--mp-band));
+  font-family: "Work Sans", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 .landing-page .legal-footer {
   grid-column: 1 / -1;
-  border-top-color: rgba(255, 255, 255, 0.22);
+  border-top: 3px solid var(--mp-stroke);
+  position: relative;
+  z-index: 1;
 }
 
 .landing-page .legal-footer .text-button {
-  color: #ffffff;
+  font-family: "Work Sans", sans-serif;
+  color: var(--mp-ink);
 }
 
 @media (max-width: 1320px) {
@@ -1068,6 +1289,36 @@ dialog {
 
   .landing-showcase {
     max-width: 620px;
+  }
+
+  /* The illustrated skyline is positioned to sit behind the showcase panel
+     in the two-column layout - once that collapses to one column there's no
+     clean spot for it, and it was overlapping the footer instead. */
+  .landing-skyline {
+    display: none;
+  }
+
+  /* Keep the splash header's toggle + Sign in nested with the logo on one
+     top row instead of the general .app-header rule above stacking them
+     onto a full-width second row - the splash header only ever has these
+     two compact actions, unlike the regular in-app header (which can carry
+     a longer UserMenu label and genuinely needs the extra row on narrow
+     screens). Scoped to --splash only so the rest of the app is untouched. */
+  .app-header--splash {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .app-header--splash .header-actions {
+    width: auto;
+  }
+
+  /* .landing-page's padding-top was raised to clear the stacked ~129px
+     header height above - now that --splash stays single-row (~74px) at
+     this breakpoint too, that floor just leaves a big empty gap above the
+     hero. Lower it back down to clear the actual single-row height. */
+  .landing-page {
+    padding-top: clamp(90px, 20vw, 170px);
   }
 }
 
@@ -1123,10 +1374,11 @@ dialog {
   .landing-page {
     min-height: 100svh;
     padding: 22px;
-    /* Header grows to ~169px at this width (stacked layout plus the
-       header-actions row wrapping) - 132px left the hero heading's top
-       edge rendering underneath it. */
-    padding-top: 200px;
+    /* The splash header now stays a single compact row at every width below
+       1180px (toggle + Sign in nested beside the logo, not stacked below
+       it), so this no longer needs the extra room a stacked ~169px header
+       used to require here. */
+    padding-top: 90px;
   }
 
   .landing-copy h2 {
