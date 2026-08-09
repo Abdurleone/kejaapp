@@ -121,7 +121,7 @@ In the event of a personal data breach, KejaApp's operating team commits to:
 
 ## 13. Children's data
 
-KejaApp is not directed at children and does not knowingly collect personal data from anyone under 18. Account registration assumes an adult user entering into a rental or moving-service relationship.
+KejaApp is not directed at children and does not knowingly collect personal data from anyone under 18. Account registration assumes an adult user entering into a rental or moving-service relationship. This exceeds the threshold set by the US [Children's Online Privacy Protection Act (COPPA)](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa), which specifically governs services directed at, or that knowingly collect data from, children under 13 — KejaApp's 18+ registration requirement and adult-oriented subject matter (tenancy and relocation services) mean COPPA's obligations (parental consent, a children's privacy notice, etc.) don't apply to begin with, rather than being separately satisfied.
 
 ## 14. Scope and limitations
 
