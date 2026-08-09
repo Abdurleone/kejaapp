@@ -1,48 +1,73 @@
-/* Palette follows the Kenyan flag: black (ink/borders), red, green, and
-   white (surfaces), using the more saturated, literal flag colors. */
+/* "Matatu poster": a sign-painted, Nairobi-matatu-decoration-inspired system -
+   flag-derived color pushed bolder and warmer, thick strokes, hard offset
+   drop-shadows - now the app-wide base frame (see DESIGN.md). Originated on
+   the signed-out landing page only (PR #215); promoted to every page/role. */
 :root {
   color-scheme: light;
-  --bg: #f7f7f6;
-  --surface: #ffffff;
-  --surface-soft: #eef0ee;
-  --ink: #000000;
-  --muted: #5c5c59;
-  --line: #dcdcda;
-  --green: #003d00;
-  --red: #ce1126;
-  --amber: #a86416;
+  --bg: #f6ecd2;
+  --surface: #fffaec;
+  --surface-soft: #fff8e6;
+  --ink: #17130d;
+  /* Border/shadow color - distinct from --ink so dark mode can swap it to a
+     warm gold glow ("matatu at night") while --ink stays a plain light tint. */
+  --stroke: #17130d;
+  --muted: color-mix(in srgb, var(--ink) 68%, var(--bg));
+  --line: color-mix(in srgb, var(--stroke) 20%, transparent);
+  --green: #054a2b;
+  --red: #d21023;
+  --amber: #f0a500;
   --teal: #1f6d72;
-  --shadow: 0 16px 36px rgba(10, 10, 10, 0.08);
-  --shadow-strong: 0 22px 54px rgba(10, 10, 10, 0.14);
-  --radius: 8px;
-  --radius-sm: 6px;
+  --grain: rgba(23, 19, 13, 0.05);
+  /* Text color for solid green/red fills (buttons, active tabs, badges) -
+     a fixed white/cream reads fine in light mode but fails WCAG AA against
+     dark mode's brighter accent tints (e.g. white on #2fbf71 is ~2.4:1), so
+     this flips to a dark ink there instead - verified via contrast math, the
+     same technique used for the testimonials card's flip-mode accent pair. */
+  --on-accent: #fffaf0;
+  /* Hard offset shadows, no blur - the signature "sticker/poster" pop.
+     --shadow/--shadow-strong alias onto the two sizes so every existing
+     consumer upgrades automatically: the small size for repeated-per-screen
+     elements (cards, chrome), the large one for one-per-screen/elevated
+     moments (panels, modals, hover lift). */
+  --shadow-pop: 6px 6px 0 var(--stroke);
+  --shadow-pop-sm: 3px 3px 0 var(--stroke);
+  --shadow: var(--shadow-pop-sm);
+  --shadow-strong: var(--shadow-pop);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --stroke-width: 2.5px;
+  --stroke-width-sm: 1.5px;
+  --font-display: "Bungee", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Work Sans", ui-sans-serif, system-ui, sans-serif;
   --content: 1180px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* "Matatu at night": the ink-black stroke/shadow convention switches to a
+   warm gold glow instead of inverting to plain white-on-black. */
 :root[data-color-mode="dark"] {
   color-scheme: dark;
-  --bg: #121212;
-  --surface: #1c1c1c;
-  --surface-soft: #242424;
-  --ink: #f2f2f2;
-  --muted: #a8a8a5;
-  --line: #3a3a38;
-  /* Lightened tints of the same flag hues - the light-mode values are tuned
-     for dark text on a white surface and read as near-invisible dark-on-dark
-     when reused verbatim here (e.g. #003d00 on #121212 is ~1.4:1 contrast). */
-  --green: #4caf50;
-  --red: #f2777a;
-  --amber: #e0a640;
+  --bg: #100d09;
+  --surface: #1b160f;
+  --surface-soft: #1f1912;
+  --ink: #f3ead2;
+  --stroke: #ffc93c;
+  --muted: color-mix(in srgb, var(--ink) 68%, var(--bg));
+  --line: color-mix(in srgb, var(--stroke) 20%, transparent);
+  --green: #2fbf71;
+  --red: #ff3b4e;
+  --amber: #ffc93c;
   --teal: #4fb3bf;
-  --shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
-  --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.36);
+  --grain: rgba(255, 201, 60, 0.06);
+  --on-accent: #100d09;
+  --shadow-pop: 6px 6px 0 rgba(255, 201, 60, 0.55);
+  --shadow-pop-sm: 3px 3px 0 rgba(255, 201, 60, 0.5);
 }
 
 /* Self-hosted (not Google Fonts CDN - avoids leaking visitor IPs to a third
    party on every page load, which would sit oddly next to this app's own
-   data-protection documentation) for the landing page's "matatu poster"
-   prototype only - see .landing-page below. Not used anywhere else yet. */
+   data-protection documentation). App-wide: every page reads --font-display/
+   --font-body (see below), not just the surface that originated them. */
 @font-face {
   font-family: "Bungee";
   src: url("assets/fonts/bungee-v17-latin-400.woff2") format("woff2");
@@ -70,7 +95,7 @@ html {
 
 body {
   margin: 0;
-  font-family: Calibri, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   background:
     linear-gradient(color-mix(in srgb, var(--bg) 88%, transparent), color-mix(in srgb, var(--bg) 88%, transparent)),
     url("assets/keja-logo.png") right bottom/480px no-repeat fixed,
@@ -101,61 +126,35 @@ button:disabled {
 
 .app-shell {
   min-height: 100vh;
-  /* "Matatu poster" prototype tokens - defined here (not on .landing-page)
-     so the splash header can share them too; they only affect Header/
-     LandingPage.jsx elements below since nothing else references them. */
-  --mp-ink: #17130d;
-  --mp-paper: #f6ecd2;
-  --mp-paper-raised: #fffaec;
-  --mp-panel: #fff8e6;
-  --mp-red: #d21023;
-  --mp-green: #054a2b;
-  --mp-gold: #f0a500;
-  --mp-stroke: #17130d;
-  --mp-grain: rgba(23, 19, 13, 0.05);
-  --mp-shadow-pop: 6px 6px 0 var(--mp-stroke);
-  --mp-shadow-pop-sm: 3px 3px 0 var(--mp-stroke);
-  /* Flip design, on purpose: the testimonials card always shows the OPPOSITE
-     of whatever the page's current mode is - a dark card on the light page,
-     a light card on the dark page - rather than matching or staying fixed.
-     Values here are page-light-mode defaults (card renders dark); the dark
-     override below swaps them to page-dark-mode (card renders light). */
-  --mp-band: #17130d;
-  --mp-band-card: #1f1912;
-  --mp-band-ink: #f3ead2;
-  --mp-band-accent: #ffc93c;
-  --mp-band-accent2: #ff3b4e;
 }
 
-/* "Matatu at night": the ink-black outline/shadow convention switches to a
-   warm gold glow instead of inverting to plain white-on-black - the same
-   idea as the concept mockup's dark mode, not a generic dark-mode flip. */
-:root[data-color-mode="dark"] .app-shell {
-  --mp-ink: #f3ead2;
-  --mp-paper: #100d09;
-  --mp-paper-raised: #1b160f;
-  --mp-panel: #1f1912;
-  --mp-red: #ff3b4e;
-  --mp-green: #2fbf71;
-  --mp-gold: #ffc93c;
-  --mp-stroke: #ffc93c;
-  --mp-grain: rgba(255, 201, 60, 0.06);
-  --mp-shadow-pop: 6px 6px 0 rgba(255, 201, 60, 0.55);
-  --mp-shadow-pop-sm: 3px 3px 0 rgba(255, 201, 60, 0.5);
-  /* The flip: page is dark now, so the testimonials card swaps to the
-     light-mode surface/ink/accent values instead of re-asserting the dark
-     ones - the actual inversion the fixed "always-dark band" version above
-     this comment used to skip. */
-  --mp-band: #f6ecd2;
-  --mp-band-card: #fffaec;
-  --mp-band-ink: #17130d;
+/* The testimonials card is the one deliberate exception left to the base
+   frame above: it always shows the OPPOSITE of whatever the page's current
+   mode is - a dark card on the light page, a light card on the dark page -
+   rather than matching or staying fixed. Scoped narrowly to where it's used
+   (the landing page's testimonials card, see .landing-testimonials below),
+   not promoted to the base tokens, since nothing else in the app has a
+   flip-against-mode surface. Light-mode defaults (card renders dark); the
+   dark override below swaps to dark-mode defaults (card renders light). */
+.landing-testimonials {
+  --band: #17130d;
+  --band-card: #1f1912;
+  --band-ink: #f3ead2;
+  --band-accent: #ffc93c;
+  --band-accent2: #ff3b4e;
+}
+
+:root[data-color-mode="dark"] .landing-testimonials {
   /* Not gold here: gold-on-cream measures ~1.8:1 contrast, well under WCAG AA's
      4.5:1 floor for text - swapped for red (~4.7:1) and green (~8.8:1), the
      same pairing this design already uses for text against light surfaces
      elsewhere, so the flipped card doesn't introduce a new, worse-contrast
      combination just to keep literally the same two hues in both states. */
-  --mp-band-accent: #d21023;
-  --mp-band-accent2: #054a2b;
+  --band: #f6ecd2;
+  --band-card: #fffaec;
+  --band-ink: #17130d;
+  --band-accent: #d21023;
+  --band-accent2: #054a2b;
 }
 
 .app-header {
@@ -167,9 +166,8 @@ button:disabled {
   justify-content: space-between;
   gap: 18px;
   padding: 14px clamp(16px, 4vw, 36px);
-  border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(14px);
+  border-bottom: var(--stroke-width) solid var(--stroke);
+  background: var(--bg);
 }
 
 .brand-block {
@@ -186,7 +184,7 @@ button:disabled {
   border: 0;
   background: none;
   cursor: pointer;
-  border-radius: var(--radius);
+  border-radius: 50%;
 }
 
 .brand-mark-button:focus-visible {
@@ -199,7 +197,9 @@ button:disabled {
   height: 44px;
   display: block;
   object-fit: cover;
-  border-radius: var(--radius);
+  border-radius: 50%;
+  border: var(--stroke-width-sm) solid var(--stroke);
+  box-shadow: var(--shadow-pop-sm);
 }
 
 .brand-block h1,
@@ -212,8 +212,15 @@ button:disabled {
 }
 
 .brand-block h1 {
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
   line-height: 1.1;
+}
+
+.brand-word-accent {
+  color: var(--red);
 }
 
 .brand-block p {
@@ -246,7 +253,7 @@ button:disabled {
   align-items: center;
   gap: 2px;
   padding: 2px;
-  border: 1px solid var(--line);
+  border: var(--stroke-width-sm) solid var(--stroke);
   border-radius: 999px;
   background: var(--surface);
 }
@@ -278,7 +285,7 @@ button:disabled {
 
 .mode-option.active {
   background: var(--green);
-  color: #ffffff;
+  color: var(--on-accent);
 }
 
 .mode-option:has(input:focus-visible) {
@@ -301,7 +308,7 @@ button:disabled {
   z-index: 30;
   min-width: 140px;
   padding: 6px;
-  border: 1px solid var(--line);
+  border: var(--stroke-width) solid var(--stroke);
   border-radius: var(--radius-sm);
   background: var(--surface);
   box-shadow: var(--shadow-strong);
@@ -343,7 +350,7 @@ button:disabled {
      with no indication more tabs exist off-screen. */
   -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
   mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
-  border: 1px solid var(--line);
+  border: var(--stroke-width-sm) solid var(--stroke);
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -356,9 +363,9 @@ button:disabled {
 .danger-button,
 .legal-action {
   min-height: 38px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  padding: 8px 12px;
+  border-radius: 999px;
+  border: var(--stroke-width-sm) solid transparent;
+  padding: 8px 14px;
   text-decoration: none;
   font-weight: 800;
   line-height: 1.1;
@@ -387,7 +394,7 @@ button:disabled {
   padding: 0 5px;
   border-radius: 999px;
   background: var(--red);
-  color: #ffffff;
+  color: var(--on-accent);
   font-size: 0.7rem;
   font-weight: 800;
   line-height: 1;
@@ -395,7 +402,7 @@ button:disabled {
 
 .tab.active {
   background: var(--green);
-  color: #ffffff;
+  color: var(--on-accent);
 }
 
 .text-button {
@@ -409,18 +416,18 @@ button:disabled {
   align-items: center;
   justify-content: center;
   background: var(--green);
-  color: #ffffff;
+  color: var(--on-accent);
 }
 
 .secondary-button {
   background: var(--surface);
-  border-color: var(--line);
+  border-color: var(--stroke);
   color: var(--ink);
 }
 
 .danger-button {
   background: var(--red);
-  color: #ffffff;
+  color: var(--on-accent);
 }
 
 .primary-button:hover,
@@ -449,7 +456,9 @@ button:disabled {
 }
 
 .view-header h2 {
-  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
   line-height: 1.08;
 }
 
@@ -486,10 +495,10 @@ button:disabled {
 .header-stats div,
 .stat-grid div,
 .panel {
-  border: 1px solid var(--line);
+  border: var(--stroke-width) solid var(--stroke);
   border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-strong);
 }
 
 .header-stats div,
@@ -614,7 +623,7 @@ button:disabled {
 .property-card {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: var(--stroke-width-sm) solid var(--stroke);
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -679,7 +688,7 @@ button:disabled {
 .image-thumb {
   display: grid;
   gap: 8px;
-  border: 1px solid var(--line);
+  border: var(--stroke-width-sm) solid var(--stroke);
   border-radius: var(--radius);
   padding: 8px;
   background: var(--surface);
@@ -813,7 +822,7 @@ select,
 textarea {
   width: 100%;
   min-height: 40px;
-  border: 1px solid var(--line);
+  border: var(--stroke-width-sm) solid var(--stroke);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
   background: var(--surface);
@@ -842,7 +851,7 @@ textarea:focus {
   max-height: calc(100vh - 36px);
   overflow: auto;
   border-radius: var(--radius);
-  border: 1px solid var(--line);
+  border: var(--stroke-width) solid var(--stroke);
   background: var(--surface);
   box-shadow: var(--shadow-strong);
   padding: 18px;
@@ -858,6 +867,9 @@ textarea:focus {
 
 .auth-panel-header h2 {
   margin: 0;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 1.25rem;
 }
 
 .auth-panel-tabs {
@@ -870,7 +882,7 @@ textarea:focus {
   border-radius: var(--radius-sm);
   padding: 8px 12px;
   background: var(--green);
-  color: #ffffff;
+  color: var(--on-accent);
   font-weight: 800;
 }
 
@@ -893,7 +905,7 @@ textarea:focus {
 .auth-panel-form fieldset {
   display: grid;
   gap: 8px;
-  border: 1px solid var(--line);
+  border: var(--stroke-width-sm) solid var(--line);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
 }
@@ -914,7 +926,7 @@ textarea:focus {
   justify-content: center;
   margin-top: 24px;
   padding-top: 14px;
-  border-top: 1px solid var(--line);
+  border-top: var(--stroke-width-sm) solid var(--stroke);
 }
 
 .legal-page {
@@ -966,53 +978,31 @@ textarea:focus {
 
 dialog {
   max-width: calc(100vw - 24px);
-  border: 1px solid var(--line);
+  border: var(--stroke-width) solid var(--stroke);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow-strong);
   color: var(--ink);
 }
 
+/* The splash (signed-out) header still floats over the landing hero rather
+   than scrolling with it - a layout choice, not a leftover style override:
+   every other visual property now matches the base .app-header above it. */
 .app-header--splash {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
-  border-bottom: 3px solid var(--mp-stroke);
-  background: var(--mp-paper);
-  backdrop-filter: none;
 }
 
-.app-header--splash .brand-mark {
-  border-radius: 50%;
-  border: 2px solid var(--mp-stroke);
-  box-shadow: var(--mp-shadow-pop-sm);
+.app-header .text-button {
+  color: var(--ink);
 }
 
-.app-header--splash .brand-block h1 {
-  font-family: "Bungee", ui-sans-serif, system-ui, sans-serif;
-  text-transform: uppercase;
-  font-size: 1rem;
-  letter-spacing: 0.01em;
-  color: var(--mp-ink);
-}
-
-.app-header--splash .brand-word-accent {
-  color: var(--mp-red);
-}
-
-.app-header--splash .text-button {
-  color: var(--mp-ink);
-}
-
-.app-header--splash .header-actions .primary-button {
-  font-family: "Work Sans", sans-serif;
-  font-weight: 800;
-  background: var(--mp-green);
-  color: #fffaf0;
-  border: 2.5px solid var(--mp-stroke);
-  border-radius: 999px;
-  box-shadow: var(--mp-shadow-pop-sm);
+.app-header .header-actions .primary-button {
+  border: var(--stroke-width) solid var(--stroke);
+  box-shadow: var(--shadow-pop-sm);
 }
 
 /* "Matatu poster" prototype world for the landing page only (see DESIGN.md
@@ -1031,11 +1021,11 @@ dialog {
      clamp was originally tuned for, so the floor needs raising to match or
      the hero heading renders underneath it. */
   padding-top: clamp(150px, 16vw, 170px);
-  color: var(--mp-ink);
+  color: var(--ink);
   overflow: hidden;
   position: relative;
-  background-color: var(--mp-paper);
-  background-image: radial-gradient(circle at 1px 1px, var(--mp-grain) 1.2px, transparent 0);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at 1px 1px, var(--grain) 1.2px, transparent 0);
   background-size: 15px 15px;
 }
 
@@ -1051,14 +1041,14 @@ dialog {
 }
 
 /* The buildings/bus outline follows the day/night ink-outline convention
-   (--mp-stroke) the rest of the surface uses - the * covers descendants that
+   (--stroke) the rest of the surface uses - the * covers descendants that
    carry their own stroke="..." presentation attribute directly (a real CSS
    rule beats it; plain inheritance from the parent <g> would not, since
    those elements already have their own specified stroke). Fill colors
    (building/bus body colors) stay fixed - only the outline responds. */
 .landing-skyline .mp-outline,
 .landing-skyline .mp-outline * {
-  stroke: var(--mp-stroke);
+  stroke: var(--stroke);
 }
 
 .landing-sticker {
@@ -1066,13 +1056,13 @@ dialog {
   align-items: center;
   gap: 8px;
   width: fit-content;
-  background: var(--mp-gold);
-  color: var(--mp-ink);
-  border: 3px solid var(--mp-stroke);
+  background: var(--amber);
+  color: var(--ink);
+  border: 3px solid var(--stroke);
   border-radius: 999px;
   padding: 7px 16px 7px 12px;
   transform: rotate(-3deg);
-  box-shadow: var(--mp-shadow-pop-sm);
+  box-shadow: var(--shadow-pop-sm);
   font-family: "Work Sans", sans-serif;
   font-weight: 800;
   font-size: 0.78rem;
@@ -1101,7 +1091,7 @@ dialog {
   max-width: 540px;
   margin: 0;
   font-family: "Work Sans", sans-serif;
-  color: color-mix(in srgb, var(--mp-ink) 82%, var(--mp-paper));
+  color: color-mix(in srgb, var(--ink) 82%, var(--bg));
   font-size: 1.05rem;
   line-height: 1.55;
 }
@@ -1115,10 +1105,10 @@ dialog {
 .landing-proof span {
   font-family: "Work Sans", sans-serif;
   padding: 8px 16px;
-  border: 2.5px solid var(--mp-stroke);
+  border: 2.5px solid var(--stroke);
   border-radius: 999px;
-  background: var(--mp-panel);
-  box-shadow: var(--mp-shadow-pop-sm);
+  background: var(--surface-soft);
+  box-shadow: var(--shadow-pop-sm);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -1140,11 +1130,11 @@ dialog {
   width: fit-content;
   font-family: "Work Sans", sans-serif;
   font-weight: 800;
-  background: var(--mp-red);
-  color: #fffaf0;
-  border: 3px solid var(--mp-stroke);
+  background: var(--red);
+  color: var(--on-accent);
+  border: 3px solid var(--stroke);
   border-radius: 999px;
-  box-shadow: var(--mp-shadow-pop);
+  box-shadow: var(--shadow-pop);
   padding: 15px 30px;
   transition: transform 0.15s ease;
 }
@@ -1159,10 +1149,10 @@ dialog {
   font-size: 0.96rem;
   padding: 13px 4px;
   text-decoration: underline;
-  text-decoration-color: var(--mp-gold);
+  text-decoration-color: var(--amber);
   text-decoration-thickness: 3px;
   text-underline-offset: 5px;
-  color: var(--mp-ink);
+  color: var(--ink);
 }
 
 .landing-showcase {
@@ -1170,10 +1160,10 @@ dialog {
   gap: 12px;
   align-self: end;
   padding: 14px;
-  border: 3px solid var(--mp-stroke);
+  border: 3px solid var(--stroke);
   border-radius: 20px;
-  background: var(--mp-panel);
-  box-shadow: var(--mp-shadow-pop);
+  background: var(--surface-soft);
+  box-shadow: var(--shadow-pop);
   position: relative;
   z-index: 1;
 }
@@ -1183,8 +1173,8 @@ dialog {
   gap: 5px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: var(--mp-paper-raised);
-  border: 1.5px solid color-mix(in srgb, var(--mp-stroke) 18%, transparent);
+  background: var(--surface);
+  border: 1.5px solid color-mix(in srgb, var(--stroke) 18%, transparent);
 }
 
 .landing-showcase strong {
@@ -1195,7 +1185,7 @@ dialog {
 
 .landing-showcase span {
   font-family: "Work Sans", sans-serif;
-  color: color-mix(in srgb, var(--mp-ink) 78%, var(--mp-paper));
+  color: color-mix(in srgb, var(--ink) 78%, var(--bg));
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -1207,14 +1197,14 @@ dialog {
   gap: 14px;
   padding: 24px;
   border-radius: 20px;
-  background: var(--mp-band);
+  background: var(--band);
   position: relative;
   z-index: 1;
 }
 
 .landing-testimonials h3 {
   margin: 0 0 4px;
-  color: var(--mp-band-accent);
+  color: var(--band-accent);
   font-family: "Bungee", ui-sans-serif, system-ui, sans-serif;
   text-transform: uppercase;
   font-size: 1.1rem;
@@ -1223,10 +1213,10 @@ dialog {
 .landing-testimonials blockquote {
   margin: 0;
   padding: 14px 16px;
-  border: 2.5px solid var(--mp-band-accent);
+  border: 2.5px solid var(--band-accent);
   border-radius: 12px;
-  background: var(--mp-band-card);
-  color: var(--mp-band-ink);
+  background: var(--band-card);
+  color: var(--band-ink);
   font-family: "Work Sans", sans-serif;
   font-size: 0.92rem;
   line-height: 1.5;
@@ -1240,15 +1230,15 @@ dialog {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--mp-band-accent2);
+  color: var(--band-accent2);
 }
 
 .landing-testimonials-empty {
   margin: 0;
   padding: 14px 16px;
-  border: 2.5px dashed color-mix(in srgb, var(--mp-band-accent) 55%, transparent);
+  border: 2.5px dashed color-mix(in srgb, var(--band-accent) 55%, transparent);
   border-radius: 12px;
-  color: color-mix(in srgb, var(--mp-band-ink) 78%, var(--mp-band));
+  color: color-mix(in srgb, var(--band-ink) 78%, var(--band));
   font-family: "Work Sans", sans-serif;
   font-size: 0.92rem;
   line-height: 1.5;
@@ -1256,14 +1246,14 @@ dialog {
 
 .landing-page .legal-footer {
   grid-column: 1 / -1;
-  border-top: 3px solid var(--mp-stroke);
+  border-top: 3px solid var(--stroke);
   position: relative;
   z-index: 1;
 }
 
 .landing-page .legal-footer .text-button {
   font-family: "Work Sans", sans-serif;
-  color: var(--mp-ink);
+  color: var(--ink);
 }
 
 @media (max-width: 1320px) {
@@ -1421,10 +1411,13 @@ dialog {
     --surface: #ffffff;
     --surface-soft: #f2f2f2;
     --ink: #000000;
+    --stroke: #000000;
     --muted: #333333;
     --line: #cccccc;
     --shadow: none;
     --shadow-strong: none;
+    --shadow-pop: none;
+    --shadow-pop-sm: none;
   }
 
   body {
