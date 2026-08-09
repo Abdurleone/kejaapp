@@ -61,7 +61,11 @@ function App() {
     () => window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
   const [path, setPath] = useState(window.location.pathname);
-  const [signedIn, setSignedIn] = useState(Boolean(localStorage.getItem("keja_token")));
+  // The auth session now lives entirely in an httpOnly cookie (not readable
+  // by JS), so there's no client-side value to guess this from anymore -
+  // the session-restore effect below always asks the server via
+  // fetchCurrentUser() instead, and updates this once that resolves.
+  const [signedIn, setSignedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authPanelOpen, setAuthPanelOpen] = useState(false);
   const [highlightRequestId, setHighlightRequestId] = useState(null);
@@ -117,15 +121,17 @@ function App() {
   useEffect(() => {
     let active = true;
 
+    // With the session living entirely in an httpOnly cookie, there's no
+    // client-side value to check before deciding whether to bother asking -
+    // just ask once, on mount, and let the 401 (if any) answer it. Explicit
+    // sign-in/out (handleAuthenticated/handleLogout/handleAccountDeleted)
+    // already set signedIn/currentUser directly at their own call sites, so
+    // this doesn't need to re-run when those fire.
     const loadUser = async () => {
-      if (!signedIn) {
-        setCurrentUser(null);
-        return;
-      }
-
       try {
         const user = await fetchCurrentUser();
         if (active) {
+          setSignedIn(true);
           setCurrentUser(user);
 
           // A restored session landing on the bare root has no meaningful
@@ -140,9 +146,11 @@ function App() {
           }
         }
       } catch {
-        setSignedIn(false);
-        setCurrentUser(null);
-        setAuthPanelOpen(false);
+        if (active) {
+          setSignedIn(false);
+          setCurrentUser(null);
+          setAuthPanelOpen(false);
+        }
       }
     };
 
@@ -151,8 +159,8 @@ function App() {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on sign-in state changes, not on every path/navigate change
-  }, [signedIn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run once on mount only, see comment above
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => setPath(window.location.pathname);

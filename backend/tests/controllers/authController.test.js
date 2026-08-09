@@ -191,6 +191,7 @@ describe("authController", () => {
     assert.deepEqual(deleteManyCalls.DeviceToken, [{ user: userId }]);
     assert.deepEqual(moverAffiliateUpdate.filter, { affiliatedOwners: userId });
     assert.deepEqual(moverAffiliateUpdate.update, { $pull: { affiliatedOwners: userId } });
+    assert.ok(res.clearedCookies.includes(env.csrfCookieName));
   });
 
   it("deletes uploaded image files for every owned property, not just the DB records", async () => {
@@ -451,6 +452,12 @@ describe("authController", () => {
     assert.equal(res.statusCode, 201);
     assert.equal(res.body.user.username, "johnkamau");
     assert.equal(createdPayload.username, "johnkamau");
+
+    // The CSRF double-submit cookie must be readable by frontend JS (unlike
+    // the auth/refresh cookies), and set to some real random value.
+    const csrfCookie = res.cookies[env.csrfCookieName];
+    assert.ok(csrfCookie.value);
+    assert.equal(csrfCookie.options.httpOnly, false);
   });
 
   it("rejects a taken username with available suggestions", async () => {

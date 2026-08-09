@@ -1,4 +1,4 @@
-import { apiFetch, buildQueryString, clearRequestCache, getCached, setAuthToken, setCached } from "./client.js";
+import { apiFetch, buildQueryString, clearRequestCache, getCached, setCached } from "./client.js";
 
 const propertiesCacheTtlMs = 15000;
 const favoritesCacheTtlMs = 15000;
@@ -585,20 +585,17 @@ export const loginUser = async (credentials) => {
     method: "POST",
     body: credentials,
   });
-  setAuthToken(response.token);
   clearRequestCache();
   return response;
 };
 
 export const logoutUser = async () => {
   await apiFetch("/api/auth/logout", { method: "POST" });
-  setAuthToken("");
   clearRequestCache();
 };
 
 export const deleteCurrentAccount = async () => {
   const response = await apiFetch("/api/auth/me", { method: "DELETE" });
-  setAuthToken("");
   clearRequestCache();
   return response;
 };
@@ -608,7 +605,6 @@ export const registerUser = async (userData) => {
     method: "POST",
     body: userData,
   });
-  setAuthToken(response.token);
   clearRequestCache();
   return response;
 };
@@ -618,7 +614,6 @@ export const loginWithGoogle = async (idToken) => {
     method: "POST",
     body: { idToken },
   });
-  setAuthToken(response.token);
   clearRequestCache();
   return response;
 };

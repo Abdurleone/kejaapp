@@ -189,6 +189,10 @@ const env = {
   bcryptSaltRounds: parsePositiveInteger(process.env.BCRYPT_SALT_ROUNDS, 12, "BCRYPT_SALT_ROUNDS"),
   authCookieName: process.env.AUTH_COOKIE_NAME || "keja_token",
   refreshCookieName: process.env.REFRESH_COOKIE_NAME || "keja_refresh",
+  // Double-submit CSRF token, set alongside the auth cookies - unlike them,
+  // it's deliberately NOT httpOnly, since the frontend has to read it and
+  // echo it back as a header on mutations (see csrfProtection.js).
+  csrfCookieName: process.env.CSRF_COOKIE_NAME || "keja_csrf",
   authCookieMaxAge: parseCookieMaxAge(process.env.AUTH_COOKIE_MAX_AGE_DAYS),
   authCookieSecure: process.env.AUTH_COOKIE_SECURE === "true",
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGIN),

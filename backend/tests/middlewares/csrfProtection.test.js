@@ -45,7 +45,7 @@ describe("csrfProtection", () => {
       assert.throws(
         () => csrfProtection(req, {}, () => {}),
         {
-          message: "This request must be authenticated with an Authorization header",
+          message: "This request must be authenticated with an Authorization header or a matching CSRF token",
           statusCode: 403,
         }
       );
@@ -72,7 +72,7 @@ describe("csrfProtection", () => {
     assert.throws(
       () => csrfProtection(req, {}, () => {}),
       {
-        message: "This request must be authenticated with an Authorization header",
+        message: "This request must be authenticated with an Authorization header or a matching CSRF token",
         statusCode: 403,
       }
     );
@@ -92,5 +92,61 @@ describe("csrfProtection", () => {
     });
 
     assert.equal(nextCalled, true);
+  });
+
+  it("allows an unsafe request whose X-CSRF-Token header matches the csrf cookie (web's cookie-only auth path)", () => {
+    const req = baseReq({
+      method: "POST",
+      headers: {
+        cookie: "keja_token=abc; keja_csrf=matching-csrf-value",
+        "x-csrf-token": "matching-csrf-value",
+      },
+    });
+    let nextCalled = false;
+
+    csrfProtection(req, {}, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, true);
+  });
+
+  it("rejects an unsafe request whose X-CSRF-Token header doesn't match the csrf cookie", () => {
+    const req = baseReq({
+      method: "POST",
+      headers: {
+        cookie: "keja_token=abc; keja_csrf=real-csrf-value",
+        "x-csrf-token": "attacker-guessed-value",
+      },
+    });
+
+    assert.throws(
+      () => csrfProtection(req, {}, () => {}),
+      { statusCode: 403 }
+    );
+  });
+
+  it("rejects an unsafe request with the csrf cookie but no X-CSRF-Token header (what a forged cross-site request looks like)", () => {
+    const req = baseReq({
+      method: "POST",
+      headers: { cookie: "keja_token=abc; keja_csrf=real-csrf-value" },
+    });
+
+    assert.throws(
+      () => csrfProtection(req, {}, () => {}),
+      { statusCode: 403 }
+    );
+  });
+
+  it("rejects an unsafe request with an X-CSRF-Token header but no matching cookie", () => {
+    const req = baseReq({
+      method: "POST",
+      headers: { cookie: "keja_token=abc", "x-csrf-token": "no-cookie-to-match" },
+    });
+
+    assert.throws(
+      () => csrfProtection(req, {}, () => {}),
+      { statusCode: 403 }
+    );
   });
 });
