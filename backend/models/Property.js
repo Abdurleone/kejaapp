@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 
 const propertyStatuses = ["draft", "available", "taken", "archived"];
+const propertyTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
+const propertyListedByOptions = ["owner", "agency"];
+const propertyViewingTypes = ["scheduled", "open"];
 
 const propertySchema = new mongoose.Schema(
   {
@@ -15,7 +18,7 @@ const propertySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["apartment", "bedsitter", "maisonette", "house", "studio", "other"],
+      enum: propertyTypes,
       default: "apartment",
     },
     owner: {
@@ -93,7 +96,7 @@ const propertySchema = new mongoose.Schema(
     ],
     listedBy: {
       type: String,
-      enum: ["owner", "agency"],
+      enum: propertyListedByOptions,
       default: "owner",
     },
     status: {
@@ -104,7 +107,7 @@ const propertySchema = new mongoose.Schema(
     },
     viewingType: {
       type: String,
-      enum: ["scheduled", "open"],
+      enum: propertyViewingTypes,
       default: "scheduled",
       index: true,
     },
@@ -182,5 +185,5 @@ propertySchema.index({ owner: 1, status: 1 });
 
 const Property = mongoose.model("Property", propertySchema);
 
-export { propertyStatuses };
+export { propertyListedByOptions, propertyStatuses, propertyTypes, propertyViewingTypes };
 export default Property;
