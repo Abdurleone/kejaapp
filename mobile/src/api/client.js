@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 const TOKEN_KEY = "keja_token";
 const BASE_URL_KEY = "keja_base_url";
@@ -27,13 +28,18 @@ export const setApiBaseUrl = async (url) => {
   }
 };
 
-export const getAuthToken = () => AsyncStorage.getItem(TOKEN_KEY);
+// The auth JWT lives in SecureStore (iOS Keychain / Android Keystore-backed),
+// not AsyncStorage - AsyncStorage is plain, unencrypted disk storage, so a
+// rooted/jailbroken device or an unencrypted local device backup could read
+// a token straight out of it. Everything else here (base URL) isn't
+// sensitive and stays in AsyncStorage.
+export const getAuthToken = () => SecureStore.getItemAsync(TOKEN_KEY);
 
 export const setAuthToken = async (token) => {
   if (token) {
-    await AsyncStorage.setItem(TOKEN_KEY, token);
+    await SecureStore.setItemAsync(TOKEN_KEY, token);
   } else {
-    await AsyncStorage.removeItem(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
   }
 };
 
