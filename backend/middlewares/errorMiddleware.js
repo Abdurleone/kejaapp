@@ -13,10 +13,17 @@ const notFound = (req, res, next) => {
 const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || (res.statusCode === 200 ? httpStatus.INTERNAL_SERVER_ERROR : res.statusCode);
   let message = err.message;
+  // Whether `message` is already a deliberately safe, user-facing string -
+  // either a statusCode was explicitly set by application code (an ApiError
+  // thrown on purpose) or one of the branches below just classified it.
+  // Anything else is a raw/unexpected exception (a library internal, a
+  // programming bug) and must not be echoed verbatim to the client below.
+  let messageIsSafe = Boolean(err.statusCode);
 
   if (err.name === "CastError") {
     statusCode = httpStatus.BAD_REQUEST;
     message = "Invalid resource id";
+    messageIsSafe = true;
   }
 
   if (err.name === "ValidationError") {
@@ -24,11 +31,13 @@ const errorHandler = (err, req, res, _next) => {
     message = Object.values(err.errors)
       .map((error) => error.message)
       .join(", ");
+    messageIsSafe = true;
   }
 
   if (err.code === 11000) {
     statusCode = httpStatus.CONFLICT;
     message = "Duplicate resource";
+    messageIsSafe = true;
   }
 
   if (
@@ -38,6 +47,7 @@ const errorHandler = (err, req, res, _next) => {
   ) {
     statusCode = httpStatus.SERVICE_UNAVAILABLE;
     message = "Database temporarily unavailable. Please retry the request.";
+    messageIsSafe = true;
   }
 
   // Previously unhandled request errors left no trace anywhere once
@@ -45,6 +55,10 @@ const errorHandler = (err, req, res, _next) => {
   // they show up in the app log.
   if (statusCode >= 500 && env.nodeEnv !== "test") {
     logError(`${req.method} ${req.originalUrl} -> ${statusCode}: ${err.stack || err.message}`);
+  }
+
+  if (statusCode >= 500 && !messageIsSafe && env.nodeEnv === "production") {
+    message = "Internal server error";
   }
 
   res.status(statusCode).json({

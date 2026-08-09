@@ -1,5 +1,10 @@
 import httpStatus from "../constants/httpStatus.js";
-import { propertyStatuses } from "../models/Property.js";
+import {
+  propertyListedByOptions,
+  propertyStatuses,
+  propertyTypes,
+  propertyViewingTypes,
+} from "../models/Property.js";
 import ApiError from "./apiError.js";
 import { escapeRegExp } from "./regex.js";
 
@@ -21,10 +26,21 @@ const buildPropertyFilters = (query) => {
   };
 
   if (query.type) {
+    if (!propertyTypes.includes(query.type)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `type must be one of: ${propertyTypes.join(", ")}`);
+    }
+
     filters.type = query.type;
   }
 
   if (query.listedBy) {
+    if (!propertyListedByOptions.includes(query.listedBy)) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `listedBy must be one of: ${propertyListedByOptions.join(", ")}`
+      );
+    }
+
     filters.listedBy = query.listedBy;
   }
 
@@ -37,6 +53,13 @@ const buildPropertyFilters = (query) => {
   }
 
   if (query.viewingType) {
+    if (!propertyViewingTypes.includes(query.viewingType)) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `viewingType must be one of: ${propertyViewingTypes.join(", ")}`
+      );
+    }
+
     filters.viewingType = query.viewingType;
   }
 
