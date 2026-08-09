@@ -22,7 +22,7 @@ describe("buildQueryString", () => {
 });
 
 describe("auth token storage", () => {
-  it("round-trips a token through AsyncStorage", async () => {
+  it("round-trips a token through SecureStore", async () => {
     await setAuthToken("test-token");
     expect(await getAuthToken()).toBe("test-token");
   });

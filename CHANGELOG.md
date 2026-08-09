@@ -34,6 +34,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Security Audit: Backend Fixes (SSRF, NoSQL Injection, Info Disclosure)](#security-audit-backend-fixes-ssrf-nosql-injection-info-disclosure)
 - [Security Audit: Session Revocation on Password Change](#security-audit-session-revocation-on-password-change)
 - [Security Audit: docker-compose MongoDB No Longer Publicly Exposed](#security-audit-docker-compose-mongodb-no-longer-publicly-exposed)
+- [Security Audit: Mobile Auth Token Moved to Secure Storage](#security-audit-mobile-auth-token-moved-to-secure-storage)
 
 ---
 
@@ -371,3 +372,13 @@ A running, chronological (oldest first) record of what was built and why — inc
 - Third fix from the same full-codebase security appraisal (see the SSRF/NoSQL-injection/info-disclosure and session-revocation PRs for the others). `docker-compose.yml`'s `mongo` service published port 27017 with `"27017:27017"` - no host IP prefix, so Docker binds it to `0.0.0.0` by default. The container has no auth enabled (no `MONGO_INITDB_ROOT_USERNAME`/`_PASSWORD`), so on any host running this file with a public IP and no external firewall, the entire database was reachable and writable by anyone on the internet with no login at all.
 - Fixed by binding to loopback only (`"127.0.0.1:27017:27017"`) - the backend already reaches Mongo over the compose network (`mongodb://mongo:27017`) regardless of this mapping, which only exists so a local client (`mongosh`/Compass) can connect from the host machine. That local-dev convenience is preserved; remote reachability is closed.
 - No code/test changes - config-only. Verified with `docker compose config` that the resolved port mapping now carries `host_ip: 127.0.0.1`.
+
+---
+
+## Security Audit: Mobile Auth Token Moved to Secure Storage
+
+- Fourth fix from the same full-codebase security appraisal (see the other PRs above). The mobile auth JWT was persisted via `@react-native-async-storage/async-storage` (`mobile/src/api/client.js`), which is plain, unencrypted disk storage on both platforms - a rooted Android device or jailbroken iOS device, or an unencrypted local device-backup extraction, could read the token straight out of app storage and replay it against the API as the victim.
+- Fixed by switching `getAuthToken`/`setAuthToken` to `expo-secure-store` (iOS Keychain / Android Keystore-backed) for the token specifically - the base API URL setting isn't sensitive and stays in AsyncStorage. `npx expo install expo-secure-store` picked the SDK-57-matching version (`~57.0.1`) and added its config plugin to `app.json`, matching every other `expo-*` dependency's version convention here.
+- `jest-expo`'s auto-generated native-module mock for `expo-secure-store` has no actual storage behind it (every call just resolves `undefined`), so the existing token round-trip test would have silently passed for the wrong reason - added an explicit in-memory mock in `jest.setup.js`, mirroring the existing `AsyncStorage` mock.
+- No migration path for pre-existing AsyncStorage-stored tokens was added: mobile hasn't shipped a standalone/EAS production build yet (still Expo-Go dev testing per `docs/Roadmap.md`), so there's no real distributed install with an existing token to migrate.
+- 35/35 suites, 201/201 tests still passing, lint clean.
