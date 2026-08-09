@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-09T13:00:00Z",
+  "generatedAt": "2026-08-09T11:24:40Z",
   "title": "Design System: KejaApp",
   "extensions": {
     "colorMeta": {
@@ -143,7 +143,7 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The landing page's single hero headline only. Nowhere else."
+        "purpose": "No longer applies to the landing page (replaced by the scoped Bungee display treatment there); nothing else in the app currently uses this role."
       },
       "headline": {
         "displayName": "Headline",
@@ -155,7 +155,11 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Buttons, tabs, status pills, badge counts \u2014 emphasis via weight, not size."
+        "purpose": "Buttons, tabs, status pills, badge counts \u2014 emphasis via weight, not size. Real observed range is 0.7-0.95rem (typography.scale.label-*), not just the 0.82rem point value."
+      },
+      "scale": {
+        "displayName": "Additional observed sizes",
+        "purpose": "Real, recurring sizes found auditing the stylesheet directly, outside the four named roles: the Label role's honest 0.7-0.95rem range (label-xs/sm/md/lg), a second regular-weight numeric/heading emphasis tier between Body and Headline (emphasis-sm/md/lg, 1.05-1.25rem), and one outlier that sizes an icon glyph rather than running text (icon-glyph, 1.8rem)."
       }
     },
     "shadows": [
