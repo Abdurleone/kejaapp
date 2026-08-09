@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "bungee",
+        "createdAt": "2026-08-09T10:51:45.972Z",
+        "reason": "User confirmed Bungee is intentional (matatu-poster landing page redesign, PR #215)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "work sans",
+        "createdAt": "2026-08-09T10:51:58.884Z",
+        "reason": "User confirmed Work Sans is intentional (matatu-poster landing page redesign, PR #215)"
+      }
+    ]
+  }
+}
