@@ -33,6 +33,15 @@ typography:
     fontSize: "0.82rem"
     fontWeight: 800
     lineHeight: 1.1
+  scale:
+    label-xs: "0.7rem"
+    label-sm: "0.78rem"
+    label-md: "0.86rem"
+    label-lg: "0.9rem"
+    emphasis-sm: "1.05rem"
+    emphasis-md: "1.12rem"
+    emphasis-lg: "1.25rem"
+    icon-glyph: "1.8rem"
 rounded:
   sm: "6px"
   md: "8px"
@@ -164,6 +173,8 @@ Mobile currently has **no typography tokens at all** — no custom font is loade
 - **Headline** (700, `clamp(1.55rem, 3vw, 2.35rem)`, 1.15): page-level titles (`.view-header h2`) — Discover, Workspace, Admin, etc.
 - **Body** (400, `1rem`/16px, 1.5): the default for everything else; no explicit override exists, it's the browser/RN default.
 - **Label** (800–900, `0.7–0.95rem`, 1.1): button text, tab labels, status pills, badge counts. Deliberately much bolder than body weight — boldness itself is the emphasis mechanism used throughout, not color or size.
+
+**Observed additional sizes.** Auditing the actual stylesheet (not just the four roles above) turned up a real, if informal, second tier: regular-weight numeric/heading emphasis sized between Body and Headline — a sidebar brand title, a stat figure, a cost-row total — clustering at `1.05rem`/`1.12rem`/`1.25rem` (`typography.scale.emphasis-*`). The Label role's own `0.7–0.95rem` claim also turned out to be real rather than aspirational: `0.7rem`/`0.78rem`/`0.86rem`/`0.9rem` each recur across multiple components (`typography.scale.label-*`), alongside the already-documented `0.82rem` point value. One outlier doesn't fit either tier: a `1.8rem` fallback glyph sizes an icon character, not running text (`typography.scale.icon-glyph`) — kept out of the Label/Emphasis tiers so it doesn't imply a real headline-adjacent text size exists there.
 
 ### Named Rules
 **The Shout-Don't-Grow Rule.** Interactive labels (buttons, tabs, badges) get heavy weight (800–900), not larger size, to stand out from body text. A new component that wants emphasis should reach for weight before reaching for a bigger font-size.
