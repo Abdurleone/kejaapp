@@ -5,17 +5,20 @@ import parseCookies from "../utils/cookies.js";
 
 const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const refreshPath = "/api/auth/refresh";
+const csrfHeaderName = "x-csrf-token";
 
 // authMiddleware's protect() accepts either an Authorization header or the
 // httpOnly session cookie, and that cookie is necessarily sameSite: "none"
 // in production (the frontend and backend are on different origins there) -
 // which means it rides along on cross-site requests too, the classic CSRF
-// setup. Every real client here (web, mobile) already sends
-// Authorization: Bearer on every authenticated call, so requiring it for
-// state-changing requests closes the hole with no client-side change: the
-// cookie stays valid for authenticating safe (GET) requests, it just stops
-// being trusted on its own for mutations, which a forged cross-site request
-// can never supply (it has no way to read the token to put it in a header).
+// setup. Two things prove a mutation isn't a forged cross-site request:
+// - Authorization: Bearer header (mobile, and any non-cookie API client) -
+//   a forged request has no way to read the token to put it there.
+// - a matching X-CSRF-Token header + csrfCookieName cookie pair (web) - the
+//   cookie rides along automatically on a forged request same as the auth
+//   cookie does, but Same-Origin Policy means an attacker's page can never
+//   read its value to also send it as a header, so the two can only match
+//   on a request the real frontend made itself.
 const csrfProtection = (req, res, next) => {
   if (!unsafeMethods.has(req.method) || req.headers.authorization?.startsWith("Bearer ")) {
     return next();
@@ -34,13 +37,22 @@ const csrfProtection = (req, res, next) => {
   }
 
   const cookies = parseCookies(req.headers.cookie);
+  const csrfCookie = cookies[env.csrfCookieName];
+  const csrfHeader = req.headers[csrfHeaderName];
 
-  // Both cookies matter here, not just the access-token one: refresh falls
-  // back to the refresh cookie the same way protect() falls back to the
-  // access-token cookie, so it's just as forgeable if only the
+  if (csrfCookie && csrfHeader && csrfCookie === csrfHeader) {
+    return next();
+  }
+
+  // Both auth cookies matter here, not just the access-token one: refresh
+  // falls back to the refresh cookie the same way protect() falls back to
+  // the access-token cookie, so it's just as forgeable if only the
   // access-token cookie is checked.
   if (cookies[env.authCookieName] || cookies[env.refreshCookieName]) {
-    throw new ApiError(httpStatus.FORBIDDEN, "This request must be authenticated with an Authorization header");
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "This request must be authenticated with an Authorization header or a matching CSRF token"
+    );
   }
 
   next();

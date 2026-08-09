@@ -20,7 +20,6 @@ vi.mock("../app-utils.js", async (importOriginal) => {
 // duplicating its tab-bar JSX in an isolated stand-in.
 describe("App - main navigation tablist", () => {
   beforeEach(() => {
-    localStorage.setItem("keja_token", "fake-token");
     window.history.pushState({}, "", "/dashboard");
     fetchCurrentUser.mockResolvedValue({ _id: "t1", name: "Jane Tenant", role: "tenant" });
     fetchDashboardSummary.mockResolvedValue({ notifications: { unread: 0 } });
@@ -87,6 +86,12 @@ describe("App - signed-out landing page legal links", () => {
   beforeEach(() => {
     window.history.pushState({}, "", "/");
     fetchPublicTestimonials.mockResolvedValue([]);
+    // Explicit, rather than relying on fetchCurrentUser being left
+    // unconfigured - vi.clearAllMocks() (used across this file's describe
+    // blocks) clears call history but NOT a previously-set
+    // mockResolvedValue, so without this, a signed-in mock configured by an
+    // earlier describe block in this file would otherwise leak in here.
+    fetchCurrentUser.mockRejectedValue(new Error("Not authorized"));
   });
 
   afterEach(() => {
@@ -126,6 +131,10 @@ describe("App - color mode", () => {
   beforeEach(() => {
     window.history.pushState({}, "", "/");
     fetchPublicTestimonials.mockResolvedValue([]);
+    // Explicit, rather than relying on fetchCurrentUser being left
+    // unconfigured - see the identical comment in the "signed-out landing
+    // page" describe block above.
+    fetchCurrentUser.mockRejectedValue(new Error("Not authorized"));
     changeListeners = [];
     matchesDark = false;
     window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -207,7 +216,6 @@ describe("App - color mode", () => {
 
 describe("App - Google Sign-In role gating", () => {
   beforeEach(() => {
-    localStorage.setItem("keja_token", "fake-token");
     window.history.pushState({}, "", "/dashboard");
     fetchDashboardSummary.mockResolvedValue({ notifications: { unread: 0 } });
   });

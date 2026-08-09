@@ -25,8 +25,6 @@ import {
   respondToFeedback,
   respondToInquiry,
   uploadPropertyImage,
-  getAuthToken,
-  setAuthToken,
   updateCurrentUser,
   changeCurrentUserPassword,
 } from "../app-utils.js";
@@ -39,7 +37,6 @@ const jsonResponse = (body) =>
 
 describe("frontend API helpers", () => {
   before(() => {
-    // Real in-memory localStorage so setAuthToken/getAuthToken round-trip correctly.
     const store = new Map([["keja_base_url", "http://localhost:5000"]]);
     global.localStorage = {
       getItem: (key) => (store.has(key) ? store.get(key) : null),
@@ -47,6 +44,9 @@ describe("frontend API helpers", () => {
       removeItem: (key) => store.delete(key),
       clear: () => store.clear(),
     };
+    // The auth session lives in an httpOnly cookie now (invisible to JS);
+    // the one cookie value frontend code still reads is the CSRF token.
+    global.document = { cookie: "keja_csrf=test-csrf-value" };
   });
 
   it("creates API URLs from paths", () => {
@@ -68,18 +68,29 @@ describe("frontend API helpers", () => {
     );
   });
 
-  it("retrieves and sets auth tokens in localStorage", () => {
-    setAuthToken("test-token");
-    assert.equal(getAuthToken(), "test-token");
-    setAuthToken("");
-    assert.equal(getAuthToken(), "");
+  it("attaches the CSRF cookie value as a header on mutating requests", async () => {
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedOptions = options;
+      return jsonResponse({ message: "ok" });
+    };
+
+    await apiFetch("/api/favorites/p1", { method: "POST" });
+
+    assert.equal(capturedOptions.headers.get("X-CSRF-Token"), "test-csrf-value");
+    assert.equal(capturedOptions.credentials, "include");
   });
 
-  it("builds fetch requests with auth headers", () => {
-    const token = "test-auth-token";
-    setAuthToken(token);
-    // The apiFetch function should include the auth header when a token is set
-    assert.equal(getAuthToken() !== "", true);
+  it("does not attach a CSRF header on safe (GET) requests", async () => {
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedOptions = options;
+      return jsonResponse({ data: [] });
+    };
+
+    await apiFetch("/api/properties");
+
+    assert.equal(capturedOptions.headers.has("X-CSRF-Token"), false);
   });
 
   it("handles API responses with data payloads", async () => {
