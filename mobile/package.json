@@ -7,10 +7,12 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-navigation/bottom-tabs": "^7.18.12",
+    "@react-navigation/elements": "^2.9.38",
     "@react-navigation/native": "^7.3.5",
     "@react-navigation/native-stack": "^7.18.4",
     "expo": "~57.0.9",
     "expo-auth-session": "~57.0.6",
+    "expo-blur": "~57.0.2",
     "expo-constants": "~57.0.3",
     "expo-device": "~57.0.1",
     "expo-image-picker": "~57.0.7",
@@ -23,6 +25,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-native": "0.86.2",
+    "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.8.0",
     "react-native-screens": "4.26.2",
     "react-native-web": "^0.21.2"
@@ -41,6 +44,7 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "resolver": "react-native-worklets/jest/resolver.js",
     "setupFiles": [
       "<rootDir>/jest.setup.js"
     ]
