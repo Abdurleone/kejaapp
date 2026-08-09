@@ -11,16 +11,34 @@ export const createApiUrl = (path, baseUrl = defaultApiBaseUrl) => {
   return `${normalizedBaseUrl}${normalizedPath}`;
 };
 
-const authTokenKey = "keja_token";
+// The auth session lives entirely in httpOnly cookies the backend sets/
+// clears on login/register/logout/etc. (apiFetch's credentials: "include"
+// sends them automatically) - nothing about the session token itself is
+// ever readable by, or stored in, frontend JS anymore.
+//
+// The one thing frontend JS does need is proof a mutation actually came
+// from this site: keja_csrf is a deliberately non-httpOnly cookie set
+// alongside the session cookies specifically so this code can read it and
+// echo it back as a header. A cross-site forged request can't do that -
+// Same-Origin Policy blocks reading another origin's cookie value - so a
+// matching header+cookie pair is proof of same-origin, same as the backend's
+// csrfProtection.js middleware expects. Must match the backend's
+// CSRF_COOKIE_NAME default.
+const csrfCookieName = "keja_csrf";
 
-export const getAuthToken = () => localStorage.getItem(authTokenKey) || "";
-export const setAuthToken = (token) => {
-  if (token) {
-    localStorage.setItem(authTokenKey, token);
-  } else {
-    localStorage.removeItem(authTokenKey);
+const getCsrfToken = () => {
+  // node:test's suite of tests runs this file outside a DOM (no `document`
+  // global at all), unlike the Vitest/jsdom render tests - stay safe there
+  // the same way defaultApiBaseUrl above stays safe without import.meta.env.
+  if (typeof document === "undefined") {
+    return "";
   }
+
+  const match = document.cookie.match(new RegExp(`(?:^|; )${csrfCookieName}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : "";
 };
+
+const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 // Entries only expire lazily (on access), so a long-lived tab doing many
 // distinct searches (e.g. repeated "near me" radius queries) could grow this
@@ -82,9 +100,14 @@ export const apiFetch = async (path, options = {}) => {
   const baseUrl = normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
   const url = createApiUrl(path, baseUrl);
   const headers = new Headers(options.headers || {});
+  const method = (options.method || "GET").toUpperCase();
 
-  if (getAuthToken()) {
-    headers.set("Authorization", `Bearer ${getAuthToken()}`);
+  if (unsafeMethods.has(method)) {
+    const csrfToken = getCsrfToken();
+
+    if (csrfToken) {
+      headers.set("X-CSRF-Token", csrfToken);
+    }
   }
 
   if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {

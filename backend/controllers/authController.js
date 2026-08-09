@@ -27,6 +27,18 @@ const getRefreshCookieOptions = () => ({
   secure: env.authCookieSecure,
 });
 
+// Deliberately not httpOnly - the frontend reads this value and echoes it
+// back as an X-CSRF-Token header on mutations (csrfProtection.js checks the
+// two match). Same maxAge as the access-token cookie since that's this
+// app's actual session lifetime in practice (nothing currently calls
+// POST /api/auth/refresh from either client).
+const getCsrfCookieOptions = () => ({
+  httpOnly: false,
+  maxAge: env.authCookieMaxAge,
+  sameSite: env.authCookieSecure ? "none" : "lax",
+  secure: env.authCookieSecure,
+});
+
 const createRefreshSession = async (req, user) => {
   const refreshToken = generateOpaqueToken();
 
@@ -60,6 +72,7 @@ const sendAuthResponse = async (req, res, statusCode, user) => {
 
   res.cookie(env.authCookieName, token, getCookieOptions());
   res.cookie(env.refreshCookieName, refreshToken, getRefreshCookieOptions());
+  res.cookie(env.csrfCookieName, generateOpaqueToken(), getCsrfCookieOptions());
 
   res.status(statusCode).json({
     user: {
@@ -345,6 +358,11 @@ const deleteCurrentUser = asyncHandler(async (req, res) => {
     sameSite: env.authCookieSecure ? "none" : "lax",
     secure: env.authCookieSecure,
   });
+  res.clearCookie(env.csrfCookieName, {
+    httpOnly: false,
+    sameSite: env.authCookieSecure ? "none" : "lax",
+    secure: env.authCookieSecure,
+  });
 
   res.status(httpStatus.OK).json({
     message: "Account and associated data deleted",
@@ -373,6 +391,11 @@ const logoutUser = asyncHandler(async (req, res) => {
   });
   res.clearCookie(env.refreshCookieName, {
     httpOnly: true,
+    sameSite: env.authCookieSecure ? "none" : "lax",
+    secure: env.authCookieSecure,
+  });
+  res.clearCookie(env.csrfCookieName, {
+    httpOnly: false,
     sameSite: env.authCookieSecure ? "none" : "lax",
     secure: env.authCookieSecure,
   });
