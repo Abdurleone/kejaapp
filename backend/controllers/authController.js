@@ -312,6 +312,21 @@ const changePassword = asyncHandler(async (req, res) => {
   user.password = req.body.newPassword;
   await user.save();
 
+  // Changing the password is meant to lock out anyone holding a stolen
+  // refresh token - revoke every other outstanding session, but keep the
+  // caller's own current one alive so they aren't logged out mid-request.
+  const currentRefreshToken = getRefreshTokenFromRequest(req);
+  const currentTokenHash = currentRefreshToken ? hashToken(currentRefreshToken) : null;
+
+  await AuthSession.updateMany(
+    {
+      user: user._id,
+      revokedAt: null,
+      ...(currentTokenHash ? { tokenHash: { $ne: currentTokenHash } } : {}),
+    },
+    { revokedAt: new Date() }
+  );
+
   res.status(httpStatus.OK).json({
     message: "Password updated",
   });
