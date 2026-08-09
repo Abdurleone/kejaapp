@@ -33,6 +33,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Google Sign-In: Mobile](#google-sign-in-mobile)
 - [Security Audit: Backend Fixes (SSRF, NoSQL Injection, Info Disclosure)](#security-audit-backend-fixes-ssrf-nosql-injection-info-disclosure)
 - [Security Audit: Session Revocation on Password Change](#security-audit-session-revocation-on-password-change)
+- [Security Audit: docker-compose MongoDB No Longer Publicly Exposed](#security-audit-docker-compose-mongodb-no-longer-publicly-exposed)
 
 ---
 
@@ -362,3 +363,11 @@ A running, chronological (oldest first) record of what was built and why — inc
 - Second fix from the same full-codebase security appraisal (see the SSRF/NoSQL-injection/info-disclosure PR for the first four). `PUT /api/auth/password` (`changePassword` in `backend/controllers/authController.js`) changed the password but never touched the `AuthSession` collection - the app already has a proper revocable refresh-token session model, used correctly on logout and account deletion, but this path missed it. An attacker holding a stolen refresh token (a leaked backup, a synced browser, a compromised device) kept full account access for up to `refreshTokenMaxAge` (30 days) even after the legitimate user changed their password specifically to lock them out.
 - Fixed with `AuthSession.updateMany({ user, revokedAt: null, tokenHash: { $ne: currentTokenHash } }, { revokedAt: new Date() })` right after the password save - revokes every other outstanding session while excluding the caller's own current one (identified the same way `refreshAccessToken`/`logoutUser` already look it up, via `getRefreshTokenFromRequest`), so the device making the change isn't logged out mid-request. Falls back to revoking everything if the caller has no refresh token on hand at all.
 - 2 new tests (revokes every other session while keeping the caller's own; revokes everything when there's no current refresh token to exclude). 487/487 backend tests passing, lint clean.
+
+---
+
+## Security Audit: docker-compose MongoDB No Longer Publicly Exposed
+
+- Third fix from the same full-codebase security appraisal (see the SSRF/NoSQL-injection/info-disclosure and session-revocation PRs for the others). `docker-compose.yml`'s `mongo` service published port 27017 with `"27017:27017"` - no host IP prefix, so Docker binds it to `0.0.0.0` by default. The container has no auth enabled (no `MONGO_INITDB_ROOT_USERNAME`/`_PASSWORD`), so on any host running this file with a public IP and no external firewall, the entire database was reachable and writable by anyone on the internet with no login at all.
+- Fixed by binding to loopback only (`"127.0.0.1:27017:27017"`) - the backend already reaches Mongo over the compose network (`mongodb://mongo:27017`) regardless of this mapping, which only exists so a local client (`mongosh`/Compass) can connect from the host machine. That local-dev convenience is preserved; remote reachability is closed.
+- No code/test changes - config-only. Verified with `docker compose config` that the resolved port mapping now carries `host_ip: 127.0.0.1`.
