@@ -32,6 +32,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Google Sign-In: Web Frontend](#google-sign-in-web-frontend)
 - [Google Sign-In: Mobile](#google-sign-in-mobile)
 - [Security Audit: Backend Fixes (SSRF, NoSQL Injection, Info Disclosure)](#security-audit-backend-fixes-ssrf-nosql-injection-info-disclosure)
+- [Security Audit: Session Revocation on Password Change](#security-audit-session-revocation-on-password-change)
 
 ---
 
@@ -353,3 +354,11 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Unauthenticated health endpoints leaking DB internals** (`backend/controllers/healthController.js`): `/api/health`, `/api/health/ready`, and `/api/health/database` have no auth middleware, always included the live Mongo hostname/db name, and returned the raw driver error message verbatim on failure - a separate response path that bypassed the central error handler's production redaction entirely. Fixed with a `redactDatabaseHealth` helper that strips `host`/`name`/`path`, and a generic `"Database is not reachable"` message in place of the raw exception (the real message still reaches the server log via `logError`).
 - **Unclassified 500s leaked raw exception messages in production** (`backend/middlewares/errorMiddleware.js`): only CastError/ValidationError/duplicate-key/Mongo-network errors got a rewritten, safe message - anything else (a library internal, a null-deref, an uncovered edge case) fell through with `err.message` unchanged. Fixed with a `messageIsSafe` flag (true whenever `err.statusCode` was explicitly set by application code, i.e. a deliberately-thrown `ApiError`, or one of the classified branches above fired) - only a message that isn't already known-safe gets replaced with a generic `"Internal server error"`, and only in production, so legitimate custom messages (e.g. `ApiError(503, "Google sign-in is not configured")`) are untouched.
 - 498/498 backend tests passing (10 new, across 4 new/updated test files), lint clean.
+
+---
+
+## Security Audit: Session Revocation on Password Change
+
+- Second fix from the same full-codebase security appraisal (see the SSRF/NoSQL-injection/info-disclosure PR for the first four). `PUT /api/auth/password` (`changePassword` in `backend/controllers/authController.js`) changed the password but never touched the `AuthSession` collection - the app already has a proper revocable refresh-token session model, used correctly on logout and account deletion, but this path missed it. An attacker holding a stolen refresh token (a leaked backup, a synced browser, a compromised device) kept full account access for up to `refreshTokenMaxAge` (30 days) even after the legitimate user changed their password specifically to lock them out.
+- Fixed with `AuthSession.updateMany({ user, revokedAt: null, tokenHash: { $ne: currentTokenHash } }, { revokedAt: new Date() })` right after the password save - revokes every other outstanding session while excluding the caller's own current one (identified the same way `refreshAccessToken`/`logoutUser` already look it up, via `getRefreshTokenFromRequest`), so the device making the change isn't logged out mid-request. Falls back to revoking everything if the caller has no refresh token on hand at all.
+- 2 new tests (revokes every other session while keeping the caller's own; revokes everything when there's no current refresh token to exclude). 487/487 backend tests passing, lint clean.

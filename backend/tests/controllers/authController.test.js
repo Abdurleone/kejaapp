@@ -335,6 +335,86 @@ describe("authController", () => {
     assert.equal(nextError.message, "Current password is incorrect");
   });
 
+  it("revokes every other session on password change, keeping the caller's own alive", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      password: "old-hash",
+      async matchPassword() {
+        return true;
+      },
+      async save() {},
+    };
+    mock.method(User, "findById", () => ({
+      select: async () => user,
+    }));
+
+    let updateFilter;
+    let updatePayload;
+    mock.method(AuthSession, "updateMany", async (filter, update) => {
+      updateFilter = filter;
+      updatePayload = update;
+      return { modifiedCount: 1 };
+    });
+
+    const req = {
+      body: {
+        currentPassword: "old-password",
+        newPassword: "new-password",
+        refreshToken: "current-refresh-token",
+      },
+      user: { _id: userId },
+    };
+    const res = createResponse();
+
+    await changePassword(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(user.password, "new-password");
+    assert.deepEqual(updateFilter, {
+      user: userId,
+      revokedAt: null,
+      tokenHash: { $ne: hashToken("current-refresh-token") },
+    });
+    assert.equal(updatePayload.revokedAt instanceof Date, true);
+  });
+
+  it("revokes every session on password change when the caller has no refresh token", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      password: "old-hash",
+      async matchPassword() {
+        return true;
+      },
+      async save() {},
+    };
+    mock.method(User, "findById", () => ({
+      select: async () => user,
+    }));
+
+    let updateFilter;
+    mock.method(AuthSession, "updateMany", async (filter) => {
+      updateFilter = filter;
+      return { modifiedCount: 1 };
+    });
+
+    const req = {
+      body: { currentPassword: "old-password", newPassword: "new-password" },
+      headers: {},
+      user: { _id: userId },
+    };
+    const res = createResponse();
+
+    await changePassword(req, res, (error) => {
+      throw error;
+    });
+
+    assert.deepEqual(updateFilter, { user: userId, revokedAt: null });
+  });
+
   it("registers a user with their chosen username", async () => {
     mock.method(User, "findOne", async () => null);
     let createdPayload;
