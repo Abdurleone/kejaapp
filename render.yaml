@@ -1,9 +1,17 @@
 services:
+  # A single service now: this image bundles the built frontend alongside
+  # the backend (backend/Dockerfile.render, app.js serves it when present),
+  # so the web app and its API are the same origin - no more relaying the
+  # CSRF token through response bodies to work around a cookie a different
+  # origin couldn't see (see CHANGELOG.md's "Consolidate Web + API onto One
+  # Render Origin" entry). A separate kejaapp-frontend static site used to
+  # exist here; it's retired, not just renamed - kejaapp-backend's own URL
+  # (whatever Render assigns it) is now the one public URL for everything.
   - type: web
     name: kejaapp-backend
     runtime: docker
-    dockerfilePath: backend/Dockerfile
-    dockerContext: backend
+    dockerfilePath: backend/Dockerfile.render
+    dockerContext: .
     plan: free
     healthCheckPath: /api/health/live
     envVars:
@@ -23,8 +31,22 @@ services:
         value: "1"
       - key: AUTH_COOKIE_SECURE
         value: "true"
+      # Same-site now that frontend and API share an origin - independent of
+      # AUTH_COOKIE_SECURE (still "true"; still HTTPS) on purpose, see
+      # env.js's authCookieSameSite comment. Leaving this unset anywhere else
+      # (docker-compose, Kubernetes) preserves those deployments' existing
+      # cross-origin "none" behavior exactly.
+      - key: AUTH_COOKIE_SAME_SITE
+        value: lax
+      # Still needed even though this is now same-origin: Vite's build emits
+      # `crossorigin` on the module <script>/<link rel=stylesheet> tags,
+      # which makes the browser send a real Origin header (CORS mode) for
+      # these same-origin requests too - confirmed live, a plain "no Origin
+      # header = same-origin, always allow" assumption isn't enough on its
+      # own. Self-referential now: this same host is both the page's origin
+      # and the API's.
       - key: CORS_ORIGIN
-        value: https://kejaapp-frontend.onrender.com
+        value: https://kejaapp-backend-7iu3.onrender.com
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: STORAGE_DRIVER
@@ -46,21 +68,15 @@ services:
           name: kejaapp-redis
           type: keyvalue
           property: connectionString
-
-  - type: web
-    name: kejaapp-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: NODE_VERSION
-        value: "22"
+      # Build-time only (backend/Dockerfile.render's frontend-build stage
+      # declares matching ARGs) - Vite bakes these into the JS bundle when
+      # `npm run build` runs, not read at container start. Self-referential
+      # now: this same host serves both the page and the API it calls.
       # "kejaapp-backend" was already taken by another Render user globally
       # (Render subdomains are unique across all accounts, not just yours),
       # so Render assigned this real deployment "kejaapp-backend-7iu3"
-      # instead. Update this if you ever recreate the backend service under
-      # a different assigned name.
+      # instead - update this if the service is ever recreated under a
+      # different assigned name.
       - key: VITE_API_BASE_URL
         value: https://kejaapp-backend-7iu3.onrender.com
       # Public by nature (baked into the built JS bundle either way), but
@@ -68,10 +84,6 @@ services:
       # once in Google Cloud Console and may not exist yet on a fresh clone.
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 
   - type: keyvalue
     name: kejaapp-redis
