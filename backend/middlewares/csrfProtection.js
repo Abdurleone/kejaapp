@@ -7,6 +7,17 @@ const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const refreshPath = "/api/auth/refresh";
 const csrfHeaderName = "x-csrf-token";
 
+// Login/register/Google-auth establish a session; they can't require proof
+// of one that doesn't exist yet. Blocking them here also created a real
+// lockout: a browser carrying any stale-but-unexpired auth/refresh cookie
+// (left over from a previous or desynced session) would fail this check
+// before the request ever reached the login handler, with no way to get a
+// fresh matching CSRF pair since the very endpoint that issues one was the
+// thing being blocked. These take their own credentials (password/Google ID
+// token) as proof instead - a cross-site forgery gains nothing an attacker
+// doesn't already have, unlike a forged mutation on an authenticated session.
+const authBootstrapPaths = new Set(["/api/auth/login", "/api/auth/register", "/api/auth/google"]);
+
 // authMiddleware's protect() accepts either an Authorization header or the
 // httpOnly session cookie, and that cookie is necessarily sameSite: "none"
 // in production (the frontend and backend are on different origins there) -
@@ -21,6 +32,10 @@ const csrfHeaderName = "x-csrf-token";
 //   on a request the real frontend made itself.
 const csrfProtection = (req, res, next) => {
   if (!unsafeMethods.has(req.method) || req.headers.authorization?.startsWith("Bearer ")) {
+    return next();
+  }
+
+  if (authBootstrapPaths.has(req.originalUrl?.split("?")[0])) {
     return next();
   }
 
