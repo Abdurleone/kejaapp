@@ -1,4 +1,4 @@
-import { apiFetch, buildQueryString, clearRequestCache, getCached, setCached } from "./client.js";
+import { apiFetch, buildQueryString, clearRequestCache, getCached, setCached, setCsrfToken } from "./client.js";
 
 const propertiesCacheTtlMs = 15000;
 const favoritesCacheTtlMs = 15000;
@@ -592,11 +592,13 @@ export const loginUser = async (credentials) => {
 export const logoutUser = async () => {
   await apiFetch("/api/auth/logout", { method: "POST" });
   clearRequestCache();
+  setCsrfToken("");
 };
 
 export const deleteCurrentAccount = async () => {
   const response = await apiFetch("/api/auth/me", { method: "DELETE" });
   clearRequestCache();
+  setCsrfToken("");
   return response;
 };
 

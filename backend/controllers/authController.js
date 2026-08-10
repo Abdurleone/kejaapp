@@ -69,10 +69,11 @@ const sendAuthResponse = async (req, res, statusCode, user) => {
   const userId = user._id.toString();
   const token = generateToken({ id: userId, role: user.role });
   const refreshToken = await createRefreshSession(req, user);
+  const csrfToken = generateOpaqueToken();
 
   res.cookie(env.authCookieName, token, getCookieOptions());
   res.cookie(env.refreshCookieName, refreshToken, getRefreshCookieOptions());
-  res.cookie(env.csrfCookieName, generateOpaqueToken(), getCsrfCookieOptions());
+  res.cookie(env.csrfCookieName, csrfToken, getCsrfCookieOptions());
 
   res.status(statusCode).json({
     user: {
@@ -88,6 +89,14 @@ const sendAuthResponse = async (req, res, statusCode, user) => {
     refreshToken,
     tokenType: "Bearer",
     expiresIn: env.jwtExpiresIn,
+    // Web reads this from the response body, not the cookie: the cookie is
+    // set by this (the backend's) origin, which is a DIFFERENT origin than
+    // the one the frontend page runs on in production, so document.cookie
+    // there can never see it - only this response body, which the frontend's
+    // own fetch call reads regardless of which origin answered it. Mobile
+    // ignores this field entirely (it authenticates via the Authorization
+    // header, which csrfProtection.js exempts from the CSRF check outright).
+    csrfToken,
   });
 };
 
@@ -268,6 +277,16 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  // App.jsx calls this once on mount to restore the session after a reload -
+  // the one place besides login/register/refresh a web client can relearn
+  // the CSRF value it needs to echo back on the next mutation, since a page
+  // reload resets client.js's in-memory copy to empty. Mobile authenticates
+  // via the Authorization header (never has this cookie at all, since
+  // csrfProtection.js exempts Bearer requests from CSRF entirely), so this
+  // is simply omitted for those requests rather than minted unnecessarily.
+  const cookies = parseCookies(req.headers.cookie);
+  const csrfToken = cookies[env.csrfCookieName];
+
   res.status(httpStatus.OK).json({
     user: {
       id: req.user._id.toString(),
@@ -278,6 +297,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
       roleConfirmed: req.user.roleConfirmed,
       phone: req.user.phone,
     },
+    ...(csrfToken ? { csrfToken } : {}),
   });
 });
 
