@@ -3,6 +3,7 @@ import AdminScreen from "../screens/admin/AdminScreen.js";
 import AdminUserDetailScreen from "../screens/admin/AdminUserDetailScreen.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText } from "../theme/typography.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,7 +15,7 @@ export default function AdminStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: "700" },
+        headerTitleStyle: { ...displayText, fontSize: 18 },
       }}
     >
       <Stack.Screen

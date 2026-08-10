@@ -167,6 +167,6 @@ describe("MoversScreen (mover dashboard)", () => {
     await waitFor(() => expect(getByText("Need help moving")).toBeTruthy());
 
     const card = getByText("Need help moving").parent;
-    expect(card.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ borderWidth: 2 })]));
+    expect(card.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ borderWidth: 2.5 })]));
   });
 });

@@ -21,7 +21,7 @@ export default function PropertyDetailSkeleton() {
       <Skeleton style={styles.line} />
       <Skeleton style={styles.lineShort} />
 
-      <View style={styles.section}>
+      <View style={[styles.section, colors.shadow]}>
         {Array.from({ length: 5 }, (_, index) => (
           <Skeleton key={index} style={styles.sectionRow} />
         ))}
@@ -50,7 +50,7 @@ const createStyles = (colors) =>
     image: {
       width: "100%",
       aspectRatio: 16 / 10,
-      borderRadius: 12,
+      borderRadius: colors.radius,
     },
     title: {
       height: 20,
@@ -67,7 +67,7 @@ const createStyles = (colors) =>
     metaItem: {
       height: 26,
       width: 72,
-      borderRadius: 8,
+      borderRadius: colors.radiusSm,
     },
     line: {
       height: 14,
@@ -78,9 +78,9 @@ const createStyles = (colors) =>
       width: "60%",
     },
     section: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidth,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 10,
       backgroundColor: colors.surface,
@@ -96,6 +96,6 @@ const createStyles = (colors) =>
     actionButton: {
       height: 46,
       width: "100%",
-      borderRadius: 8,
+      borderRadius: 999,
     },
   });

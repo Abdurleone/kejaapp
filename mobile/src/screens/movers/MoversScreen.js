@@ -14,6 +14,7 @@ import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { formatKes, formatStatusLabel, homeSizeOptions } from "../../utils/format.js";
 import MessageView from "../../components/MessageView.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 const listingManagerRoles = ["landlord", "agency"];
 
@@ -619,28 +620,29 @@ const createStyles = (colors) =>
       paddingTop: 12,
     },
     filterChip: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 12,
       paddingVertical: 8,
     },
     filterChipActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     filterChipText: {
+      ...boldText,
       fontSize: 12,
-      fontWeight: "700",
       color: colors.ink,
     },
     filterChipTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 14,
@@ -657,33 +659,35 @@ const createStyles = (colors) =>
       gap: 6,
     },
     label: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.muted,
     },
     card: {
+      ...colors.shadowSm,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 8,
     },
     cardHighlighted: {
-      borderColor: colors.greenDark,
-      borderWidth: 2,
+      borderColor: colors.green,
+      borderWidth: colors.strokeWidth,
     },
     panel: {
+      ...colors.shadow,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidth,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 10,
     },
     panelTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "800",
       color: colors.ink,
     },
     cardHeaderRow: {
@@ -693,16 +697,18 @@ const createStyles = (colors) =>
       gap: 8,
     },
     cardTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "700",
       color: colors.ink,
       flexShrink: 1,
     },
     cardSubtitle: {
+      ...bodyText,
       fontSize: 13,
       color: colors.muted,
     },
     cardMessage: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },
@@ -712,11 +718,12 @@ const createStyles = (colors) =>
       gap: 8,
     },
     costValue: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "800",
-      color: colors.accentText,
+      color: colors.green,
     },
     costLabel: {
+      ...bodyText,
       fontSize: 12,
       color: colors.muted,
     },
@@ -727,36 +734,37 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     badgeText: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     error: {
+      ...bodyText,
       color: colors.red,
       fontSize: 13,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 12,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
       fontSize: 13,
     },
     secondaryButton: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: 999,
       paddingVertical: 12,
       alignItems: "center",
       backgroundColor: colors.surface,
     },
     secondaryButtonText: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
       fontSize: 13,
     },
     actionsRow: {

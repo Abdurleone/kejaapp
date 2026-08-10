@@ -12,6 +12,7 @@ import {
 import GoogleSignInButton from "../../components/GoogleSignInButton.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 // Mirrors the backend's registerUserSchema (backend/validators/authValidators.js)
 // so obviously-invalid input is caught here instead of round-tripping to the
@@ -217,11 +218,12 @@ const createStyles = (colors) =>
     justifyContent: "center",
   },
   title: {
+    ...boldText,
     fontSize: 26,
-    fontWeight: "800",
     color: colors.ink,
   },
   subtitle: {
+    ...bodyText,
     fontSize: 14,
     color: colors.muted,
     marginBottom: 8,
@@ -230,14 +232,15 @@ const createStyles = (colors) =>
     gap: 6,
   },
   label: {
+    ...boldText,
     fontSize: 13,
-    fontWeight: "700",
     color: colors.muted,
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
+    ...bodyText,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: colors.radiusSm,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
@@ -249,43 +252,44 @@ const createStyles = (colors) =>
     gap: 8,
   },
   roleChip: {
-    borderWidth: 1,
-    borderColor: colors.line,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
   roleChipActive: {
-    backgroundColor: colors.greenDark,
-    borderColor: colors.greenDark,
+    backgroundColor: colors.green,
+    borderColor: colors.green,
   },
   roleChipText: {
+    ...boldText,
     color: colors.ink,
-    fontWeight: "700",
     fontSize: 13,
   },
   roleChipTextActive: {
-    color: colors.white,
+    color: colors.onAccent,
   },
   error: {
+    ...bodyText,
     color: colors.red,
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: colors.greenDark,
-    borderRadius: 8,
+    backgroundColor: colors.green,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 4,
   },
   primaryButtonText: {
-    color: colors.white,
-    fontWeight: "800",
+    ...boldText,
+    color: colors.onAccent,
     fontSize: 15,
   },
   link: {
-    color: colors.accentText,
-    fontWeight: "700",
+    ...boldText,
+    color: colors.green,
     textAlign: "center",
     marginTop: 8,
   },

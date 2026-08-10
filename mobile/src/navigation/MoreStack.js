@@ -3,6 +3,7 @@ import MoreScreen from "../screens/more/MoreScreen.js";
 import { screens } from "./tabScreens.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText } from "../theme/typography.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,7 +20,7 @@ export default function MoreStack({ hiddenTabs, unreadCount, onOpenNotifications
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: "700" },
+        headerTitleStyle: { ...displayText, fontSize: 18 },
       }}
     >
       <Stack.Screen name="MoreMenu" options={{ title: "More", headerRight: () => <ColorModeToggle /> }}>

@@ -6,6 +6,7 @@ import ViewingRequestFormScreen from "../screens/discover/ViewingRequestFormScre
 import MoverRequestFormScreen from "../screens/discover/MoverRequestFormScreen.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText } from "../theme/typography.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +18,7 @@ export default function DiscoverStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: "700" },
+        headerTitleStyle: { ...displayText, fontSize: 18 },
       }}
     >
       <Stack.Screen

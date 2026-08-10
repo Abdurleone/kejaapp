@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext.js";
 import { FeedbackCardSkeletonList } from "../../components/FeedbackCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 // Only wired up for the actionable recipient of a request - the mover
 // opening a mover_request notification, or the property owner opening a
@@ -259,39 +260,41 @@ const createStyles = (colors) =>
       paddingBottom: 0,
     },
     filterButton: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingVertical: 8,
       paddingHorizontal: 16,
       backgroundColor: colors.surface,
     },
     filterButtonActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     filterButtonText: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.ink,
     },
     filterButtonTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     list: {
       padding: 16,
     },
     emptyText: {
+      ...bodyText,
       fontSize: 14,
       color: colors.muted,
       textAlign: "center",
       marginTop: 24,
     },
     card: {
+      ...colors.shadowSm,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 6,
       marginBottom: 12,
@@ -303,12 +306,13 @@ const createStyles = (colors) =>
       gap: 8,
     },
     cardTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "700",
       color: colors.ink,
       flexShrink: 1,
     },
     cardMessage: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },
@@ -323,13 +327,14 @@ const createStyles = (colors) =>
       gap: 16,
     },
     timestamp: {
+      ...bodyText,
       fontSize: 12,
       color: colors.muted,
     },
     markReadText: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     badge: {
       backgroundColor: colors.surfaceSoft,
@@ -338,8 +343,8 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     badgeText: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
   });

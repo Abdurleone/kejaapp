@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { fetchPublicTestimonials } from "../../api/index.js";
 import { formatStatusLabel } from "../../utils/format.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { displayText } from "../../theme/typography.js";
 
 const proofPoints = ["Trusted listings", "Quick inquiries", "Secure dashboard"];
 
@@ -53,7 +54,7 @@ export default function LandingView() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.page}>
       <LinearGradient
-        colors={[colors.greenDark, "#0d2318", "#060b08"]}
+        colors={[colors.green, "#0d2318", "#060b08"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
@@ -126,7 +127,7 @@ const createStyles = (colors, windowHeight) =>
   StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.greenDark,
+    backgroundColor: colors.green,
   },
   page: {
     position: "relative",
@@ -155,9 +156,9 @@ const createStyles = (colors, windowHeight) =>
     opacity: 0.22,
   },
   headline: {
+    ...displayText,
     fontSize: 32,
-    fontWeight: "800",
-    color: colors.white,
+    color: colors.onAccent,
     lineHeight: 38,
   },
   subtext: {
@@ -181,7 +182,7 @@ const createStyles = (colors, windowHeight) =>
   proofPillText: {
     fontSize: 12,
     fontWeight: "800",
-    color: colors.white,
+    color: colors.onAccent,
   },
   cta: {
     alignSelf: "flex-start",
@@ -216,7 +217,7 @@ const createStyles = (colors, windowHeight) =>
   showcaseTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: colors.white,
+    color: colors.onAccent,
   },
   showcaseBody: {
     fontSize: 13,
@@ -227,9 +228,9 @@ const createStyles = (colors, windowHeight) =>
     gap: 14,
   },
   testimonialsTitle: {
+    ...displayText,
     fontSize: 17,
-    fontWeight: "800",
-    color: colors.white,
+    color: colors.onAccent,
   },
   testimonialCard: {
     padding: 14,

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { confirmRole } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText, displayText } from "../../theme/typography.js";
 
 const roles = [
   { value: "tenant", label: "Tenant - I'm looking for a place to rent" },
@@ -78,11 +79,12 @@ const createStyles = (colors) =>
       justifyContent: "center",
     },
     title: {
+      ...displayText,
       fontSize: 24,
-      fontWeight: "800",
       color: colors.ink,
     },
     subtitle: {
+      ...bodyText,
       fontSize: 14,
       color: colors.muted,
     },
@@ -90,38 +92,39 @@ const createStyles = (colors) =>
       gap: 10,
     },
     roleOption: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 14,
       paddingVertical: 12,
       backgroundColor: colors.surface,
     },
     roleOptionActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     roleOptionText: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
       fontSize: 14,
     },
     roleOptionTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     error: {
+      ...bodyText,
       color: colors.red,
       fontSize: 13,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 14,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
       fontSize: 15,
     },
   });

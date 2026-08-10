@@ -15,6 +15,7 @@ import GoogleSignInButton from "../../components/GoogleSignInButton.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText, displayText } from "../../theme/typography.js";
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -59,7 +60,7 @@ export default function LoginScreen({ navigation }) {
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <LinearGradient
-          colors={[colors.greenDark, "#0d2318", "#060b08"]}
+          colors={[colors.green, "#0d2318", "#060b08"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.hero}
@@ -166,18 +167,18 @@ const createStyles = (colors) =>
       opacity: 0.14,
     },
     brand: {
+      ...displayText,
       fontSize: 13,
-      fontWeight: "800",
       color: "rgba(255, 255, 255, 0.8)",
-      textTransform: "uppercase",
       letterSpacing: 1,
     },
     heroTitle: {
+      ...displayText,
       fontSize: 28,
-      fontWeight: "800",
-      color: colors.white,
+      color: colors.onAccent,
     },
     heroSubtitle: {
+      ...bodyText,
       fontSize: 14,
       color: "rgba(255, 255, 255, 0.86)",
     },
@@ -189,14 +190,15 @@ const createStyles = (colors) =>
       gap: 6,
     },
     label: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.muted,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 15,
@@ -204,24 +206,25 @@ const createStyles = (colors) =>
       color: colors.ink,
     },
     error: {
+      ...bodyText,
       color: colors.red,
       fontSize: 13,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 14,
       alignItems: "center",
       marginTop: 4,
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
       fontSize: 15,
     },
     link: {
-      color: colors.accentText,
-      fontWeight: "700",
+      ...boldText,
+      color: colors.green,
       textAlign: "center",
       marginTop: 8,
     },
@@ -229,19 +232,20 @@ const createStyles = (colors) =>
       marginTop: 24,
     },
     settingsToggleText: {
+      ...bodyText,
       color: colors.muted,
       fontSize: 12,
       textAlign: "center",
     },
     secondaryButton: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: 999,
       paddingVertical: 10,
       alignItems: "center",
     },
     secondaryButtonText: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
     },
   });
