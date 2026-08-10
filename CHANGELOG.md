@@ -43,6 +43,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Consolidate Web + API onto One Render Origin](#consolidate-web--api-onto-one-render-origin)
 - [Matatu Poster Ported to Mobile; Cross-Platform Color Drift Reconciled](#matatu-poster-ported-to-mobile-cross-platform-color-drift-reconciled)
 - [Fix: Consolidated Deployment's CSP Blocked Every Property Image](#fix-consolidated-deployments-csp-blocked-every-property-image)
+- [Security Hardening: Widen .dockerignore's Secret-File Coverage](#security-hardening-widen-dockerignores-secret-file-coverage)
 
 ---
 
@@ -473,3 +474,10 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Fix**: widened `img-src` to `'self' data: https:` in `backend/app.js`'s bundled-frontend CSP block — the same broad-`https:` pattern Helmet's own defaults already use for `font-src`/`style-src` in that exact directive set, rather than enumerating specific image hosts (the S3-compatible endpoint is configurable, not fixed).
 - **Why this wasn't caught by the test suite**: the `hasBundledFrontend` branch (and its CSP) has zero automated coverage — it depends on a real `public/` directory existing relative to `process.cwd()` at module load, which only exists inside the Render Docker image, never in the Jest/`node:test` environment. Adding a directory-based test for this turned out to be actively unsafe: `node --test` runs files concurrently, and any test creating a real `backend/public/` directory races every other concurrently-running test file's own `hasBundledFrontend` check against the same shared filesystem path. Left uncovered by design, same as the rest of this branch — verified instead the same way the consolidation PR itself was verified: a real `backend/Dockerfile.render` build, run locally with a live Mongo container, CSP header inspected directly and a real `https://images.unsplash.com` image confirmed to load in an actual page context with zero CSP console errors.
 - Full backend suite (508 tests) and lint pass, unaffected either way since the fixed branch isn't exercised by them.
+
+## Security Hardening: Widen .dockerignore's Secret-File Coverage
+
+- **Found during a post-merge security review of the Render consolidation** (widening `dockerContext` to the repo root to reach `frontend/` alongside `backend/`): the accompanying root `.dockerignore` only excluded `**/.env`, `**/.env.local`, and `**/.env.*.local` — missing any other `.env.<name>` file that doesn't end in `.local`, e.g. the repo's own untracked `.env.notion` (holds a live Notion token).
+- **Not currently exploitable, but worth closing anyway**: Render's actual build clones a fresh git checkout, where an untracked, gitignored file like `.env.notion` never exists at all, and no `COPY` instruction in `backend/Dockerfile.render` touches root-level loose files (only the `backend/` and `frontend/` subdirectories) — so nothing copies it into an image layer today. The exposure was narrow (only a manual, local `docker build .` run from a working tree with such a file present would include it in the build context sent to the Docker daemon), but a future edit adding a broader `COPY` could change that without anyone noticing the `.dockerignore` gap.
+- **Fix**: broadened the three specific patterns to one general `**/.env*`, so any current or future dotenv-style secret file is excluded by default regardless of naming, rather than enumerating suffixes. Nothing in `Dockerfile.render`'s `COPY` steps reads any `.env*` file (including `.env.example` ones), so no re-include was needed.
+- Verified: rebuilt `backend/Dockerfile.render` locally and confirmed it still builds cleanly; `find / -iname '.env*'` inside the resulting container image returns nothing.
