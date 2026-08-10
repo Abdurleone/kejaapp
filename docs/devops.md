@@ -15,8 +15,9 @@ Once unblocked, it runs the following jobs:
 
 ## Containers
 
-- `backend/Dockerfile` — Node 22 Alpine, production dependencies only, non-root working dir, `HEALTHCHECK` against `GET /api/health/live`.
-- `frontend/Dockerfile` — multi-stage: Node 22 Alpine builds the Vite bundle, then Nginx Alpine serves the static output. `frontend/nginx.conf` handles SPA routing (`try_files ... /index.html`) and long-cache headers for hashed `/assets/`.
+- `backend/Dockerfile` — Node 22 Alpine, production dependencies only, non-root working dir, `HEALTHCHECK` against `GET /api/health/live`. Used by `docker compose`, the CI `docker`/`k8s-smoke-test`/`publish` jobs, and Kubernetes — every two-origin path.
+- `frontend/Dockerfile` — multi-stage: Node 22 Alpine builds the Vite bundle, then Nginx Alpine serves the static output. `frontend/nginx.conf` handles SPA routing (`try_files ... /index.html`) and long-cache headers for hashed `/assets/`. Same audience as above.
+- `backend/Dockerfile.render` — Render-only, bundles the built frontend into the backend image (see "Deployment (Render)" below for why); not used by anything else.
 - `docker-compose.yml` (repo root) — wires `mongo`, `redis`, `clamav`, `backend`, and `frontend` together for a full local stack: `backend` talks to `mongo`/`redis`/`clamav` by service name, `frontend` is built with `VITE_API_BASE_URL` pointing at the host-exposed backend port. `clamav` (`clamav/clamav:stable`) provides malware scanning on property-image uploads (`backend/services/malwareScanService.js`) — it isn't exposed to the host, only reachable from `backend` on the compose network, and its signature database persists in the `clamav-data` volume so it isn't re-downloaded on every `docker compose up`.
 
 Run the full stack:
@@ -42,11 +43,18 @@ Already implemented in `backend/routes/healthRoutes.js` / `backend/controllers/h
 
 ## Deployment (Render) — production
 
-This is the actual live deployed instance: `kejaapp-frontend.onrender.com` / `kejaapp-backend-7iu3.onrender.com`, both confirmed working end-to-end. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
+This is the actual live deployed instance: `kejaapp-backend-7iu3.onrender.com` — the one URL for both the web app and its API. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
 
-- **kejaapp-backend** — web service, built from `backend/Dockerfile`. Render injects `PORT` itself; `backend/config/env.js` already reads `process.env.PORT`, so no code change was needed.
-- **kejaapp-frontend** — static site, built with `npm ci && npm run build` in `frontend/`, publishing `frontend/dist`. A catch-all rewrite (`/* -> /index.html`) handles SPA routing (Render static sites don't use `frontend/nginx.conf`/`frontend/Dockerfile` — those stay in use for `docker compose` and the CI `docker` job).
+- **kejaapp-backend** — a single web service built from `backend/Dockerfile.render` (**not** the plain `backend/Dockerfile` — see below), with `dockerContext: .` (the repo root, not `backend/`, since this build needs to reach into `frontend/` too). Render injects `PORT` itself; `backend/config/env.js` already reads `process.env.PORT`, so no code change was needed.
 - **kejaapp-redis** — Render's managed Key Value (Redis-compatible) service, wired into the backend via `REDIS_URL`.
+
+There used to be a separate **kejaapp-frontend** static site here. It was retired, not renamed: `backend/Dockerfile.render` is a three-stage build (see the file itself) that builds the frontend in its own stage and copies the output into the final image as `./public`; `backend/app.js` serves it directly (`express.static` + an SPA fallback route) whenever that directory is present, and falls back to today's plain JSON status message when it isn't (local dev, `docker compose`, and the Kubernetes path below never have it, so they're unaffected). This makes the web app and its API genuinely same-origin, closing out the reason the CSRF token used to need relaying through response bodies instead of a plain cookie (see `CHANGELOG.md`'s "Consolidate Web + API onto One Render Origin" entry) — `docker compose` and Kubernetes are still two-origin setups on purpose and keep using the original `backend/Dockerfile`/`frontend/Dockerfile` unchanged.
+
+Three things this consolidation actually needed, beyond just bundling the files together (all found by testing the built image locally before trusting it in production — worth doing again if this ever gets re-architected):
+
+- **`VITE_API_BASE_URL`/`VITE_GOOGLE_CLIENT_ID` are Docker build args, not just runtime env vars** — Vite bakes them into the JS bundle at `npm run build` time. `backend/Dockerfile.render`'s frontend-build stage declares matching `ARG`s; Render passes a Docker-runtime service's `envVars` through as build args too, which is what makes this work without extra Blueprint config.
+- **`CORS_ORIGIN` is still required, even though everything's same-origin now** — Vite's build emits `crossorigin` on the module `<script>`/stylesheet `<link>` tags, which makes the browser send a real `Origin` header (CORS mode) for these requests despite being same-origin. `render.yaml` points it at the service's own URL.
+- **Helmet's default Content-Security-Policy blocks the Google Identity Services script** (`frontend/index.html`'s `<script src="https://accounts.google.com/gsi/client">`) — the frontend never had a CSP before (it was a header-less static site). `app.js` only applies a loosened CSP (adding `accounts.google.com` to `script-src`/`connect-src`/`frame-src`) when it detects it's actually serving the bundled frontend, so nothing else is affected.
 
 No ClamAV service is defined here — it's the one piece of the stack (docker-compose/Kubernetes) that isn't free to run (its signature database needs roughly 1-2GB of RAM, well past the free plan's 512MB), so this Blueprint deliberately leaves `CLAMAV_HOST` unset and lets `malwareScanService.js`'s existing "empty = disabled" convention silently skip scanning on this path. Add a `pserv` service running `clamav/clamav:stable` on a paid plan, wired via `CLAMAV_HOST`/`CLAMAV_PORT`, if you want scanning back.
 
@@ -54,10 +62,10 @@ MongoDB is **not** provisioned by the blueprint — Render has no managed MongoD
 
 ### First-time setup
 
-1. In the Render dashboard: **New > Blueprint**, point it at this repo. Render reads `render.yaml` and creates all three services.
+1. In the Render dashboard: **New > Blueprint**, point it at this repo. Render reads `render.yaml` and creates both services.
 2. Set the one secret the blueprint deliberately leaves blank: `MONGODB_URI` on **kejaapp-backend** (Atlas connection string, including credentials). `JWT_SECRET` is auto-generated by Render; everything else has a value in `render.yaml`.
 3. Create an object storage bucket for property images (see "Object storage" below) and set the five `sync: false` secrets on **kejaapp-backend**: `S3_BUCKET`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`.
-4. Deploy. Once both web services are up, confirm the frontend can reach the backend (check the browser console/network tab for CORS or 404s) — the URLs baked into `render.yaml` (`CORS_ORIGIN`, `VITE_API_BASE_URL`) assume the default service names `kejaapp-backend`/`kejaapp-frontend`. If Render assigns different subdomains (name already taken, custom domain, etc.), update those values to match and redeploy.
+4. Deploy. Once the service is up, confirm both the page and its API work from the same URL (check the browser console/network tab for CORS or CSP errors) — `CORS_ORIGIN`/`VITE_API_BASE_URL` in `render.yaml` assume the default service name `kejaapp-backend`. If Render assigns a different subdomain (name already taken, custom domain, etc.), update both to match and redeploy.
 
 ### Object storage
 
@@ -81,7 +89,7 @@ Note: `removePropertyImage` now deletes the underlying object (or local file) wh
 
 ### Known limitations of this setup
 
-- **Free plan**: both web services spin down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period. This Blueprint (backend + frontend + Redis) is fully free as configured — malware scanning is the one feature deliberately left off this path (see above) rather than a hidden cost.
+- **Free plan**: the web service spins down after 15 minutes idle (cold start on the next request). With the `s3` driver this no longer affects uploaded images (see above), only request latency after an idle period. This Blueprint (backend+frontend + Redis) is fully free as configured — malware scanning is the one feature deliberately left off this path (see above) rather than a hidden cost.
 - Single backend instance — no horizontal scaling. The existing Redis-backed rate limiting (`backend/config/env.js`'s `redisUrl`) already supports multiple instances if you do scale up.
 - Render auto-deploys on push to the connected branch by default; there's no GitHub Actions deploy step to maintain, but it also means a red CI run on `main` doesn't block Render from deploying. If that's undesirable, disable auto-deploy in the Render dashboard and trigger deploys manually instead.
 

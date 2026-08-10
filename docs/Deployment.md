@@ -37,11 +37,12 @@ Frontend at `http://localhost:8080`, backend at `http://localhost:5000`. Single 
 
 ## Deployment: Render — production
 
-This is the actual live deployed instance: `kejaapp-frontend.onrender.com` / `kejaapp-backend-7iu3.onrender.com`, both confirmed working end-to-end. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
+This is the actual live deployed instance: a single URL, `kejaapp-backend-7iu3.onrender.com`, serving both the web app and its API. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
 
-- **kejaapp-backend** — web service, built from `backend/Dockerfile`.
-- **kejaapp-frontend** — static site (`npm ci && npm run build`, publishes `frontend/dist`), with a catch-all SPA rewrite.
+- **kejaapp-backend** — one web service, built from `backend/Dockerfile.render` (**not** the plain `backend/Dockerfile`), with `dockerContext: .` (repo root, not `backend/`).
 - **kejaapp-redis** — Render's managed Redis-compatible Key Value service.
+
+There used to be a separate **kejaapp-frontend** static site; it's retired, not renamed. `backend/Dockerfile.render` builds the frontend in its own stage and copies the output into the image as `./public`; `backend/app.js` serves it (static files + an SPA fallback route) whenever that directory exists, falling back to today's plain JSON message otherwise — so local dev / `docker compose` / Kubernetes (none of which ever have that directory) are unaffected. This makes the web app and its API genuinely same-origin — see `docs/devops.md` for the three non-obvious things that took to make that actually work (build-time env vars need to be Docker build args, `CORS_ORIGIN` is still required despite being same-origin, and Helmet's CSP needs a scoped exception for the Google Identity Services script).
 
 MongoDB is **not** provisioned — bring your own Atlas (or other) connection string.
 
@@ -49,9 +50,9 @@ MongoDB is **not** provisioned — bring your own Atlas (or other) connection st
 1. Render dashboard → **New > Blueprint**, point at this repo.
 2. Set `MONGODB_URI` on **kejaapp-backend** (the one secret the blueprint leaves blank). `JWT_SECRET` is auto-generated.
 3. Create an object storage bucket (see below) and set the five `sync: false` secrets: `S3_BUCKET`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`.
-4. Deploy. If Render assigns different subdomains than the defaults baked into `render.yaml` (`CORS_ORIGIN`, `VITE_API_BASE_URL`), update those and redeploy.
+4. Deploy. If Render assigns a different subdomain than the default baked into `render.yaml` (`CORS_ORIGIN`, `VITE_API_BASE_URL`), update both and redeploy.
 
-**Known limitations:** both services spin down after 15 min idle on the free plan (cold start on next request, though uploaded images aren't affected if using the `s3` driver); single backend instance (no horizontal scaling, though Redis-backed rate limiting already supports it if you scale up); auto-deploys on push with no CI gate (a red `main` doesn't block a Render deploy unless you disable auto-deploy). This Blueprint (backend + frontend + Redis) is entirely on free plans — malware scanning (ClamAV) is deliberately left off this path since it needs more RAM than the free plan allows; uploads just skip scanning rather than erroring (see `docs/devops.md` for adding it back on a paid plan).
+**Known limitations:** the service spins down after 15 min idle on the free plan (cold start on next request, though uploaded images aren't affected if using the `s3` driver); single backend instance (no horizontal scaling, though Redis-backed rate limiting already supports it if you scale up); auto-deploys on push with no CI gate (a red `main` doesn't block a Render deploy unless you disable auto-deploy). This Blueprint (backend+frontend + Redis) is entirely on free plans — malware scanning (ClamAV) is deliberately left off this path since it needs more RAM than the free plan allows; uploads just skip scanning rather than erroring (see `docs/devops.md` for adding it back on a paid plan).
 
 ## Object storage
 
@@ -80,7 +81,7 @@ AWS S3, Backblaze B2, and MinIO work the same way (MinIO/path-style-only provide
 | `backend-cronjob.yaml` | CronJob running the scheduled notification sweeps (`node scripts/runScheduledJobs.js`) every 15 minutes, reusing the same image/ConfigMap/Secret |
 | `ingress.yaml` | routes two hosts to the two Services — needs `ingress-nginx` |
 
-**Why two Ingress hosts instead of path-based routing:** the frontend reads `VITE_API_BASE_URL` at **build time** (baked into the static JS bundle by Vite), not at container start. Rather than rewrite the frontend to use a relative URL, `ingress.yaml` keeps two domains (`kejaapp.example.com` / `api.kejaapp.example.com`), matching the Render setup. The CI `publish` job's frontend image is baked for that exact placeholder API domain — using it as-is works out of the box; for your own domain, rebuild:
+**Why two Ingress hosts instead of path-based routing:** the frontend reads `VITE_API_BASE_URL` at **build time** (baked into the static JS bundle by Vite), not at container start. Rather than rewrite the frontend to use a relative URL, `ingress.yaml` keeps two domains (`kejaapp.example.com` / `api.kejaapp.example.com`) — this is now a deliberate difference from Render (which consolidated onto one origin, see above), not a mirror of it; Kubernetes stays a genuinely two-origin deployment on purpose. The CI `publish` job's frontend image is baked for that exact placeholder API domain — using it as-is works out of the box; for your own domain, rebuild:
 
 ```bash
 docker build --build-arg VITE_API_BASE_URL=https://api.<your-domain> -t ghcr.io/<owner>/kejaapp-frontend:latest ./frontend

@@ -50,6 +50,11 @@ describe("env config", () => {
     assert.equal(env.storageDriver, "local");
   });
 
+  it("derives a same-site cookie policy from authCookieSecure by default, preserving the split-origin deployments' behavior", () => {
+    assert.equal(env.authCookieSecure, false);
+    assert.equal(env.authCookieSameSite, "lax");
+  });
+
   it("uses default scheduled-job thresholds", () => {
     assert.equal(env.staleNudgeThresholdMs, 48 * 60 * 60 * 1000);
     assert.equal(env.viewingReminderWindowMs, 24 * 60 * 60 * 1000);
