@@ -4,9 +4,12 @@
 # the backend image). docker-compose.yml's backend/frontend services keep
 # their own per-directory build contexts and .dockerignore files unchanged.
 **/node_modules
-**/.env
-**/.env.local
-**/.env.*.local
+# Broad on purpose - catches any current or future dotenv-style secret file
+# regardless of naming (the previous **/.env / **/.env.local / **/.env.*.local
+# trio missed e.g. root .env.notion, which doesn't end in .local). Nothing in
+# Dockerfile.render's COPY steps needs any .env* file, including .example
+# ones, so no re-include is needed.
+**/.env*
 mobile
 frontend/dist
 frontend/tests
