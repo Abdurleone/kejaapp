@@ -1,27 +1,25 @@
 # What's Live
 
-A snapshot of what's actually deployed and working right now, separate from [CHANGELOG.md](../CHANGELOG.md) (full history) and [Roadmap.md](Roadmap.md) (shipped/next at a feature level). This page answers one question: **if someone opens the app right now, what do they get, and what's still missing?** Last updated 2026-08-06.
+A snapshot of what's actually deployed and working right now, separate from [CHANGELOG.md](../CHANGELOG.md) (full history) and [Roadmap.md](Roadmap.md) (shipped/next at a feature level). This page answers one question: **if someone opens the app right now, what do they get, and what's still missing?** Last updated 2026-08-10.
 
-## Live URLs
+## Live URL
 
-- Frontend: `https://kejaapp-frontend.onrender.com`
-- Backend: `https://kejaapp-backend-7iu3.onrender.com` (the `-7iu3` suffix is real and permanent — the unsuffixed name was already taken by another Render account)
-- Still on Render's default `*.onrender.com` subdomains — no custom domain is wired up yet.
+- `https://kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API now (the `-7iu3` suffix is real and permanent — the unsuffixed name was already taken by another Render account). There used to be a separate `kejaapp-frontend.onrender.com` static site; it's retired, not renamed — see CHANGELOG.md's "Consolidate Web + API onto One Render Origin" entry for why (closing out a cross-origin CSRF cookie problem at the source).
+- Still on Render's default `*.onrender.com` subdomain — no custom domain is wired up yet.
 
 ## Infrastructure
 
 | Piece | Status |
 |---|---|
-| Backend (Render web service, Docker) | Live, free plan |
-| Frontend (Render static site) | Live, free plan |
+| Backend + frontend (one Render web service, Docker, built from `backend/Dockerfile.render`) | Live, free plan |
 | Redis (Render managed Key Value) | Live, free plan — rate limiting/caching |
 | MongoDB | Atlas cluster (external to Render, not on a free Render product) |
 | Object storage (property images) | Backblaze B2, S3-compatible, free tier |
 | Malware scanning (ClamAV) | **Not deployed** — needs more RAM than the free plan allows; uploads skip scanning rather than erroring (`STORAGE_DRIVER`'s "empty = disabled" convention) |
 | CI (GitHub Actions) | Enabled, but every job fails immediately — an account-level GitHub billing lock, not a code issue. No automated CI actually runs right now. |
-| Kubernetes (`k8s/`) | Reference/alternative path only — not deployed anywhere, kept honest by CI's `k8s-smoke-test` job whenever CI runs |
+| Kubernetes (`k8s/`) | Reference/alternative path only — not deployed anywhere, kept honest by CI's `k8s-smoke-test` job whenever CI runs. Still genuinely two-origin (frontend/backend as separate Services) — the Render consolidation above doesn't apply here. |
 
-Known free-tier tradeoffs: both web services spin down after 15 minutes idle (cold start on the next request); single backend instance (no horizontal scaling).
+Known free-tier tradeoffs: the web service spins down after 15 minutes idle (cold start on the next request); single backend instance (no horizontal scaling).
 
 ## Authentication
 
@@ -40,6 +38,7 @@ System/Light/Dark on both web and mobile — System (OS-preference-following, li
 
 ## What's pending
 
+- **Confirm the Render consolidation live**: verified locally (Docker build + a real browser against the built image — login, a real mutation, direct navigation to a client route, all working), but not yet confirmed against the actual Render deploy. Sign in, save a listing, and refresh on a deep link (e.g. `/discover`) once this ships.
 - **Mobile Google Sign-In**: register iOS (`com.kejaapp.mobile`, no cert needed) and Android (`com.kejaapp.mobile` + SHA-1 from `eas credentials`) OAuth client IDs in Google Cloud Console, then set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Needs the account owner's own EAS login first.
 - **CI billing lock**: GitHub Actions is enabled but every job fails with "your account is locked due to a billing issue" — needs clearing at [github.com/settings/billing](https://github.com/settings/billing).
 - **Custom domain**: still on default `*.onrender.com` subdomains.

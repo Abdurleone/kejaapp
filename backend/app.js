@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "node:fs";
 import path from "node:path";
 import cors from "cors";
 import helmet from "helmet";
@@ -30,8 +31,36 @@ import viewingRoutes from "./routes/viewingRoutes.js";
 
 const app = express();
 
+// Populated only by the Render-specific consolidated build
+// (backend/Dockerfile.render copies the frontend's built dist/ here as
+// ./public) - local dev, docker-compose, and Kubernetes never have this
+// directory, so every route/config below that checks it no-ops back to
+// today's behavior for them.
+const publicDir = path.resolve("public");
+const hasBundledFrontend = fs.existsSync(publicDir);
+
 app.set("trust proxy", env.trustProxy);
-app.use(helmet());
+app.use(
+  helmet(
+    hasBundledFrontend
+      ? {
+          // Only when this backend is actually serving the frontend's HTML
+          // (see hasBundledFrontend above) - helmet's default CSP would
+          // otherwise block frontend/index.html's static Google Identity
+          // Services <script> tag outright, something the frontend's
+          // previous life as a separate, header-less static site never hit.
+          contentSecurityPolicy: {
+            directives: {
+              ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+              "script-src": ["'self'", "https://accounts.google.com"],
+              "connect-src": ["'self'", "https://accounts.google.com"],
+              "frame-src": ["https://accounts.google.com"],
+            },
+          },
+        }
+      : undefined
+  )
+);
 app.use(cors(corsOptions));
 // Property image uploads are base64-encoded JSON (~4/3 size inflation over the
 // raw file), so the body limit has to clear env.maxUploadBytes with room to
@@ -47,6 +76,10 @@ app.use(
     immutable: true,
   })
 );
+
+if (hasBundledFrontend) {
+  app.use(express.static(publicDir));
+}
 
 // Morgan's built-in :date token always renders UTC (clf format hardcodes
 // "+0000"); override it so access logs read in Nairobi time like the rest
@@ -66,6 +99,10 @@ app.use("/api", createRateLimiter({
 app.use("/api", csrfProtection);
 
 app.get("/", (req, res) => {
+  if (hasBundledFrontend) {
+    return res.sendFile(path.join(publicDir, "index.html"));
+  }
+
   res.json({
     message: "KejaApp API is running...",
     environment: env.nodeEnv,
@@ -94,6 +131,18 @@ app.use("/api/push-subscriptions", pushSubscriptionRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/saved-searches", savedSearchRoutes);
 app.use("/api/viewings", viewingRoutes);
+
+// SPA client-side routing fallback (e.g. a direct hit on /discover) - only
+// when this build actually bundled the frontend; a plain req.path check
+// rather than a wildcard route path, so it doesn't depend on whichever
+// path-to-regexp syntax the installed Express major version expects.
+app.use((req, res, next) => {
+  if (!hasBundledFrontend || req.method !== "GET" || req.path.startsWith("/api")) {
+    return next();
+  }
+
+  res.sendFile(path.join(publicDir, "index.html"));
+});
 
 app.use(notFound);
 app.use(errorHandler);
