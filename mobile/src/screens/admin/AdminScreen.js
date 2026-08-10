@@ -3,6 +3,7 @@ import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, Text
 import { useNavigation } from "@react-navigation/native";
 import { fetchAdminReviews, fetchAdminUsers } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 import { formatStatusLabel } from "../../utils/format.js";
 import MessageView from "../../components/MessageView.js";
 
@@ -315,28 +316,29 @@ const createStyles = (colors) =>
       paddingBottom: 8,
     },
     tab: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
     tabActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     tabText: {
-      fontWeight: "700",
+      ...boldText,
       fontSize: 13,
       color: colors.ink,
     },
     tabTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 14,
@@ -352,29 +354,30 @@ const createStyles = (colors) =>
       paddingTop: 12,
     },
     filterChip: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 12,
       paddingVertical: 8,
     },
     filterChipActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     filterChipText: {
+      ...boldText,
       fontSize: 12,
-      fontWeight: "700",
       color: colors.ink,
     },
     filterChipTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     card: {
+      ...colors.shadowSm,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 6,
       marginBottom: 12,
@@ -386,16 +389,18 @@ const createStyles = (colors) =>
       gap: 8,
     },
     cardTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "700",
       color: colors.ink,
       flexShrink: 1,
     },
     cardSubtitle: {
+      ...bodyText,
       fontSize: 13,
       color: colors.muted,
     },
     cardMessage: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },
@@ -406,24 +411,25 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     badgeText: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     responseBox: {
       marginTop: 4,
       backgroundColor: colors.surfaceSoft,
-      borderRadius: 8,
+      borderRadius: colors.radiusSm,
       padding: 10,
       gap: 2,
     },
     responseLabel: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
       color: colors.muted,
       textTransform: "uppercase",
     },
     responseText: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },

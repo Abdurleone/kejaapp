@@ -8,6 +8,7 @@ import PropertyCard from "../../components/PropertyCard.js";
 import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { boldText } from "../../theme/typography.js";
 
 export default function SavedScreen() {
   const navigation = useNavigation();
@@ -155,8 +156,8 @@ const createStyles = (colors) =>
     paddingHorizontal: 4,
   },
   removeButtonText: {
+    ...boldText,
     color: colors.red,
-    fontWeight: "700",
     fontSize: 13,
   },
   });

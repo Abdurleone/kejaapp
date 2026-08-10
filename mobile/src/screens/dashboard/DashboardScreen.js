@@ -6,6 +6,7 @@ import DashboardSkeleton from "../../components/DashboardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { formatStatusLabel } from "../../utils/format.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 import LandingView from "./LandingView.js";
 
 const roleLabels = {
@@ -182,6 +183,7 @@ const createStyles = (colors) =>
     gap: 16,
   },
   subtitle: {
+    ...bodyText,
     fontSize: 14,
     color: colors.muted,
   },
@@ -191,44 +193,48 @@ const createStyles = (colors) =>
     gap: 10,
   },
   tile: {
+    ...colors.shadowSm,
     flexGrow: 1,
     minWidth: 130,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: colors.radius,
     padding: 14,
     gap: 4,
   },
   tileValue: {
+    ...boldText,
     fontSize: 20,
-    fontWeight: "800",
-    color: colors.accentText,
+    color: colors.green,
   },
   tileLabel: {
+    ...bodyText,
     fontSize: 12,
     color: colors.muted,
     textTransform: "capitalize",
   },
   panel: {
+    ...colors.shadow,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
+    borderWidth: colors.strokeWidth,
+    borderColor: colors.stroke,
+    borderRadius: colors.radius,
     padding: 14,
     gap: 12,
   },
   panelTitle: {
+    ...boldText,
     fontSize: 15,
-    fontWeight: "800",
     color: colors.ink,
   },
   muted: {
+    ...bodyText,
     fontSize: 13,
     color: colors.muted,
   },
   strong: {
-    fontWeight: "800",
+    ...boldText,
     color: colors.ink,
   },
   });

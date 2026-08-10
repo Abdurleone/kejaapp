@@ -16,6 +16,7 @@ import { resolveAssetUrl, useSettings } from "../../context/SettingsContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { pickImagesOrEmpty } from "../../utils/imagePicker.js";
 import MessageView from "../../components/MessageView.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 import {
   contactMethods,
   formToPropertyPayload,
@@ -157,7 +158,7 @@ export default function PropertyEditScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentText} />
+        <ActivityIndicator color={colors.green} />
       </View>
     );
   }
@@ -254,7 +255,7 @@ export default function PropertyEditScreen({ route, navigation }) {
         {!photoError && photoNotice ? <Text style={styles.notice}>{photoNotice}</Text> : null}
         <Pressable style={styles.secondaryButton} onPress={handleAddPhoto} disabled={uploadingPhoto}>
           {uploadingPhoto ? (
-            <ActivityIndicator color={colors.accentText} />
+            <ActivityIndicator color={colors.green} />
           ) : (
             <Text style={styles.secondaryButtonText}>Add photo</Text>
           )}
@@ -406,20 +407,21 @@ const createStyles = (colors) =>
       flex: 1,
     },
     label: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.muted,
     },
     sectionTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "800",
       color: colors.ink,
       marginTop: 6,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 15,
@@ -436,53 +438,55 @@ const createStyles = (colors) =>
       gap: 8,
     },
     chip: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 14,
       minHeight: 44,
       justifyContent: "center",
     },
     chipActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     chipText: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
       fontSize: 13,
     },
     chipTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     error: {
+      ...bodyText,
       color: colors.red,
       fontSize: 13,
     },
     notice: {
-      color: colors.accentText,
+      ...bodyText,
+      color: colors.green,
       fontSize: 13,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 14,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
     },
     secondaryButton: {
-      borderWidth: 1,
-      borderColor: colors.accentText,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 14,
       alignItems: "center",
     },
     secondaryButtonText: {
-      color: colors.accentText,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.green,
     },
     photoGrid: {
       flexDirection: "row",
@@ -491,9 +495,9 @@ const createStyles = (colors) =>
     },
     photoThumb: {
       width: "47%",
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 10,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       overflow: "hidden",
       backgroundColor: colors.surface,
     },
@@ -506,8 +510,8 @@ const createStyles = (colors) =>
       alignItems: "center",
     },
     photoRemoveButtonText: {
+      ...boldText,
       color: colors.red,
-      fontWeight: "700",
       fontSize: 13,
     },
   });

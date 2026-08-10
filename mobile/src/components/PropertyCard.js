@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext.js";
 import { formatKes } from "../utils/format.js";
 import { resolveAssetUrl } from "../context/SettingsContext.js";
+import { bodyText, boldText } from "../theme/typography.js";
 
 function PropertyCard({ property, apiBaseUrl, onPress, isSaved, onToggleSave, savingFavorite }) {
   const { colors } = useTheme();
@@ -15,7 +16,7 @@ function PropertyCard({ property, apiBaseUrl, onPress, isSaved, onToggleSave, sa
   const imageUrl = resolveAssetUrl(property.images?.[0]?.url, apiBaseUrl);
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable style={[styles.card, colors.shadowSm]} onPress={onPress}>
       <View style={styles.imageWrap}>
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
@@ -74,9 +75,9 @@ const createStyles = (colors) =>
   StyleSheet.create({
     card: {
       backgroundColor: colors.surface,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderRadius: colors.radius,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       overflow: "hidden",
       marginBottom: 16,
     },
@@ -94,9 +95,9 @@ const createStyles = (colors) =>
       justifyContent: "center",
     },
     imagePlaceholderText: {
+      ...boldText,
       fontSize: 32,
-      fontWeight: "800",
-      color: colors.accentText,
+      color: colors.green,
     },
     statusPill: {
       position: "absolute",
@@ -108,9 +109,9 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     statusPillText: {
+      ...boldText,
       fontSize: 12,
-      fontWeight: "700",
-      color: colors.greenDark,
+      color: colors.green,
       textTransform: "capitalize",
     },
     body: {
@@ -118,11 +119,12 @@ const createStyles = (colors) =>
       gap: 8,
     },
     title: {
+      ...boldText,
       fontSize: 16,
-      fontWeight: "700",
       color: colors.ink,
     },
     subtitle: {
+      ...bodyText,
       fontSize: 13,
       color: colors.muted,
     },
@@ -134,9 +136,9 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     verifiedBadgeText: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     costRow: {
       flexDirection: "row",
@@ -144,11 +146,12 @@ const createStyles = (colors) =>
       gap: 8,
     },
     price: {
+      ...boldText,
       fontSize: 17,
-      fontWeight: "800",
-      color: colors.accentText,
+      color: colors.green,
     },
     priceLabel: {
+      ...bodyText,
       fontSize: 12,
       color: colors.muted,
     },
@@ -157,13 +160,13 @@ const createStyles = (colors) =>
       gap: 8,
     },
     metaItem: {
+      ...boldText,
       fontSize: 12,
-      fontWeight: "700",
       color: colors.muted,
       backgroundColor: colors.surfaceSoft,
       paddingHorizontal: 8,
       paddingVertical: 4,
-      borderRadius: 6,
+      borderRadius: colors.radiusSm,
       textTransform: "capitalize",
     },
     footerRow: {
@@ -173,24 +176,24 @@ const createStyles = (colors) =>
       justifyContent: "space-between",
     },
     detailsLink: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     saveButton: {
       alignSelf: "flex-start",
-      backgroundColor: colors.greenDark,
+      backgroundColor: colors.green,
       paddingHorizontal: 16,
       minHeight: 44,
       justifyContent: "center",
-      borderRadius: 8,
+      borderRadius: 999,
     },
     saveButtonSaved: {
       backgroundColor: colors.surfaceSoft,
     },
     saveButtonText: {
-      color: colors.white,
-      fontWeight: "700",
+      ...boldText,
+      color: colors.onAccent,
       fontSize: 13,
     },
     saveButtonTextSaved: {

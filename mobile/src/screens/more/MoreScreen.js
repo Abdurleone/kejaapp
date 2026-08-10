@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext.js";
+import { boldText } from "../../theme/typography.js";
 import { icons } from "../../navigation/tabScreens.js";
 
 const labels = {
@@ -35,7 +36,7 @@ export default function MoreScreen({ navigation, hiddenTabs, unreadCount, onOpen
       renderItem={({ item: name }) => (
         <Pressable style={styles.row} onPress={() => handlePress(name)}>
           <View style={styles.rowLeft}>
-            <Ionicons name={icons[name]} size={22} color={colors.accentText} />
+            <Ionicons name={icons[name]} size={22} color={colors.green} />
             <Text style={styles.rowLabel}>{labels[name] || name}</Text>
           </View>
           <View style={styles.rowRight}>
@@ -63,13 +64,14 @@ const createStyles = (colors) =>
       gap: 12,
     },
     row: {
+      ...colors.shadowSm,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       paddingVertical: 14,
       paddingHorizontal: 16,
     },
@@ -79,8 +81,8 @@ const createStyles = (colors) =>
       gap: 14,
     },
     rowLabel: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "700",
       color: colors.ink,
     },
     rowRight: {
@@ -89,7 +91,7 @@ const createStyles = (colors) =>
       gap: 8,
     },
     badge: {
-      backgroundColor: colors.greenDark,
+      backgroundColor: colors.green,
       borderRadius: 999,
       paddingHorizontal: 8,
       paddingVertical: 2,
@@ -97,8 +99,8 @@ const createStyles = (colors) =>
       alignItems: "center",
     },
     badgeText: {
+      ...boldText,
       fontSize: 12,
-      fontWeight: "700",
-      color: colors.white,
+      color: colors.onAccent,
     },
   });

@@ -216,6 +216,6 @@ describe("WorkspaceScreen", () => {
     await waitFor(() => expect(getByText("Can I view this Saturday morning?")).toBeTruthy());
 
     const card = getByText("Can I view this Saturday morning?").parent;
-    expect(card.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ borderWidth: 2 })]));
+    expect(card.props.style).toEqual(expect.arrayContaining([expect.objectContaining({ borderWidth: 2.5 })]));
   });
 });

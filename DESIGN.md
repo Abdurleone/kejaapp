@@ -145,17 +145,9 @@ The palette is the Kenyan flag (green / red / black / cream) pushed bold and war
 
 **The Unused Teal.** `--teal` (`#1f6d72` light / `#4fb3bf` dark) is declared in `frontend/styles.css`'s token block but is not referenced anywhere in the stylesheet today — a real, dormant token, not a fabricated one. Treat it as unclaimed rather than as an established fourth accent; wire it up deliberately or remove it, don't assume it already means something.
 
-### A confirmed cross-platform drift (read before touching either platform)
-Web and mobile define what's conceptually "the same" brand color with **different literal hex values** today — an actual, unresolved inconsistency, not a documentation simplification. Web just changed again (this document); mobile has **not** been ported yet — that's the very next planned PR, which will close this table, not leave it drifting further:
+### Cross-platform drift — resolved
 
-| Role | Web (`frontend/styles.css`, current) | Mobile (`mobile/src/theme/colors.js`, unchanged) |
-|---|---|---|
-| Primary green (light) | `#054a2b` | `#033f21` |
-| Red (light) | `#d21023` | `#bb0a1e` |
-| Ink (light) | `#17130d` | `#141414` |
-| Surface-soft (light) | `#fff8e6` | `#f1f1ef` |
-
-This document's frontmatter uses the **web** values as canonical, since web is where the base-frame change has landed first. The mobile port PR reconciles `mobile/src/theme/colors.js` to these same values as part of its own scope — see `docs/Roadmap.md`.
+Web and mobile previously defined "the same" brand color with different literal hex values (primary green, red, ink, surface-soft in light mode). The mobile matatu-poster port reconciled `mobile/src/theme/colors.js` to the exact same values as `frontend/styles.css`'s tokens — this document's frontmatter is canonical for both platforms now, not just web. `colors.green`/`colors.red`/`colors.amber` on mobile are named identically in spirit to web's Registry Green/Flag Red/gold, and `colors.stroke`/`colors.line`/`colors.radius`/`colors.radiusSm`/`colors.strokeWidth`/`colors.strokeWidthSm`/`colors.shadow`/`colors.shadowSm` mirror `--stroke`/`--line`/`--radius`/`--radius-sm`/`--stroke-width`/`--stroke-width-sm`/the Pop shadow pair 1:1. The one deliberate simplification: mobile has no `--teal` equivalent (still unused on web too) and consolidates web's Ink/Stroke distinction the same way web does — Stroke carries borders/shadows, Ink carries text.
 
 ## Typography
 
@@ -164,7 +156,7 @@ This document's frontmatter uses the **web** values as canonical, since web is w
 
 **Character:** Two voices, used with restraint — Bungee appears on exactly one heading per view (a page title, the header wordmark, a modal title), never on body copy, table cells, buttons, or any dense/repeated UI text. Work Sans carries everything else. This mirrors exactly how Bungee was used when it was landing-only: one hero heading out of a dozen-plus selectors, not "every heading."
 
-Mobile currently has **no typography tokens at all** — no custom font is loaded, and every screen renders in the OS system font (San Francisco on iOS, Roboto on Android) with only `fontWeight` varied inline per component. Closing this gap (adding the same two fonts + a shared typography helper) is the mobile port PR's scope, not yet done.
+Mobile now loads the same two families via `@expo-google-fonts/bungee` and `@expo-google-fonts/work-sans`, gated behind `expo-splash-screen` so there's no flash of the system font on cold start. Because React Native can't synthesize bold from a single custom TTF the way it does for system fonts, Work Sans is loaded as **two** separately-registered static weights (`WorkSans_400Regular`, `WorkSans_800ExtraBold`) rather than one variable file — `mobile/src/theme/typography.js` exposes these as `bodyText`/`boldText`/`displayText` for screens to spread into their `StyleSheet.create` entries, mirroring web's Body/Label/Headline roles.
 
 ### Hierarchy
 - **Display** (Bungee, uppercase, `clamp(2rem, 5.6vw, 4.1rem)`, 1.0): the landing hero headline (`.landing-copy h2`) and the testimonials heading (`.landing-testimonials h3`, smaller) — the two places a headline-scale moment exists today.
@@ -253,7 +245,6 @@ The base frame above covers palette/type/shape everywhere now. What's still genu
 - **Do** use the `8px`/`14px` radius pair for panels/cards/inputs; reserve `999px` for buttons/badges/tabs/pills only.
 
 ### Don't:
-- **Don't** assume web's and mobile's "same" brand colors already match — they currently don't, and web just moved again (see the drift table above); the mobile port PR closes this deliberately, don't silently pick one side without noting it.
 - **Don't** apply Bungee to more than one heading per view, or to body copy/table cells/dense UI text — that's the same "shout, don't grow" discipline the whole label system already follows, just applied to the display face too.
 - **Don't** extend the landing page's remaining bespoke *content* (the sticker-badge artwork, the illustrated skyline, the testimonials flip mechanic) to any other route without the same kind of deliberate, user-commissioned decision that created it — the palette/type/shape are the base frame now, but these three specific assets/mechanics are still a fresh commission away from being reused elsewhere.
 - **Don't** reuse the gold accent for text on the testimonials card's light-mode state (dark-page/light-card) — it measures ~1.8:1 on cream, well under WCAG AA; that direction of the flip uses red/green instead, deliberately, not gold.

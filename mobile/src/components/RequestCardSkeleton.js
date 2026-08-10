@@ -7,7 +7,7 @@ export default function RequestCardSkeleton() {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, colors.shadowSm]}>
       <View style={styles.headerRow}>
         <Skeleton style={styles.title} />
         <Skeleton style={styles.badge} />
@@ -32,9 +32,9 @@ const createStyles = (colors) =>
   StyleSheet.create({
     card: {
       backgroundColor: colors.surface,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderRadius: colors.radius,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       padding: 14,
       gap: 10,
       marginBottom: 12,
