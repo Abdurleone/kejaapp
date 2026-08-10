@@ -6,6 +6,7 @@ import PropertyEditScreen from "../screens/workspace/PropertyEditScreen.js";
 import { useAuth } from "../context/AuthContext.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText, boldText } from "../theme/typography.js";
 
 const Stack = createNativeStackNavigator();
 const listingManagerRoles = ["landlord", "agency"];
@@ -20,7 +21,7 @@ export default function WorkspaceStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: "700" },
+        headerTitleStyle: { ...displayText, fontSize: 18 },
       }}
     >
       <Stack.Screen
@@ -32,7 +33,7 @@ export default function WorkspaceStack() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               {canManageListings ? (
                 <Pressable onPress={() => navigation.navigate("PropertyCreate")} hitSlop={10}>
-                  <Text style={{ color: colors.accentText, fontWeight: "700" }}>New listing</Text>
+                  <Text style={{ ...boldText, color: colors.green }}>New listing</Text>
                 </Pressable>
               ) : null}
               <ColorModeToggle />

@@ -3,6 +3,7 @@ import MoversScreen from "../screens/movers/MoversScreen.js";
 import MoverRequestFormScreen from "../screens/discover/MoverRequestFormScreen.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText } from "../theme/typography.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,7 +15,10 @@ export default function MoversStack() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: "700" },
+        // The one "page heading" for every screen this stack owns - same
+        // restraint as frontend/styles.css's --font-display (one heading per
+        // view, never body/label text).
+        headerTitleStyle: { ...displayText, fontSize: 18 },
       }}
     >
       <Stack.Screen

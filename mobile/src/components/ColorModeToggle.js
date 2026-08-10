@@ -28,7 +28,7 @@ export default function ColorModeToggle({ color }) {
       accessibilityLabel={labelByMode[colorMode]}
       accessibilityRole="button"
     >
-      <Ionicons name={iconByMode[colorMode]} size={20} color={color || colors.accentText} />
+      <Ionicons name={iconByMode[colorMode]} size={20} color={color || colors.green} />
     </Pressable>
   );
 }

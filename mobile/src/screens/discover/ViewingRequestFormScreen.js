@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { createViewingRequest } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 // DateTimePicker has no web implementation; fall back to a plain text input
 // there (used for Expo web verification) while using the native picker on
@@ -164,14 +165,15 @@ const createStyles = (colors) =>
     gap: 6,
   },
   label: {
+    ...boldText,
     fontSize: 13,
-    fontWeight: "700",
     color: colors.muted,
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
+    ...bodyText,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: colors.radiusSm,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
@@ -179,6 +181,7 @@ const createStyles = (colors) =>
     color: colors.ink,
   },
   dateText: {
+    ...bodyText,
     fontSize: 15,
     color: colors.ink,
   },
@@ -187,25 +190,27 @@ const createStyles = (colors) =>
     textAlignVertical: "top",
   },
   openNotice: {
+    ...bodyText,
     fontSize: 13,
     color: colors.muted,
     backgroundColor: colors.surfaceSoft,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: colors.radiusSm,
   },
   error: {
+    ...bodyText,
     color: colors.red,
     fontSize: 13,
   },
   primaryButton: {
-    backgroundColor: colors.greenDark,
-    borderRadius: 8,
+    backgroundColor: colors.green,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
   },
   primaryButtonText: {
-    color: colors.white,
-    fontWeight: "800",
+    ...boldText,
+    color: colors.onAccent,
   },
   sentContainer: {
     flex: 1,
@@ -216,11 +221,12 @@ const createStyles = (colors) =>
     backgroundColor: colors.bg,
   },
   sentTitle: {
+    ...boldText,
     fontSize: 20,
-    fontWeight: "800",
     color: colors.ink,
   },
   sentMessage: {
+    ...bodyText,
     fontSize: 14,
     color: colors.muted,
     textAlign: "center",

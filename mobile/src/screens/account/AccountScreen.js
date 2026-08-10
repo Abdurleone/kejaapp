@@ -10,6 +10,7 @@ import {
 } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText, displayText } from "../../theme/typography.js";
 
 const minPasswordLength = 8;
 const deleteConfirmationPhrase = "DELETE";
@@ -416,21 +417,23 @@ const createStyles = (colors) =>
       gap: 10,
     },
     title: {
+      ...displayText,
       fontSize: 22,
-      fontWeight: "800",
       color: colors.ink,
     },
     subtitle: {
+      ...bodyText,
       fontSize: 14,
       color: colors.muted,
       textAlign: "center",
       marginBottom: 12,
     },
     card: {
+      ...colors.shadow,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidth,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 16,
       gap: 12,
     },
@@ -438,14 +441,14 @@ const createStyles = (colors) =>
       gap: 2,
     },
     detailLabel: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
       color: colors.muted,
       textTransform: "uppercase",
     },
     cardTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "800",
       color: colors.ink,
     },
     cardHeaderRow: {
@@ -454,22 +457,23 @@ const createStyles = (colors) =>
       justifyContent: "space-between",
     },
     editLink: {
-      color: colors.accentText,
-      fontWeight: "700",
+      ...boldText,
+      color: colors.green,
       fontSize: 13,
     },
     field: {
       gap: 6,
     },
     label: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.muted,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 15,
@@ -481,32 +485,34 @@ const createStyles = (colors) =>
       gap: 12,
     },
     primaryButtonSmall: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 10,
       paddingHorizontal: 20,
       alignItems: "center",
     },
     secondaryButtonSmall: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: 999,
       paddingVertical: 10,
       paddingHorizontal: 20,
       alignItems: "center",
     },
     subtitleSmall: {
+      ...bodyText,
       fontSize: 13,
       color: colors.muted,
     },
     error: {
+      ...bodyText,
       fontSize: 13,
       color: colors.red,
     },
     success: {
+      ...boldText,
       fontSize: 13,
-      color: colors.accentText,
-      fontWeight: "700",
+      color: colors.green,
     },
     savedSearchRow: {
       flexDirection: "row",
@@ -514,49 +520,51 @@ const createStyles = (colors) =>
       alignItems: "center",
       gap: 8,
       paddingVertical: 6,
-      borderTopWidth: 1,
+      borderTopWidth: colors.strokeWidthSm,
       borderTopColor: colors.line,
     },
     savedSearchText: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
       flexShrink: 1,
     },
     removeText: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.red,
     },
     detailValue: {
+      ...bodyText,
       fontSize: 15,
       color: colors.ink,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 14,
       paddingHorizontal: 32,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
     },
     secondaryButton: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: 999,
       paddingVertical: 14,
       paddingHorizontal: 32,
       alignItems: "center",
     },
     secondaryButtonText: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
     },
     dangerButton: {
       backgroundColor: colors.red,
-      borderRadius: 8,
+      borderRadius: 999,
       paddingVertical: 14,
       alignItems: "center",
     },
@@ -564,8 +572,8 @@ const createStyles = (colors) =>
       opacity: 0.5,
     },
     dangerButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
     },
     legalLinks: {
       flexDirection: "row",
@@ -573,6 +581,7 @@ const createStyles = (colors) =>
       gap: 20,
     },
     legalLink: {
+      ...bodyText,
       color: colors.muted,
       fontSize: 13,
       textDecorationLine: "underline",

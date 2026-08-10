@@ -4,6 +4,7 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { useAuth } from "../context/AuthContext.js";
 import { useTheme } from "../context/ThemeContext.js";
+import { boldText } from "../theme/typography.js";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -79,16 +80,16 @@ export default function GoogleSignInButton({ onAuthenticated, onError }) {
 const createStyles = (colors) =>
   StyleSheet.create({
     button: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: 999,
       paddingVertical: 12,
       alignItems: "center",
       backgroundColor: colors.surface,
       marginTop: 4,
     },
     text: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
     },
   });

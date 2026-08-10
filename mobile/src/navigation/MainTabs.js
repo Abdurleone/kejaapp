@@ -6,6 +6,7 @@ import { fetchDashboardSummary } from "../api/index.js";
 import { useAuth } from "../context/AuthContext.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText } from "../theme/typography.js";
 import { icons, screens } from "./tabScreens.js";
 import MoreStack from "./MoreStack.js";
 import { getPrimaryTabs, getHiddenTabs } from "./roleTabs.js";
@@ -73,14 +74,14 @@ export default function MainTabs() {
 
   const screenOptions = useCallback(
     ({ route }) => ({
-      tabBarActiveTintColor: colors.accentText,
+      tabBarActiveTintColor: colors.green,
       tabBarInactiveTintColor: colors.muted,
       tabBarIcon: ({ color, size }) => (
         <Ionicons name={icons[route.name]} size={size} color={color} />
       ),
       headerStyle: { backgroundColor: colors.surface },
       headerTintColor: colors.ink,
-      headerTitleStyle: { fontWeight: "700" },
+      headerTitleStyle: { ...displayText, fontSize: 18 },
       headerRight: () => <ColorModeToggle />,
       tabBarStyle: baseTabBarStyle,
     }),
@@ -104,14 +105,18 @@ export default function MainTabs() {
                   // stop) instead of sitting on top as mismatched light bars.
                   // headerTitle (not title) so the tab bar label stays "Dashboard".
                   headerTitle: "KejaApp",
-                  headerStyle: { backgroundColor: colors.greenDark },
-                  headerTintColor: colors.white,
-                  headerTitleStyle: { fontWeight: "800" },
+                  headerStyle: { backgroundColor: colors.green },
+                  // On-accent, not a bare white: dark mode's brighter green
+                  // (#2fbf71) fails WCAG AA against fixed white text (~2.4:1)
+                  // - same fix frontend/styles.css needed for the same
+                  // reason, see colors.js's onAccent comment.
+                  headerTintColor: colors.onAccent,
+                  headerTitleStyle: { ...displayText, fontSize: 18, color: colors.onAccent },
                   headerShadowVisible: false,
-                  headerRight: () => <ColorModeToggle color={colors.white} />,
+                  headerRight: () => <ColorModeToggle color={colors.onAccent} />,
                   tabBarStyle: {
                     ...baseTabBarStyle,
-                    backgroundColor: colors.greenDark,
+                    backgroundColor: colors.green,
                     borderTopWidth: 0,
                     // The library's default tab bar style always sets
                     // elevation: 8 (Android's Material drop shadow) - that's
@@ -119,7 +124,7 @@ export default function MainTabs() {
                     // borderTopWidth: 0 alone didn't remove it.
                     elevation: 0,
                   },
-                  tabBarActiveTintColor: colors.white,
+                  tabBarActiveTintColor: colors.onAccent,
                   tabBarInactiveTintColor: "rgba(255, 255, 255, 0.6)",
                 }
               : {}),

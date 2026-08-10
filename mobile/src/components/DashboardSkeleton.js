@@ -2,9 +2,9 @@ import { StyleSheet, View } from "react-native";
 import Skeleton from "./Skeleton.js";
 import { useTheme } from "../context/ThemeContext.js";
 
-function SkeletonTile({ styles }) {
+function SkeletonTile({ styles, colors }) {
   return (
-    <View style={styles.tile}>
+    <View style={[styles.tile, colors.shadowSm]}>
       <Skeleton style={styles.value} />
       <Skeleton style={styles.label} />
     </View>
@@ -19,15 +19,15 @@ export default function DashboardSkeleton() {
     <View style={styles.container}>
       <View style={styles.row}>
         {Array.from({ length: 3 }, (_, index) => (
-          <SkeletonTile key={index} styles={styles} />
+          <SkeletonTile key={index} styles={styles} colors={colors} />
         ))}
       </View>
 
-      <View style={styles.panel}>
+      <View style={[styles.panel, colors.shadow]}>
         <Skeleton style={styles.title} />
         <View style={styles.row}>
           {Array.from({ length: 4 }, (_, index) => (
-            <SkeletonTile key={index} styles={styles} />
+            <SkeletonTile key={index} styles={styles} colors={colors} />
           ))}
         </View>
       </View>
@@ -49,9 +49,9 @@ const createStyles = (colors) =>
       flexGrow: 1,
       minWidth: 130,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 8,
     },
@@ -65,9 +65,9 @@ const createStyles = (colors) =>
     },
     panel: {
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidth,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 12,
     },

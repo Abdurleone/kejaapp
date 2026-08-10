@@ -16,6 +16,7 @@ import { RequestCardSkeletonList } from "../../components/RequestCardSkeleton.js
 import MessageView from "../../components/MessageView.js";
 import { formatStatusLabel } from "../../utils/format.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 const tabs = [
   { key: "inquiries", label: "Inquiries" },
@@ -240,23 +241,23 @@ const createStyles = (colors) =>
       paddingBottom: 8,
     },
     tab: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
     tabActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     tabText: {
-      fontWeight: "700",
+      ...boldText,
       fontSize: 13,
       color: colors.ink,
     },
     tabTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     list: {
       padding: 16,
@@ -266,10 +267,11 @@ const createStyles = (colors) =>
       marginVertical: 16,
     },
     card: {
+      ...colors.shadowSm,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 12,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
       padding: 14,
       gap: 6,
       marginBottom: 12,
@@ -281,17 +283,18 @@ const createStyles = (colors) =>
       gap: 8,
     },
     cardTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "700",
       color: colors.ink,
       flexShrink: 1,
     },
     cardSubject: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     cardMessage: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },
@@ -302,24 +305,25 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     badgeText: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     responseBox: {
       marginTop: 4,
       backgroundColor: colors.surfaceSoft,
-      borderRadius: 8,
+      borderRadius: colors.radiusSm,
       padding: 10,
       gap: 2,
     },
     responseLabel: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
       color: colors.muted,
       textTransform: "uppercase",
     },
     responseText: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },

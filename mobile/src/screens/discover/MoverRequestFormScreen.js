@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { createMoverRequest } from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 import { getCurrentPositionOrNull } from "../../utils/location.js";
 import { formatKes, homeSizeOptions } from "../../utils/format.js";
 
@@ -195,16 +196,16 @@ const createStyles = (colors) =>
       flexGrow: 1,
     },
     title: {
+      ...boldText,
       fontSize: 16,
-      fontWeight: "800",
       color: colors.ink,
     },
     field: {
       gap: 6,
     },
     label: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.muted,
     },
     chipRow: {
@@ -213,29 +214,30 @@ const createStyles = (colors) =>
       gap: 8,
     },
     chip: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 14,
       paddingVertical: 8,
       backgroundColor: colors.surface,
     },
     chipActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     chipText: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.ink,
     },
     chipTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 15,
@@ -243,6 +245,7 @@ const createStyles = (colors) =>
       color: colors.ink,
     },
     dateText: {
+      ...bodyText,
       fontSize: 15,
       color: colors.ink,
     },
@@ -251,18 +254,19 @@ const createStyles = (colors) =>
       textAlignVertical: "top",
     },
     error: {
+      ...bodyText,
       color: colors.red,
       fontSize: 13,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 14,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
     },
     sentContainer: {
       flex: 1,
@@ -273,11 +277,12 @@ const createStyles = (colors) =>
       backgroundColor: colors.bg,
     },
     sentTitle: {
+      ...boldText,
       fontSize: 20,
-      fontWeight: "800",
       color: colors.ink,
     },
     sentMessage: {
+      ...bodyText,
       fontSize: 14,
       color: colors.muted,
       textAlign: "center",

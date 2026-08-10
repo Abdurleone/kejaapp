@@ -8,6 +8,7 @@ import PropertyCard from "../../components/PropertyCard.js";
 import { PropertyCardSkeletonList } from "../../components/PropertyCardSkeleton.js";
 import MessageView from "../../components/MessageView.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 const radiusOptions = [3, 5, 10, 20];
 const typeOptions = [
@@ -392,9 +393,10 @@ const createStyles = (colors) =>
     gap: 6,
   },
   rentInput: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
+    ...bodyText,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: colors.radiusSm,
     paddingHorizontal: 12,
     minHeight: 44,
     minWidth: 100,
@@ -404,46 +406,48 @@ const createStyles = (colors) =>
     color: colors.ink,
   },
   radiusChip: {
-    borderWidth: 1,
-    borderColor: colors.line,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
     borderRadius: 999,
     paddingHorizontal: 10,
     minHeight: 44,
     justifyContent: "center",
   },
   radiusChipActive: {
-    backgroundColor: colors.greenDark,
-    borderColor: colors.greenDark,
+    backgroundColor: colors.green,
+    borderColor: colors.green,
   },
   radiusChipText: {
+    ...boldText,
     fontSize: 12,
-    fontWeight: "700",
     color: colors.ink,
   },
   radiusChipTextActive: {
-    color: colors.white,
+    color: colors.onAccent,
   },
   nearMeButton: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: 999,
     paddingHorizontal: 12,
     minHeight: 44,
     justifyContent: "center",
   },
   nearMeButtonText: {
+    ...boldText,
     fontSize: 12,
-    fontWeight: "700",
     color: colors.ink,
   },
   inlineError: {
+    ...bodyText,
     color: colors.red,
     fontSize: 12,
     paddingHorizontal: 16,
     paddingBottom: 4,
   },
   inlineMessage: {
-    color: colors.accentText,
+    ...boldText,
+    color: colors.green,
     fontSize: 12,
     paddingHorizontal: 16,
     paddingBottom: 4,

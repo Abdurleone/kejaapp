@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { fetchAdminUserStatusHistory, fetchAdminUserSummary, updateAdminUserStatus } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 import { formatStatusLabel } from "../../utils/format.js";
 import MessageView from "../../components/MessageView.js";
 
@@ -86,7 +87,7 @@ export default function AdminUserDetailScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentText} />
+        <ActivityIndicator color={colors.green} />
       </View>
     );
   }
@@ -219,13 +220,13 @@ const createStyles = (colors) =>
       gap: 14,
     },
     title: {
+      ...boldText,
       fontSize: 18,
-      fontWeight: "800",
       color: colors.ink,
     },
     sectionTitle: {
+      ...boldText,
       fontSize: 15,
-      fontWeight: "800",
       color: colors.ink,
       marginTop: 6,
     },
@@ -239,19 +240,20 @@ const createStyles = (colors) =>
       gap: 4,
     },
     statLabel: {
+      ...boldText,
       fontSize: 12,
-      fontWeight: "700",
       color: colors.muted,
       textTransform: "uppercase",
     },
     statValue: {
+      ...bodyText,
       fontSize: 14,
       color: colors.ink,
     },
     statValueLarge: {
+      ...boldText,
       fontSize: 20,
-      fontWeight: "800",
-      color: colors.accentText,
+      color: colors.green,
     },
     badge: {
       alignSelf: "flex-start",
@@ -261,16 +263,16 @@ const createStyles = (colors) =>
       borderRadius: 999,
     },
     badgeText: {
+      ...boldText,
       fontSize: 11,
-      fontWeight: "700",
-      color: colors.accentText,
+      color: colors.green,
     },
     field: {
       gap: 8,
     },
     label: {
+      ...boldText,
       fontSize: 13,
-      fontWeight: "700",
       color: colors.muted,
     },
     chipRow: {
@@ -279,29 +281,30 @@ const createStyles = (colors) =>
       gap: 8,
     },
     chip: {
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 14,
       minHeight: 44,
       justifyContent: "center",
     },
     chipActive: {
-      backgroundColor: colors.greenDark,
-      borderColor: colors.greenDark,
+      backgroundColor: colors.green,
+      borderColor: colors.green,
     },
     chipText: {
+      ...boldText,
       color: colors.ink,
-      fontWeight: "700",
       fontSize: 13,
     },
     chipTextActive: {
-      color: colors.white,
+      color: colors.onAccent,
     },
     input: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      borderRadius: 8,
+      ...bodyText,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radiusSm,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 14,
@@ -313,31 +316,34 @@ const createStyles = (colors) =>
       textAlignVertical: "top",
     },
     error: {
+      ...bodyText,
       color: colors.red,
       fontSize: 13,
     },
     notice: {
-      color: colors.accentText,
+      ...boldText,
+      color: colors.green,
       fontSize: 13,
     },
     primaryButton: {
-      backgroundColor: colors.greenDark,
-      borderRadius: 8,
+      backgroundColor: colors.green,
+      borderRadius: 999,
       paddingVertical: 12,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: colors.white,
-      fontWeight: "800",
+      ...boldText,
+      color: colors.onAccent,
       fontSize: 13,
     },
     historyRow: {
       gap: 4,
       paddingVertical: 6,
-      borderBottomWidth: 1,
+      borderBottomWidth: colors.strokeWidthSm,
       borderBottomColor: colors.line,
     },
     cardMessage: {
+      ...bodyText,
       fontSize: 13,
       color: colors.ink,
     },

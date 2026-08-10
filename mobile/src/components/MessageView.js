@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext.js";
+import { bodyText, boldText } from "../theme/typography.js";
 
 // Shared empty-state / error-state / sign-in-required panel.
 export default function MessageView({ title, message, actionLabel, onAction }) {
@@ -29,25 +30,26 @@ const createStyles = (colors) =>
       padding: 32,
     },
     title: {
+      ...boldText,
       fontSize: 18,
-      fontWeight: "700",
       color: colors.ink,
       textAlign: "center",
     },
     message: {
+      ...bodyText,
       fontSize: 14,
       color: colors.muted,
       textAlign: "center",
     },
     button: {
       marginTop: 12,
-      backgroundColor: colors.greenDark,
+      backgroundColor: colors.green,
       paddingVertical: 12,
       paddingHorizontal: 24,
-      borderRadius: 8,
+      borderRadius: 999,
     },
     buttonLabel: {
-      color: colors.white,
-      fontWeight: "700",
+      ...boldText,
+      color: colors.onAccent,
     },
   });

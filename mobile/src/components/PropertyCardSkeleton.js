@@ -7,7 +7,7 @@ export default function PropertyCardSkeleton() {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, colors.shadowSm]}>
       <Skeleton style={styles.image} />
       <View style={styles.body}>
         <Skeleton style={styles.title} />
@@ -37,9 +37,9 @@ const createStyles = (colors) =>
   StyleSheet.create({
     card: {
       backgroundColor: colors.surface,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.line,
+      borderRadius: colors.radius,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
       overflow: "hidden",
       marginBottom: 16,
     },

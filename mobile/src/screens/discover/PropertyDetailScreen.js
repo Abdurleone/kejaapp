@@ -8,6 +8,7 @@ import MessageView from "../../components/MessageView.js";
 import { formatKes, formatRatingSummary, formatStatusLabel } from "../../utils/format.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { buildEmailUrl, buildPhoneUrl, buildWhatsAppUrl, getPreferredContactUrl } from "../../utils/contact.js";
+import { bodyText, boldText } from "../../theme/typography.js";
 
 const contactMethodLabels = {
   phone: "Phone",
@@ -354,7 +355,7 @@ const createStyles = (colors) =>
   image: {
     width: "100%",
     aspectRatio: 16 / 10,
-    borderRadius: 12,
+    borderRadius: colors.radius,
     backgroundColor: colors.surfaceSoft,
   },
   imagePlaceholder: {
@@ -362,23 +363,24 @@ const createStyles = (colors) =>
     justifyContent: "center",
   },
   imagePlaceholderText: {
+    ...boldText,
     fontSize: 48,
-    fontWeight: "800",
-    color: colors.accentText,
+    color: colors.green,
   },
   title: {
+    ...boldText,
     fontSize: 22,
-    fontWeight: "800",
     color: colors.ink,
   },
   location: {
+    ...bodyText,
     fontSize: 14,
     color: colors.muted,
   },
   rating: {
+    ...boldText,
     fontSize: 13,
-    color: colors.accentText,
-    fontWeight: "700",
+    color: colors.green,
   },
   metaRow: {
     flexDirection: "row",
@@ -386,16 +388,17 @@ const createStyles = (colors) =>
     gap: 8,
   },
   metaItem: {
+    ...boldText,
     fontSize: 12,
-    fontWeight: "700",
     color: colors.muted,
     backgroundColor: colors.surfaceSoft,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: colors.radiusSm,
     textTransform: "capitalize",
   },
   description: {
+    ...bodyText,
     fontSize: 14,
     color: colors.ink,
     lineHeight: 20,
@@ -406,6 +409,7 @@ const createStyles = (colors) =>
     gap: 8,
   },
   ownerLine: {
+    ...bodyText,
     fontSize: 13,
     color: colors.muted,
   },
@@ -416,43 +420,44 @@ const createStyles = (colors) =>
     borderRadius: 999,
   },
   verifiedBadgeText: {
+    ...boldText,
     fontSize: 11,
-    fontWeight: "700",
-    color: colors.accentText,
+    color: colors.green,
   },
   moverGroup: {
     gap: 8,
   },
   moverGroupTitle: {
+    ...boldText,
     fontSize: 12,
-    fontWeight: "700",
     color: colors.muted,
     textTransform: "uppercase",
   },
   moverCard: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 10,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: colors.radiusSm,
     padding: 12,
     gap: 6,
     backgroundColor: colors.surfaceSoft,
   },
   moverName: {
+    ...boldText,
     fontSize: 14,
-    fontWeight: "700",
     color: colors.ink,
   },
   section: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
+    ...colors.shadow,
+    borderWidth: colors.strokeWidth,
+    borderColor: colors.stroke,
+    borderRadius: colors.radius,
     padding: 14,
     gap: 8,
     backgroundColor: colors.surface,
   },
   sectionTitle: {
+    ...boldText,
     fontSize: 14,
-    fontWeight: "800",
     color: colors.ink,
   },
   costGrid: {
@@ -463,38 +468,41 @@ const createStyles = (colors) =>
     justifyContent: "space-between",
   },
   costLabel: {
+    ...bodyText,
     fontSize: 13,
     color: colors.muted,
   },
   costValue: {
+    ...boldText,
     fontSize: 13,
-    fontWeight: "700",
     color: colors.ink,
   },
   costValueEmphasis: {
-    color: colors.accentText,
+    ...boldText,
+    color: colors.green,
     fontSize: 14,
   },
   contactLine: {
+    ...bodyText,
     fontSize: 13,
     color: colors.ink,
   },
   contactLineLink: {
+    ...boldText,
     fontSize: 13,
-    color: colors.accentText,
-    fontWeight: "700",
+    color: colors.green,
     textDecorationLine: "underline",
   },
   contactButton: {
-    backgroundColor: colors.greenDark,
-    borderRadius: 8,
+    backgroundColor: colors.green,
+    borderRadius: 999,
     paddingVertical: 12,
     alignItems: "center",
     marginVertical: 4,
   },
   contactButtonText: {
-    color: colors.white,
-    fontWeight: "800",
+    ...boldText,
+    color: colors.onAccent,
     fontSize: 14,
   },
   amenityRow: {
@@ -509,6 +517,7 @@ const createStyles = (colors) =>
     borderRadius: 999,
   },
   amenityChipText: {
+    ...bodyText,
     fontSize: 12,
     color: colors.ink,
     textTransform: "capitalize",
@@ -518,8 +527,8 @@ const createStyles = (colors) =>
     marginTop: 8,
   },
   primaryButton: {
-    backgroundColor: colors.greenDark,
-    borderRadius: 8,
+    backgroundColor: colors.green,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
   },
@@ -527,22 +536,22 @@ const createStyles = (colors) =>
     backgroundColor: colors.surfaceSoft,
   },
   primaryButtonText: {
-    color: colors.white,
-    fontWeight: "800",
+    ...boldText,
+    color: colors.onAccent,
   },
   primaryButtonTextDisabled: {
     color: colors.muted,
   },
   secondaryButton: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 8,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
     backgroundColor: colors.surface,
   },
   secondaryButtonText: {
+    ...boldText,
     color: colors.ink,
-    fontWeight: "700",
   },
   });

@@ -6,6 +6,7 @@ import RegisterScreen from "../screens/auth/RegisterScreen.js";
 import SelectRoleScreen from "../screens/auth/SelectRoleScreen.js";
 import LoadingView from "../components/LoadingView.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
+import { displayText } from "../theme/typography.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,7 @@ export default function RootNavigator() {
           presentation: "modal",
           headerShown: true,
           title: "Sign in",
+          headerTitleStyle: { ...displayText, fontSize: 18 },
           headerRight: () => <ColorModeToggle />,
         }}
       />
@@ -43,6 +45,7 @@ export default function RootNavigator() {
           presentation: "modal",
           headerShown: true,
           title: "Create account",
+          headerTitleStyle: { ...displayText, fontSize: 18 },
           headerRight: () => <ColorModeToggle />,
         }}
       />

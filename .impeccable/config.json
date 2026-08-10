@@ -68,6 +68,30 @@
         "value": "#cccccc",
         "createdAt": "2026-08-09T12:23:21.239Z",
         "reason": "Print-media override: light gray panel border for legal-page PDF export, not a brand color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ffc93c",
+        "createdAt": "2026-08-10T09:18:01.323Z",
+        "reason": "Mobile port of the matatu-poster palette reusing web's own established dark-mode stroke/amber gold exactly (frontend/styles.css), not new drift"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "bungee_400regular",
+        "createdAt": "2026-08-10T09:18:32.022Z",
+        "reason": "Same Bungee already documented in DESIGN.md - mobile's @expo-google-fonts registered name, not a different font"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "worksans_400regular",
+        "createdAt": "2026-08-10T09:18:32.135Z",
+        "reason": "Same Work Sans already documented in DESIGN.md - mobile's @expo-google-fonts registered name, not a different font"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "worksans_800extrabold",
+        "createdAt": "2026-08-10T09:18:32.249Z",
+        "reason": "Same Work Sans already documented in DESIGN.md (bold weight, needed since RN can't synthesize bold from a single custom font file) - mobile's @expo-google-fonts registered name, not a different font"
       }
     ]
   }
