@@ -1,0 +1,25 @@
+# Repo-root .dockerignore - only relevant to backend/Dockerfile.render,
+# the single Render-consolidated build whose context is the repo root (it
+# needs access to both backend/ and frontend/ to bundle the frontend into
+# the backend image). docker-compose.yml's backend/frontend services keep
+# their own per-directory build contexts and .dockerignore files unchanged.
+**/node_modules
+**/.env
+**/.env.local
+**/.env.*.local
+mobile
+frontend/dist
+frontend/tests
+frontend/coverage
+backend/uploads
+backend/logs
+backend/coverage
+backend/tests
+.git
+*.md
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~

@@ -1,0 +1,59 @@
+# Render-only variant of ../backend/Dockerfile: also bundles the built
+# frontend into the same image (as ./public, served by app.js when present),
+# so the web app and its API are genuinely same-origin in production - see
+# CHANGELOG.md's "Consolidate Web + API onto One Render Origin" entry for why.
+# docker-compose.yml and the Kubernetes manifests keep using the original
+# backend/Dockerfile unchanged; they're still legitimately two-origin setups.
+#
+# Build context MUST be the repo root (not backend/), since this needs to
+# COPY from frontend/ too - see render.yaml's dockerContext for this service.
+
+FROM node:22-alpine AS frontend-build
+
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend/ ./
+
+# Vite bakes these into the built JS bundle at build time (import.meta.env),
+# not read at container start - must be passed as Docker build args, not
+# just runtime env vars. Render passes a Docker-runtime service's envVars
+# through as build args too, which is what render.yaml relies on here.
+ARG VITE_API_BASE_URL
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
+RUN npm run build
+
+FROM node:22-alpine AS backend-build
+
+WORKDIR /app
+
+COPY backend/package*.json ./
+RUN npm ci
+
+COPY backend/ .
+
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY backend/package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=backend-build /app/node_modules ./node_modules
+COPY backend/ .
+COPY --from=frontend-build /app/frontend/dist ./public
+
+ENV NODE_ENV=production
+EXPOSE 5000
+
+RUN mkdir -p uploads logs
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:5000/api/health/live || exit 1
+
+CMD ["node", "server.js"]
