@@ -78,6 +78,24 @@ describe("csrfProtection", () => {
     );
   });
 
+  for (const path of ["/api/auth/login", "/api/auth/register", "/api/auth/google"]) {
+    it(`allows POST ${path} even with a stale, mismatched auth/refresh cookie present (login/register can't require proof of a session they're about to create)`, () => {
+      const req = baseReq({
+        method: "POST",
+        originalUrl: path,
+        headers: { cookie: "keja_token=stale-value; keja_refresh=stale-value" },
+        body: {},
+      });
+      let nextCalled = false;
+
+      csrfProtection(req, {}, () => {
+        nextCalled = true;
+      });
+
+      assert.equal(nextCalled, true);
+    });
+  }
+
   it("allows POST /api/auth/refresh when the refresh token is supplied in the body, even with the cookie also present", () => {
     const req = baseReq({
       method: "POST",
