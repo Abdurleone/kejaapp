@@ -27,6 +27,7 @@ import {
   uploadPropertyImage,
   updateCurrentUser,
   changeCurrentUserPassword,
+  setCsrfToken,
 } from "../app-utils.js";
 
 const jsonResponse = (body) =>
@@ -44,9 +45,6 @@ describe("frontend API helpers", () => {
       removeItem: (key) => store.delete(key),
       clear: () => store.clear(),
     };
-    // The auth session lives in an httpOnly cookie now (invisible to JS);
-    // the one cookie value frontend code still reads is the CSRF token.
-    global.document = { cookie: "keja_csrf=test-csrf-value" };
   });
 
   it("creates API URLs from paths", () => {
@@ -68,7 +66,15 @@ describe("frontend API helpers", () => {
     );
   });
 
-  it("attaches the CSRF cookie value as a header on mutating requests", async () => {
+  it("attaches the in-memory CSRF token as a header on mutating requests", async () => {
+    // Not read from document.cookie: the CSRF cookie is set by the backend's
+    // own origin, a different origin than the frontend page in production,
+    // so document.cookie there can never see it (unrelated to httpOnly -
+    // that's true even of the non-httpOnly CSRF cookie itself). The value
+    // instead comes from a prior response body, held in memory - primed
+    // here the same way a real login response would populate it.
+    setCsrfToken("test-csrf-value");
+
     let capturedOptions;
     global.fetch = async (url, options) => {
       capturedOptions = options;
@@ -82,6 +88,8 @@ describe("frontend API helpers", () => {
   });
 
   it("does not attach a CSRF header on safe (GET) requests", async () => {
+    setCsrfToken("test-csrf-value");
+
     let capturedOptions;
     global.fetch = async (url, options) => {
       capturedOptions = options;
@@ -89,6 +97,37 @@ describe("frontend API helpers", () => {
     };
 
     await apiFetch("/api/properties");
+
+    assert.equal(capturedOptions.headers.has("X-CSRF-Token"), false);
+  });
+
+  it("learns a fresh CSRF token from any response body that carries one, without needing document.cookie", async () => {
+    setCsrfToken("stale-value");
+    global.fetch = async () => jsonResponse({ user: { id: "u1" }, csrfToken: "fresh-value-from-body" });
+
+    await apiFetch("/api/auth/me");
+
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedOptions = options;
+      return jsonResponse({ message: "ok" });
+    };
+
+    await apiFetch("/api/favorites/p1", { method: "POST" });
+
+    assert.equal(capturedOptions.headers.get("X-CSRF-Token"), "fresh-value-from-body");
+  });
+
+  it("sends no CSRF header once cleared (e.g. after logout)", async () => {
+    setCsrfToken("");
+
+    let capturedOptions;
+    global.fetch = async (url, options) => {
+      capturedOptions = options;
+      return jsonResponse({ message: "ok" });
+    };
+
+    await apiFetch("/api/favorites/p1", { method: "POST" });
 
     assert.equal(capturedOptions.headers.has("X-CSRF-Token"), false);
   });

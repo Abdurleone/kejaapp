@@ -16,13 +16,24 @@ import { apiFetch } from "../app-utils.js";
  * a live backend, so a regression in the actual fetch wrapper - not just an
  * approximation of it - fails this test.
  *
- * The session now lives entirely in httpOnly cookies the backend sets on
+ * The session lives entirely in httpOnly cookies the backend sets on
  * login/register/etc., which a real browser resends automatically - Node's
  * built-in fetch has no such cookie jar, so this file provides a small one:
  * it captures Set-Cookie from every response and replays it as a Cookie
- * header on the next request, and exposes only the non-httpOnly cookie
- * (keja_csrf) via a global.document.cookie stub, matching what a real
- * browser would actually let frontend JS read.
+ * header on the next request.
+ *
+ * global.document.cookie is stubbed to always read as empty - deliberately,
+ * not an oversight. It used to expose the non-httpOnly keja_csrf cookie so
+ * client.js could read it directly, which happened to work in this test
+ * (frontend and backend share TEST_API_BASE, i.e. one origin) but not in
+ * the real deployment, where they're on two different Render origins - a
+ * cookie the backend sets is stored under the backend's origin, invisible
+ * to document.cookie on the frontend's own page, no matter its httpOnly/
+ * SameSite flags. That mismatch is exactly how the login/register CSRF
+ * lockout bug shipped undetected. client.js now learns the CSRF value from
+ * the response body instead (see client.js's setCsrfToken), which this
+ * empty stub proves: if that ever regresses back to reading document.cookie,
+ * every mutation below fails instead of silently passing.
  */
 
 const TEST_API_BASE = "http://localhost:5000";
@@ -70,12 +81,6 @@ const createCookieJar = () => {
         .map(([name, { value }]) => `${name}=${value}`)
         .join("; ");
     },
-    documentCookie() {
-      return Array.from(cookies.entries())
-        .filter(([, { httpOnly }]) => !httpOnly)
-        .map(([name, { value }]) => `${name}=${value}`)
-        .join("; ");
-    },
     clear() {
       cookies.clear();
     },
@@ -94,11 +99,8 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
       clear: () => store.clear(),
     };
 
-    global.document = {
-      get cookie() {
-        return jar.documentCookie();
-      },
-    };
+    // Deliberately always empty - see the file header comment.
+    global.document = { cookie: "" };
 
     const originalFetch = global.fetch;
     global.fetch = async (url, options = {}) => {
