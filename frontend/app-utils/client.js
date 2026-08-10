@@ -17,25 +17,33 @@ export const createApiUrl = (path, baseUrl = defaultApiBaseUrl) => {
 // ever readable by, or stored in, frontend JS anymore.
 //
 // The one thing frontend JS does need is proof a mutation actually came
-// from this site: keja_csrf is a deliberately non-httpOnly cookie set
-// alongside the session cookies specifically so this code can read it and
-// echo it back as a header. A cross-site forged request can't do that -
-// Same-Origin Policy blocks reading another origin's cookie value - so a
-// matching header+cookie pair is proof of same-origin, same as the backend's
-// csrfProtection.js middleware expects. Must match the backend's
-// CSRF_COOKIE_NAME default.
-const csrfCookieName = "keja_csrf";
+// from this site: a matching CSRF value echoed back as a header, checked
+// against the non-httpOnly keja_csrf cookie the backend also sets, exactly
+// as csrfProtection.js expects.
+//
+// That value used to be read directly via document.cookie - which works
+// only when the page and the cookie share an origin. In production the
+// frontend and backend are on different Render origins (kejaapp-frontend
+// vs kejaapp-backend-...), so the cookie the backend sets is stored under
+// the BACKEND's origin: the browser still attaches it automatically to
+// requests TO that origin (that part isn't same-origin-restricted), but
+// frontend JS calling document.cookie on ITS OWN page can never see a
+// cookie that belongs to a different origin - that restriction has nothing
+// to do with httpOnly/SameSite, it's just how per-origin cookie storage
+// works. The result: getCsrfToken() always returned "" in production, and
+// every mutation (not just login) failed CSRF - a real, live bug.
+//
+// Fixed by having the backend also echo the current CSRF value in the JSON
+// body of login/register/refresh/me responses (something the frontend's
+// own fetch call CAN read, regardless of origin, since it's reading its own
+// response) and keeping it here in memory instead of re-deriving it from a
+// cookie the page can't see. The cookie itself still rides along on every
+// request and is still what csrfProtection.js compares against - only
+// where the client learns the value to echo back changed.
+let csrfToken = "";
 
-const getCsrfToken = () => {
-  // node:test's suite of tests runs this file outside a DOM (no `document`
-  // global at all), unlike the Vitest/jsdom render tests - stay safe there
-  // the same way defaultApiBaseUrl above stays safe without import.meta.env.
-  if (typeof document === "undefined") {
-    return "";
-  }
-
-  const match = document.cookie.match(new RegExp(`(?:^|; )${csrfCookieName}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : "";
+export const setCsrfToken = (token) => {
+  csrfToken = typeof token === "string" ? token : "";
 };
 
 const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -102,12 +110,8 @@ export const apiFetch = async (path, options = {}) => {
   const headers = new Headers(options.headers || {});
   const method = (options.method || "GET").toUpperCase();
 
-  if (unsafeMethods.has(method)) {
-    const csrfToken = getCsrfToken();
-
-    if (csrfToken) {
-      headers.set("X-CSRF-Token", csrfToken);
-    }
+  if (unsafeMethods.has(method) && csrfToken) {
+    headers.set("X-CSRF-Token", csrfToken);
   }
 
   if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {
@@ -122,6 +126,15 @@ export const apiFetch = async (path, options = {}) => {
   });
 
   const payload = await response.json().catch(() => ({}));
+
+  // Learn the current value from whichever response carries one (login,
+  // register, refresh, google, and /api/auth/me all echo it) rather than
+  // requiring every call site to know to do this - covers both a fresh
+  // login and restoring a session on page reload via the existing
+  // fetchCurrentUser() mount check.
+  if (typeof payload.csrfToken === "string") {
+    setCsrfToken(payload.csrfToken);
+  }
 
   if (!response.ok) {
     const error = new Error(payload.message || `Request failed with status ${response.status}`);
