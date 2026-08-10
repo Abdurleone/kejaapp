@@ -4,82 +4,46 @@
     "ignoreFiles": [],
     "ignoreValues": [
       {
-        "rule": "design-system-font",
-        "value": "bungee",
-        "createdAt": "2026-08-09T10:51:45.972Z",
-        "reason": "User confirmed Bungee is intentional (matatu-poster landing page redesign, PR #215)"
-      },
-      {
-        "rule": "design-system-font",
-        "value": "work sans",
-        "createdAt": "2026-08-09T10:51:58.884Z",
-        "reason": "User confirmed Work Sans is intentional (matatu-poster landing page redesign, PR #215)"
-      },
-      {
-        "rule": "design-system-font-size",
-        "value": "0.92rem",
-        "createdAt": "2026-08-09T11:23:47.320Z",
-        "reason": "Scoped landing-page 'matatu poster' testimonials body text (Scoped-World Rule, DESIGN.md), not part of the global type ramp"
-      },
-      {
         "rule": "design-system-font-size",
         "value": "0.95rem",
         "createdAt": "2026-08-09T11:23:47.459Z",
-        "reason": "Scoped landing-page showcase text (Scoped-World Rule, DESIGN.md)"
+        "reason": "Landing-page showcase text - bespoke content under the narrowed Scoped-World Rule (DESIGN.md), not part of the global type ramp"
       },
       {
         "rule": "design-system-font-size",
         "value": "0.96rem",
         "createdAt": "2026-08-09T11:23:47.563Z",
-        "reason": "Scoped landing-page ghost-link text (Scoped-World Rule, DESIGN.md)"
-      },
-      {
-        "rule": "design-system-font-size",
-        "value": "1.1rem",
-        "createdAt": "2026-08-09T11:23:47.666Z",
-        "reason": "Scoped landing-page testimonials heading in Bungee (Scoped-World Rule, DESIGN.md)"
+        "reason": "Landing-page ghost-link text - bespoke content under the narrowed Scoped-World Rule (DESIGN.md)"
       },
       {
         "rule": "design-system-font-size",
         "value": "2.4rem",
         "createdAt": "2026-08-09T11:23:47.735Z",
-        "reason": "Scoped landing-page display headline clamp endpoint, Bungee (Scoped-World Rule, DESIGN.md)"
-      },
-      {
-        "rule": "design-system-font-size",
-        "value": "4.1rem",
-        "createdAt": "2026-08-09T11:23:47.823Z",
-        "reason": "Scoped landing-page display headline clamp endpoint, Bungee (Scoped-World Rule, DESIGN.md)"
-      },
-      {
-        "rule": "design-system-font-size",
-        "value": "2rem",
-        "createdAt": "2026-08-09T11:23:47.906Z",
-        "reason": "Scoped landing-page display headline clamp endpoint at narrow viewports, Bungee (Scoped-World Rule, DESIGN.md)"
+        "reason": "Landing-page display headline clamp endpoint - bespoke content under the narrowed Scoped-World Rule (DESIGN.md); the base frame's own Headline role uses a smaller clamp"
       },
       {
         "rule": "design-system-font-size",
         "value": "3.2rem",
         "createdAt": "2026-08-09T11:23:48.002Z",
-        "reason": "Scoped landing-page display headline clamp endpoint at narrow viewports, Bungee (Scoped-World Rule, DESIGN.md)"
+        "reason": "Landing-page display headline clamp endpoint at narrow viewports - bespoke content under the narrowed Scoped-World Rule (DESIGN.md)"
       },
       {
         "rule": "design-system-radius",
         "value": "20px",
         "createdAt": "2026-08-09T11:23:48.090Z",
-        "reason": "Scoped landing-page 'matatu poster' world's own shape system (Scoped-World Rule, DESIGN.md), not the global 6/8/999px scale"
+        "reason": "Landing-page showcase/testimonials panel radius - bespoke content under the narrowed Scoped-World Rule (DESIGN.md), not the base frame's 8/14/999px scale"
       },
       {
         "rule": "design-system-radius",
         "value": "10px",
         "createdAt": "2026-08-09T11:23:48.184Z",
-        "reason": "Scoped landing-page 'matatu poster' world's own shape system (Scoped-World Rule, DESIGN.md)"
+        "reason": "Landing-page showcase inner-div radius - bespoke content under the narrowed Scoped-World Rule (DESIGN.md)"
       },
       {
         "rule": "design-system-radius",
         "value": "12px",
         "createdAt": "2026-08-09T11:23:48.271Z",
-        "reason": "Scoped landing-page 'matatu poster' world's own shape system (Scoped-World Rule, DESIGN.md)"
+        "reason": "Landing-page testimonials blockquote/empty-state radius - bespoke content under the narrowed Scoped-World Rule (DESIGN.md)"
       },
       {
         "rule": "design-system-radius",
@@ -95,9 +59,15 @@
       },
       {
         "rule": "design-system-color",
-        "value": "#fffaf0",
-        "createdAt": "2026-08-09T11:23:48.540Z",
-        "reason": "Scoped landing-page 'matatu poster' CTA/button cream text color (Scoped-World Rule, DESIGN.md)"
+        "value": "#ffffff",
+        "createdAt": "2026-08-09T12:23:21.177Z",
+        "reason": "Print-media override forcing a plain white page background for legal-page PDF export, not a brand color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#cccccc",
+        "createdAt": "2026-08-09T12:23:21.239Z",
+        "reason": "Print-media override: light gray panel border for legal-page PDF export, not a brand color"
       }
     ]
   }
