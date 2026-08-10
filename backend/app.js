@@ -55,6 +55,14 @@ app.use(
               "script-src": ["'self'", "https://accounts.google.com"],
               "connect-src": ["'self'", "https://accounts.google.com"],
               "frame-src": ["https://accounts.google.com"],
+              // Property photos are never same-origin: resolveAssetUrl's
+              // fallback/seed images point at Unsplash, and real uploads
+              // resolve to whatever S3_PUBLIC_BASE_URL (Backblaze B2) is
+              // configured - an arbitrary host, not a fixed one. Widened the
+              // same way Helmet's own defaults already do for font-src/
+              // style-src in this exact directive block, rather than
+              // enumerating specific image hosts.
+              "img-src": ["'self'", "data:", "https:"],
             },
           },
         }
