@@ -1,165 +1,165 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-09T11:24:40Z",
+  "generatedAt": "2026-08-09T12:04:06Z",
   "title": "Design System: KejaApp",
   "extensions": {
     "colorMeta": {
       "primary": {
         "role": "primary",
         "displayName": "Registry Green",
-        "canonical": "#003d00",
+        "canonical": "#054a2b",
         "tonalRamp": [
-          "#001a00",
-          "#00280a",
-          "#003d00",
-          "#0a5c1e",
-          "#237d38",
-          "#4caf50",
-          "#8fd39a",
-          "#d6f0da"
+          "#032616",
+          "#054a2b",
+          "#054c2c",
+          "#087c48",
+          "#0ba05d",
+          "#13ef8c",
+          "#72f5ba",
+          "#d2fce9"
         ]
       },
       "secondary": {
         "role": "secondary",
         "displayName": "Flag Red",
-        "canonical": "#ce1126",
+        "canonical": "#d21023",
         "tonalRamp": [
-          "#3d0308",
-          "#650a13",
-          "#9b0e1e",
-          "#ce1126",
-          "#e0424f",
-          "#ee7178",
-          "#f6a7ac",
-          "#fbd7d9"
+          "#260306",
+          "#4c060d",
+          "#7b0915",
+          "#d21023",
+          "#ef2a3d",
+          "#f4717e",
+          "#fab8be",
+          "#fde7e9"
         ]
       },
       "tertiary": {
         "role": "tertiary",
-        "displayName": "Notice Amber",
-        "canonical": "#a86416",
+        "displayName": "Poster Gold",
+        "canonical": "#f0a500",
         "tonalRamp": [
-          "#2e1c06",
-          "#4d2f0a",
-          "#7a4b10",
-          "#a86416",
-          "#c9862f",
-          "#e0a640",
-          "#eec27c",
-          "#f7e2bd"
+          "#291c00",
+          "#523800",
+          "#855b00",
+          "#f0a500",
+          "#ffb71a",
+          "#ffcf66",
+          "#ffe7b2",
+          "#fff7e5"
         ]
       },
       "neutral-bg": {
         "role": "neutral",
         "displayName": "Paper",
-        "canonical": "#f7f7f6",
+        "canonical": "#f6ecd2",
         "tonalRamp": [
-          "#121212",
-          "#242424",
-          "#5c5c59",
-          "#a8a8a5",
-          "#dcdcda",
-          "#eef0ee",
-          "#f7f7f6",
-          "#ffffff"
+          "#221a07",
+          "#44350e",
+          "#6f5616",
+          "#d9ae40",
+          "#e6c97f",
+          "#f2e4bf",
+          "#f6ecd2",
+          "#fbf6ea"
         ]
       },
       "neutral-surface": {
         "role": "neutral",
-        "displayName": "Registry White",
-        "canonical": "#ffffff",
+        "displayName": "Paper Raised",
+        "canonical": "#fffaec",
         "tonalRamp": [
-          "#1c1c1c",
-          "#242424",
-          "#3a3a38",
-          "#5c5c59",
-          "#a8a8a5",
-          "#dcdcda",
-          "#f2f2f2",
-          "#ffffff"
+          "#291e00",
+          "#523c00",
+          "#856200",
+          "#ffc31a",
+          "#ffd766",
+          "#ffebb2",
+          "#fff8e5",
+          "#fffaec"
         ]
       },
       "neutral-surface-soft": {
         "role": "neutral",
-        "displayName": "Soft Fill",
-        "canonical": "#eef0ee",
+        "displayName": "Panel Fill",
+        "canonical": "#fff8e6",
         "tonalRamp": [
-          "#161816",
-          "#242424",
-          "#3a3a38",
-          "#8a8f8a",
-          "#c4c9c4",
-          "#dfe4df",
-          "#eef0ee",
-          "#f7f9f7"
+          "#291d00",
+          "#523b00",
+          "#855f00",
+          "#ffbf1a",
+          "#ffd466",
+          "#ffeab2",
+          "#fff8e5",
+          "#fff8e6"
         ]
       },
       "neutral-ink": {
         "role": "neutral",
         "displayName": "Ink",
-        "canonical": "#000000",
+        "canonical": "#17130d",
         "tonalRamp": [
-          "#000000",
-          "#141414",
-          "#333333",
-          "#5c5c59",
-          "#8f8f8c",
-          "#c7c7c4",
-          "#e8e8e6",
-          "#f2f2f2"
+          "#17130d",
+          "#1a160f",
+          "#342b1d",
+          "#52442e",
+          "#554630",
+          "#89714e",
+          "#b9a484",
+          "#ded4c5"
         ]
       },
       "neutral-muted": {
         "role": "neutral",
         "displayName": "Muted",
-        "canonical": "#5c5c59",
+        "canonical": "#514a3a",
         "tonalRamp": [
-          "#1c1c1a",
-          "#2f2f2d",
-          "#464644",
-          "#5c5c59",
-          "#7d7d79",
-          "#a8a8a5",
-          "#c9c9c6",
-          "#e6e6e4"
+          "#181611",
+          "#302b22",
+          "#4d4737",
+          "#514a3a",
+          "#877b60",
+          "#afa58f",
+          "#d9d5ca",
+          "#f4f3f0"
         ]
       },
       "neutral-line": {
         "role": "neutral",
         "displayName": "Line",
-        "canonical": "#dcdcda",
+        "canonical": "#17130d",
         "tonalRamp": [
-          "#1c1c1a",
-          "#3a3a38",
-          "#57574f",
-          "#8a8a86",
-          "#b5b5b1",
-          "#dcdcda",
-          "#ececea",
-          "#f7f7f6"
+          "#17130d",
+          "#1a160f",
+          "#342b1d",
+          "#52442e",
+          "#554630",
+          "#89714e",
+          "#b9a484",
+          "#ded4c5"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "No longer applies to the landing page (replaced by the scoped Bungee display treatment there); nothing else in the app currently uses this role."
+        "purpose": "Bungee, uppercase - the landing hero headline and the testimonials heading. One of two Bungee-eligible roles; never body copy or dense UI text."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Page-level view titles (Discover, Workspace, Admin, etc.)."
+        "purpose": "Bungee, uppercase - page-level view titles (Discover/Workspace/Admin), the header wordmark, and the auth modal title. The other Bungee-eligible role."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Default text everywhere; the implicit browser/RN default, not an explicit override."
+        "purpose": "Work Sans, 400 weight - the default for everything else, set once on body."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Buttons, tabs, status pills, badge counts \u2014 emphasis via weight, not size. Real observed range is 0.7-0.95rem (typography.scale.label-*), not just the 0.82rem point value."
+        "purpose": "Work Sans, 800-900 weight - buttons, tabs, status pills, badge counts. Real observed range is 0.7-0.95rem (typography.scale.label-*), not just the 0.82rem point value."
       },
       "scale": {
         "displayName": "Additional observed sizes",
-        "purpose": "Real, recurring sizes found auditing the stylesheet directly, outside the four named roles: the Label role's honest 0.7-0.95rem range (label-xs/sm/md/lg), a second regular-weight numeric/heading emphasis tier between Body and Headline (emphasis-sm/md/lg, 1.05-1.25rem), and one outlier that sizes an icon glyph rather than running text (icon-glyph, 1.8rem)."
+        "purpose": "Real, recurring sizes outside the four named roles: the Label role's honest 0.7-0.95rem range (label-xs/sm/md/lg), a second regular-weight numeric/heading emphasis tier between Body and Headline (emphasis-sm/md/lg, 1.05-1.25rem), and one outlier that sizes an icon glyph rather than running text (icon-glyph, 1.8rem)."
       }
     },
     "shadows": [
@@ -279,25 +279,26 @@
       "name": "Flip-Mode Testimonials Card",
       "kind": "card",
       "refersTo": null,
-      "description": "Landing page only. Half-width (max 620px), and inverts relative to the page's own light/dark mode - dark card on the light page, light card on the dark page - via its own --mp-band* tokens, distinct from the page-wide ink/paper pair. Accent colors differ by direction (gold/red on dark, red/green on light) for contrast, not a literal inversion of the same two hues.",
+      "description": "Landing page only. Half-width (max 620px), and inverts relative to the page's own light/dark mode - dark card on the light page, light card on the dark page - via its own --band* tokens, distinct from the page-wide ink/paper pair. Accent colors differ by direction (gold/red on dark, red/green on light) for contrast, not a literal inversion of the same two hues.",
       "html": "<div class=\"ds-testimonial-card\"><h3>What our users say</h3><p class=\"ds-testimonial-empty\">No shared experiences yet - real tenant, landlord, agency, and mover stories will show up here as they come in.</p></div>",
       "css": ".ds-testimonial-card { max-width: 620px; padding: 24px; border-radius: 20px; background: #17130d; } .ds-testimonial-card h3 { margin: 0 0 4px; color: #ffc93c; font-family: Bungee, sans-serif; text-transform: uppercase; font-size: 1.1rem; } .ds-testimonial-empty { margin: 0; padding: 14px 16px; border: 2.5px dashed rgba(255,201,60,0.55); border-radius: 12px; color: #f3ead2; font-family: 'Work Sans', sans-serif; font-size: 0.92rem; }"
     }
   ],
   "narrative": {
-    "northStar": "The County Registry",
-    "overview": "KejaApp's current, shipped visual system reads like a well-run civic registry office, not a marketplace app performing trust \u2014 plain type, the Kenyan flag's own palette carried at low saturation, small radii, and almost no decoration beyond what a state changes (a border tint on a warning, a color shift on a status pill). Nothing asks to be noticed for its own sake; the design gets out of the way of the actual task, which fits a product whose whole legal positioning is staying out of the tenancy and the money entirely. Depth is rare and earned \u2014 panels sit flat until a property card is actually interactive under a cursor, and only then does it lift.\n\nThere is no confirmed anti-reference on file; \"flashy fintech/marketplace\" was considered as a naming point during this document's own drafting but was not adopted as a stated rejection, so treat it as absent rather than binding.",
+    "northStar": "Matatu Poster",
+    "overview": "KejaApp's visual system is a sign-painted, Nairobi-matatu-decoration-inspired identity: a warm, cream \"poster stock\" ground, the Kenyan flag's own hues pushed bolder and more saturated than a civic form would use, thick ink strokes, and hard offset drop-shadows with zero blur - the look of a screen-printed decal or a hand-painted matatu panel, not a generic SaaS card. This became the app-wide base frame on 2026-08-09, after originating as a deliberately scoped, user-commissioned exception on the signed-out landing page only (PR #215).\n\nThere is no confirmed anti-reference on file; \"flashy fintech/marketplace\" was considered as a naming point during an earlier draft but was not adopted as a stated rejection, so treat it as absent rather than binding.",
     "keyCharacteristics": [
-      "Flag-derived palette (black, white, red, dark green) at restrained saturation, applied as accent, not wallpaper - plus one non-flag warning amber.",
-      "One typographic voice for the whole system \u2014 no separate display face; hierarchy comes from size and weight alone.",
-      "Small, consistent radii (6-8px); a single 999px pill for counts and status only.",
-      "Flat by default; shadow appears only as a response to hover/interaction, never as ambient decoration.",
-      "Heavily bold (700-900 weight) labels on buttons and badges, ordinary weight everywhere else."
+      "Flag-derived palette (black/cream ink and paper, red, green, gold) pushed bold and warm, applied as accent and as the ground itself.",
+      "Two typographic voices: Bungee (display, uppercase) for major/page-level headings only; Work Sans (body, variable weight) for everything else.",
+      "A two-tier shape language: 8px/14px radii for panels/cards/inputs/tables, full 999px pills for buttons/badges/tabs.",
+      "Hard offset drop-shadows (zero blur) as the default depth vocabulary, graduated by density.",
+      "Thick strokes (1.5-2.5px) colored by a dedicated --stroke token, distinct from --ink so dark mode can flip it to a warm gold glow (\"matatu at night\") while text stays a plain cream tint.",
+      "Heavily bold (700-900 weight) labels on buttons and badges - boldness carries emphasis instead of color or size."
     ],
     "rules": [
       {
         "name": "The Accent-on-State Rule",
-        "body": "Green, red, and amber only ever appear attached to a specific state or action \u2014 never as a decorative fill, gradient, or background wash.",
+        "body": "Green, red, and gold only ever appear attached to a specific state or action - never as a decorative fill, gradient, or background wash.",
         "section": "colors"
       },
       {
@@ -306,29 +307,44 @@
         "section": "typography"
       },
       {
-        "name": "The Earned-Shadow Rule",
-        "body": "A stronger shadow is a response to interaction (hover), never an ambient decoration applied at rest.",
+        "name": "The One-Heading Rule",
+        "body": "Bungee applies to exactly one heading-role element per view - never a second heading, a table header, or any body-level text.",
+        "section": "typography"
+      },
+      {
+        "name": "The Graduated-Pop Rule",
+        "body": "Reach for the small hard-shadow pop on anything repeated many times per screen (a card grid, a table); reach for the full pop only on the one or two elements that are genuinely singular on that screen.",
         "section": "elevation"
       },
       {
+        "name": "The Two-Tier Radius Rule",
+        "body": "A panel/card/input/table reaches for 8px/14px; a button/badge/tab/pill reaches for 999px. Nothing in between.",
+        "section": "shapes"
+      },
+      {
+        "name": "The On-Accent Contrast Rule",
+        "body": "Solid green/red fills never hardcode white or cream text - they read var(--on-accent), which flips to a dark ink in dark mode since the brighter dark-mode accent tints fail WCAG AA against a fixed light text color.",
+        "section": "components"
+      },
+      {
         "name": "The Scoped-World Rule",
-        "body": "A surface may run its own visual world entirely apart from the global system (the landing page's matatu-poster identity vs. the rest of the app's County Registry), but only by explicit commission, never by a builder's default - and it doesn't leak to any other route without the same kind of deliberate decision.",
+        "body": "A surface may run a second, unrelated visual world only by explicit commission. The palette/type/shape are the base frame everywhere now; what still earns the exception is the landing page's bespoke content - the illustrated skyline, the sticker badge, and the testimonials flip-against-mode mechanic - not a third world on some other surface.",
         "section": "colors"
       }
     ],
     "dos": [
       "Do reach for weight (700-900) before size or color when a label needs emphasis.",
-      "Do keep shadows a response to hover/interaction, never an ambient resting decoration.",
-      "Do keep the accent colors (green/red/amber) tied to a specific action or state.",
-      "Do use the 6px/8px radius pair for nearly everything; reserve 999px for counts and fully-round pills only.",
-      "Do treat a commissioned surface-scoped world (like the landing page's) as owned by that surface only - reference its own tokens, not the global ones, and vice versa."
+      "Do graduate hard-shadow intensity by density: the small pop for repeated elements, the full pop for one-per-screen/elevated moments only.",
+      "Do keep the accent colors (green/red/gold) tied to a specific action or state.",
+      "Do use var(--on-accent) - never a hardcoded white/cream - for text on solid green/red fills.",
+      "Do use the 8px/14px radius pair for panels/cards/inputs; reserve 999px for buttons/badges/tabs/pills only."
     ],
     "donts": [
-      "Don't assume web's and mobile's \"same\" brand colors already match - they currently don't.",
-      "Don't treat Calibri as a meaningful part of the type identity - it's a stale leading fallback most visitors never actually render.",
-      "Don't invent a second display typeface without updating this file first.",
-      "Don't add a spacing/breakpoint token system to only one platform's file.",
-      "Don't reuse the gold accent for text on the testimonials card's light-mode state - it measures ~1.8:1 on cream, well under WCAG AA; use red/green for that direction of the flip instead."
+      "Don't assume web's and mobile's \"same\" brand colors already match - they currently don't, and web just moved again; the mobile port PR closes this deliberately.",
+      "Don't apply Bungee to more than one heading per view, or to body copy/table cells/dense UI text.",
+      "Don't extend the landing page's remaining bespoke content (sticker badge, illustrated skyline, testimonials flip mechanic) to any other route without the same kind of deliberate, user-commissioned decision that created it.",
+      "Don't reuse the gold accent for text on the testimonials card's light-mode state - it measures ~1.8:1 on cream, well under WCAG AA; use red/green for that direction of the flip instead.",
+      "Don't add a spacing/breakpoint token system to only one platform's file."
     ]
   }
 }
