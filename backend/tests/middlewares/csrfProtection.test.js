@@ -47,6 +47,7 @@ describe("csrfProtection", () => {
         {
           message: "This request must be authenticated with an Authorization header or a matching CSRF token",
           statusCode: 403,
+          details: { code: "CSRF_MISMATCH" },
         }
       );
     });
@@ -57,7 +58,7 @@ describe("csrfProtection", () => {
 
     assert.throws(
       () => csrfProtection(req, {}, () => {}),
-      { statusCode: 403 }
+      { statusCode: 403, details: { code: "CSRF_MISMATCH" } }
     );
   });
 
@@ -74,6 +75,7 @@ describe("csrfProtection", () => {
       {
         message: "This request must be authenticated with an Authorization header or a matching CSRF token",
         statusCode: 403,
+        details: { code: "CSRF_MISMATCH" },
       }
     );
   });
@@ -140,7 +142,7 @@ describe("csrfProtection", () => {
 
     assert.throws(
       () => csrfProtection(req, {}, () => {}),
-      { statusCode: 403 }
+      { statusCode: 403, details: { code: "CSRF_MISMATCH" } }
     );
   });
 
@@ -152,7 +154,7 @@ describe("csrfProtection", () => {
 
     assert.throws(
       () => csrfProtection(req, {}, () => {}),
-      { statusCode: 403 }
+      { statusCode: 403, details: { code: "CSRF_MISMATCH" } }
     );
   });
 
@@ -164,7 +166,7 @@ describe("csrfProtection", () => {
 
     assert.throws(
       () => csrfProtection(req, {}, () => {}),
-      { statusCode: 403 }
+      { statusCode: 403, details: { code: "CSRF_MISMATCH" } }
     );
   });
 });
