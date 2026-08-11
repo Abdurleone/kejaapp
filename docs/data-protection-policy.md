@@ -67,6 +67,7 @@ Each category above is processed for a specific, disclosed purpose — consisten
 | S3-compatible object storage (when `STORAGE_DRIVER` is set to a bucket backend) | Property listing image storage | Uploaded image files only |
 | Expo push notification service | Delivering mobile push notifications | Device push token, notification title/body |
 | Redis (when `REDIS_URL` is set) | Rate limiting and response caching | Transient, non-personal request-count data; cached public listing data |
+| Sentry (when `SENTRY_DSN`/`EXPO_PUBLIC_SENTRY_DSN` is set) | Error tracking (backend 5xx errors only; mobile app crashes) | Error messages, stack traces, and request URL/method for the failing request. `sendDefaultPii` is deliberately left disabled (its default), so IP addresses and other default-collected PII are not sent — a stack trace or request body could still incidentally include personal data being processed at the moment of the error |
 
 KejaApp does not sell personal data to any third party, and does not share personal data with advertisers.
 

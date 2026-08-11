@@ -49,6 +49,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Mobile Security/Health Pass: PropertyCreateScreen Test Coverage Gap](#mobile-securityhealth-pass-propertycreatescreen-test-coverage-gap)
 - [Sentry Error Tracking (Backend + Mobile): PR #206 Revived](#sentry-error-tracking-backend--mobile-pr-206-revived)
 - [Sentry DSNs Configured and Verified Locally](#sentry-dsns-configured-and-verified-locally)
+- [Disclose Sentry as a Third-Party Processor in Compliance Docs](#disclose-sentry-as-a-third-party-processor-in-compliance-docs)
 
 ---
 
@@ -530,3 +531,10 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Fix + re-verification**: swapped in the correct backend DSN, re-ran with `debug: true` again - no rejection this time, confirming genuine acceptance. Mobile's DSN was checked a different way (`@sentry/react-native`'s SDK depends on native modules unavailable in a plain Node script): hand-built a minimal Sentry envelope and POSTed it directly to the DSN's ingest endpoint - a clean `200` with the event ID echoed back, bypassing the SDK entirely to confirm the DSN/project itself was valid before trusting the app's own bundle.
 - Restarted the local backend and Metro (`--clear`) to confirm the corrected DSNs actually reached the running processes, not just the `.env`/`.env.local` files on disk - the mobile bundle was re-fetched and grepped to confirm the old wrong DSN was gone and the corrected one was baked in.
 - **Still pending**: neither DSN is set on Render or as an EAS secret yet - local dev/testing now reports real errors to Sentry, but production (the actual deployed backend, and any real mobile build) still doesn't. See `docs/live.md`.
+
+## Disclose Sentry as a Third-Party Processor in Compliance Docs
+
+- **Sentry receiving real error data is a genuine new third-party processor** - the two PRs above shipped and verified the wiring, but never updated this codebase's formal data-protection/security documentation to reflect it, which this project treats as seriously as the code itself (per `docs/records-of-processing-activities.md`'s own instruction: "should be updated whenever a new processing activity, data category, or third-party recipient is introduced").
+- **`docs/data-protection-policy.md` §7 (Third-Party Processors)**: added a Sentry row alongside the existing MongoDB/S3/Expo/Redis entries - error messages, stack traces, and request URL/method for the failing request; explicitly notes `sendDefaultPii` was deliberately left disabled (its default) so IP addresses and other default-collected PII aren't sent, though a stack trace or request body could still incidentally carry personal data being processed at the moment of the error. Not added to `records-of-processing-activities.md`'s RoPA register itself - matching how Redis (a similar cross-cutting infrastructure concern, not a discrete data-subject-facing activity) is already handled: named in §7, not given its own numbered RoPA row.
+- **`SECURITY.md`**: added "sensitive data leaking into Sentry error reports" as an explicitly in-scope category for vulnerability reports, alongside the existing secrets/token-exposure and broken-access-control categories.
+- **`docs/iso27001-statement-of-applicability.md`**: control `8.16` (Monitoring activities) updated in both places it's listed (the full §5 assessment and the §6 pending-items digest) - still correctly marked "Partial," since Sentry closes the "no application-error visibility" gap but doesn't address the separate, still-open one (no uptime/liveness alerting or dashboarding on the health endpoints), and production still doesn't have a DSN set yet either.
