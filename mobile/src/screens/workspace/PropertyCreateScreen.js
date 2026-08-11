@@ -120,7 +120,13 @@ export default function PropertyCreateScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.field}>
         <Text style={styles.label}>Title</Text>
-        <TextInput style={styles.input} value={form.title} onChangeText={updateField("title")} maxLength={140} />
+        <TextInput
+          style={styles.input}
+          value={form.title}
+          onChangeText={updateField("title")}
+          maxLength={140}
+          accessibilityLabel="Title"
+        />
       </View>
 
       <View style={styles.field}>
@@ -202,7 +208,13 @@ export default function PropertyCreateScreen({ navigation }) {
       <Text style={styles.sectionTitle}>Cost</Text>
       <View style={styles.field}>
         <Text style={styles.label}>Monthly rent (KES)</Text>
-        <TextInput style={styles.input} value={form.rent} onChangeText={updateField("rent")} keyboardType="number-pad" />
+        <TextInput
+          style={styles.input}
+          value={form.rent}
+          onChangeText={updateField("rent")}
+          keyboardType="number-pad"
+          accessibilityLabel="Monthly rent (KES)"
+        />
       </View>
       <View style={styles.row}>
         <View style={[styles.field, styles.half]}>
