@@ -75,6 +75,7 @@ Other commonly used optional settings include:
 - `CLAMAV_HOST`
 - `STORAGE_DRIVER`
 - `S3_BUCKET`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`
+- `SENTRY_DSN` (backend), `EXPO_PUBLIC_SENTRY_DSN` (mobile) — error tracking, unset by default
 
 The backend loads and validates configuration from [backend/config/env.js](backend/config/env.js).
 

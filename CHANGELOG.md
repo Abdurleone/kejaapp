@@ -48,6 +48,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Mobile Landing Screen: Real Matatu-Poster Recreation, Not Just Tokens](#mobile-landing-screen-real-matatu-poster-recreation-not-just-tokens)
 - [Mobile Security/Health Pass: PropertyCreateScreen Test Coverage Gap](#mobile-securityhealth-pass-propertycreatescreen-test-coverage-gap)
 - [Sentry Error Tracking (Backend + Mobile): PR #206 Revived](#sentry-error-tracking-backend--mobile-pr-206-revived)
+- [Sentry DSNs Configured and Verified Locally](#sentry-dsns-configured-and-verified-locally)
 
 ---
 
@@ -521,3 +522,11 @@ A running, chronological (oldest first) record of what was built and why — inc
 - Verified for real, not just reasoned about: booted the backend locally with a live (fake but well-formed) `SENTRY_DSN` set - confirmed no crash on startup, confirmed 404/400 responses are completely unaffected by the new error-handler wiring. Fetched a real Metro bundle for the mobile app with the new dependency installed - confirmed it builds cleanly (200, 16.5MB, 2700+ Sentry references) rather than assuming a `npm install` succeeding means the bundle would too.
 - Neither `SENTRY_DSN` (Render) nor `EXPO_PUBLIC_SENTRY_DSN` (mobile secrets) is actually set anywhere yet - the code is live and wired, but no error has actually been reported to a real Sentry project. See `docs/live.md`'s "What's pending."
 - Verified: full backend suite (509 tests, +1 for the new `sentryDsn` default-disabled test) and mobile suite (206 tests, 36 suites) plus lint, both green.
+
+## Sentry DSNs Configured and Verified Locally
+
+- **Both real Sentry project DSNs set locally** (`backend/.env`'s `SENTRY_DSN`, `mobile/.env.local`'s `EXPO_PUBLIC_SENTRY_DSN`) and confirmed actually delivering events - not just assumed working because the wiring from the PR above looked right.
+- **Caught a real, easy-to-miss false positive along the way**: the first backend DSN provided pointed at an entirely different Sentry project than intended. `Sentry.flush()` returned `true` regardless - it only confirms the SDK's send attempt completed, not that Sentry's server actually accepted the event. The mistake only surfaced because the target project's dashboard still showed Sentry's "waiting for your first event" onboarding screen. Re-ran with the SDK's `debug: true` option, which surfaced the real response underneath: `Sentry responded with status code 403 to sent event` - confirming rejection, not silent success.
+- **Fix + re-verification**: swapped in the correct backend DSN, re-ran with `debug: true` again - no rejection this time, confirming genuine acceptance. Mobile's DSN was checked a different way (`@sentry/react-native`'s SDK depends on native modules unavailable in a plain Node script): hand-built a minimal Sentry envelope and POSTed it directly to the DSN's ingest endpoint - a clean `200` with the event ID echoed back, bypassing the SDK entirely to confirm the DSN/project itself was valid before trusting the app's own bundle.
+- Restarted the local backend and Metro (`--clear`) to confirm the corrected DSNs actually reached the running processes, not just the `.env`/`.env.local` files on disk - the mobile bundle was re-fetched and grepped to confirm the old wrong DSN was gone and the corrected one was baked in.
+- **Still pending**: neither DSN is set on Render or as an EAS secret yet - local dev/testing now reports real errors to Sentry, but production (the actual deployed backend, and any real mobile build) still doesn't. See `docs/live.md`.
