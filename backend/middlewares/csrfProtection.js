@@ -64,9 +64,17 @@ const csrfProtection = (req, res, next) => {
   // the access-token cookie, so it's just as forgeable if only the
   // access-token cookie is checked.
   if (cookies[env.authCookieName] || cookies[env.refreshCookieName]) {
+    // A machine-readable code, not just the message: the frontend's
+    // apiFetch uses this specifically to tell "genuinely signed out /
+    // forged request" apart from a client-side staleness bug (a tab open
+    // since before another tab - or a reload - rotated this browser's
+    // shared CSRF cookie, leaving this tab's in-memory copy stale even
+    // though it's still validly signed in) so it can safely auto-retry
+    // only the latter, without matching on message text.
     throw new ApiError(
       httpStatus.FORBIDDEN,
-      "This request must be authenticated with an Authorization header or a matching CSRF token"
+      "This request must be authenticated with an Authorization header or a matching CSRF token",
+      { code: "CSRF_MISMATCH" }
     );
   }
 

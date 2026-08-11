@@ -132,6 +132,75 @@ describe("frontend API helpers", () => {
     assert.equal(capturedOptions.headers.has("X-CSRF-Token"), false);
   });
 
+  it("re-syncs a stale CSRF token from /api/auth/me and retries once on a CSRF_MISMATCH 403", async () => {
+    // Models a tab that's been open since before another tab (or a reload)
+    // rotated this browser's shared CSRF cookie: still validly signed in,
+    // but this tab's in-memory token no longer matches.
+    setCsrfToken("stale-value");
+
+    const calls = [];
+    global.fetch = async (url, options) => {
+      calls.push({ url: String(url), method: options?.method });
+
+      if (String(url).endsWith("/api/favorites/p1") && calls.length === 1) {
+        return new Response(
+          JSON.stringify({ message: "This request must be authenticated with an Authorization header or a matching CSRF token", code: "CSRF_MISMATCH" }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      if (String(url).endsWith("/api/auth/me")) {
+        return jsonResponse({ user: { id: "u1" }, csrfToken: "fresh-value-from-resync" });
+      }
+
+      return jsonResponse({ message: "ok" });
+    };
+
+    const result = await apiFetch("/api/favorites/p1", { method: "POST" });
+
+    assert.deepEqual(
+      calls.map((call) => call.url.slice(call.url.indexOf("/api"))),
+      ["/api/favorites/p1", "/api/auth/me", "/api/favorites/p1"]
+    );
+    assert.equal(result.message, "ok");
+  });
+
+  it("does not retry (or loop) when the resync itself carries no fresh token", async () => {
+    setCsrfToken("stale-value");
+
+    let callCount = 0;
+    global.fetch = async () => {
+      callCount += 1;
+      return new Response(
+        JSON.stringify({ message: "This request must be authenticated with an Authorization header or a matching CSRF token", code: "CSRF_MISMATCH" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    };
+
+    await assert.rejects(() => apiFetch("/api/favorites/p1", { method: "POST" }));
+    // Original request + one resync attempt, no further retries.
+    assert.equal(callCount, 2);
+  });
+
+  it("does not retry a 403 that isn't a CSRF_MISMATCH (a real permission decision)", async () => {
+    setCsrfToken("test-csrf-value");
+
+    let callCount = 0;
+    global.fetch = async () => {
+      callCount += 1;
+      return new Response(JSON.stringify({ message: "Not allowed to edit this property" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    await assert.rejects(
+      () => apiFetch("/api/properties/p1", { method: "PATCH" }),
+      { message: "Not allowed to edit this property" }
+    );
+    assert.equal(callCount, 1);
+  });
+
   it("handles API responses with data payloads", async () => {
     // Mock apiFetch would normally call fetch internally
     // For unit tests, we verify the function structure is correct
