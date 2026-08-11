@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
   changeCurrentUserPassword,
@@ -11,20 +11,10 @@ import {
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { bodyText, boldText, displayText } from "../../theme/typography.js";
+import { openLegalPage } from "../../utils/webLinks.js";
 
 const minPasswordLength = 8;
 const deleteConfirmationPhrase = "DELETE";
-
-// Matches render.yaml's kejaapp-frontend service name/URL - update this if
-// you deploy under a different Render service name or a custom domain.
-// Terms/Privacy content lives only on the web app (frontend/src/pages/
-// TermsPage.jsx, DataProtectionPage.jsx) - mobile links out rather than
-// duplicating that content natively, so it can't drift out of sync.
-const webAppBaseUrl = "https://kejaapp-frontend.onrender.com";
-
-const openLegalPage = (path) => {
-  Linking.openURL(`${webAppBaseUrl}${path}`).catch(() => {});
-};
 
 function describeSavedSearch(savedSearch) {
   const parts = [];

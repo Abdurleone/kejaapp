@@ -92,6 +92,78 @@
         "value": "worksans_800extrabold",
         "createdAt": "2026-08-10T09:18:32.249Z",
         "reason": "Same Work Sans already documented in DESIGN.md (bold weight, needed since RN can't synthesize bold from a single custom font file) - mobile's @expo-google-fonts registered name, not a different font"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#054a2b",
+        "createdAt": "2026-08-11T09:28:10.745Z",
+        "reason": "Skyline building fill / light-mode testimonials band accent2 - matches web's landing-page inline SVG and --band token exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#17130d",
+        "createdAt": "2026-08-11T09:28:10.824Z",
+        "reason": "Skyline ground/window fill, dark-mode testimonials band bg - matches web's landing-page inline SVG and --band token exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c7cdd2",
+        "createdAt": "2026-08-11T09:28:10.883Z",
+        "reason": "Skyline bus wheel hub fill - matches web's landing-page inline SVG exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ff3b4e",
+        "createdAt": "2026-08-11T09:28:10.950Z",
+        "reason": "Dark-mode testimonials band accent2 - matches web's --band-accent2 token exactly (dark-mode red)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1f1912",
+        "createdAt": "2026-08-11T09:28:11.033Z",
+        "reason": "Dark-mode testimonials band card bg - matches web's --band-card token exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f0a500",
+        "createdAt": "2026-08-11T09:28:11.109Z",
+        "reason": "Skyline rooftop triangle fill - matches web's landing-page inline SVG exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d21023",
+        "createdAt": "2026-08-11T09:28:11.207Z",
+        "reason": "Skyline building fill / bus body - matches web's landing-page inline SVG exactly (also the flag-red token, fixed material color not theme-driven here)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f6ecd2",
+        "createdAt": "2026-08-11T09:28:11.284Z",
+        "reason": "Skyline building fill / light-mode testimonials band bg - matches web's landing-page inline SVG and --band token exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fff8e6",
+        "createdAt": "2026-08-11T09:28:11.350Z",
+        "reason": "Skyline building fill - matches web's landing-page inline SVG exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fffaec",
+        "createdAt": "2026-08-11T09:28:11.414Z",
+        "reason": "Light-mode testimonials band card bg - matches web's --band-card token exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f3ead2",
+        "createdAt": "2026-08-11T09:28:11.492Z",
+        "reason": "Dark-mode testimonials band ink - matches web's --band-ink token exactly"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fffaf0",
+        "createdAt": "2026-08-11T09:28:11.586Z",
+        "reason": "Skyline sun fill - matches web's landing-page inline SVG exactly (frontend/src/pages/LandingPage.jsx)"
       }
     ]
   }
