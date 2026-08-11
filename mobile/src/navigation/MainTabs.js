@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,6 +13,44 @@ import MoreStack from "./MoreStack.js";
 import { getPrimaryTabs, getHiddenTabs } from "./roleTabs.js";
 
 const Tab = createBottomTabNavigator();
+
+// Mirrors frontend/src/App.jsx's .brand-block: a circular logo badge (same
+// keja-logo.png source web uses) next to a two-tone "Keja"/"App" wordmark
+// (App in red) - web shows this in the header on every page; mobile's
+// header instead shows each tab's own title everywhere else (its
+// screen-level equivalent of web's separate .view-header h2), so this only
+// replaces the title on the one screen that's plain "KejaApp" text today.
+function BrandTitle({ colors }) {
+  return (
+    <View style={brandStyles.row}>
+      <Image
+        source={require("../../assets/keja-logo.png")}
+        style={[brandStyles.mark, { borderWidth: colors.strokeWidthSm, borderColor: colors.stroke }, colors.shadowSm]}
+      />
+      <Text style={[brandStyles.wordmark, { color: colors.ink }]}>
+        Keja
+        <Text style={{ color: colors.red }}>App</Text>
+      </Text>
+    </View>
+  );
+}
+
+const brandStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  mark: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+  },
+  wordmark: {
+    ...displayText,
+    fontSize: 16,
+  },
+});
 
 export default function MainTabs() {
   const { user, signedIn } = useAuth();
@@ -97,37 +136,16 @@ export default function MainTabs() {
           component={screens[name].component}
           options={{
             ...screens[name].options,
-            ...(name === "Dashboard" && !signedIn
-              ? {
-                  // Mirrors frontend/src/App.jsx's ".app-header--splash" treatment:
-                  // when LandingView's dark gradient hero is showing, the header
-                  // and tab bar blend into it (same color as the gradient's first
-                  // stop) instead of sitting on top as mismatched light bars.
-                  // headerTitle (not title) so the tab bar label stays "Dashboard".
-                  headerTitle: "KejaApp",
-                  headerStyle: { backgroundColor: colors.green },
-                  // On-accent, not a bare white: dark mode's brighter green
-                  // (#2fbf71) fails WCAG AA against fixed white text (~2.4:1)
-                  // - same fix frontend/styles.css needed for the same
-                  // reason, see colors.js's onAccent comment.
-                  headerTintColor: colors.onAccent,
-                  headerTitleStyle: { ...displayText, fontSize: 18, color: colors.onAccent },
-                  headerShadowVisible: false,
-                  headerRight: () => <ColorModeToggle color={colors.onAccent} />,
-                  tabBarStyle: {
-                    ...baseTabBarStyle,
-                    backgroundColor: colors.green,
-                    borderTopWidth: 0,
-                    // The library's default tab bar style always sets
-                    // elevation: 8 (Android's Material drop shadow) - that's
-                    // what was still showing as a "border line" after
-                    // borderTopWidth: 0 alone didn't remove it.
-                    elevation: 0,
-                  },
-                  tabBarActiveTintColor: colors.onAccent,
-                  tabBarInactiveTintColor: "rgba(255, 255, 255, 0.6)",
-                }
-              : {}),
+            // Mirrors frontend/styles.css's .app-header--splash: the
+            // signed-out header is visually identical to every other
+            // header (same cream/surface background, same stroke), not a
+            // separate treatment - previously overridden to green here to
+            // blend into LandingView's old dark-gradient hero, which no
+            // longer exists now that LandingView uses the same cream
+            // background as every other screen (see DESIGN.md's Landing
+            // page exception - the bespoke content is the sticker/skyline/
+            // testimonials-flip, not a different base chrome color).
+            ...(name === "Dashboard" && !signedIn ? { headerTitle: () => <BrandTitle colors={colors} /> } : {}),
           }}
         />
       ))}

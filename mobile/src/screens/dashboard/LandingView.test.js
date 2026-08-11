@@ -42,12 +42,17 @@ describe("LandingView", () => {
     expect(getByText("— Demo Tenant, Tenant")).toBeTruthy();
   });
 
-  it("fails soft and shows no testimonials section when the fetch rejects", async () => {
+  it("fails soft and shows the same empty state as a genuinely-empty response when the fetch rejects", async () => {
+    // Matches web (LandingPage.jsx): the catch block never sets an error
+    // state, so a rejected fetch is indistinguishable from a real empty
+    // response - both leave testimonials at [] and render the same
+    // "No shared experiences yet" copy, not a hidden section.
     fetchPublicTestimonials.mockRejectedValue(new Error("network error"));
 
-    const { queryByText } = await render(<LandingView />);
+    const { getByText } = await render(<LandingView />);
 
     await waitFor(() => expect(fetchPublicTestimonials).toHaveBeenCalledTimes(1));
-    expect(queryByText("What our users say")).toBeNull();
+    expect(getByText("What our users say")).toBeTruthy();
+    expect(getByText(/No shared experiences yet/)).toBeTruthy();
   });
 });
