@@ -112,7 +112,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.13 | Information backup | N | No documented/automated database backup-and-restore procedure — see [Section 7](#7-remediation-roadmap). |
 | 8.14 | Redundancy of information processing facilities | Y | Kubernetes HPA-scaled backend replicas; Render Blueprint as an alternative path. |
 | 8.15 | Logging | Y | Daily-rotated access/app logs (`backend/logs/`), Nairobi-timestamped. |
-| 8.16 | Monitoring activities | P | Health/liveness/readiness endpoints exist; no alerting/dashboarding layer configured. |
+| 8.16 | Monitoring activities | P | Sentry error tracking wired on backend and mobile (5xx errors, app crashes) - closes the "no application-error visibility" gap, though `SENTRY_DSN`/`EXPO_PUBLIC_SENTRY_DSN` are only set in local dev so far, not production. Health/liveness/readiness endpoints still have no uptime alerting/dashboarding layer - a separate, still-open gap. |
 | 8.17 | Clock synchronization | Y | Server timestamps standardized to `Africa/Nairobi` across logs and audit records. |
 | 8.18 | Use of privileged utility programs | N/A | No direct production shell/utility-access pattern documented; relies on standard hosting-provider consoles. |
 | 8.19 | Installation of software on operational systems | Y | Docker images are the only deployment artifact; no ad hoc software installation on running containers. |
@@ -150,7 +150,7 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | 5.30 | ICT readiness for business continuity | N | No disaster-recovery/backup-restore drill has ever been performed. |
 | 8.13 | Information backup | N | No automated backup schedule exists for MongoDB Atlas data. |
 | 5.29 | Information security during disruption | P | Health/liveness/readiness endpoints and HPA replicas exist; no documented continuity plan beyond that. |
-| 8.16 | Monitoring activities | P | Health endpoints exist; nothing pages a human when they fail — no alerting/dashboarding layer. |
+| 8.16 | Monitoring activities | P | Sentry now covers application errors (backend + mobile), but not set in production yet. Health endpoints still have nothing paging a human when they fail — no uptime alerting/dashboarding layer. |
 
 ### Supplier / third-party risk
 | # | Control | Status | Gap |
