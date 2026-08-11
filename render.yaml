@@ -49,6 +49,8 @@ services:
         value: https://kejaapp-backend-7iu3.onrender.com
       - key: GOOGLE_CLIENT_ID
         sync: false
+      - key: SENTRY_DSN
+        sync: false
       - key: STORAGE_DRIVER
         value: s3
       - key: S3_BUCKET
