@@ -1,6 +1,6 @@
 # What's Live
 
-A snapshot of what's actually deployed and working right now, separate from [CHANGELOG.md](../CHANGELOG.md) (full history) and [Roadmap.md](Roadmap.md) (shipped/next at a feature level). This page answers one question: **if someone opens the app right now, what do they get, and what's still missing?** Last updated 2026-08-10.
+A snapshot of what's actually deployed and working right now, separate from [CHANGELOG.md](../CHANGELOG.md) (full history) and [Roadmap.md](Roadmap.md) (shipped/next at a feature level). This page answers one question: **if someone opens the app right now, what do they get, and what's still missing?** Last updated 2026-08-11.
 
 ## Live URL
 
@@ -18,6 +18,7 @@ A snapshot of what's actually deployed and working right now, separate from [CHA
 | Malware scanning (ClamAV) | **Not deployed** — needs more RAM than the free plan allows; uploads skip scanning rather than erroring (`STORAGE_DRIVER`'s "empty = disabled" convention) |
 | CI (GitHub Actions) | Enabled, but every job fails immediately — an account-level GitHub billing lock, not a code issue. No automated CI actually runs right now. |
 | Kubernetes (`k8s/`) | Reference/alternative path only — not deployed anywhere, kept honest by CI's `k8s-smoke-test` job whenever CI runs. Still genuinely two-origin (frontend/backend as separate Services) — the Render consolidation above doesn't apply here. |
+| Error tracking (Sentry) | Wired in code on both backend (`backend/instrument.js` + `backend/app.js`, controlled by `SENTRY_DSN`) and mobile (`mobile/App.js`, controlled by `EXPO_PUBLIC_SENTRY_DSN`) — **neither DSN is set yet**, so errors are only logged/visible locally for now |
 
 Known free-tier tradeoffs: the web service spins down after 15 minutes idle (cold start on the next request); single backend instance (no horizontal scaling).
 
@@ -38,7 +39,7 @@ System/Light/Dark on both web and mobile — System (OS-preference-following, li
 
 ## What's pending
 
-- **Confirm the Render consolidation live**: verified locally (Docker build + a real browser against the built image — login, a real mutation, direct navigation to a client route, all working), but not yet confirmed against the actual Render deploy. Sign in, save a listing, and refresh on a deep link (e.g. `/discover`) once this ships.
+- **Sentry DSNs**: wired end-to-end on both backend (verified locally) and mobile (via the official Sentry wizard), but neither real DSN is set yet — set `SENTRY_DSN` on **kejaapp-backend** in Render, and `EXPO_PUBLIC_SENTRY_DSN` wherever mobile secrets are managed, to start actually receiving reports. Mobile production builds will also need a `SENTRY_AUTH_TOKEN` EAS secret for source-map upload (not needed for Expo Go dev testing).
 - **Mobile Google Sign-In**: register iOS (`com.kejaapp.mobile`, no cert needed) and Android (`com.kejaapp.mobile` + SHA-1 from `eas credentials`) OAuth client IDs in Google Cloud Console, then set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Needs the account owner's own EAS login first.
 - **CI billing lock**: GitHub Actions is enabled but every job fails with "your account is locked due to a billing issue" — needs clearing at [github.com/settings/billing](https://github.com/settings/billing).
 - **Custom domain**: still on default `*.onrender.com` subdomains.

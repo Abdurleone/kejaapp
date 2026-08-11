@@ -4,6 +4,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
+import * as Sentry from "@sentry/react-native";
 import { Bungee_400Regular } from "@expo-google-fonts/bungee";
 import { WorkSans_400Regular, WorkSans_800ExtraBold } from "@expo-google-fonts/work-sans";
 import { AuthProvider } from "./src/context/AuthContext.js";
@@ -16,6 +17,15 @@ import RootNavigator from "./src/navigation/RootNavigator.js";
 // a cold start from flashing the OS system font before swapping to Bungee/
 // Work Sans a moment later.
 SplashScreen.preventAutoHideAsync();
+
+// Optional, same "empty = disabled" pattern as GoogleSignInButton.js's client
+// IDs: unset means crashes/errors are only visible locally, not reported to
+// Sentry. See mobile/.env.example.
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({ dsn: sentryDsn });
+}
 
 function ThemedApp() {
   const { colorMode, colors } = useTheme();
@@ -39,7 +49,7 @@ function ThemedApp() {
   );
 }
 
-export default function App() {
+export default Sentry.wrap(function App() {
   const [fontsLoaded, fontError] = useFonts({
     Bungee_400Regular,
     WorkSans_400Regular,
@@ -71,4 +81,4 @@ export default function App() {
       </SettingsProvider>
     </SafeAreaProvider>
   );
-}
+});

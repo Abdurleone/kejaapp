@@ -4,6 +4,7 @@ import path from "node:path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import Sentry from "./instrument.js";
 import corsOptions from "./config/cors.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import env from "./config/env.js";
@@ -153,6 +154,11 @@ app.use((req, res, next) => {
 });
 
 app.use(notFound);
+
+if (env.sentryDsn) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
 app.use(errorHandler);
 
 export default app;
