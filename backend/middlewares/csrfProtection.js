@@ -19,10 +19,14 @@ const csrfHeaderName = "x-csrf-token";
 const authBootstrapPaths = new Set(["/api/auth/login", "/api/auth/register", "/api/auth/google"]);
 
 // authMiddleware's protect() accepts either an Authorization header or the
-// httpOnly session cookie, and that cookie is necessarily sameSite: "none"
-// in production (the frontend and backend are on different origins there) -
-// which means it rides along on cross-site requests too, the classic CSRF
-// setup. Two things prove a mutation isn't a forged cross-site request:
+// httpOnly session cookie. That cookie is sameSite: "none" on a cross-origin
+// deployment (docker-compose/Kubernetes, frontend and backend on different
+// origins) or "lax" on the consolidated same-origin Render deployment (see
+// authCookieSameSite in config/env.js) - either way it rides along on
+// same-site requests automatically, and "none" specifically rides along on
+// cross-site ones too, the classic CSRF setup. This protection stays in
+// place regardless of deployment shape rather than being conditioned on it.
+// Two things prove a mutation isn't a forged cross-site request:
 // - Authorization: Bearer header (mobile, and any non-cookie API client) -
 //   a forged request has no way to read the token to put it there.
 // - a matching X-CSRF-Token header + csrfCookieName cookie pair (web) - the

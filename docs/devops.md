@@ -141,37 +141,49 @@ then update `CORS_ORIGIN` in `backend-configmap.yaml` to match your frontend dom
 
 ### Network topology
 
-The request path is the same shape on both deployment targets — Render's managed services stand in for the Kubernetes manifests one-to-one:
+The two deployment targets are no longer the same shape — the Render consolidation (see "Deployment (Render)" above) made Render genuinely single-origin, while Kubernetes deliberately stays a two-origin setup with its own `frontend`/`backend` Deployments and two ingress hosts:
 
 ```mermaid
 flowchart LR
     User(["Tenant / Landlord / Agency / Mover<br/>(browser or mobile app)"])
 
-    subgraph Edge["Edge (per deployment target)"]
+    subgraph RenderTarget["Render (production)"]
         direction TB
-        RenderEdge["Render: static-site host + web-service URL"]
-        K8sEdge["Kubernetes: ingress-nginx (ingress.yaml)<br/>two hosts, no shared path routing"]
+        RenderEdge["kejaapp-backend web service<br/>(one URL for both)"]
+        RenderApp["Node/Express<br/>+ bundled frontend static build (./public)"]
+        RenderEdge --> RenderApp
     end
 
-    Frontend["Frontend<br/>(Nginx-served static Vite build)"]
-    Backend["Backend<br/>(Node/Express, 2+ replicas)"]
+    subgraph K8sTarget["Kubernetes (reference path)"]
+        direction TB
+        K8sEdge["ingress-nginx (ingress.yaml)<br/>two hosts, no shared path routing"]
+        K8sFrontend["Frontend Deployment<br/>(Nginx-served static Vite build)"]
+        K8sBackend["Backend Deployment<br/>(Node/Express, 2+ replicas)"]
+        K8sEdge --> K8sFrontend
+        K8sEdge --> K8sBackend
+    end
+
     Mongo[("MongoDB Atlas<br/>(external to both targets)")]
     Redis[("Redis<br/>rate limiting + response cache")]
     ClamAV[("ClamAV<br/>malware scanning")]
     Storage[("S3-compatible object storage<br/>(property images)")]
     Expo[("Expo push service")]
 
-    User --> Edge
-    Edge --> Frontend
-    Edge --> Backend
-    Backend --> Mongo
-    Backend --> Redis
-    Backend --> ClamAV
-    Backend --> Storage
-    Backend --> Expo
+    User --> RenderTarget
+    User --> K8sTarget
+    RenderApp --> Mongo
+    RenderApp --> Redis
+    RenderApp --> ClamAV
+    RenderApp --> Storage
+    RenderApp --> Expo
+    K8sBackend --> Mongo
+    K8sBackend --> Redis
+    K8sBackend --> ClamAV
+    K8sBackend --> Storage
+    K8sBackend --> Expo
 ```
 
-Not shown: the `backend-cronjob.yaml` CronJob, which talks to the same Mongo/notification path as the backend Deployment but isn't reachable from outside the cluster at all — it has no Service, only scheduled internal execution. This diagram (control `8.20`/`8.22` in the [ISO 27001 SoA](iso27001-statement-of-applicability.md)) documents the intended topology; it hasn't been cross-checked against a live running cluster's actual `kubectl get all` output.
+Not shown: the `backend-cronjob.yaml` CronJob, which talks to the same Mongo/notification path as the Kubernetes backend Deployment but isn't reachable from outside the cluster at all — it has no Service, only scheduled internal execution. This diagram (control `8.20`/`8.22` in the [ISO 27001 SoA](iso27001-statement-of-applicability.md)) documents the intended topology; the Kubernetes half hasn't been cross-checked against a live running cluster's actual `kubectl get all` output. It was corrected during a compliance pass after drifting out of date following the Render consolidation — it previously showed Render with a separate static-site host and a shared Nginx-served frontend box, neither of which has been true since `kejaapp-frontend` was retired.
 
 ### First-time setup
 

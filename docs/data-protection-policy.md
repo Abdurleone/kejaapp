@@ -103,7 +103,8 @@ Aligned with ISO/IEC 27001 Annex A control themes (access control, cryptography,
 - JWT-based authentication with HTTP-only auth cookies as an alternative to bearer tokens; role-based authorization enforced on every protected endpoint.
 - HTTPS is required in production deployments (see [Deployment](https://github.com/Abdurleone/kejaapp/wiki/Deployment)) so data is encrypted in transit.
 - Configurable rate limiting (Redis-backed in production) mitigates credential-stuffing and scraping.
-- CSRF protection requires an `Authorization` header (not just the session cookie) on every state-changing request, closing the cross-site-request gap a `sameSite: "none"` cookie otherwise leaves open in production.
+- CSRF protection requires an `Authorization` header (not just the session cookie) on every state-changing request, closing the cross-site-request gap a session cookie otherwise leaves open — `sameSite: "none"` on the cross-origin docker-compose/Kubernetes deployments, `sameSite: "lax"` on the consolidated same-origin Render production deployment.
+- A Content-Security-Policy restricts what the production frontend's HTML can load (scripts, connections, images), reducing the blast radius of any script-injection bug.
 - Centralized request validation and error handling reduce the risk of malformed input reaching the data layer.
 - Admin actions that change account status are logged with an actor, reason, and timestamp, forming an audit trail (see [Code of Ethics §2.6](code-of-ethics.md#26-conflict-of-interest) on how that audit trail is used).
 - Uploaded property images are scanned for malware by a self-hosted ClamAV daemon before being stored, and separately fingerprinted to detect and flag duplicate/fraudulent reuse across accounts.
@@ -146,4 +147,4 @@ Data protection questions, rights requests, and breach reports: `privacy@kejaapp
 
 ## 17. Review
 
-This policy is maintained in `docs/data-protection-policy.md` and should be revisited whenever a new data category, third-party processor, or user role is introduced — most recently updated to document that admin-initiated account deletion (Section 9) is now a real, implemented capability rather than an aspirational statement.
+This policy is maintained in `docs/data-protection-policy.md` and should be revisited whenever a new data category, third-party processor, or user role is introduced — most recently updated to disclose Sentry as a third-party processor (Section 7) and, in a follow-up compliance pass, to correct Section 11's CSRF description (which had overstated `sameSite: "none"` as universal after the Render consolidation made production same-origin) and credit the frontend's new Content-Security-Policy.
