@@ -104,7 +104,7 @@ export const buildQueryString = (filters) => {
   return query ? `?${query}` : "";
 };
 
-export const apiFetch = async (path, options = {}) => {
+export const apiFetch = async (path, options = {}, _isRetry = false) => {
   const baseUrl = normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
   const url = createApiUrl(path, baseUrl);
   const headers = new Headers(options.headers || {});
@@ -134,6 +134,23 @@ export const apiFetch = async (path, options = {}) => {
   // fetchCurrentUser() mount check.
   if (typeof payload.csrfToken === "string") {
     setCsrfToken(payload.csrfToken);
+  }
+
+  // A tab left open since before another tab (or a reload) rotated this
+  // browser's shared CSRF cookie ends up with a stale in-memory value -
+  // still validly signed in (the auth cookie matches), but the header no
+  // longer matches the current cookie. csrfProtection.js's CSRF_MISMATCH
+  // code (as opposed to any other 403 reason) means exactly that: safe to
+  // silently re-sync from the current session once and retry, since it's
+  // purely this tab's own staleness, not a real authorization decision.
+  if (response.status === 403 && payload.code === "CSRF_MISMATCH" && !_isRetry) {
+    const resyncResponse = await fetch(createApiUrl("/api/auth/me", baseUrl), { credentials: "include" });
+    const resyncPayload = await resyncResponse.json().catch(() => ({}));
+
+    if (typeof resyncPayload.csrfToken === "string") {
+      setCsrfToken(resyncPayload.csrfToken);
+      return apiFetch(path, options, true);
+    }
   }
 
   if (!response.ok) {
