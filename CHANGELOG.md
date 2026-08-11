@@ -46,6 +46,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Security Hardening: Widen .dockerignore's Secret-File Coverage](#security-hardening-widen-dockerignores-secret-file-coverage)
 - [Fix: Multi-Tab CSRF Token Desync After the Render Consolidation](#fix-multi-tab-csrf-token-desync-after-the-render-consolidation)
 - [Mobile Landing Screen: Real Matatu-Poster Recreation, Not Just Tokens](#mobile-landing-screen-real-matatu-poster-recreation-not-just-tokens)
+- [Mobile Security/Health Pass: PropertyCreateScreen Test Coverage Gap](#mobile-securityhealth-pass-propertycreatescreen-test-coverage-gap)
 
 ---
 
@@ -501,3 +502,11 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Also fixed along the way**: `AccountScreen.js`'s Terms/Privacy links pointed at `kejaapp-frontend.onrender.com`, the Render service retired by the consolidation - extracted into a new shared `mobile/src/utils/webLinks.js` (fixed to the consolidated URL) so `LandingView.js`'s new footer links could reuse it instead of duplicating the constant.
 - Verified live on a real Android emulator (not just Playwright/screenshots) across several rounds of feedback - light mode, the sticker badge, the skyline, the header fix, and the logo all confirmed visually against the running app, not just reasoned about.
 - Full mobile suite (201 tests, 35 suites) and lint pass.
+
+## Mobile Security/Health Pass: PropertyCreateScreen Test Coverage Gap
+
+- **A dedicated security + health review of mobile/ found no concrete security issues**: no hardcoded secrets, auth token stays exclusively in `expo-secure-store` (never AsyncStorage/URLs/logs), no `eval`/`WebView`/unsandboxed remote content, and the one already-tracked gap (mobile Google Sign-In's custom-scheme OAuth redirect, still pending Android App Links/iOS Universal Links/PKCE) has no new concrete exploit path beyond what `docs/Roadmap.md` already documents. `npm audit`'s 24 findings are all in build/dev tooling (Metro, Expo CLI, EAS CLI transitive deps) - not runtime app code, so out of scope.
+- **One real health gap, closed**: `PropertyCreateScreen.js` had no test file, while its near-identical sibling `PropertyEditScreen.js` (same form logic, same risk) did. Added `PropertyCreateScreen.test.js` covering the create-with-no-photos path, the "stage photos locally, upload only after the listing exists server-side" behavior unique to Create (Edit's photos attach to an already-real property; Create's don't exist yet), removing a staged photo before submit, the title-length validation block, and a failed-create path that doesn't navigate away.
+- Added `accessibilityLabel` to `PropertyCreateScreen.js`'s Title/Monthly rent inputs to make the new tests possible - the same real accessibility fix (not test-only scaffolding) `LoginScreen.js`/`RegisterScreen.js` already got for the same reason.
+- **A second, bigger item surfaced but deliberately left for the user to decide on**: PR #206 "Add Sentry error tracking (backend + mobile)" has been open, unmerged, and now 18 commits behind `main` since Aug 6 - fully implemented and already reviewed, but mobile currently ships with no crash/error reporting at all. Not touched here since reviving an 18-commits-stale branch is a judgment call, not a health-pass fix.
+- Verified: full mobile suite (206 tests, 36 suites, +5 from the new file) and lint pass.
