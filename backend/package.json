@@ -21,6 +21,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "jobs": "node scripts/runScheduledJobs.js",
+    "backup": "node scripts/backupDatabase.js",
+    "restore": "node scripts/restoreDatabase.js",
     "seed": "node seeders/seedDemoData.js",
     "cleanup-test-data": "node scripts/cleanupTestData.js",
     "start": "node server.js",
@@ -32,6 +34,7 @@
     "@aws-sdk/client-s3": "^3.1101.0",
     "@sentry/node": "^10.70.0",
     "bcryptjs": "^3.0.3",
+    "bson": "^7.3.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "expo-server-sdk": "^7.0.0",

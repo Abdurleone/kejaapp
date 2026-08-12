@@ -253,6 +253,23 @@ const env = {
   // means errors are only logged locally (see errorMiddleware.js) instead of
   // also being reported to Sentry. Create a project at sentry.io to get a DSN.
   sentryDsn: process.env.SENTRY_DSN || "",
+  // Deliberately separate from storageDriver/s3Config above, not reused: that
+  // bucket is public-read by design (property photos need to be publicly
+  // viewable), so a database dump - which contains password/refresh-token
+  // hashes and PII - must never land in it. Unset means
+  // scripts/backupDatabase.js and scripts/restoreDatabase.js refuse to run
+  // rather than silently skipping, since both are explicitly invoked by a
+  // human, unlike the passive "empty = disabled" integrations above.
+  backupS3Bucket: process.env.BACKUP_S3_BUCKET || "",
+  backupS3Region: process.env.BACKUP_S3_REGION || "auto",
+  backupS3Endpoint: process.env.BACKUP_S3_ENDPOINT || "",
+  backupS3AccessKeyId: process.env.BACKUP_S3_ACCESS_KEY_ID || "",
+  backupS3SecretAccessKey: process.env.BACKUP_S3_SECRET_ACCESS_KEY || "",
+  backupS3ForcePathStyle: parseBoolean(
+    process.env.BACKUP_S3_FORCE_PATH_STYLE,
+    false,
+    "BACKUP_S3_FORCE_PATH_STYLE"
+  ),
   propertiesCacheTtlMs: parsePositiveInteger(
     process.env.PROPERTIES_CACHE_TTL_MS,
     30 * 1000,
