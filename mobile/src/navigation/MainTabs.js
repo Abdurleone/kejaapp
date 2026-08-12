@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchDashboardSummary } from "../api/index.js";
 import { useAuth } from "../context/AuthContext.js";
@@ -10,6 +9,7 @@ import ColorModeToggle from "../components/ColorModeToggle.js";
 import { displayText } from "../theme/typography.js";
 import { icons, screens } from "./tabScreens.js";
 import MoreStack from "./MoreStack.js";
+import LiquidTabBar from "./LiquidTabBar.js";
 import { getPrimaryTabs, getHiddenTabs } from "./roleTabs.js";
 
 const Tab = createBottomTabNavigator();
@@ -55,7 +55,6 @@ const brandStyles = StyleSheet.create({
 export default function MainTabs() {
   const { user, signedIn } = useAuth();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const primaryTabs = getPrimaryTabs(signedIn, user?.role);
   const hiddenTabs = getHiddenTabs(signedIn, user?.role);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -66,21 +65,6 @@ export default function MainTabs() {
       mountedRef.current = false;
     },
     [],
-  );
-
-  // The default tab bar sits close enough to the gesture-nav home indicator
-  // that it read as "obstructed" once the bar had a solid dark background
-  // (on a light background the indicator just blended in). Extra bottom
-  // padding on top of the safe-area inset gives clear breathing room, and is
-  // shared by both variants below so switching tabs doesn't jump the bar's
-  // height.
-  const baseTabBarStyle = useMemo(
-    () => ({
-      height: 56 + insets.bottom + 12,
-      paddingTop: 8,
-      paddingBottom: insets.bottom + 12,
-    }),
-    [insets.bottom]
   );
 
   const refreshUnreadCount = useCallback(async () => {
@@ -122,13 +106,16 @@ export default function MainTabs() {
       headerTintColor: colors.ink,
       headerTitleStyle: { ...displayText, fontSize: 18 },
       headerRight: () => <ColorModeToggle />,
-      tabBarStyle: baseTabBarStyle,
     }),
-    [colors, baseTabBarStyle]
+    [colors]
   );
 
   return (
-    <Tab.Navigator initialRouteName="Dashboard" screenOptions={screenOptions}>
+    <Tab.Navigator
+      initialRouteName="Dashboard"
+      screenOptions={screenOptions}
+      tabBar={(props) => <LiquidTabBar {...props} />}
+    >
       {primaryTabs.map((name) => (
         <Tab.Screen
           key={name}
