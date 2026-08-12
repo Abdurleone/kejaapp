@@ -19,6 +19,7 @@ A snapshot of what's actually deployed and working right now, separate from [CHA
 | CI (GitHub Actions) | Enabled, but every job fails immediately — an account-level GitHub billing lock, not a code issue. No automated CI actually runs right now. |
 | Kubernetes (`k8s/`) | Reference/alternative path only — not deployed anywhere, kept honest by CI's `k8s-smoke-test` job whenever CI runs. Still genuinely two-origin (frontend/backend as separate Services) — the Render consolidation above doesn't apply here. |
 | Error tracking (Sentry) | Wired and **verified working locally** on both backend (`backend/instrument.js` + `backend/app.js`, `SENTRY_DSN`) and mobile (`mobile/App.js`, `EXPO_PUBLIC_SENTRY_DSN`) - real test events confirmed landing in both Sentry projects (`200`, not just a successful-looking flush). **Not yet set on Render** or as an EAS secret, so production errors still aren't reported anywhere but local logs |
+| Uptime monitoring (UptimeRobot, free tier) | **Live** - two HTTP monitors (5-minute interval, email alert) poll `/api/health/live` and `/api/health/ready` in production; both confirmed `up`. Independent of Sentry - catches a full process crash even before a production `SENTRY_DSN` is ever set, since a dead process can't self-report to Sentry either way |
 
 Known free-tier tradeoffs: the web service spins down after 15 minutes idle (cold start on the next request); single backend instance (no horizontal scaling).
 
