@@ -2,7 +2,7 @@
 
 ## 1. Purpose and scope
 
-This is the internal runbook for **handling** a security or data-protection incident once it's known about — distinct from [SECURITY.md](../SECURITY.md), which covers how an outsider **reports** a vulnerability to KejaApp in the first place. It applies to any incident involving KejaApp's systems or user data: a reported vulnerability, a detected breach, unauthorized access, or a significant service compromise. It operationalizes the breach-notification commitments in the [Data Protection Policy §12](data-protection-policy.md#12-breach-notification), aligned with ISO/IEC 27001 Annex A's incident-management control theme (A.5.24–A.5.28).
+This is the internal runbook for **handling** a security or data-protection incident once it's known about — distinct from [SECURITY.md](../../SECURITY.md), which covers how an outsider **reports** a vulnerability to KejaApp in the first place. It applies to any incident involving KejaApp's systems or user data: a reported vulnerability, a detected breach, unauthorized access, or a significant service compromise. It operationalizes the breach-notification commitments in the [Data Protection Policy §12](data-protection-policy.md#12-breach-notification), aligned with ISO/IEC 27001 Annex A's incident-management control theme (A.5.24–A.5.28).
 
 ## 2. Severity levels
 
@@ -17,7 +17,7 @@ This is the internal runbook for **handling** a security or data-protection inci
 
 ### 3.1 Detection & triage (target: within hours of discovery)
 
-- Incidents surface via: a [SECURITY.md](../SECURITY.md) report, automated monitoring/error logs (`backend/logs/app-YYYY-MM-DD.log`), an admin noticing anomalous account activity, or a dependency-vulnerability alert (Dependabot).
+- Incidents surface via: a [SECURITY.md](../../SECURITY.md) report, automated monitoring/error logs (`backend/logs/app-YYYY-MM-DD.log`), an admin noticing anomalous account activity, or a dependency-vulnerability alert (Dependabot).
 - Whoever receives the report assigns a severity level (Section 2) and a single incident owner responsible for coordinating the response.
 
 ### 3.2 Containment (target: as fast as safely possible)
@@ -75,7 +75,7 @@ For a small team, one person may hold multiple roles above — the point is that
 
 ## 5. Related documents
 
-- [SECURITY.md](../SECURITY.md) — how vulnerabilities are reported to KejaApp.
+- [SECURITY.md](../../SECURITY.md) — how vulnerabilities are reported to KejaApp.
 - [Data Protection Policy §12](data-protection-policy.md#12-breach-notification) — the notification commitments this plan operationalizes.
 - [Data Protection Impact Assessment](data-protection-impact-assessment.md) — pre-identified risk areas most likely to be the subject of a future incident.
 

@@ -247,7 +247,7 @@ const env = {
   // failing) to verify a Google ID token against a client ID that doesn't
   // exist. The same Web OAuth client ID is reused by both the frontend's
   // Google Identity Services button and the mobile app's expo-auth-session
-  // flow - see docs/Authentication.md for how to create one.
+  // flow - see docs/dev/Authentication.md for how to create one.
   googleClientId: process.env.GOOGLE_CLIENT_ID || "",
   // Optional, same "empty = disabled" pattern as googleClientId above: unset
   // means errors are only logged locally (see errorMiddleware.js) instead of

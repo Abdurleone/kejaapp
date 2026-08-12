@@ -4,7 +4,7 @@ See the [General Guide](general-manual.md) first for account creation, sign-in, 
 
 ## 1. What admins do (and don't do)
 
-Admins moderate **users**, not **listings**. There is no admin path anywhere in KejaApp — web, mobile, or API — to create, edit, delete, or view a landlord/agency's property inventory, respond to an inquiry, or manage a viewing request on someone else's behalf. This separation is deliberate: see [Code of Ethics §2.4](../code-of-ethics.md#24-safety-and-trust) on why moderation and listing control are kept apart.
+Admins moderate **users**, not **listings**. There is no admin path anywhere in KejaApp — web, mobile, or API — to create, edit, delete, or view a landlord/agency's property inventory, respond to an inquiry, or manage a viewing request on someone else's behalf. This separation is deliberate: see [Code of Ethics §2.4](../compliance/code-of-ethics.md#24-safety-and-trust) on why moderation and listing control are kept apart.
 
 What admins do have:
 
@@ -33,7 +33,7 @@ Agency and mover verification requests both list `pending`/`approved`/`rejected`
 - **Approve** — marks the business `verified` (surfaces the "Verified agency"/mover badge to tenants) and notifies the submitter.
 - **Reject** — requires a reason, notifies the submitter with that reason, and does not block the business from continuing to operate or resubmitting.
 
-Base your decision only on the submitted business details/documents — verification is a trust signal for other users, not a mechanism to control who may participate on the platform (see [Code of Ethics §2.2](../code-of-ethics.md#22-non-discrimination-and-fair-access)).
+Base your decision only on the submitted business details/documents — verification is a trust signal for other users, not a mechanism to control who may participate on the platform (see [Code of Ethics §2.2](../compliance/code-of-ethics.md#22-non-discrimination-and-fair-access)).
 
 ## 4. Violation review
 
@@ -47,16 +47,16 @@ List all submitted feedback (from tenants, landlords, agencies, and movers — a
 - Notifies the submitter.
 - **Immediately publishes it** as a public testimonial on the landing page — there is no separate publish/unpublish step, so write your response as if it will be shown publicly right away.
 
-Some feedback submissions are appeals of an enforcement action rather than general comments — handle those per the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md#3-complaints-about-kejaapp-or-its-enforcement-decisions), which expects a real re-examination of the underlying record, not a form response.
+Some feedback submissions are appeals of an enforcement action rather than general comments — handle those per the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md#3-complaints-about-kejaapp-or-its-enforcement-decisions), which expects a real re-examination of the underlying record, not a form response.
 
 ## 6. Handling personal data responsibly
 
 As an admin, you have visibility into other users' account details, violation history, and verification documents that other roles cannot see. This access exists for moderation purposes only:
 
-- Don't look up or act on an account you have a personal or financial connection to — recuse yourself and note the conflict, per [Code of Ethics §2.6](../code-of-ethics.md#26-conflict-of-interest).
+- Don't look up or act on an account you have a personal or financial connection to — recuse yourself and note the conflict, per [Code of Ethics §2.6](../compliance/code-of-ethics.md#26-conflict-of-interest).
 - Don't share what you see in a user's account outside the moderation action it's needed for.
-- Direct any data-subject rights request you receive (access, correction, deletion) that comes to you directly rather than through `privacy@kejaapp.com` to that address, so it's handled and logged consistently — see the [Data Protection Policy](../data-protection-policy.md#10-data-subject-rights).
-- If you suspect a security or data-protection incident (not a routine violation) — unauthorized access, a suspected breach, anomalous account activity you can't attribute to a normal moderation action — follow the [Incident Response Plan](../incident-response-plan.md) rather than handling it ad hoc.
+- Direct any data-subject rights request you receive (access, correction, deletion) that comes to you directly rather than through `privacy@kejaapp.com` to that address, so it's handled and logged consistently — see the [Data Protection Policy](../compliance/data-protection-policy.md#10-data-subject-rights).
+- If you suspect a security or data-protection incident (not a routine violation) — unauthorized access, a suspected breach, anomalous account activity you can't attribute to a normal moderation action — follow the [Incident Response Plan](../compliance/incident-response-plan.md) rather than handling it ad hoc.
 
 ## 7. What admins can't do
 

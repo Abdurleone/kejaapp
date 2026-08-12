@@ -36,7 +36,7 @@ export const deletePropertyImages = (properties) =>
     property.images.map((image) => deletePropertyImage({ storagePath: image.storagePath }))
   );
 
-// Violation records are an audit trail (see docs/code-of-ethics.md #2.6) and
+// Violation records are an audit trail (see docs/compliance/code-of-ethics.md #2.6) and
 // must survive the property they were evidence against being deleted - so
 // this nulls out the dangling reference rather than deleting the violation.
 // Two separate updateMany calls (not one $or'd together) so a record whose

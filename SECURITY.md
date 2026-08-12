@@ -42,7 +42,7 @@ Reports involving any of the following are especially welcome:
 - Broken access control on any `/api/*` endpoint
 - Sensitive data (tokens, credentials, PII) leaking into error reports sent
   to our error-tracking provider (Sentry) — see
-  [Data Protection Policy §7](docs/data-protection-policy.md#7-third-party-processors)
+  [Data Protection Policy §7](docs/compliance/data-protection-policy.md#7-third-party-processors)
 
 Out of scope: findings that require physical access to a user's device,
 denial-of-service reports without a realistic exploitation path, and

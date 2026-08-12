@@ -71,7 +71,7 @@ For a physical device, run the app in a development build or Expo Go's dev clien
 
 ### Demo accounts
 
-For the shared seeded demo accounts and password reference, see **[docs/demo-credentials.md](../docs/demo-credentials.md)**.
+For the shared seeded demo accounts and password reference, see **[docs/demo-credentials.md](../docs/project/demo-credentials.md)**.
 
 ## Producing a real installable build
 

@@ -26,7 +26,7 @@ For the canonical, most up-to-date version of each document, follow the links be
 
 ## User documentation
 
-- **[User Manual](user-manual/general-manual.md)** — a general guide (account creation, sign-in, notifications, data/privacy basics) plus one manual per role: [tenant](user-manual/tenant-manual.md), [landlord & agency](user-manual/landlord-agency-manual.md), [mover](user-manual/mover-manual.md), and [admin](user-manual/admin-manual.md). The canonical source for these pages lives in [`docs/user-manual/`](https://github.com/Abdurleone/kejaapp/tree/main/docs/user-manual).
+- **[User Manual](../user-manual/general-manual.md)** — a general guide (account creation, sign-in, notifications, data/privacy basics) plus one manual per role: [tenant](../user-manual/tenant-manual.md), [landlord & agency](../user-manual/landlord-agency-manual.md), [mover](../user-manual/mover-manual.md), and [admin](../user-manual/admin-manual.md). The canonical source for these pages lives in [`docs/user-manual/`](https://github.com/Abdurleone/kejaapp/tree/main/docs/user-manual).
 
 ## In-app
 

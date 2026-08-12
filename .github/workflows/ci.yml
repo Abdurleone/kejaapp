@@ -170,7 +170,7 @@ jobs:
 
       # ConfigMap/Secret/Mongo here are smoke-test-only stand-ins for the real
       # backend-config/backend-secret + MongoDB Atlas used in an actual
-      # deployment (see docs/devops.md) - STORAGE_DRIVER=local and a
+      # deployment (see docs/dev/devops.md) - STORAGE_DRIVER=local and a
       # throwaway in-cluster Mongo avoid needing real S3/Atlas credentials in CI.
       - name: Apply k8s manifests with smoke-test overrides
         run: |
@@ -332,7 +332,7 @@ jobs:
       # published image only serves the example api.kejaapp.example.com host
       # used in k8s/ingress.yaml. Deploying to a different domain means
       # rebuilding this image locally with your own --build-arg (see
-      # docs/devops.md's Kubernetes section).
+      # docs/dev/devops.md's Kubernetes section).
       - name: Build and push frontend image
         run: |
           docker build \

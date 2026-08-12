@@ -82,4 +82,4 @@ Every screen is now covered - see [Roadmap](Roadmap#completed) for when this clo
 
 ## Before opening a pull request
 
-Run whichever package(s) you touched (or everything, if unsure) — see [Contributing](../CONTRIBUTING.md) for the full checklist and branch/PR conventions.
+Run whichever package(s) you touched (or everything, if unsure) — see [Contributing](../../CONTRIBUTING.md) for the full checklist and branch/PR conventions.

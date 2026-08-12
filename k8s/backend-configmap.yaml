@@ -14,7 +14,7 @@ data:
   CORS_ORIGIN: https://kejaapp.example.com
   STORAGE_DRIVER: s3
   # Bucket name/endpoint/public URL aren't secret, just environment-specific.
-  # See docs/devops.md's Kubernetes section for provider setup (e.g. Cloudflare R2).
+  # See docs/dev/devops.md's Kubernetes section for provider setup (e.g. Cloudflare R2).
   S3_BUCKET: kejaapp-uploads
   S3_REGION: auto
   S3_ENDPOINT: https://<account-id>.r2.cloudflarestorage.com

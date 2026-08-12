@@ -30,7 +30,7 @@ KejaApp is a discovery and coordination platform. It does not process, hold, or 
 
 A short summary of the most important product capabilities:
 
-- email/password authentication, plus Google Sign-In on web (mobile pending Google Cloud Console setup — see [Authentication](docs/Authentication.md))
+- email/password authentication, plus Google Sign-In on web (mobile pending Google Cloud Console setup — see [Authentication](docs/dev/Authentication.md))
 - map-based and location-first property discovery
 - saved properties and saved searches
 - landlord/agency property management
@@ -192,12 +192,12 @@ This README is a quick-start landing page, not the full reference. For everythin
 Other documents kept in this repository:
 
 - [CHANGELOG.md](CHANGELOG.md) — detailed, chronological history of what's been built.
-- [docs/live.md](docs/live.md) — what's actually deployed and working right now, and what's still pending.
+- [docs/project/live.md](docs/project/live.md) — what's actually deployed and working right now, and what's still pending.
 - [AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)
-- [docs/devops.md](docs/devops.md)
-- [docs/scaling-load-balancing.md](docs/scaling-load-balancing.md)
-- [docs/qa-qc-report.md](docs/qa-qc-report.md)
-- [docs/demo-credentials.md](docs/demo-credentials.md)
+- [docs/dev/devops.md](docs/dev/devops.md)
+- [docs/dev/scaling-load-balancing.md](docs/dev/scaling-load-balancing.md)
+- [docs/project/qa-qc-report.md](docs/project/qa-qc-report.md)
+- [docs/project/demo-credentials.md](docs/project/demo-credentials.md)
 - [mobile/README.md](mobile/README.md)
 
 ## Deployment
@@ -208,7 +208,7 @@ The repository supports multiple deployment paths:
 - **Render Blueprint via [render.yaml](render.yaml) — the actual live production deployment** (`kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API)
 - Kubernetes manifests in [k8s](k8s) — a reference/alternative path, exercised by CI's `k8s-smoke-test` job but not currently deployed anywhere
 
-For more detail, see [docs/devops.md](docs/devops.md).
+For more detail, see [docs/dev/devops.md](docs/dev/devops.md).
 
 ## Contributing
 

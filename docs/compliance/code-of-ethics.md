@@ -7,7 +7,7 @@ This Code of Ethics sets out the principles that govern how KejaApp is built, op
 - The KejaApp team (engineering, product, support, and anyone with administrative access to the platform).
 - Every user role the platform serves — tenants, landlords, agencies, movers, and admins.
 
-It is a **platform and business ethics policy** — how KejaApp treats the people who use it and the decisions its operators make. It is distinct from [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md), which governs behavior of permitted contributors to the codebase itself (based on the Contributor Covenant).
+It is a **platform and business ethics policy** — how KejaApp treats the people who use it and the decisions its operators make. It is distinct from [`CODE_OF_CONDUCT.md`](../../CODE_OF_CONDUCT.md), which governs behavior of permitted contributors to the codebase itself (based on the Contributor Covenant).
 
 The principles here are made enforceable in the [Terms of Service](terms-of-service.md) and the [Acceptable Use Policy](acceptable-use-policy.md); how KejaApp handles disagreements — between users, or about an enforcement decision — is covered in the [Dispute Resolution & Complaints Policy](dispute-resolution-policy.md).
 
@@ -40,7 +40,7 @@ This document is written to align with the themes of Kenya's **Constitution of K
 
 ### 2.5 Fair dealing between roles
 
-- KejaApp is a discovery and coordination platform. It does not mediate, hold, or process rent, deposits, or agency fees between parties (see [Payment Boundary](../README.md#payment-boundary) in the README) — financial arrangements remain a direct matter between tenant and landlord/agency, and between tenant and mover.
+- KejaApp is a discovery and coordination platform. It does not mediate, hold, or process rent, deposits, or agency fees between parties (see [Payment Boundary](../../README.md#payment-boundary) in the README) — financial arrangements remain a direct matter between tenant and landlord/agency, and between tenant and mover.
 - Contact details a landlord or agency provides on a listing must be accurate and functional; tenants are entitled to reach an owner through the channel the owner themselves designated as preferred.
 - Movers accepting a service request are expected to honor the terms (service type, approximate distance, availability) under which the request was accepted, or decline/communicate a change promptly through the platform's status workflow rather than leaving a request unanswered.
 
@@ -65,7 +65,7 @@ Ethical violations are handled through the same trust-and-safety mechanism alrea
 ## 4. Reporting a concern
 
 - **Users**: use the in-app Feedback tab, or email `privacy@kejaapp.com` for anything involving personal data or account security.
-- **Contributors**: see [SECURITY.md](../SECURITY.md) for reporting a security vulnerability, and [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) for interpersonal conduct concerns in the project community.
+- **Contributors**: see [SECURITY.md](../../SECURITY.md) for reporting a security vulnerability, and [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md) for interpersonal conduct concerns in the project community.
 
 ## 5. Ownership and review
 

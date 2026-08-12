@@ -4,7 +4,7 @@
 
 KejaApp draws a firm line between two categories of disagreement, because it has a different role in each:
 
-1. **Disputes between users** — a tenant and a landlord/agency disagreeing about a viewing, a deposit, a listing's accuracy, or the outcome of a review; a tenant and a mover disagreeing about a moving job. KejaApp is **not a party** to these relationships (see [Terms of Service §2](terms-of-service.md#2-what-kejaapp-is--and-isnt) and the [Payment Boundary](../README.md#payment-boundary)) and does not arbitrate, mediate, or decide who's right.
+1. **Disputes between users** — a tenant and a landlord/agency disagreeing about a viewing, a deposit, a listing's accuracy, or the outcome of a review; a tenant and a mover disagreeing about a moving job. KejaApp is **not a party** to these relationships (see [Terms of Service §2](terms-of-service.md#2-what-kejaapp-is--and-isnt) and the [Payment Boundary](../../README.md#payment-boundary)) and does not arbitrate, mediate, or decide who's right.
 2. **Complaints about KejaApp itself, or about how it enforced its own rules** — an account suspension you believe was wrong, a violation you believe was a false positive, a data-protection request that wasn't handled properly, or a bug affecting your experience. KejaApp **is** directly responsible for these and commits to a defined process below.
 
 ## 2. Disputes between users
@@ -40,13 +40,13 @@ Where a complaint concerns how KejaApp has handled your personal data specifical
 
 ## 4. Enforcement transparency
 
-Every account status change KejaApp's admins make is logged with a reason and visible to the affected user (see [Code of Ethics §3](code-of-ethics.md#3-enforcement) and the [Admin Manual](user-manual/admin-manual.md#2-managing-user-accounts)) — so a complaint about an enforcement decision always starts from a record both sides can see, not a black box.
+Every account status change KejaApp's admins make is logged with a reason and visible to the affected user (see [Code of Ethics §3](code-of-ethics.md#3-enforcement) and the [Admin Manual](../user-manual/admin-manual.md#2-managing-user-accounts)) — so a complaint about an enforcement decision always starts from a record both sides can see, not a black box.
 
 ## 5. Contact
 
 - General complaints/feedback: in-app Feedback tab.
 - Data protection complaints: `privacy@kejaapp.com`.
-- Security vulnerabilities: [SECURITY.md](../SECURITY.md).
+- Security vulnerabilities: [SECURITY.md](../../SECURITY.md).
 
 ## 6. Review
 

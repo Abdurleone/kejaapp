@@ -51,7 +51,7 @@ The tenant is notified of every status change you make. They can also cancel the
 - Set or see rent/deposit/agency-fee pricing for any property — that's unrelated to your service.
 - Moderate accounts or verification decisions for other users — that's an admin capability.
 
-Your profile and conduct toward tenants are governed by the [Terms of Service](../terms-of-service.md) and [Acceptable Use Policy](../acceptable-use-policy.md) — advertising services you can't deliver, or leaving accepted requests unfulfilled, are grounds for account action. A disagreement over a specific job isn't mediated by KejaApp directly — see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md).
+Your profile and conduct toward tenants are governed by the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — advertising services you can't deliver, or leaving accepted requests unfulfilled, are grounds for account action. A disagreement over a specific job isn't mediated by KejaApp directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
 
 ## 7. Payments
 
@@ -59,4 +59,4 @@ KejaApp does not process payments for moving services. Whatever price you agree 
 
 ## 8. Deleting your account
 
-See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a mover, this removes your account along with your business profile, verification history, received requests, and any affiliate links with landlords/agencies. See the [Data Protection Policy](../data-protection-policy.md#9-retention-and-deletion) for the full scope.
+See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a mover, this removes your account along with your business profile, verification history, received requests, and any affiliate links with landlords/agencies. See the [Data Protection Policy](../compliance/data-protection-policy.md#9-retention-and-deletion) for the full scope.

@@ -6,7 +6,7 @@ requests. **Contact the copyright holder and get express written permission
 before doing any work.** Once permission is granted, this document covers
 everything you need to get set up, make a change, and get it merged.
 
-Please also read our [Code of Conduct](./CODE_OF_CONDUCT.md) — participation
+Please also read our [Code of Conduct](CODE_OF_CONDUCT.md) — participation
 in this project means agreeing to abide by it.
 
 ## Project layout
@@ -37,7 +37,7 @@ The root `package.json` has no `workspaces` field, so a plain `npm install` at t
 
 Fill in `backend/.env` with a MongoDB URI and a JWT secret (a local
 `mongod`, a free MongoDB Atlas cluster, or `docker compose up mongodb` all
-work). See the [README](./README.md#getting-started) for the full local
+work). See the [README](README.md#getting-started) for the full local
 setup, Docker instructions, and MongoDB troubleshooting tips.
 
 Run everything:
@@ -73,7 +73,7 @@ TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=kejaapp_test n
 CI (`.github/workflows/ci.yml`) is defined to run lint + tests for all three
 packages plus a frontend production build on every push and pull request —
 but as of this writing the workflow itself has been manually disabled (a
-billing-notification precaution; see the [ISO 27001 SoA](docs/iso27001-statement-of-applicability.md)
+billing-notification precaution; see the [ISO 27001 SoA](docs/compliance/iso27001-statement-of-applicability.md)
 for the full story), so it currently doesn't run at all. Run the commands
 above yourself before opening a PR; nothing automated will catch a red suite
 right now.
@@ -149,7 +149,7 @@ to reproduce (for bugs), or the problem you're trying to solve (for feature
 requests).
 
 Found a security vulnerability? Please don't open a public issue — see
-[SECURITY.md](./SECURITY.md) instead.
+[SECURITY.md](SECURITY.md) instead.
 
 ## License
 

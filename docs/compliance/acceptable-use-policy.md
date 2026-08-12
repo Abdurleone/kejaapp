@@ -28,8 +28,8 @@ Not allowed, in any inquiry, viewing coordination, mover request, review, or fee
 - Sharing another user's personal information you obtained through the platform (contact details, account data) for any purpose beyond the transaction you're both party to.
 - Submitting a review for a property you have no genuine tenant relationship with, or a review you know to be false.
 - Attempting to circumvent role-based access controls (e.g. a mover attempting to access property-management workflows, or a tenant attempting to access another user's account data).
-- Attempting to interfere with, probe, or bypass KejaApp's security controls, rate limits, or trust-and-safety detection systems, outside of an authorized security research/bug-bounty engagement (see [SECURITY.md](../SECURITY.md)).
-- Using KejaApp to solicit or process payment for a transaction, contrary to the [Payment Boundary](../README.md#payment-boundary) — KejaApp is a discovery and coordination layer, not a payment intermediary.
+- Attempting to interfere with, probe, or bypass KejaApp's security controls, rate limits, or trust-and-safety detection systems, outside of an authorized security research/bug-bounty engagement (see [SECURITY.md](../../SECURITY.md)).
+- Using KejaApp to solicit or process payment for a transaction, contrary to the [Payment Boundary](../../README.md#payment-boundary) — KejaApp is a discovery and coordination layer, not a payment intermediary.
 
 ## 4. Enforcement
 
@@ -39,7 +39,7 @@ Violations of this policy are handled through the exact mechanism described in t
 
 - **In-app**: the Feedback tab, or an inquiry/review response flagging the concern to the relevant owner.
 - **Personal-data or account-security concerns**: `privacy@kejaapp.com`.
-- **Security vulnerabilities**: see [SECURITY.md](../SECURITY.md).
+- **Security vulnerabilities**: see [SECURITY.md](../../SECURITY.md).
 
 ## 6. Relationship to other documents
 

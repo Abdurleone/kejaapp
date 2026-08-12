@@ -57,28 +57,23 @@ mobile/
 └── README.md
 
 docs/
-├── code-of-ethics.md
-├── terms-of-service.md
-├── acceptable-use-policy.md
-├── dispute-resolution-policy.md
-├── data-protection-policy.md
-├── cookie-policy.md
-├── records-of-processing-activities.md
-├── data-protection-impact-assessment.md
-├── incident-response-plan.md
-├── records-retention-and-protection-policy.md
-├── iso27001-statement-of-applicability.md
-├── accessibility-statement.md
-├── qa-qc-report.md
-├── demo-credentials.md
-├── user-manual/         # general + one manual per role
-├── devops.md
-├── scaling-load-balancing.md
-├── kejaapp-insomnia.json
-├── home.md, _Sidebar.md, _Footer.md         # wiki source pages
-└── Getting-Started.md, Architecture.md, Authentication.md, Deployment.md,
-    Features-and-User-Stories.md, Testing.md, Troubleshooting.md,
-    API-Reference.md, Roadmap.md, Governance-and-Policies.md, Keja-App.md   # mirrored to the wiki, this is the master copy
+├── compliance/          # legal/privacy/security - code-of-ethics.md, terms-of-service.md,
+│                        # acceptable-use-policy.md, dispute-resolution-policy.md,
+│                        # data-protection-policy.md, cookie-policy.md,
+│                        # records-of-processing-activities.md, data-protection-impact-assessment.md,
+│                        # incident-response-plan.md, records-retention-and-protection-policy.md,
+│                        # iso27001-statement-of-applicability.md, accessibility-statement.md,
+│                        # Governance-and-Policies.md (the hub - mirrored to the wiki)
+├── dev/                 # engineering/ops reference - API-Reference.md, Architecture.md,
+│                        # Authentication.md, Deployment.md, Getting-Started.md, Testing.md,
+│                        # Troubleshooting.md, devops.md, scaling-load-balancing.md,
+│                        # kejaapp-insomnia.json (all but the last two mirrored to the wiki)
+├── project/             # project status/meta - Roadmap.md, live.md, qa-qc-report.md,
+│                        # demo-credentials.md, Features-and-User-Stories.md
+│                        # (Roadmap.md and Features-and-User-Stories.md mirrored to the wiki)
+├── user-manual/         # general + one manual per role - mirrored to the wiki
+└── home.md, _Sidebar.md, _Footer.md, Keja-App.md   # wiki-navigation source pages,
+                         # stay flat since they're GitHub-wiki chrome, not content
 
 k8s/           Kubernetes manifests (see Deployment)
 docker-compose.yml

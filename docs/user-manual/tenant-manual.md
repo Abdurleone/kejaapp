@@ -52,8 +52,8 @@ You must choose a **home-size category** (Studio/1BR/2BR/3BR/4BR+) when requesti
 - View another user's account or moderate anything — that's an admin capability.
 - Process payments through the app — rent, deposits, and mover charges are arranged directly with the other party.
 
-If a landlord, agency, or mover doesn't hold up their end of an arrangement, KejaApp doesn't mediate that disagreement directly — see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md) for what support is and isn't available. If you believe someone violated the [Acceptable Use Policy](../acceptable-use-policy.md) (a fake listing, discriminatory treatment, harassment), that's reportable via Feedback (its own tab on web; on mobile, via **More → Feedback**).
+If a landlord, agency, or mover doesn't hold up their end of an arrangement, KejaApp doesn't mediate that disagreement directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md) for what support is and isn't available. If you believe someone violated the [Acceptable Use Policy](../compliance/acceptable-use-policy.md) (a fake listing, discriminatory treatment, harassment), that's reportable via Feedback (its own tab on web; on mobile, via **More → Feedback**).
 
 ## 9. Deleting your account
 
-See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a tenant, this removes your profile, saved properties, inquiries, viewing requests, reviews, notifications, mover service requests, feedback submissions, and saved searches. See the [Data Protection Policy](../data-protection-policy.md#9-retention-and-deletion) for the full scope.
+See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a tenant, this removes your profile, saved properties, inquiries, viewing requests, reviews, notifications, mover service requests, feedback submissions, and saved searches. See the [Data Protection Policy](../compliance/data-protection-policy.md#9-retention-and-deletion) for the full scope.
