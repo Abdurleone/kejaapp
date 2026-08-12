@@ -52,6 +52,7 @@ mobile/
 │   └── utils/           # Formatting helpers, contact.js (tel:/mailto:/wa.me link builders)
 ├── App.js
 ├── app.json
+├── babel.config.js
 ├── eslint.config.js
 ├── jest.setup.js
 └── README.md
