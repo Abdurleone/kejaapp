@@ -11,7 +11,7 @@ It is a **platform and business ethics policy** — how KejaApp treats the peopl
 
 The principles here are made enforceable in the [Terms of Service](terms-of-service.md) and the [Acceptable Use Policy](acceptable-use-policy.md); how KejaApp handles disagreements — between users, or about an enforcement decision — is covered in the [Dispute Resolution & Complaints Policy](dispute-resolution-policy.md).
 
-This document is written to align with the themes of Kenya's **Constitution of Kenya, 2010** (notably Article 27, equality and freedom from discrimination, and Article 31, privacy), the **Kenya Data Protection Act, 2019**, the **Consumer Protection Act, 2012**, and internationally recognized frameworks including the **UN Guiding Principles on Business and Human Rights**, **ISO 26000** (guidance on social responsibility), and **ISO 37001** (anti-bribery management systems). It is an operational statement of intent, not a substitute for formal legal or compliance certification — see [Section 8](#8-relationship-to-formal-certification).
+This document is written to align with the themes of Kenya's **Constitution of Kenya, 2010** (notably Article 27, equality and freedom from discrimination, and Article 31, privacy), the **Kenya Data Protection Act, 2019**, the **Consumer Protection Act, 2012**, and internationally recognized frameworks including the **UN Guiding Principles on Business and Human Rights**, **ISO 26000** (guidance on social responsibility), and **ISO 37001** (anti-bribery management systems). It is an operational statement of intent, not a substitute for formal legal or compliance certification — see [Section 6](#6-relationship-to-formal-certification).
 
 ## 2. Core principles
 

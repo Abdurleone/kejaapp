@@ -59,4 +59,4 @@ KejaApp does not process payments for moving services. Whatever price you agree 
 
 ## 8. Deleting your account
 
-Account page → type `DELETE` → confirm. This removes your account along with your business profile, verification history, received requests, and any affiliate links with landlords/agencies. See the [Data Protection Policy](../data-protection-policy.md#9-retention-and-deletion) for the full scope.
+See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a mover, this removes your account along with your business profile, verification history, received requests, and any affiliate links with landlords/agencies. See the [Data Protection Policy](../data-protection-policy.md#9-retention-and-deletion) for the full scope.

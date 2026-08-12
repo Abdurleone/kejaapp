@@ -202,7 +202,6 @@ flowchart LR
     User --> K8sTarget
     RenderApp --> Mongo
     RenderApp --> Redis
-    RenderApp --> ClamAV
     RenderApp --> Storage
     RenderApp --> Expo
     K8sBackend --> Mongo
@@ -212,7 +211,7 @@ flowchart LR
     K8sBackend --> Expo
 ```
 
-Not shown: the `backend-cronjob.yaml` CronJob, which talks to the same Mongo/notification path as the Kubernetes backend Deployment but isn't reachable from outside the cluster at all — it has no Service, only scheduled internal execution. This diagram (control `8.20`/`8.22` in the [ISO 27001 SoA](iso27001-statement-of-applicability.md)) documents the intended topology; the Kubernetes half hasn't been cross-checked against a live running cluster's actual `kubectl get all` output. It was corrected during a compliance pass after drifting out of date following the Render consolidation — it previously showed Render with a separate static-site host and a shared Nginx-served frontend box, neither of which has been true since `kejaapp-frontend` was retired.
+Not shown: the `backend-cronjob.yaml` CronJob, which talks to the same Mongo/notification path as the Kubernetes backend Deployment but isn't reachable from outside the cluster at all — it has no Service, only scheduled internal execution. Deliberately no `RenderApp --> ClamAV` edge either — malware scanning isn't wired up on Render at all (see "Known limitations of this setup" below), only in the Kubernetes path (`clamav-statefulset.yaml`); an earlier version of this diagram incorrectly drew that edge on both targets. This diagram (control `8.20`/`8.22` in the [ISO 27001 SoA](iso27001-statement-of-applicability.md)) documents the intended topology; the Kubernetes half hasn't been cross-checked against a live running cluster's actual `kubectl get all` output. It was corrected during a compliance pass after drifting out of date following the Render consolidation — it previously showed Render with a separate static-site host and a shared Nginx-served frontend box, neither of which has been true since `kejaapp-frontend` was retired.
 
 ### First-time setup
 

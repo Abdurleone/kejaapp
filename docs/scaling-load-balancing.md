@@ -46,9 +46,10 @@ Current local-development defaults are fine for one instance, but production sca
 
 - `GET /api/properties` and `GET /api/properties/:id` are cached (namespace `properties`, TTL via `PROPERTIES_CACHE_TTL_MS`, default 30s) and invalidated immediately on any property create/update/delete or image add/remove.
 - `GET /api/movers` is cached (namespace `movers`, TTL via `MOVERS_CACHE_TTL_MS`, default 60s). There is no mover write endpoint, so no invalidation hook is needed.
+- `GET /api/feedback/public` is cached (namespace `feedbackPublic`, TTL via `FEEDBACK_PUBLIC_CACHE_TTL_MS`, default 30s) and invalidated immediately when an admin responds to a feedback submission.
 - Only fully anonymous, non-personalized GET endpoints are cached — protected/user-scoped endpoints such as `GET /api/properties/mine` are never cached.
 - `/uploads/*` is served with `Cache-Control: public, max-age=31536000, immutable`, since uploaded image filenames embed a unique Mongo ObjectId and are never reused for different content.
-- The frontend (`frontend/app-utils.js`) keeps a short-lived (15s) in-memory cache for `fetchProperties`/`fetchFavorites` to avoid redundant refetches on remount, clearing the favorites cache on save/remove and the entire cache on login/logout/register/account deletion.
+- The frontend (`frontend/app-utils/`) keeps a short-lived (15s) in-memory cache (`client.js`'s `getCached`/`setCached`) for `fetchProperties`/`fetchFavorites` to avoid redundant refetches on remount, clearing the favorites cache on save/remove and the entire cache on login/logout/register/account deletion.
 
 ## Logging
 
