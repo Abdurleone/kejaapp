@@ -78,6 +78,7 @@ AWS S3, Backblaze B2, and MinIO work the same way (MinIO/path-style-only provide
 | `backend-hpa.yaml` | HorizontalPodAutoscaler (2–6 replicas, CPU-based) — needs `metrics-server` |
 | `frontend-deployment.yaml` | Deployment (2 replicas) + Service for the Nginx-served build |
 | `redis-statefulset.yaml` | in-cluster Redis (StatefulSet + 1Gi PVC) |
+| `clamav-statefulset.yaml` | in-cluster ClamAV (StatefulSet + 2Gi PVC, so the ~100MB signature database isn't re-downloaded on every pod restart) for malware scanning on property-image uploads — `backend-configmap.yaml` points `CLAMAV_HOST`/`CLAMAV_PORT` at it |
 | `backend-cronjob.yaml` | CronJob running the scheduled notification sweeps (`node scripts/runScheduledJobs.js`) every 15 minutes, reusing the same image/ConfigMap/Secret |
 | `ingress.yaml` | routes two hosts to the two Services — needs `ingress-nginx` |
 
@@ -102,9 +103,12 @@ then update `CORS_ORIGIN` in `backend-configmap.yaml` to match.
    kubectl apply -f k8s/backend-deployment.yaml -f k8s/backend-hpa.yaml
    kubectl apply -f k8s/backend-cronjob.yaml
    kubectl apply -f k8s/redis-statefulset.yaml
+   kubectl apply -f k8s/clamav-statefulset.yaml
    kubectl apply -f k8s/frontend-deployment.yaml
    kubectl apply -f k8s/ingress.yaml
    ```
+
+   `backend-configmap.yaml` sets `CLAMAV_HOST` unconditionally, so skipping the `clamav-statefulset.yaml` step above doesn't just disable malware scanning — property-image uploads fail closed (rejected) once the backend can't reach a scanner it's configured to expect.
 
    Outside Kubernetes, run the same sweeps manually or via your own scheduler with `npm run jobs` in `backend/` — there's no in-process timer, so nothing runs automatically unless something external calls it on a schedule.
 

@@ -37,7 +37,7 @@ Base your decision only on the submitted business details/documents — verifica
 
 ## 4. Violation review
 
-Duplicate-listing-image violations are currently detected automatically (image fingerprinting flags reused images across different owners). Review flagged violations and update their status as needed. Four **active** violations on one account trigger an automatic suspension — this happens without manual action, so your review role here is about catching and correcting false positives, not triggering the enforcement itself.
+Duplicate-listing-image violations are currently detected automatically (image fingerprinting flags reused images across different owners). Review flagged violations and update their status as needed. Four **active** violations on one account trigger an automatic **ban** (not a suspension — this is the harsher of the two statuses described in [Section 2](#2-managing-user-accounts) above) — this happens without manual action, so your review role here is about catching and correcting false positives, not triggering the enforcement itself.
 
 ## 5. Platform feedback
 

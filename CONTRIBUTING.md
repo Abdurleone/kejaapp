@@ -27,9 +27,13 @@ Each has its own `package.json`, ESLint flat config, and test suite. Root
 ```bash
 git clone https://github.com/Abdurleone/kejaapp.git
 cd kejaapp
-npm install
+npm --prefix backend install
+npm --prefix frontend install
+npm --prefix mobile install
 cp backend/.env.example backend/.env
 ```
+
+The root `package.json` has no `workspaces` field, so a plain `npm install` at the repo root only installs the root package itself (no real dependencies) — it does **not** install `backend/`, `frontend/`, or `mobile/`'s dependencies, even though the `npm run dev`/`frontend`/`mobile` scripts below do fan out into each package correctly.
 
 Fill in `backend/.env` with a MongoDB URI and a JWT secret (a local
 `mongod`, a free MongoDB Atlas cluster, or `docker compose up mongodb` all
@@ -94,9 +98,9 @@ right now.
   `npm run lint` before pushing.
 - Match the existing patterns in the file/area you're editing rather than
   introducing a new one — this codebase favors small, explicit functions
-  over abstraction, and reuses existing helpers (`app-utils.js` on web,
-  `mobile/src/api/index.js` on mobile, controller/validator/route patterns
-  on the backend) rather than duplicating logic.
+  over abstraction, and reuses existing helpers (`frontend/app-utils/` on
+  web, `mobile/src/api/index.js` on mobile, controller/validator/route
+  patterns on the backend) rather than duplicating logic.
 - No enforced comment style, but prefer comments that explain *why*
   something non-obvious was done over comments that restate *what* the
   code does.

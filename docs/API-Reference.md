@@ -35,10 +35,12 @@ Role-aware: returns different fields depending on whether the signed-in user is 
 ```text
 POST   /api/auth/register
 POST   /api/auth/login
+POST   /api/auth/google                                      verifies a Google ID token server-side; see Authentication
 POST   /api/auth/refresh
 POST   /api/auth/logout
 GET    /api/auth/me
 PUT    /api/auth/me
+PUT    /api/auth/role                                         set role + roleConfirmed after a fresh Google sign-in
 DELETE /api/auth/me                                          full cascade delete of the current user's own account
 PUT    /api/auth/password
 ```
@@ -199,5 +201,5 @@ Responses for all four routes above include a `distanceKm`/`priceEstimate` pair 
 1. Import `docs/kejaapp-insomnia.json` into [Insomnia](https://insomnia.rest/).
 2. Select the `Base Environment`, confirm `base_url` is `http://localhost:5000`.
 3. Register or log in, copy the returned token into the `token` environment variable.
-4. After creating resources, copy returned ids into the matching environment variables (`property_id`, `image_id`, `inquiry_id`, `viewing_id`, `notification_id`, `verification_id`).
-5. Use the grouped requests for Auth, Properties, Favorites, Reviews, Inquiries, Viewings, Notifications, Agencies, Feedback, Admin, Movers, and Mover requests.
+4. After creating resources, copy returned ids into the matching environment variables (`property_id`, `review_id`, `image_id`, `inquiry_id`, `viewing_id`, `notification_id`, `verification_id`, `violation_id`, `user_id`).
+5. Use the grouped requests for Health, Dashboard, Auth, Properties, Favorites, Reviews, Inquiries, Viewings, Notifications, Admin, Agencies, and Movers.

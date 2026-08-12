@@ -33,12 +33,7 @@ Not allowed, in any inquiry, viewing coordination, mover request, review, or fee
 
 ## 4. Enforcement
 
-Violations of this policy are handled through the same mechanism described in the [Code of Ethics §3](code-of-ethics.md#3-enforcement):
-
-1. A violation record is created against the offending account — automatically for detected duplicate-listing-image fraud, or by admin review for reported conduct/content issues.
-2. Accumulating active violations leads to suspension; a fourth active violation triggers an automatic ban.
-3. Every status change is logged with a reason, visible to the affected user.
-4. A user who believes a violation was recorded in error can appeal through the in-app Feedback tab.
+Violations of this policy are handled through the exact mechanism described in the [Code of Ethics §3](code-of-ethics.md#3-enforcement) — recorded against the offending account, escalating from suspension to an automatic ban on a fourth active violation, logged and appealable. Not restated here to avoid the two documents drifting out of sync; see that section for the full detail.
 
 ## 5. Reporting a violation
 
