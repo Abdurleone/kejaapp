@@ -41,6 +41,35 @@ Already implemented in `backend/routes/healthRoutes.js` / `backend/controllers/h
 - `GET /api/health/ready` — readiness: actively pings MongoDB, returns `503` if it's unreachable. Point a load balancer's health check here to pull an instance out of rotation during a DB outage.
 - `GET /api/health/database` — DB connectivity only.
 
+## Backups and disaster recovery
+
+MongoDB Atlas's built-in Cloud Backup (scheduled snapshots) only exists on M10+ dedicated clusters, not on the free M0 shared tier this project runs on - so `backend/scripts/backupDatabase.js`/`restoreDatabase.js` are a self-hosted alternative rather than something to enable in the Atlas dashboard.
+
+**What it does**: dumps every collection (via the Mongo driver directly, not the `mongodump` binary - no extra system dependency to install anywhere this runs) to a single gzip-compressed EJSON document (`bson`'s `EJSON.stringify(..., { relaxedMode: false })`, which round-trips `ObjectId`/`Date`/etc. exactly, not just as plain strings), and uploads it to a **separate, private** S3-compatible bucket.
+
+**Why a separate bucket from `S3_BUCKET`**: that bucket is public-read by design (property photos need to be publicly viewable). A database dump contains password/refresh-token hashes and PII - it must never land somewhere publicly downloadable. Create a second, private (not public-read) bucket and set the `BACKUP_S3_*` vars in `backend/.env`/on Render (same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/etc. - both scripts refuse to run, rather than silently no-op, since they're always explicitly invoked by a human):
+
+```
+BACKUP_S3_BUCKET=
+BACKUP_S3_REGION=auto
+BACKUP_S3_ENDPOINT=
+BACKUP_S3_ACCESS_KEY_ID=
+BACKUP_S3_SECRET_ACCESS_KEY=
+```
+
+**Running a backup**: `npm run backup` in `backend/` - connects to `MONGODB_URI`, uploads to `s3://$BACKUP_S3_BUCKET/backups/<ISO timestamp>.json.gz`.
+
+**Running a restore**: `npm run restore` defaults to a dry run against the newest backup in the bucket - prints the source key, the target `MONGODB_URI` host/db, and a per-collection document-count preview, without touching anything. Add `-- --confirm` to actually wipe and replace each collection with the backup's contents. Pass `-- --key=<key>` to restore a specific backup instead of the newest one.
+
+**Verified with a real drill, not just written and trusted**: seeded a scratch local MongoDB instance with known data, ran `npm run backup` against it (real upload to the private B2 bucket, confirmed present via the bucket's own list API), dropped the entire scratch database (simulating real data loss), then ran `npm run restore -- --confirm` and confirmed every document came back byte-for-byte identical, including `ObjectId`/`Date` type fidelity (`instanceof` checks in `mongosh`, not just a JSON string comparison). The drill's scratch database and backup object were both deleted afterward - only the scripts and this documentation are left behind.
+
+**What this doesn't cover yet**: it's a manual, on-demand procedure, not an automated schedule. Real automation was considered and deliberately deferred rather than half-wired:
+- **Render Cron Jobs** would be the simplest trigger, but aren't free (from $1/mo) - a real recurring cost that wasn't approved.
+- **A GitHub Actions `schedule:` workflow** would be free (this repo is public), but depends on the account-level GitHub billing lock (see [CI](#ci) above) actually being cleared, which was last confirmed 2026-07-23 and hasn't been rechecked since.
+- **A Kubernetes `CronJob`** (mirroring `backend-cronjob.yaml`'s existing pattern for `npm run jobs`) would work today with zero new infrastructure, but only matters once `k8s/` is an actually-deployed target rather than the reference/alternative path it is now.
+
+No bucket lifecycle/retention rule is configured either - old backups accumulate until manually deleted or a lifecycle rule is added in the B2 bucket's own settings.
+
 ## Deployment (Render) — production
 
 This is the actual live deployed instance: `kejaapp-backend-7iu3.onrender.com` — the one URL for both the web app and its API. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
