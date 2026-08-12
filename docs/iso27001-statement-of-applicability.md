@@ -114,7 +114,7 @@ KejaApp has no company-owned premises — it runs on cloud/managed infrastructur
 | 8.13 | Information backup | N | No documented/automated database backup-and-restore procedure — see [Section 7](#7-remediation-roadmap). |
 | 8.14 | Redundancy of information processing facilities | Y | Kubernetes HPA-scaled backend replicas; Render Blueprint as an alternative path. |
 | 8.15 | Logging | Y | Daily-rotated access/app logs (`backend/logs/`), Nairobi-timestamped. |
-| 8.16 | Monitoring activities | P | Sentry error tracking wired on backend and mobile (5xx errors, app crashes) - closes the "no application-error visibility" gap, though `SENTRY_DSN`/`EXPO_PUBLIC_SENTRY_DSN` are only set in local dev so far, not production. Health/liveness/readiness endpoints still have no uptime alerting/dashboarding layer - a separate, still-open gap. |
+| 8.16 | Monitoring activities | P | Sentry error tracking wired on backend and mobile (5xx errors, app crashes) - closes the "no application-error visibility" gap, though `SENTRY_DSN`/`EXPO_PUBLIC_SENTRY_DSN` are only set in local dev so far, not production. Two free-tier UptimeRobot HTTP monitors (5-minute interval, email alert) now poll production's `/api/health/live` and `/api/health/ready` and page a human on any non-2xx response - closes the separate "no uptime alerting" gap independently of Sentry, and specifically covers a full-process-crash scenario Sentry itself can't self-report (a dead process can't emit an event). Still no dashboarding layer beyond UptimeRobot's own basic status page, which isn't set up. |
 | 8.17 | Clock synchronization | Y | Server timestamps standardized to `Africa/Nairobi` across logs and audit records. |
 | 8.18 | Use of privileged utility programs | N/A | No direct production shell/utility-access pattern documented; relies on standard hosting-provider consoles. |
 | 8.19 | Installation of software on operational systems | Y | Docker images are the only deployment artifact; no ad hoc software installation on running containers. |
@@ -152,7 +152,7 @@ Every control below is currently either **P** (partial/informal) or **N** (not i
 | 5.30 | ICT readiness for business continuity | N | No disaster-recovery/backup-restore drill has ever been performed. |
 | 8.13 | Information backup | N | No automated backup schedule exists for MongoDB Atlas data. |
 | 5.29 | Information security during disruption | P | Health/liveness/readiness endpoints and HPA replicas exist; no documented continuity plan beyond that. |
-| 8.16 | Monitoring activities | P | Sentry now covers application errors (backend + mobile), but not set in production yet. Health endpoints still have nothing paging a human when they fail — no uptime alerting/dashboarding layer. |
+| 8.16 | Monitoring activities | P | Sentry now covers application errors (backend + mobile), but not set in production yet. Uptime alerting is now live (two UptimeRobot HTTP monitors on `/api/health/live`/`/api/health/ready`, email alert) — the remaining gap is a dashboarding layer beyond UptimeRobot's own basic status page, and getting Sentry's production DSN actually set. |
 
 ### Supplier / third-party risk
 | # | Control | Status | Gap |
@@ -194,7 +194,7 @@ If either constraint changes (CI re-enabled and shown to pass reliably; a second
 ### Phase 2 — Short-term engineering work (single-PR-sized, no new vendor)
 1. **Automated database backup + one tested restore** (`5.30`, `8.13`) — MongoDB Atlas has built-in scheduled snapshots; enabling them plus running one real restore-to-a-scratch-cluster drill closes both controls. The single biggest gap by risk remaining on this list.
 2. ~~Malware scanning on uploads~~ — **done**: a self-hosted ClamAV daemon (`backend/services/malwareScanService.js`) now scans every property-image upload before it reaches storage, wired into `docker-compose.yml`/`k8s/clamav-statefulset.yaml`/`render.yaml` and live-verified with a genuine EICAR test file. See `8.7` above.
-3. **Minimal alerting on the existing health endpoints** (`8.16`) — a free-tier uptime monitor (UptimeRobot, Better Uptime) pointed at `/health/live` and `/health/ready` gets a human paged with near-zero engineering effort; a fuller dashboard can come later.
+3. ~~Minimal alerting on the existing health endpoints~~ — **done**: two free-tier UptimeRobot HTTP monitors (5-minute interval) poll production's `/api/health/live` and `/api/health/ready`, email-alerting on any non-2xx response. A fuller dashboard beyond UptimeRobot's own basic status page can still come later. See `8.16` above.
 
 ### Phase 3 — Process and documentation (no new tooling required) — done
 All five items completed in one pass:

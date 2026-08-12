@@ -51,6 +51,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Sentry DSNs Configured and Verified Locally](#sentry-dsns-configured-and-verified-locally)
 - [Disclose Sentry as a Third-Party Processor in Compliance Docs](#disclose-sentry-as-a-third-party-processor-in-compliance-docs)
 - [Compliance Pass: Correct Stale Docs After the Render Consolidation](#compliance-pass-correct-stale-docs-after-the-render-consolidation)
+- [Uptime Alerting on the Production Health Endpoints (Closes ISO 27001 8.16)](#uptime-alerting-on-the-production-health-endpoints-closes-iso-27001-816)
 
 ---
 
@@ -548,3 +549,12 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **`docs/devops.md`**: the "Network topology" Mermaid diagram had drifted stale - it still showed Render with a retired separate static-site host and a shared Nginx-served frontend box. Corrected to show Render and Kubernetes as the genuinely different shapes they are today: Render is one consolidated web service (bundled frontend + API, same origin); Kubernetes stays two Deployments behind two ingress hosts, unchanged on purpose.
 - **`docs/data-protection-policy.md` §11 (Security measures)**: same `sameSite: "none"`-as-universal correction as the code comment above, plus a new bullet crediting the Content-Security-Policy as a security measure. §17 (Review) updated to reflect both this pass and the previous Sentry-disclosure one, which had left that line stale.
 - No behavior change anywhere in this pass - documentation and one code comment only, verified by re-reading each corrected claim against the actual current code/config it describes rather than trusting the previous write-up.
+
+## Uptime Alerting on the Production Health Endpoints (Closes ISO 27001 8.16)
+
+- **The ISO 27001 SoA's Phase 2 remediation roadmap named this the cheapest real gap left**: `8.16` (Monitoring activities) had Sentry for application errors but nothing paging a human if the backend simply went unreachable - no uptime/liveness alerting layer at all.
+- **Two free-tier UptimeRobot HTTP(s) monitors, 5-minute interval, email alert**, set up against the live production URL: `/api/health/live` (process alive) and `/api/health/ready` (Mongo reachable - returns `503` on failure, which UptimeRobot's plain HTTP check already treats as down, no keyword matching needed). The liveness monitor was created by the account owner directly during UptimeRobot signup; the readiness one was attempted via UptimeRobot's `newMonitor` API first and found to be blocked outright on the free plan (`access_denied: "You are not allowed to use some settings with your current plan"`, reproduced even against a bare `https://example.com` test call, confirming it's a plan-wide API restriction, not a parameter mistake) - added manually through the dashboard instead, then verified live via the read-only `getMonitors`/`getAlertContacts` API calls (both monitors `up`, both correctly attached to the account's active email alert contact).
+- **Deliberately a plain HTTP(s) check, not a keyword monitor**: the health endpoints already communicate ok/not-ok via status code (`200`/`503`), so a plain check covers it with no risk of getting UptimeRobot's `keyword_type` "exists vs. doesn't-exist" polarity backwards (a real, documented-nowhere-authoritatively ambiguity found while researching the correct parameters).
+- **`docs/iso27001-statement-of-applicability.md`**: `8.16` updated in both places it's listed (§5 full assessment, §6 pending digest) - stays "Partial," since `SENTRY_DSN` still isn't set on Render, but the uptime-alerting half of the gap is now closed and explicitly credited as covering a scenario Sentry itself structurally can't (a fully dead process can't self-report an error to Sentry either). Phase 2 item 3 in the remediation roadmap marked done.
+- **`docs/live.md`**: new "Uptime monitoring" row in the Infrastructure table.
+- No application code changed - this is dashboard/API configuration on a third-party service plus documentation.
