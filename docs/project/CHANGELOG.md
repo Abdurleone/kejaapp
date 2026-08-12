@@ -58,6 +58,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [README Appraisal: Status Framing, Missing Links, Missing Env Vars, Redundancy](#readme-appraisal-status-framing-missing-links-missing-env-vars-redundancy)
 - [QA/QC Refresh: Two Real Bugs Found by Actually Running Things](#qaqc-refresh-two-real-bugs-found-by-actually-running-things)
 - [Roadmap.md Appraisal: 17 Broken Absolute Links, a Blind Spot in the Reorg's Own Link Checker](#roadmapmd-appraisal-17-broken-absolute-links-a-blind-spot-in-the-reorgs-own-link-checker)
+- [Roadmap.md's Next Section: Two Real Gaps Documented Elsewhere but Missing Here](#roadmapmds-next-section-two-real-gaps-documented-elsewhere-but-missing-here)
 
 ---
 
@@ -629,3 +630,10 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Same check run against the wiki**: found exactly the two already-known, deliberately-untouched references to `database-access-policy.md`/`soc2-readiness-assessment.md` (the unmerged branch flagged during the original reorg) and nothing new - confirms that pass's wiki cleanup was actually thorough, this gap was specific to absolute-URL validation never having existed at all.
 - **`docs/project/Roadmap.md`'s "Next" section**: re-verified every item against current reality rather than assumed accurate. The CI billing-lock item's cited confirmation was 6 days stale (2026-08-06) despite being re-confirmed just now during the QA/QC pass above - updated to cite that fresher check. `mobile-liquid-navigation` confirmed still an unmerged remote branch. Everything else in Next held up. The "Completed" section's historical entries were left untouched, same reasoning as the CHANGELOG appraisal - they're an accurate record of what was true when written, not living documentation.
 - No application code changed. Verified: both link-checker scripts (repo + wiki) clean except the two pre-known unmerged-branch references.
+
+## Roadmap.md's Next Section: Two Real Gaps Documented Elsewhere but Missing Here
+
+- **Two items were already true and already documented elsewhere in the repo, but had never made it into `docs/project/Roadmap.md`'s own "Next" list** - the page whose entire job is to be the up-to-date summary of what's still pending.
+- **Sentry production DSNs**: `docs/project/live.md` has said since the Sentry-configuration work landed that neither `SENTRY_DSN` (Render) nor `EXPO_PUBLIC_SENTRY_DSN`/`SENTRY_AUTH_TOKEN` (EAS) is set yet, so production errors aren't reaching Sentry despite the wiring being verified end-to-end locally. Roadmap's Next section never picked this up - added, matching `live.md`'s phrasing.
+- **Liquid Glass tab bar visual check**: the unmerged `mobile-liquid-navigation` branch (`LiquidTabBar.js`, a frosted-glass floating tab bar via `expo-blur` + `react-native-reanimated`) has been sitting at 36/36 suites, 208/208 tests, lint-clean since it was committed, with its own commit message noting it's "not yet verified on a" real device. That branch's need for a follow-up matatu-styling pass was already tracked here, but the separate, more basic need to actually see the blur/animation render on a real iOS/Android runtime wasn't - added as its own item, since a device check and a styling pass are two different pieces of work with two different blockers.
+- No application code changed; docs only. Both gaps were found by cross-checking Roadmap's Next section against `docs/project/live.md` and the unmerged branch's own commit history, not by any new work.
