@@ -12,9 +12,9 @@ the latest commit before reporting an issue.
 
 Instead, report it privately using GitHub's built-in flow:
 
-1. Go to the [Security tab](../../security) of this repository.
+1. Go to the [Security tab](../../../security) of this repository.
 2. Click **"Report a vulnerability"** (or use this direct link:
-   [../../security/advisories/new](../../security/advisories/new)).
+   [../../../security/advisories/new](../../../security/advisories/new)).
 3. Fill in as much detail as you can:
    - The affected component (backend API, frontend web app, or mobile app)
    - Steps to reproduce, or a proof-of-concept
@@ -42,7 +42,7 @@ Reports involving any of the following are especially welcome:
 - Broken access control on any `/api/*` endpoint
 - Sensitive data (tokens, credentials, PII) leaking into error reports sent
   to our error-tracking provider (Sentry) — see
-  [Data Protection Policy §7](docs/compliance/data-protection-policy.md#7-third-party-processors)
+  [Data Protection Policy §7](compliance/data-protection-policy.md#7-third-party-processors)
 
 Out of scope: findings that require physical access to a user's device,
 denial-of-service reports without a realistic exploitation path, and

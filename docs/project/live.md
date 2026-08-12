@@ -1,6 +1,6 @@
 # What's Live
 
-A snapshot of what's actually deployed and working right now, separate from [CHANGELOG.md](../../CHANGELOG.md) (full history) and [Roadmap.md](Roadmap.md) (shipped/next at a feature level). This page answers one question: **if someone opens the app right now, what do they get, and what's still missing?** Last updated 2026-08-11.
+A snapshot of what's actually deployed and working right now, separate from [CHANGELOG.md](CHANGELOG.md) (full history) and [Roadmap.md](Roadmap.md) (shipped/next at a feature level). This page answers one question: **if someone opens the app right now, what do they get, and what's still missing?** Last updated 2026-08-11.
 
 ## Live URL
 

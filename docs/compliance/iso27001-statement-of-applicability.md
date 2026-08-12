@@ -72,7 +72,7 @@ Two Phase 2 roadmap items have since been implemented and are upgraded to Y belo
 | 6.5 | Responsibilities after termination or change of employment | N/A | Outside codebase scope. |
 | 6.6 | Confidentiality or non-disclosure agreements | N/A | This is a source-available, all-rights-reserved repository; no contributor NDA is currently used. |
 | 6.7 | Remote working | N/A | Outside codebase scope. |
-| 6.8 | Information security event reporting | Y | [SECURITY.md](../../SECURITY.md) + [Incident Response Plan](incident-response-plan.md). |
+| 6.8 | Information security event reporting | Y | [SECURITY.md](../SECURITY.md) + [Incident Response Plan](incident-response-plan.md). |
 
 ## 4. A.7 — Physical controls (14)
 

@@ -191,9 +191,9 @@ This README is a quick-start landing page, not the full reference. For everythin
 
 Other documents kept in this repository:
 
-- [CHANGELOG.md](CHANGELOG.md) — detailed, chronological history of what's been built.
+- [docs/project/CHANGELOG.md](docs/project/CHANGELOG.md) — detailed, chronological history of what's been built.
 - [docs/project/live.md](docs/project/live.md) — what's actually deployed and working right now, and what's still pending.
-- [AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)
+- [docs/dev/AUTHENTICATION_GUIDE.md](docs/dev/AUTHENTICATION_GUIDE.md)
 - [docs/dev/devops.md](docs/dev/devops.md)
 - [docs/dev/scaling-load-balancing.md](docs/dev/scaling-load-balancing.md)
 - [docs/project/qa-qc-report.md](docs/project/qa-qc-report.md)

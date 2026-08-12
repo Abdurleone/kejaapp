@@ -3,7 +3,7 @@
 // app-wide there since <matatu-poster-base-frame PR>) so mobile and web read
 // as the same product in both color modes. Previously mirrored web's older,
 // pre-matatu "County Registry" palette instead, and had quietly drifted to
-// different literal hex values even from that (DESIGN.md's "confirmed
+// different literal hex values even from that (docs/project/DESIGN.md's "confirmed
 // cross-platform drift" table) - this rewrite closes both gaps at once.
 export const lightColors = {
   bg: "#f6ecd2",

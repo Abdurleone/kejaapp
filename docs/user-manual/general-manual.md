@@ -53,7 +53,7 @@ See the [Data Protection Policy](../compliance/data-protection-policy.md) for wh
 - **In-app**: Feedback (web: its own tab; on mobile, via **More → Feedback**).
 - **Data/privacy questions or rights requests**: `privacy@kejaapp.com` (see the [Data Protection Policy](../compliance/data-protection-policy.md#10-data-subject-rights)).
 - **A dispute with another user, or an appeal of an account action**: see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
-- **Security vulnerability reports**: see [SECURITY.md](../../SECURITY.md).
+- **Security vulnerability reports**: see [SECURITY.md](../SECURITY.md).
 - **Accessibility barriers**: see the [Accessibility Statement](../compliance/accessibility-statement.md).
 
 ## 8. Troubleshooting

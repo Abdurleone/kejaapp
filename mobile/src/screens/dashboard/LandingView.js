@@ -43,7 +43,7 @@ const lightBand = { bg: "#f6ecd2", card: "#fffaec", ink: "#17130d", accent: "#d2
 // matatu-poster landing page (sign-painted cream world, sticker badge,
 // illustrated skyline, thick strokes, hard shadows) - not the app's own
 // pre-matatu "gradient hero" treatment this screen used to carry. See
-// DESIGN.md's Landing page exception section: this bespoke content is
+// docs/project/DESIGN.md's Landing page exception section: this bespoke content is
 // scoped to this one screen, same as web scopes it to .landing-page alone.
 export default function LandingView() {
   const navigation = useNavigation();

@@ -2,7 +2,7 @@ import { Linking } from "react-native";
 
 // Matches render.yaml's kejaapp-backend service - the web app and its API
 // have shared one Render origin since the consolidation (kejaapp-frontend
-// was retired, not renamed - see CHANGELOG.md's "Consolidate Web + API onto
+// was retired, not renamed - see docs/project/CHANGELOG.md's "Consolidate Web + API onto
 // One Render Origin" entry). Update this if you deploy under a different
 // Render service name or a custom domain.
 export const webAppBaseUrl = "https://kejaapp-backend-7iu3.onrender.com";

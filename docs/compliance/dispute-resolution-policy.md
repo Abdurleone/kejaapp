@@ -46,7 +46,7 @@ Every account status change KejaApp's admins make is logged with a reason and vi
 
 - General complaints/feedback: in-app Feedback tab.
 - Data protection complaints: `privacy@kejaapp.com`.
-- Security vulnerabilities: [SECURITY.md](../../SECURITY.md).
+- Security vulnerabilities: [SECURITY.md](../SECURITY.md).
 
 ## 6. Review
 
