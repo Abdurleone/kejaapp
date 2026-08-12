@@ -2,7 +2,7 @@
 
 KejaApp uses JWT authentication with HTTP-only refresh-token cookies, fully integrated between the backend and both clients (web, mobile).
 
-For the complete code walkthrough (frontend state shape, exact request/response JSON, token storage) see [AUTHENTICATION_GUIDE.md](https://github.com/Abdurleone/kejaapp/blob/main/AUTHENTICATION_GUIDE.md) in the repo. This page is the high-level summary.
+For the complete code walkthrough (frontend state shape, exact request/response JSON, token storage) see [AUTHENTICATION_GUIDE.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/dev/AUTHENTICATION_GUIDE.md) in the repo. This page is the high-level summary.
 
 ## Registration
 
