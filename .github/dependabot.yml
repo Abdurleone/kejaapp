@@ -61,6 +61,16 @@ updates:
       # live emulator run surfaced it, since CI is currently disabled.
       - dependency-name: "@react-native-async-storage/async-storage"
         update-types: ["version-update:semver-major"]
+      # Same class of issue as async-storage above: @sentry/react-native's
+      # major version is tied to the installed Expo SDK, not semver. `npx
+      # expo install` resolves ~7.11.0 as correct for Expo SDK 57; a
+      # mobile-dependencies group bump (PR #234) tried to carry it to 8.22.0
+      # bundled alongside 11 unrelated safe patch/minor updates - caught only
+      # by manually reading the PR diff during a QA/QC pass, since CI is
+      # disabled and the test suite has no way to detect an SDK-incompatible
+      # native module version.
+      - dependency-name: "@sentry/react-native"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
