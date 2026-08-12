@@ -142,7 +142,7 @@ export default function MainTabs() {
             // separate treatment - previously overridden to green here to
             // blend into LandingView's old dark-gradient hero, which no
             // longer exists now that LandingView uses the same cream
-            // background as every other screen (see DESIGN.md's Landing
+            // background as every other screen (see docs/project/DESIGN.md's Landing
             // page exception - the bespoke content is the sticker/skyline/
             // testimonials-flip, not a different base chrome color).
             ...(name === "Dashboard" && !signedIn ? { headerTitle: () => <BrandTitle colors={colors} /> } : {}),

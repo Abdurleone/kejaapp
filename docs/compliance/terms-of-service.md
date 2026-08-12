@@ -10,13 +10,13 @@ KejaApp is a **discovery and coordination platform** connecting tenants, landlor
 
 - Does **not** own, manage, lease, or take any legal interest in any property listed on the platform.
 - Does **not** act as a moving company or party to any moving-service contract.
-- Does **not** process, hold, or mediate any payment — rent, deposits, agency fees, or mover charges are agreed and settled directly between the parties involved (see [Payment Boundary](../README.md#payment-boundary)).
+- Does **not** process, hold, or mediate any payment — rent, deposits, agency fees, or mover charges are agreed and settled directly between the parties involved (see [Payment Boundary](../../README.md#payment-boundary)).
 - Is **not** a party to any tenancy agreement, viewing arrangement, or moving-service agreement formed between users through the platform.
 
 ## 3. Accounts
 
 - You must provide accurate registration information (name, a real email, phone number) and keep your password confidential. You're responsible for activity under your account.
-- You choose a role at registration — **tenant**, **landlord**, **agency**, or **mover** — which determines what parts of KejaApp you can use (see the [User Manual](user-manual/general-manual.md) for each role's capabilities). Admin accounts are provisioned directly, not self-registered.
+- You choose a role at registration — **tenant**, **landlord**, **agency**, or **mover** — which determines what parts of KejaApp you can use (see the [User Manual](../user-manual/general-manual.md) for each role's capabilities). Admin accounts are provisioned directly, not self-registered.
 - Role is fixed after registration. Contact `privacy@kejaapp.com` if you registered under the wrong role.
 - You must be at least 18 years old to register (see [Data Protection Policy §13](data-protection-policy.md#13-childrens-data)).
 
@@ -40,7 +40,7 @@ Use of KejaApp is also governed by the [Acceptable Use Policy](acceptable-use-po
 
 - KejaApp may suspend or ban an account for violations of these terms, the Acceptable Use Policy, or applicable law, following the process described in the [Code of Ethics](code-of-ethics.md#3-enforcement) — including automatic suspension after repeated detected violations (e.g. duplicate-listing-image fraud).
 - Every account status change is logged with a reason, visible to the affected user.
-- You may delete your own account at any time from the Account page or via the [Delete Account](../frontend/src/pages/DeleteAccountPage.jsx) flow — see the [Data Protection Policy §9](data-protection-policy.md#9-retention-and-deletion) for exactly what's removed.
+- You may delete your own account at any time from the Account page or via the [Delete Account](../../frontend/src/pages/DeleteAccountPage.jsx) flow — see the [Data Protection Policy §9](data-protection-policy.md#9-retention-and-deletion) for exactly what's removed.
 
 ## 8. Disclaimers
 

@@ -83,7 +83,7 @@ npm run seed
 
 This seeds 9 counties' worth of properties (Nairobi, Nakuru, Mombasa, Kisumu, Uasin Gishu, Kiambu, Nyeri, Machakos, Kakamega), matching movers (each with its own login account, affiliate relationships, and verification records in various states), reviews, inquiries, viewing requests, and agency verification records in various states.
 
-For the seeded account list and the shared demo password, see **[Demo credentials](demo-credentials.md)**. The password value is kept in a separate document so the main setup guide remains concise.
+For the seeded account list and the shared demo password, see **[Demo credentials](../project/demo-credentials.md)**. The password value is kept in a separate document so the main setup guide remains concise.
 
 ## Run with Docker instead
 

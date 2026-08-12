@@ -41,12 +41,12 @@ Check your current status any time from the Dashboard.
 - Moderate user accounts, review agency/mover verification decisions, or review platform-wide violations — those are admin capabilities.
 - Process rent, deposit, or agency-fee payments through KejaApp itself — that remains a direct arrangement with the tenant.
 
-Your listings and conduct are governed by the [Terms of Service](../terms-of-service.md) and [Acceptable Use Policy](../acceptable-use-policy.md) — misrepresenting a listing, discriminatory terms, and reused listing images are all grounds for account action. A disagreement with a specific tenant isn't mediated by KejaApp directly — see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md).
+Your listings and conduct are governed by the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — misrepresenting a listing, discriminatory terms, and reused listing images are all grounds for account action. A disagreement with a specific tenant isn't mediated by KejaApp directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
 
 ## 7. Your data as a business account
 
-Verification documents and business details you submit are visible only to admins reviewing your request and to you. Tenant contact details you receive through an inquiry or viewing request are provided so you can respond to that specific tenant — see the [Data Protection Policy](../data-protection-policy.md) for how that data is scoped and protected.
+Verification documents and business details you submit are visible only to admins reviewing your request and to you. Tenant contact details you receive through an inquiry or viewing request are provided so you can respond to that specific tenant — see the [Data Protection Policy](../compliance/data-protection-policy.md) for how that data is scoped and protected.
 
 ## 8. Deleting your account
 
-See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a landlord/agency, this removes your profile, your listings, inquiries/viewing requests/reviews tied to those listings, agency verification records, and notifications. See the [Data Protection Policy](../data-protection-policy.md#9-retention-and-deletion) for the exact scope.
+See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a landlord/agency, this removes your profile, your listings, inquiries/viewing requests/reviews tied to those listings, agency verification records, and notifications. See the [Data Protection Policy](../compliance/data-protection-policy.md#9-retention-and-deletion) for the exact scope.
