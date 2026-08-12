@@ -42,5 +42,5 @@ Wait for `adb devices` to show it as `device` (not `offline`), then run `npx exp
 
 ## General
 
-- Ran `npm install` at the repo root but a package still seems missing? Each of `backend/`, `frontend/`, `mobile/` has its own `package.json` — the root install runs all three, but if you're only working inside one package, `cd` into it and run `npm install` there directly.
+- Ran `npm install` at the repo root and a package still seems missing? The root `package.json` has no `workspaces` field — `npm install` there only installs the (dependency-free) root package itself, it does **not** fan out to `backend/`, `frontend/`, or `mobile/`. Each has its own `package.json` and needs its own install: `npm --prefix backend install` (repeat for `frontend`/`mobile`), or `cd` into the package and run `npm install` there directly. The root's `npm run dev`/`frontend`/`mobile`/`test`/`lint` scripts do fan out via `--prefix` — only `install` doesn't.
 - Tests failing only in CI, not locally? Check whether the failure needs `TEST_MONGODB_URI` (CI sets it against a `mongo:7` service container; locally you need your own MongoDB instance running) — see [Testing](Testing#real-database-integration-tests).

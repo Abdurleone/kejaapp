@@ -21,7 +21,7 @@ For the canonical, most up-to-date version of each document, follow the links be
 ## Security and operations
 
 - **[Incident Response Plan](https://github.com/Abdurleone/kejaapp/blob/main/docs/incident-response-plan.md)** — the internal runbook for *handling* a security/data incident (severity levels, containment, ODPC/user notification, post-incident review) — distinct from [`SECURITY.md`](https://github.com/Abdurleone/kejaapp/blob/main/SECURITY.md), which covers how an outsider *reports* a vulnerability.
-- **[ISO/IEC 27001 Statement of Applicability](https://github.com/Abdurleone/kejaapp/blob/main/docs/iso27001-statement-of-applicability.md)** — a self-assessment against all 93 Annex A:2022 controls (organizational, people, physical, technological), honestly marking each as implemented, partial, or a genuine gap — including a prioritized gap list (database backup/restore tops it).
+- **[ISO/IEC 27001 Statement of Applicability](https://github.com/Abdurleone/kejaapp/blob/main/docs/iso27001-statement-of-applicability.md)** — a self-assessment against all 93 Annex A:2022 controls (organizational, people, physical, technological), honestly marking each as implemented, partial, or a genuine gap — including a phased remediation roadmap, kept current in that document rather than summarized here (its own priorities shift as items close out).
 - **[Accessibility Statement](https://github.com/Abdurleone/kejaapp/blob/main/docs/accessibility-statement.md)** — what's implemented against WCAG 2.1 AA today (touch targets, reduced-motion support, keyboard-accessible admin table, the auth modal's dialog semantics/focus trap, the main nav's ARIA tablist pattern, alt text) versus what hasn't been audited yet.
 
 ## User documentation

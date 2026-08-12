@@ -13,9 +13,12 @@ backend/
 ├── config/
 ├── constants/
 ├── controllers/
+├── docs/            openapi.js, the generated spec
+├── jobs/            scheduled-job implementations (run via scripts/runScheduledJobs.js)
 ├── middlewares/
 ├── models/
 ├── routes/
+├── scripts/         runScheduledJobs.js, backupDatabase.js, restoreDatabase.js, cleanupTestData.js
 ├── seeders/
 ├── services/
 ├── tests/
@@ -23,7 +26,9 @@ backend/
 ├── validators/
 ├── app.js
 ├── Dockerfile
+├── Dockerfile.render   Render-only consolidated build (bundles the built frontend in) - see Deployment
 ├── eslint.config.js
+├── instrument.js       Sentry.init(), imported first in server.js
 └── server.js
 
 frontend/
@@ -120,13 +125,13 @@ See **[Governance and Policies](Governance-and-Policies)** for what each `docs/`
 
 ## Web frontend
 
-The web frontend (`frontend/`) is a React 19 + Vite single-page app with **manual routing** — no react-router. `window.history.pushState` plus a small `resolveViewFromPath`/`getViewPath` pair in `app-utils.js` handle navigation.
+The web frontend (`frontend/`) is a React 19 + Vite single-page app with **manual routing** — no react-router. `window.history.pushState` plus a small `resolveViewFromPath`/`getViewPath` pair in `app-utils/` handle navigation.
 
 **Key files**
 - `src/App.jsx` — top-level component: header, nav, the sign-in/register modal, and a `renderCurrentPage()` switch over the current view.
 - `src/pages/` — one component per view: `LandingPage`, `DashboardPage`, `DiscoverPage`, `SavedPage`, `WorkspacePage`, `PropertyEditPage`, `PropertyCreatePage`, `AdminPage`, `NotificationsPage`, `FeedbackPage`, `MoversPage`, `AccountPage`, plus a few standalone pages (`PropertyDetailPage`, `PrivacyPage`, `TermsPage`, `DeleteAccountPage`).
 - `src/components/PropertyForm.jsx` — shared create/edit form fields, used by both `PropertyCreatePage` and `PropertyEditPage`.
-- `app-utils.js` (repo root of `frontend/`) — the "everything else" module: `apiFetch` wrapper, every domain-specific API helper (`fetchProperties`, `loginUser`, `createFeedback`, etc.), an in-memory request cache with TTL + prefix-based invalidation, view-routing helpers, and role/access-control helpers (`canAccessView`, `canManageListings`).
+- `app-utils/` (repo root of `frontend/`) — the "everything else" module set, split by concern: `client.js` (`apiFetch` wrapper, CSRF token handling, view-routing helpers), `api.js` (every domain-specific API helper — `fetchProperties`, `loginUser`, `createFeedback`, etc.), `access.js` (role/access-control helpers — `canAccessView`, `canManageListings`), plus `format.js`/`misc.js`. An in-memory request cache with TTL + prefix-based invalidation lives in `client.js` (`getCached`/`setCached`/`clearRequestCache`). `app-utils.js` (no trailing directory) still exists alongside it as a ~10-line barrel re-exporting all five, kept only so pre-existing imports/mocks of the old flat-file path keep working.
 
 **Access model**
 - Anonymous visitors can search available listings and open full property details (prompted to sign in first) without signing in.
@@ -135,7 +140,7 @@ The web frontend (`frontend/`) is a React 19 + Vite single-page app with **manua
 - Movers: excluded from property listings/detail pages entirely (framed as transportation facilitators who work from requests/notifications) — see their own profile/received-requests dashboard on the Movers tab instead of the directory everyone else sees there.
 - Admins: user management console only — no listing creation/editing capability anywhere in the app or API, though they can still open a property detail page directly (this is enforced on the backend for creation/editing, and on the frontend for the ownership/role checks above).
 
-**Caching**: several `fetch*` helpers in `app-utils.js` cache their result in-memory for 15–60 seconds (see the full list in the [README](https://github.com/Abdurleone/kejaapp#readme)) to avoid redundant refetches on remount. Writes invalidate the relevant cache prefix; login/logout/register/account-deletion clear everything.
+**Caching**: several `fetch*` helpers in `app-utils/api.js` cache their result in-memory for 15–60 seconds (see the full list in [Scaling & Load Balancing](scaling-load-balancing.md#caching)) to avoid redundant refetches on remount. Writes invalidate the relevant cache prefix; login/logout/register/account-deletion clear everything.
 
 ## Mobile app
 

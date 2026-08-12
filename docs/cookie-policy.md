@@ -10,6 +10,7 @@ This policy covers cookies and comparable browser/device storage (localStorage) 
 |---|---|---|---|---|
 | `keja_token` (configurable via `AUTH_COOKIE_NAME`) | HTTP-only cookie | Authenticates your session on each request | Browser cookie jar, never readable by page JavaScript | Session/short-lived, per `AUTH_COOKIE_MAX_AGE_DAYS` |
 | `keja_refresh` (configurable via `REFRESH_COOKIE_NAME`) | HTTP-only cookie | Issues a new auth token without re-entering your password | Browser cookie jar, never readable by page JavaScript | Up to 30 days by default (`REFRESH_TOKEN_MAX_AGE_DAYS`), tied to a hashed session record server-side |
+| `keja_csrf` (configurable via `CSRF_COOKIE_NAME`) | Cookie, **not** HTTP-only on purpose | Paired with an `X-CSRF-Token` header on state-changing requests, so the frontend can prove a request is genuinely its own and not a forged cross-site one | Browser cookie jar, readable by page JavaScript (the point — see [Authentication](https://github.com/Abdurleone/kejaapp/wiki/Authentication)'s CSRF section) | Same lifetime as `keja_token` |
 | Bearer token (mobile app / API clients) | Not a cookie — stored in the mobile app's local storage | Same authentication purpose as `keja_token`, for clients that don't use browser cookies | Device-local app storage | Until sign-out or expiry |
 | `keja_base_url` | `localStorage` (not a cookie) | Lets a developer override the API base URL in local/dev environments | Browser `localStorage` | Until manually cleared |
 | Theme preference (light/dark) | `localStorage` (not a cookie) | Remembers your light/dark mode choice across visits | Browser `localStorage` | Until manually cleared |
@@ -18,7 +19,7 @@ This policy covers cookies and comparable browser/device storage (localStorage) 
 
 Under both the ePrivacy/GDPR "strictly necessary" carve-out and equivalent Kenyan practice, every item above is a **strictly necessary** or **functional preference** cookie/storage item — none are used for advertising, cross-site tracking, or behavioral profiling:
 
-- `keja_token` / `keja_refresh` are strictly necessary — the app cannot authenticate you without them.
+- `keja_token` / `keja_refresh` / `keja_csrf` are strictly necessary — the app cannot authenticate you, or protect your session against forged cross-site requests, without them.
 - `keja_base_url` and the theme preference are functional preferences that improve your experience but aren't required for the core service to work.
 
 Because none of these are advertising/tracking cookies, KejaApp does not currently show a cookie-consent banner — strictly necessary cookies are exempt from consent requirements under GDPR-equivalent frameworks, and the functional-preference items store no personal data (just a URL override or a UI preference).
@@ -29,7 +30,7 @@ If KejaApp ever adds analytics, advertising, or cross-site tracking cookies, thi
 
 ## 5. Managing cookies yourself
 
-You can clear `keja_token`/`keja_refresh` at any time by signing out (which also revokes the underlying server-side session) or by clearing your browser's cookies for the site, which will simply sign you out. Clearing `localStorage` resets your theme preference and any local dev API override back to default.
+You can clear `keja_token`/`keja_refresh`/`keja_csrf` at any time by signing out (which also revokes the underlying server-side session) or by clearing your browser's cookies for the site, which will simply sign you out. Clearing `localStorage` resets your theme preference and any local dev API override back to default.
 
 ## 6. Contact
 
