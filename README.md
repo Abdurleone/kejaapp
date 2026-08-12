@@ -4,7 +4,7 @@ KejaApp is a location-first rental platform for tenants, landlords, agencies, ad
 
 ## Current Status
 
-KejaApp is currently in active MVP development. The repository includes:
+KejaApp is live in production and under active development — see [docs/project/live.md](docs/project/live.md) for exactly what's deployed right now and what's still pending. The repository includes:
 
 - a Node.js/Express backend API
 - a Vite + React web frontend
@@ -48,7 +48,7 @@ The repository is organized into a few major areas:
 - [backend](backend) — Express API, routes, models, services, jobs, and tests
 - [frontend](frontend) — Vite SPA for the web experience
 - [mobile](mobile) — Expo-based mobile application
-- [docs](docs) — product, operational, and compliance documents
+- [docs](docs) — `compliance/` (legal/privacy/security), `dev/` (engineering reference), `project/` (status/roadmap), `user-manual/` (per-role guides)
 - [k8s](k8s) — Kubernetes deployment manifests
 
 ## Quick Start
@@ -75,7 +75,9 @@ Other commonly used optional settings include:
 - `CLAMAV_HOST`
 - `STORAGE_DRIVER`
 - `S3_BUCKET`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`
+- `GOOGLE_CLIENT_ID` — enables Google Sign-In; unset means `POST /api/auth/google` 503s instead of failing silently
 - `SENTRY_DSN` (backend), `EXPO_PUBLIC_SENTRY_DSN` (mobile) — error tracking, unset by default
+- `BACKUP_S3_BUCKET`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY` — a separate, private bucket for `npm run backup`/`npm run restore` (see [docs/dev/devops.md](docs/dev/devops.md))
 
 The backend loads and validates configuration from [backend/config/env.js](backend/config/env.js).
 
@@ -115,18 +117,19 @@ npm --prefix backend run seed
 
 ## Development Workflow
 
-The workspace root includes a small set of convenience scripts for common development tasks:
+The root `package.json` wraps the per-package commands above as convenience scripts — `npm run dev` and `npm --prefix backend run dev` do the same thing:
 
 ```bash
-npm run dev
-npm run frontend
-npm run mobile
-npm run seed
-npm run start
-npm test
-npm run test:backend
-npm run test:frontend
-npm run test:mobile
+npm run dev        # = npm --prefix backend run dev
+npm run frontend    # = npm --prefix frontend run dev
+npm run mobile      # = npm --prefix mobile run start
+npm run seed        # = npm --prefix backend run seed
+npm run start       # backend, production mode (no nodemon)
+```
+
+Linting (see [Testing](#testing) below for the equivalent test commands, which aren't repeated here):
+
+```bash
 npm run lint
 npm run lint:backend
 npm run lint:frontend
@@ -193,6 +196,8 @@ Other documents kept in this repository:
 
 - [docs/project/CHANGELOG.md](docs/project/CHANGELOG.md) — detailed, chronological history of what's been built.
 - [docs/project/live.md](docs/project/live.md) — what's actually deployed and working right now, and what's still pending.
+- [docs/SECURITY.md](docs/SECURITY.md) — how to report a vulnerability privately.
+- [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — setup, code style, and the PR process (see [Contributing](#contributing) below for the access policy).
 - [docs/dev/AUTHENTICATION_GUIDE.md](docs/dev/AUTHENTICATION_GUIDE.md)
 - [docs/dev/devops.md](docs/dev/devops.md)
 - [docs/dev/scaling-load-balancing.md](docs/dev/scaling-load-balancing.md)
@@ -215,7 +220,9 @@ For more detail, see [docs/dev/devops.md](docs/dev/devops.md).
 This is a closed, all-rights-reserved project (see [License](#license)) — the
 source is publicly viewable but not open for unsolicited forks or pull
 requests. If you'd like to contribute, contact the copyright holder first to
-get express permission before doing any work.
+get express permission before doing any work. Once permission is granted, see
+[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for setup, code style, and the PR
+process.
 
 ## License
 
