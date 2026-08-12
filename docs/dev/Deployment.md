@@ -2,7 +2,7 @@
 
 KejaApp has three deployment-related setups: local Docker Compose, a Render Blueprint (the actual live production deployment), and Kubernetes manifests (a reference/alternative path, not currently deployed anywhere). MongoDB is **external** (Atlas or your own instance) in all three — nothing here provisions a database.
 
-For the full detail behind every section here, see [docs/devops.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/devops.md) in the repo.
+For the full detail behind every section here, see [docs/devops.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/dev/devops.md) in the repo.
 
 ## CI
 

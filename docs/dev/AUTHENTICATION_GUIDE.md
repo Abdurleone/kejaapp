@@ -228,7 +228,7 @@ Revokes the current refresh session and clears the auth/refresh/CSRF cookies. Sa
 }
 ```
 
-**Other endpoints** (`POST /api/auth/google`, `PUT /api/auth/me`, `PUT /api/auth/role`, `PUT /api/auth/password`, `DELETE /api/auth/me`) are listed in [docs/Authentication.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/Authentication.md) rather than duplicated here.
+**Other endpoints** (`POST /api/auth/google`, `PUT /api/auth/me`, `PUT /api/auth/role`, `PUT /api/auth/password`, `DELETE /api/auth/me`) are listed in [docs/Authentication.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/dev/Authentication.md) rather than duplicated here.
 
 ### Role-Based Access Control
 
