@@ -366,7 +366,10 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
     const response = await request(app)
       .post("/api/feedback")
       .set("Authorization", `Bearer ${tenantToken}`)
-      .send({ message: "KejaApp helped me find my dream home in Kilimani." });
+      .send({
+        message: "KejaApp helped me find my dream home in Kilimani.",
+        allowPublicSharing: true,
+      });
 
     assert.equal(response.status, 201);
     feedbackId = response.body.data._id;
