@@ -36,7 +36,7 @@ const UserRow = memo(function UserRow({ user, onPress, styles }) {
 });
 
 // Read-only by design - review moderation isn't offered anywhere in this
-// app (see docs/terms-of-service.md), so there are no action affordances
+// app (see docs/compliance/terms-of-service.md), so there are no action affordances
 // here, matching the web admin console's reviews segment.
 const ReviewRow = memo(function ReviewRow({ review, styles }) {
   return (

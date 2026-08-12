@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { describe, it } from "node:test";
 
-const collection = JSON.parse(fs.readFileSync(new URL("../../../docs/kejaapp-insomnia.json", import.meta.url)));
+const collection = JSON.parse(fs.readFileSync(new URL("../../../docs/dev/kejaapp-insomnia.json", import.meta.url)));
 
 describe("Insomnia collection", () => {
   it("uses environment variables for reusable resource ids", () => {

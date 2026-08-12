@@ -58,7 +58,7 @@ public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by opening a confidential [GitHub Security Advisory](../../security/advisories/new)
+reported by opening a confidential [GitHub Security Advisory](../../../security/advisories/new)
 on this repository, or by contacting the maintainer ([@Abdurleone](https://github.com/Abdurleone))
 directly through GitHub. All complaints will be reviewed and investigated
 promptly and fairly.

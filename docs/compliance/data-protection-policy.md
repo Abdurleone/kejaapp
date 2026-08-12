@@ -41,7 +41,7 @@ KejaApp does not require any of this data from a visitor who is only browsing av
 
 ## 4. What we don't collect
 
-KejaApp does not ask for or store: national ID/passport numbers, financial account or card details (see [Payment Boundary](../README.md#payment-boundary) — no payment is processed on-platform), health information, or any of the sensitive personal data categories defined by the Act, beyond what a user might voluntarily and unnecessarily include in free-text fields (e.g. an inquiry message) — users are advised not to include such information in free-text fields, and it is not solicited by any form field in the app.
+KejaApp does not ask for or store: national ID/passport numbers, financial account or card details (see [Payment Boundary](../../README.md#payment-boundary) — no payment is processed on-platform), health information, or any of the sensitive personal data categories defined by the Act, beyond what a user might voluntarily and unnecessarily include in free-text fields (e.g. an inquiry message) — users are advised not to include such information in free-text fields, and it is not solicited by any form field in the app.
 
 ## 5. Purpose and legal basis for processing
 
@@ -73,11 +73,11 @@ KejaApp does not sell personal data to any third party, and does not share perso
 
 ## 8. International data transfers
 
-Where a processor above operates infrastructure outside Kenya, KejaApp relies on that processor's own data-protection safeguards (encryption in transit, provider-level compliance commitments) as the basis for transfer, consistent with the Act's requirement (s. 48) that a cross-border transfer have appropriate safeguards, and with GDPR's equivalent transfer-mechanism requirements (Art. 44–49). Whoever operates a given KejaApp deployment is responsible for confirming their chosen hosting providers meet this bar for their jurisdiction — see [`docs/devops.md`](devops.md) for deployment-specific infrastructure choices.
+Where a processor above operates infrastructure outside Kenya, KejaApp relies on that processor's own data-protection safeguards (encryption in transit, provider-level compliance commitments) as the basis for transfer, consistent with the Act's requirement (s. 48) that a cross-border transfer have appropriate safeguards, and with GDPR's equivalent transfer-mechanism requirements (Art. 44–49). Whoever operates a given KejaApp deployment is responsible for confirming their chosen hosting providers meet this bar for their jurisdiction — see [`docs/devops.md`](../dev/devops.md) for deployment-specific infrastructure choices.
 
 ## 9. Retention and deletion
 
-- **Account deletion**: a signed-in user can delete their own account from the Account page (type `DELETE` to confirm) or via the public [Delete Account](../frontend/src/pages/DeleteAccountPage.jsx) page if they can't sign in, which emails `privacy@kejaapp.com`. An admin can also delete another account directly (`DELETE /api/admin/users/:id`, not yet exposed as an Admin console button — see the [Admin Manual](user-manual/admin-manual.md#2-managing-user-accounts)) for administrative cleanup, e.g. actioning a deletion request received via `privacy@kejaapp.com` rather than the user doing it themselves. Both paths run the identical cascade and are immediate: the account itself, sessions, saved favorites, inquiries, viewing requests, reviews, notifications, agency verification records, image-fingerprint records, violation and status-change history, every property the user owns, mover business profile and verification records, mover service requests (sent or received), platform feedback submissions, saved searches, and registered device push tokens. Where the user affiliated movers as a landlord/agency, or was affiliated as a mover, that link is also removed from the other party's records.
+- **Account deletion**: a signed-in user can delete their own account from the Account page (type `DELETE` to confirm) or via the public [Delete Account](../../frontend/src/pages/DeleteAccountPage.jsx) page if they can't sign in, which emails `privacy@kejaapp.com`. An admin can also delete another account directly (`DELETE /api/admin/users/:id`, not yet exposed as an Admin console button — see the [Admin Manual](../user-manual/admin-manual.md#2-managing-user-accounts)) for administrative cleanup, e.g. actioning a deletion request received via `privacy@kejaapp.com` rather than the user doing it themselves. Both paths run the identical cascade and are immediate: the account itself, sessions, saved favorites, inquiries, viewing requests, reviews, notifications, agency verification records, image-fingerprint records, violation and status-change history, every property the user owns, mover business profile and verification records, mover service requests (sent or received), platform feedback submissions, saved searches, and registered device push tokens. Where the user affiliated movers as a landlord/agency, or was affiliated as a mover, that link is also removed from the other party's records.
 - **Inactive accounts**: KejaApp does not currently auto-delete accounts purely for inactivity; deletion is user-initiated or admin-initiated (e.g. following a ban, on request).
 
 ## 10. Data subject rights
@@ -86,7 +86,7 @@ Consistent with the Act (s. 26) and GDPR (Art. 15–21), every user has the righ
 
 | Right | How to exercise it today |
 |---|---|
-| Be informed | This policy, plus the in-app [Privacy & data protection page](../frontend/src/pages/DataProtectionPage.jsx), downloadable as a PDF from that page |
+| Be informed | This policy, plus the in-app [Privacy & data protection page](../../frontend/src/pages/DataProtectionPage.jsx), downloadable as a PDF from that page |
 | Access their data | `GET /api/auth/me`, and every list view (Saved, Workspace, Notifications, etc.) already shows a user their own records; a full data export beyond what's visible in-app can be requested from `privacy@kejaapp.com` |
 | Correct their data | Account page (name, phone); email `privacy@kejaapp.com` for fields not user-editable |
 | Delete their data | Account page or Delete Account page — see [Section 9](#9-retention-and-deletion) |

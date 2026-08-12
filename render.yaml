@@ -3,7 +3,7 @@ services:
   # the backend (backend/Dockerfile.render, app.js serves it when present),
   # so the web app and its API are the same origin - no more relaying the
   # CSRF token through response bodies to work around a cookie a different
-  # origin couldn't see (see CHANGELOG.md's "Consolidate Web + API onto One
+  # origin couldn't see (see docs/project/CHANGELOG.md's "Consolidate Web + API onto One
   # Render Origin" entry). A separate kejaapp-frontend static site used to
   # exist here; it's retired, not just renamed - kejaapp-backend's own URL
   # (whatever Render assigns it) is now the one public URL for everything.

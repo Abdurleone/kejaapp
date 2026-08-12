@@ -15,7 +15,7 @@
 - [Testing](Testing)
 - [Deployment](Deployment)
 - [Demo Credentials](demo-credentials)
-- [Contributing](../CONTRIBUTING.md)
+- [Contributing](CONTRIBUTING.md)
 - [Governance and Policies](Governance-and-Policies)
 - [Roadmap](Roadmap)
 

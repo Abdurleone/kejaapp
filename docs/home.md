@@ -14,7 +14,7 @@ This wiki is a navigable companion to the repository documentation. The [README]
 - **[Authentication](Authentication)** — JWT/refresh-token flow, email-or-username login, registration.
 - **[Testing](Testing)** — how to run backend/frontend/mobile tests and linters.
 - **[Deployment](Deployment)** — Docker Compose, Render, and Kubernetes deployment paths.
-- **[Contributing](../CONTRIBUTING.md)** — how to propose a change, code style, PR process.
+- **[Contributing](CONTRIBUTING.md)** — how to propose a change, code style, PR process.
 - **[Troubleshooting](Troubleshooting)** — common MongoDB/Expo setup issues.
 - **[Governance and Policies](Governance-and-Policies)** — Code of Ethics, Terms of Service, Data Protection Policy, ISO 27001 self-assessment, and the rest of the `docs/` policy set.
 - **[User Manual](user-manual/general-manual.md)** — a general guide plus a manual per role: [tenant](user-manual/tenant-manual.md), [landlord & agency](user-manual/landlord-agency-manual.md), [mover](user-manual/mover-manual.md), [admin](user-manual/admin-manual.md).

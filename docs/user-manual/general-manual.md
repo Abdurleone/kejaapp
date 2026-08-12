@@ -26,7 +26,7 @@ Both surfaces talk to the same backend and share the same account — sign in on
 3. Choose your role: **Tenant**, **Landlord**, **Agency**, or **Mover**. (Admin accounts are not self-registered — they're provisioned separately.)
 4. Your role determines what you can do on KejaApp — see the role-specific manuals linked above. Role is fixed after registration; contact `privacy@kejaapp.com` if you registered under the wrong role.
 
-Creating an account means you agree to the [Terms of Service](../terms-of-service.md) and [Acceptable Use Policy](../acceptable-use-policy.md).
+Creating an account means you agree to the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md).
 
 ## 4. Signing in
 
@@ -42,7 +42,7 @@ Enter either your **email or your username**, plus your password. For security, 
 
 ## 6. Your data and privacy
 
-See the [Data Protection Policy](../data-protection-policy.md) for what KejaApp collects and why, the [Cookie Policy](../cookie-policy.md) for cookies/local storage specifically, and the in-app "Privacy" page (linked from the footer) for a summary you can also download as a PDF. In short:
+See the [Data Protection Policy](../compliance/data-protection-policy.md) for what KejaApp collects and why, the [Cookie Policy](../compliance/cookie-policy.md) for cookies/local storage specifically, and the in-app "Privacy" page (linked from the footer) for a summary you can also download as a PDF. In short:
 
 - KejaApp never sells your data.
 - Your contact details are only shared with another user when needed to complete something you initiated (an inquiry, a viewing, a mover request).
@@ -51,10 +51,10 @@ See the [Data Protection Policy](../data-protection-policy.md) for what KejaApp 
 ## 7. Getting help
 
 - **In-app**: Feedback (web: its own tab; on mobile, via **More → Feedback**).
-- **Data/privacy questions or rights requests**: `privacy@kejaapp.com` (see the [Data Protection Policy](../data-protection-policy.md#10-data-subject-rights)).
-- **A dispute with another user, or an appeal of an account action**: see the [Dispute Resolution & Complaints Policy](../dispute-resolution-policy.md).
-- **Security vulnerability reports**: see [SECURITY.md](../../SECURITY.md).
-- **Accessibility barriers**: see the [Accessibility Statement](../accessibility-statement.md).
+- **Data/privacy questions or rights requests**: `privacy@kejaapp.com` (see the [Data Protection Policy](../compliance/data-protection-policy.md#10-data-subject-rights)).
+- **A dispute with another user, or an appeal of an account action**: see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
+- **Security vulnerability reports**: see [SECURITY.md](../SECURITY.md).
+- **Accessibility barriers**: see the [Accessibility Statement](../compliance/accessibility-statement.md).
 
 ## 8. Troubleshooting
 

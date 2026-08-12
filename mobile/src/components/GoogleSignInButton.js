@@ -11,7 +11,7 @@ WebBrowser.maybeCompleteAuthSession();
 // expo-auth-session's Google provider requires a client ID for whichever
 // platform it's actually running on (iOS/Android/web) - there's no single
 // ID that works everywhere, so all three are configured in Google Cloud
-// Console (see docs/Authentication.md). Renders nothing until the one
+// Console (see docs/dev/Authentication.md). Renders nothing until the one
 // relevant to the current platform is set, same "empty = disabled"
 // convention the backend/web already follow.
 const placeholderClientId = "not-configured";
