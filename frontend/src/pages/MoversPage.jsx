@@ -209,6 +209,27 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
   const [filters, setFilters] = useState({ serviceType: "", county: "", maxBasePrice: "" });
+  const [countyInput, setCountyInput] = useState("");
+
+  // Debounce the free-text county input into `filters.county` (what
+  // actually drives the fetch effect below) so typing a county name doesn't
+  // fire a request per keystroke - mirrors the same debounce pattern
+  // already used on AdminPage's user search / mobile's MoversScreen county
+  // filter.
+  useEffect(() => {
+    let active = true;
+
+    const timeoutId = setTimeout(() => {
+      if (!active) return;
+
+      setFilters((current) => (current.county === countyInput ? current : { ...current, county: countyInput }));
+    }, 300);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  }, [countyInput]);
 
   useEffect(() => {
     let active = true;
@@ -238,6 +259,10 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
     setFilters((current) => ({ ...current, [field]: event.target.value }));
   };
 
+  const handleCountyInputChange = (event) => {
+    setCountyInput(event.target.value);
+  };
+
   const handleAffiliateChange = (updatedMover) => {
     setMovers((current) => current.map((mover) => (mover._id === updatedMover._id ? updatedMover : mover)));
   };
@@ -262,7 +287,7 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
           </label>
           <label className="radius-control">
             County
-            <input type="text" value={filters.county} onChange={handleFilterChange("county")} placeholder="Nairobi" />
+            <input type="text" value={countyInput} onChange={handleCountyInputChange} placeholder="Nairobi" />
           </label>
         </div>
       </div>

@@ -10,7 +10,7 @@ import {
   statusTone,
 } from "../../app-utils.js";
 
-const roleFilters = ["", "tenant", "landlord", "agency", "admin"];
+const roleFilters = ["", "tenant", "landlord", "agency", "mover", "admin"];
 const statusOptions = ["active", "suspended", "banned"];
 const sections = [
   { key: "users", label: "Users" },

@@ -232,6 +232,10 @@ const confirmRole = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
+  if (user.roleConfirmed) {
+    throw new ApiError(httpStatus.CONFLICT, "Role is already confirmed and cannot be changed");
+  }
+
   user.role = role;
   user.roleConfirmed = true;
   await user.save();

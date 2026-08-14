@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import SavedPage from "../src/pages/SavedPage.jsx";
@@ -38,6 +38,27 @@ describe("SavedPage", () => {
     expect(card).not.toBeNull();
     expect(screen.getByText("Kilimani")).toBeInTheDocument();
     expect(screen.getByText(/Ksh\s*45,000/)).toBeInTheDocument();
+  });
+
+  it("is keyboard-operable: the whole card is a focusable button that opens on Enter, without double-firing from the nested Details button", async () => {
+    fetchFavorites.mockResolvedValue({ favorites: [sampleFavorite], pagination: null });
+    const onOpenProperty = vi.fn();
+    const user = userEvent.setup();
+
+    render(<SavedPage onOpenProperty={onOpenProperty} />);
+
+    const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
+    expect(card).toHaveAttribute("role", "button");
+    expect(card).toHaveAttribute("tabIndex", "0");
+
+    card.focus();
+    await user.keyboard("{Enter}");
+    expect(onOpenProperty).toHaveBeenCalledWith("prop-1");
+
+    onOpenProperty.mockClear();
+    within(card).getByRole("button", { name: "Details" }).focus();
+    await user.keyboard("{Enter}");
+    expect(onOpenProperty).toHaveBeenCalledTimes(1);
   });
 
   it("shows the empty state with a Browse listings action when there are no saved listings", async () => {

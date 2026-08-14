@@ -14,7 +14,7 @@ import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { escapeRegExp } from "../utils/regex.js";
 
-const roles = ["tenant", "landlord", "agency", "admin"];
+const roles = ["tenant", "landlord", "agency", "mover", "admin"];
 
 const formatPagination = (page, limit, total) => ({
   page,

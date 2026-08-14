@@ -21,6 +21,7 @@ import MoverVerification from "../../models/MoverVerification.js";
 import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
 import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
+import PushSubscription from "../../models/PushSubscription.js";
 import Review from "../../models/Review.js";
 import SavedSearch from "../../models/SavedSearch.js";
 import User from "../../models/User.js";
@@ -131,7 +132,7 @@ describe("adminUserController", () => {
     });
 
     assert.equal(nextError.statusCode, 400);
-    assert.equal(nextError.message, "role must be one of: tenant, landlord, agency, admin");
+    assert.equal(nextError.message, "role must be one of: tenant, landlord, agency, mover, admin");
   });
 
   it("returns not found for missing users", async () => {
@@ -449,11 +450,15 @@ describe("adminUserController", () => {
       Feedback,
       SavedSearch,
       DeviceToken,
+      PushSubscription,
     ]) {
       mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
     }
     mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(AgencyVerification, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(UserStatusLog, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(MoverVerification, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const req = { params: { id: targetId.toString() }, user: { _id: adminId } };
     const res = createResponse();

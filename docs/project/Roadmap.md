@@ -154,6 +154,7 @@ The canonical, detailed history is [CHANGELOG.md](https://github.com/Abdurleone/
 - **Roadmap.md appraisal found the same treatment's most valuable catch yet**: this page's own canonical-history link pointed `CHANGELOG.md` at its pre-reorg location - a real 404, not a stale claim. Traced to a genuine blind spot in the docs-folder-reorg's own link-checker script: it only ever validated relative links, never absolute `github.com/.../blob/main/` URLs. Fixed the checker, then found and fixed 17 broken absolute links total across 5 files (`Governance-and-Policies.md` alone had 13). Also freshened the "Next" section's CI-billing-lock citation to the same-day re-check from the QA/QC pass above, and confirmed `mobile-liquid-navigation` is still an unmerged branch. See `CHANGELOG.md` for the full detail.
 
 - **Merged the `mobile-liquid-navigation` branch and restyled it to match the matatu poster**: 30 commits stale, so re-implemented fresh against current `main` rather than force-merging. `LiquidTabBar.js` now uses the same `colors.stroke`/`shadow`/`green`/`boldText` tokens every other piece of mobile chrome does, instead of the pre-matatu-port tokens it was written against. Dependencies (`expo-blur`, `react-native-reanimated`, `react-native-worklets`, `@react-navigation/elements`) resolved fresh via `npx expo install` rather than reusing the branch's stale pinned versions - `npx expo-doctor` confirms all four are SDK-compatible. Closed a real coverage gap in the process: no test had ever rendered `MainTabs.js` through a real `Tab.Navigator`, only `LiquidTabBar.js` in isolation - added `MainTabs.test.js`. 38/38 suites, 216/216 tests, lint clean. Real-device visual verification still not achieved (see Next) - `npx expo export --platform web` was OOM-killed in this dev environment. See `CHANGELOG.md` for the full detail.
+- **Whole-app appraisal (3 parallel agents over backend/frontend/mobile) found 7 findings; 6 fixed**: a real cascade-delete data-loss bug (deleting a reviewing admin's account was destroying *other* users' approved verification/audit records, not just nulling the reference), an orphaned `PushSubscription` cleanup gap, a missing one-time guard on `PUT /api/auth/role`, the `mover` role unfilterable anywhere (frontend and backend both), `MoversPage.jsx`'s county filter missing the debounce every other identical filter already has, and Discover/Saved property cards missing the keyboard/screen-reader operability half of an earlier "whole card is clickable" fix. The 7th finding (the mobile Liquid Glass crash) is tracked separately - see Next. See `CHANGELOG.md` for the full detail.
 
 ## General health-check remediation — status
 
@@ -199,12 +200,12 @@ Three parallel read-only appraisals (one each over `backend/`, `frontend/`, `mob
 | # | Finding | Status |
 |---|---|---|
 | 1 | Mobile Liquid Glass crash on load (Android/Expo Go) + redundant `babel.config.js` | 🔄 In progress |
-| 2 | User deletion cascades DELETE (not null) on other users' verification/audit records via `reviewedBy`/`changedBy` | ⏳ Pending |
-| 3 | `PUT /api/auth/role` has no one-time guard - role can be changed indefinitely | ⏳ Pending |
-| 4 | `PushSubscription` rows never cleaned up on user deletion | ⏳ Pending |
-| 5 | `mover` role can't be filtered anywhere - missing from both `AdminPage.jsx`'s filter and the backend validation whitelist | ⏳ Pending |
-| 6 | `MoversPage.jsx`'s county filter has no debounce (fires per keystroke) | ⏳ Pending |
-| 7 | Discover/Saved property cards lost keyboard/screen-reader operability when they became whole-card-clickable | ⏳ Pending |
+| 2 | User deletion cascades DELETE (not null) on other users' verification/audit records via `reviewedBy`/`changedBy` | ✅ Done |
+| 3 | `PUT /api/auth/role` has no one-time guard - role can be changed indefinitely | ✅ Done |
+| 4 | `PushSubscription` rows never cleaned up on user deletion | ✅ Done |
+| 5 | `mover` role can't be filtered anywhere - missing from both `AdminPage.jsx`'s filter and the backend validation whitelist | ✅ Done |
+| 6 | `MoversPage.jsx`'s county filter has no debounce (fires per keystroke) | ✅ Done |
+| 7 | Discover/Saved property cards lost keyboard/screen-reader operability when they became whole-card-clickable | ✅ Done |
 
 ## Next
 
