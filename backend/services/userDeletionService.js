@@ -10,6 +10,7 @@ import MoverVerification from "../models/MoverVerification.js";
 import Notification from "../models/Notification.js";
 import Property from "../models/Property.js";
 import PropertyImageFingerprint from "../models/PropertyImageFingerprint.js";
+import PushSubscription from "../models/PushSubscription.js";
 import Review from "../models/Review.js";
 import SavedSearch from "../models/SavedSearch.js";
 import User from "../models/User.js";
@@ -73,34 +74,40 @@ export const deleteUserCascade = async (userId) => {
     }),
     Review.deleteMany(reviewCleanupFilter),
     Notification.deleteMany({ user: userId }),
-    AgencyVerification.deleteMany({
-      $or: [
-        { user: userId },
-        { reviewedBy: userId },
-      ],
-    }),
+    AgencyVerification.deleteMany({ user: userId }),
+    // Only the deleted user's own submission is deleted above - a
+    // verification they merely reviewed (as an admin) belongs to a
+    // different, still-existing user and must survive; the reviewer
+    // reference is cleared instead, mirroring how UserViolation's evidence
+    // references are unset rather than deleted.
+    AgencyVerification.updateMany(
+      { reviewedBy: userId, user: { $ne: userId } },
+      { $unset: { reviewedBy: "" } }
+    ),
     PropertyImageFingerprint.deleteMany({
       $or: [{ uploadedBy: userId }, { matchedUploadedBy: userId }],
     }),
     UserViolation.deleteMany({ user: userId }),
-    UserStatusLog.deleteMany({
-      $or: [
-        { user: userId },
-        { changedBy: userId },
-      ],
-    }),
+    UserStatusLog.deleteMany({ user: userId }),
+    // Same reasoning as AgencyVerification above: a status-change log row
+    // where this user was the acting admin, not the subject, is another
+    // user's moderation audit trail and must survive account deletion.
+    UserStatusLog.updateMany(
+      { changedBy: userId, user: { $ne: userId } },
+      { $unset: { changedBy: "" } }
+    ),
     Property.deleteMany({ owner: userId }),
     Mover.deleteMany({ user: userId }),
     Mover.updateMany(
       { affiliatedOwners: userId },
       { $pull: { affiliatedOwners: userId } }
     ),
-    MoverVerification.deleteMany({
-      $or: [
-        { user: userId },
-        { reviewedBy: userId },
-      ],
-    }),
+    MoverVerification.deleteMany({ user: userId }),
+    // Same reasoning as AgencyVerification above.
+    MoverVerification.updateMany(
+      { reviewedBy: userId, user: { $ne: userId } },
+      { $unset: { reviewedBy: "" } }
+    ),
     MoverRequest.deleteMany({
       $or: [{ tenant: userId }, { moverAccount: userId }, { respondedBy: userId }],
     }),
@@ -112,6 +119,7 @@ export const deleteUserCascade = async (userId) => {
     }),
     SavedSearch.deleteMany({ user: userId }),
     DeviceToken.deleteMany({ user: userId }),
+    PushSubscription.deleteMany({ user: userId }),
   ]);
 
   await Promise.all(

@@ -15,7 +15,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { escapeRegExpQueryParam } from "../utils/regex.js";
 import { sanitizeText } from "../utils/sanitizeText.js";
 
-const roles = ["tenant", "landlord", "agency", "admin"];
+const roles = ["tenant", "landlord", "agency", "mover", "admin"];
 
 const formatPagination = (page, limit, total) => ({
   page,

@@ -47,6 +47,40 @@ describe("DiscoverPage", () => {
     expect(within(card).getByText(/Ksh\s*45,000/)).toBeInTheDocument();
   });
 
+  it("is keyboard-operable: the whole card is a focusable button that opens on Enter", async () => {
+    fetchProperties.mockResolvedValue([sampleProperty]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
+    const onOpenProperty = vi.fn();
+    const user = userEvent.setup();
+
+    renderWithAuth(<DiscoverPage onOpenProperty={onOpenProperty} />);
+
+    const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
+    expect(card).toHaveAttribute("role", "button");
+    expect(card).toHaveAttribute("tabIndex", "0");
+
+    card.focus();
+    await user.keyboard("{Enter}");
+
+    expect(onOpenProperty).toHaveBeenCalledWith("prop-1");
+  });
+
+  it("does not double-fire when Enter is pressed on the nested Details button", async () => {
+    fetchProperties.mockResolvedValue([sampleProperty]);
+    fetchFavorites.mockResolvedValue({ favorites: [] });
+    const onOpenProperty = vi.fn();
+    const user = userEvent.setup();
+
+    renderWithAuth(<DiscoverPage onOpenProperty={onOpenProperty} />);
+
+    const card = (await screen.findByText("Modern Kilimani Apartment")).closest("article");
+    const detailsButton = within(card).getByRole("button", { name: "Details" });
+    detailsButton.focus();
+    await user.keyboard("{Enter}");
+
+    expect(onOpenProperty).toHaveBeenCalledTimes(1);
+  });
+
   it("shows the empty state when no properties are returned", async () => {
     fetchProperties.mockResolvedValue([]);
     fetchFavorites.mockResolvedValue({ favorites: [] });
