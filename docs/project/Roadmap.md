@@ -192,6 +192,20 @@ The canonical, detailed history is [CHANGELOG.md](https://github.com/Abdurleone/
 
 Excluded from this list by design: mobile's orphaned review-list API functions (`fetchPropertyReviews`/`fetchMoverById`) are a missing feature (no review-list screen exists on mobile at all), not a bug - left for a separate future request.
 
+## Whole-app appraisal (2026-08-14) remediation — status
+
+Three parallel read-only appraisals (one each over `backend/`, `frontend/`, `mobile/`), triggered by chasing the Liquid Glass crash below. 7 findings, being fixed one PR at a time.
+
+| # | Finding | Status |
+|---|---|---|
+| 1 | Mobile Liquid Glass crash on load (Android/Expo Go) + redundant `babel.config.js` | 🔄 In progress |
+| 2 | User deletion cascades DELETE (not null) on other users' verification/audit records via `reviewedBy`/`changedBy` | ⏳ Pending |
+| 3 | `PUT /api/auth/role` has no one-time guard - role can be changed indefinitely | ⏳ Pending |
+| 4 | `PushSubscription` rows never cleaned up on user deletion | ⏳ Pending |
+| 5 | `mover` role can't be filtered anywhere - missing from both `AdminPage.jsx`'s filter and the backend validation whitelist | ⏳ Pending |
+| 6 | `MoversPage.jsx`'s county filter has no debounce (fires per keystroke) | ⏳ Pending |
+| 7 | Discover/Saved property cards lost keyboard/screen-reader operability when they became whole-card-clickable | ⏳ Pending |
+
 ## Next
 
 - Mobile: verify on an actual iOS device/simulator (Android now verified via emulator).
