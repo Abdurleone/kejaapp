@@ -150,6 +150,20 @@ const parseStorageDriver = (value) => {
   throw new Error("STORAGE_DRIVER must be local or s3");
 };
 
+// A malformed value here (missing scheme, stray whitespace) previously sailed
+// straight through config loading and only surfaced as an opaque
+// `TypeError: Invalid URL` deep inside the AWS SDK's endpoint resolver, on
+// the very first real upload - failing loudly here instead, at boot, is the
+// same "fail fast with a clear message" contract every other required S3 var
+// already gets below.
+const assertValidUrl = (value, key) => {
+  try {
+    new URL(value);
+  } catch {
+    throw new Error(`${key} must be a valid URL (e.g. https://...), got "${value}"`);
+  }
+};
+
 const storageDriver = parseStorageDriver(process.env.STORAGE_DRIVER);
 const s3Config = {
   s3Bucket: process.env.S3_BUCKET || "",
@@ -173,6 +187,12 @@ if (storageDriver === "s3") {
     if (!value) {
       throw new Error(`${key} is required when STORAGE_DRIVER=s3`);
     }
+  }
+
+  assertValidUrl(s3Config.s3PublicBaseUrl, "S3_PUBLIC_BASE_URL");
+
+  if (s3Config.s3Endpoint) {
+    assertValidUrl(s3Config.s3Endpoint, "S3_ENDPOINT");
   }
 }
 
