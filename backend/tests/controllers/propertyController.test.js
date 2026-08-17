@@ -10,6 +10,7 @@ import {
   listProperties,
   listPropertyMovers,
   removePropertyImage,
+  updateProperty,
 } from "../../controllers/propertyController.js";
 import Favorite from "../../models/Favorite.js";
 import Inquiry from "../../models/Inquiry.js";
@@ -82,6 +83,73 @@ describe("propertyController", () => {
     assert.equal(createPayload.location.county, "Nairobi");
     assert.equal(createPayload.contact.notes, "bad()Ask for John");
     assert.equal(createPayload.contact.availableHours, "9am5pm");
+  });
+
+  it("ignores a raw images array on create - images can only reach a property through the dedicated upload endpoints", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    let createPayload;
+
+    mock.method(Property, "create", async (payload) => {
+      createPayload = payload;
+      return {
+        _id: new mongoose.Types.ObjectId(),
+        ...payload,
+        async populate() {
+          return this;
+        },
+      };
+    });
+
+    const req = {
+      body: {
+        title: "Spacious apartment",
+        status: "draft",
+        // Never validated by createPropertySchema and never scanned/checked
+        // the way addPropertyImage/uploadPropertyImage validate a real
+        // upload - must never reach Property.create from here.
+        images: [{ url: "https://evil.example/tracker.png", alt: "x", mimeType: "image/svg+xml" }],
+      },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await createProperty(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 201);
+    assert.equal(createPayload.images, undefined);
+  });
+
+  it("ignores a raw images array on update too, leaving existing images untouched", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: { _id: ownerId, equals: (id) => ownerId.equals(id) },
+      images: [{ url: "https://real-upload.example/a.jpg" }],
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Property, "findById", async () => property);
+
+    const req = {
+      params: { id: property._id.toString() },
+      body: {
+        title: "Updated title",
+        images: [{ url: "https://evil.example/tracker.png" }],
+      },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await updateProperty(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(property.images, [{ url: "https://real-upload.example/a.jpg" }]);
   });
 
   it("lists only available properties by default", async () => {
