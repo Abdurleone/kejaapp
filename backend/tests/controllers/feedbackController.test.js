@@ -80,6 +80,34 @@ describe("feedbackController", () => {
     assert.equal(res.body.data, created);
   });
 
+  it("strips HTML from feedback before storing it", async () => {
+    const submitterId = new mongoose.Types.ObjectId();
+    const created = {
+      _id: new mongoose.Types.ObjectId(),
+      submitter: submitterId,
+      async populate() {
+        return this;
+      },
+    };
+
+    mock.method(Feedback, "create", async (payload) => {
+      assert.equal(payload.message, "alert(1)Great app");
+      return created;
+    });
+
+    const req = {
+      user: { _id: submitterId },
+      body: { message: "<script>alert(1)</script>Great app" },
+    };
+    const res = createResponse();
+
+    await createFeedback(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 201);
+  });
+
   it("lists only the current user's feedback", async () => {
     const submitterId = new mongoose.Types.ObjectId();
     let filters;

@@ -70,6 +70,16 @@ const parseDaysToMs = (value, fallbackDays, key) => {
   return days * 24 * 60 * 60 * 1000;
 };
 
+const parseMinutesToMs = (value, fallbackMinutes, key) => {
+  const minutes = Number(value || fallbackMinutes);
+
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    throw new Error(`${key} must be a positive number`);
+  }
+
+  return minutes * 60 * 1000;
+};
+
 const parsePositiveInteger = (value, fallback, key) => {
   const number = Number(value || fallback);
 
@@ -313,6 +323,16 @@ const env = {
     process.env.OPEN_VIEWING_COMPLETION_DELAY_HOURS,
     48,
     "OPEN_VIEWING_COMPLETION_DELAY_HOURS"
+  ),
+  maxFailedLoginAttempts: parsePositiveInteger(
+    process.env.MAX_FAILED_LOGIN_ATTEMPTS,
+    5,
+    "MAX_FAILED_LOGIN_ATTEMPTS"
+  ),
+  accountLockDurationMs: parseMinutesToMs(
+    process.env.ACCOUNT_LOCK_DURATION_MINUTES,
+    15,
+    "ACCOUNT_LOCK_DURATION_MINUTES"
   ),
 };
 

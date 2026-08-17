@@ -22,6 +22,7 @@ import { notifyMatchingSavedSearches } from "../services/savedSearchMatchingServ
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { buildPropertyFilters, earthRadiusKm, parseGeoQueryNumber } from "../utils/propertyFilters.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 
 const formatPagination = (page, limit, total) => ({
   page,
@@ -59,7 +60,7 @@ const propertyFields = [
 const pickPropertyPayload = (body) =>
   propertyFields.reduce((payload, field) => {
     if (body[field] !== undefined) {
-      payload[field] = body[field];
+      payload[field] = field === "description" ? sanitizeText(body[field]) : body[field];
     }
 
     return payload;

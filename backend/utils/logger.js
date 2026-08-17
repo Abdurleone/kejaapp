@@ -110,4 +110,14 @@ const logError = (message) => {
   writeAppLog("ERROR", masked);
 };
 
-export { accessLogStream, logError, logInfo, logWarn, maskPii, nairobiTimestamp };
+// A consistent, greppable prefix for auth-relevant events (failed logins,
+// account lockouts, CSRF rejections) that only ever appeared before as
+// undifferentiated HTTP status codes in the generic access log - nothing
+// distinguished a failed-login 401 from an expired-session 401. Routed
+// through logWarn (not logError) since none of these are application
+// errors on their own; PII masking still applies via logWarn.
+const logSecurityEvent = (event, details = "") => {
+  logWarn(`[SECURITY] ${event}${details ? ` - ${details}` : ""}`);
+};
+
+export { accessLogStream, logError, logInfo, logSecurityEvent, logWarn, maskPii, nairobiTimestamp };

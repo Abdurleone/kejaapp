@@ -2,6 +2,7 @@ import httpStatus from "../constants/httpStatus.js";
 import env from "../config/env.js";
 import ApiError from "../utils/apiError.js";
 import parseCookies from "../utils/cookies.js";
+import { logSecurityEvent } from "../utils/logger.js";
 
 const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const refreshPath = "/api/auth/refresh";
@@ -68,6 +69,13 @@ const csrfProtection = (req, res, next) => {
   // the access-token cookie, so it's just as forgeable if only the
   // access-token cookie is checked.
   if (cookies[env.authCookieName] || cookies[env.refreshCookieName]) {
+    // Logged at WARN, not treated as a confirmed attack - the comment above
+    // documents this firing routinely from the benign stale-tab desync case
+    // too. Still worth a record: a spike far beyond that pattern from one
+    // IP is exactly the kind of signal that was previously invisible,
+    // indistinguishable from any other 403 in the generic access log.
+    logSecurityEvent("CSRF validation failed", `path=${req.originalUrl} ip=${req.ip}`);
+
     // A machine-readable code, not just the message: the frontend's
     // apiFetch uses this specifically to tell "genuinely signed out /
     // forged request" apart from a client-side staleness bug (a tab open

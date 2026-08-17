@@ -12,6 +12,34 @@ const allowedImageMimeTypes = {
   "image/webp": "webp",
 };
 
+// The mimeType field is just a client-asserted string - nothing stops a
+// caller sending mimeType: "image/jpeg" with arbitrary bytes behind it.
+// These magic-byte checks verify the decoded buffer actually starts with
+// the real file signature for the claimed type, so "whitelist upload
+// types" means the content, not just a label the client chose.
+const matchesImageSignature = (buffer, mimeType) => {
+  if (mimeType === "image/jpeg") {
+    return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+
+  if (mimeType === "image/png") {
+    const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    return buffer.length >= pngSignature.length && buffer.subarray(0, pngSignature.length).equals(pngSignature);
+  }
+
+  if (mimeType === "image/webp") {
+    // RIFF....WEBP - the fourcc at bytes 8-11 is what actually identifies
+    // WebP; bytes 4-7 are a RIFF chunk size, not part of the signature.
+    return (
+      buffer.length >= 12 &&
+      buffer.toString("ascii", 0, 4) === "RIFF" &&
+      buffer.toString("ascii", 8, 12) === "WEBP"
+    );
+  }
+
+  return false;
+};
+
 const sanitizeFileName = (value) =>
   value
     .toLowerCase()
@@ -38,6 +66,10 @@ const decodeImagePayload = ({ data, mimeType }) => {
 
   if (buffer.length > env.maxUploadBytes) {
     throw new ApiError(httpStatus.BAD_REQUEST, `image must be ${env.maxUploadBytes} bytes or smaller`);
+  }
+
+  if (!matchesImageSignature(buffer, mimeType)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Image data does not match the declared mimeType");
   }
 
   return buffer;
