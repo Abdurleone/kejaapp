@@ -79,6 +79,29 @@ describe("agencyController", () => {
     assert.deepEqual(res.body.data, expectedVerification);
   });
 
+  it("strips HTML from agency verification's free-text fields", async () => {
+    const update = mock.method(AgencyVerification, "findOneAndUpdate", async () => ({}));
+    mock.method(AgencyVerification, "findOne", async () => null);
+    const req = {
+      body: {
+        agencyName: "<script>alert(1)</script>Demo Homes Agency",
+        registrationNumber: "<b>PVT-123</b>",
+        officeAddress: "<i>Yaya Centre</i>, Nairobi",
+      },
+      user: { _id: new mongoose.Types.ObjectId(), role: "agency" },
+    };
+    const res = createResponse();
+
+    await submitAgencyVerification(req, res, (error) => {
+      throw error;
+    });
+
+    const [, payload] = update.mock.calls[0].arguments;
+    assert.equal(payload.agencyName, "alert(1)Demo Homes Agency");
+    assert.equal(payload.registrationNumber, "PVT-123");
+    assert.equal(payload.officeAddress, "Yaya Centre, Nairobi");
+  });
+
   it("returns not submitted status when an agency has no verification", async () => {
     mock.method(AgencyVerification, "findOne", async () => null);
     const req = {

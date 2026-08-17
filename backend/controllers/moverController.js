@@ -6,19 +6,39 @@ import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { earthRadiusKm, parseGeoQueryNumber } from "../utils/propertyFilters.js";
 import { escapeRegExp } from "../utils/regex.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 
 const serviceTypes = ["local", "long_distance", "packing", "storage", "office", "furniture"];
 
 const moverProfileFields = ["name", "phone", "email", "serviceTypes", "location", "basePrice", "isAvailable"];
 
-const pickMoverProfilePayload = (body) =>
-  moverProfileFields.reduce((payload, field) => {
-    if (body[field] !== undefined) {
-      payload[field] = body[field];
-    }
+const sanitizeMoverProfilePayload = (payload) => {
+  if (payload.name !== undefined) {
+    payload.name = sanitizeText(payload.name);
+  }
 
-    return payload;
-  }, {});
+  if (payload.location !== undefined) {
+    payload.location = {
+      ...payload.location,
+      county: sanitizeText(payload.location.county),
+      town: sanitizeText(payload.location.town),
+      areasServed: payload.location.areasServed?.map(sanitizeText),
+    };
+  }
+
+  return payload;
+};
+
+const pickMoverProfilePayload = (body) =>
+  sanitizeMoverProfilePayload(
+    moverProfileFields.reduce((payload, field) => {
+      if (body[field] !== undefined) {
+        payload[field] = body[field];
+      }
+
+      return payload;
+    }, {})
+  );
 
 const formatPagination = (page, limit, total) => ({
   page,

@@ -11,6 +11,7 @@ import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
 import { logSecurityEvent } from "../utils/logger.js";
 import { compareAgainstDummyHash } from "../utils/passwords.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
 import { generateUniqueUsername, suggestUsernames } from "../utils/usernameGenerator.js";
 
@@ -127,10 +128,10 @@ const registerUser = asyncHandler(async (req, res) => {
   try {
     user = await User.create({
       email: normalizedEmail,
-      name,
+      name: sanitizeText(name),
       username: normalizedUsername,
       password,
-      phone,
+      phone: sanitizeText(phone),
       role,
     });
   } catch (err) {
@@ -346,11 +347,11 @@ const updateCurrentUser = asyncHandler(async (req, res) => {
   }
 
   if (req.body.name !== undefined) {
-    user.name = req.body.name;
+    user.name = sanitizeText(req.body.name);
   }
 
   if (req.body.phone !== undefined) {
-    user.phone = req.body.phone;
+    user.phone = sanitizeText(req.body.phone);
   }
 
   await user.save();

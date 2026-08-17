@@ -8,6 +8,7 @@ import {
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 import { assertValidTransition } from "../utils/statusTransitions.js";
 
 const allowedFromByTarget = {
@@ -47,8 +48,8 @@ const createInquiry = asyncHandler(async (req, res) => {
     property: property._id,
     sender: req.user._id,
     owner: property.owner,
-    subject: req.body.subject,
-    message: req.body.message,
+    subject: sanitizeText(req.body.subject),
+    message: sanitizeText(req.body.message),
     contactPreference: req.body.contactPreference || "in_app",
   });
 
@@ -136,7 +137,7 @@ const updateInquiry = asyncHandler(async (req, res) => {
   assertValidTransition(inquiry.status, req.body.status, allowedFromByTarget);
 
   inquiry.status = req.body.status;
-  inquiry.response = req.body.response;
+  inquiry.response = sanitizeText(req.body.response);
   inquiry.respondedBy = req.user._id;
   inquiry.respondedAt = new Date();
 
