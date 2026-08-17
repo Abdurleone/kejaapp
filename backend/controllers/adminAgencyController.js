@@ -5,6 +5,7 @@ import { invalidateNamespace } from "../middlewares/responseCache.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 import { notifyAgencyVerificationDecision } from "../services/notificationService.js";
 
 const listAgencyVerifications = asyncHandler(async (req, res) => {
@@ -65,7 +66,7 @@ const rejectAgencyVerification = asyncHandler(async (req, res) => {
   verification.status = "rejected";
   verification.reviewedBy = req.user._id;
   verification.reviewedAt = new Date();
-  verification.rejectionReason = req.body.reason;
+  verification.rejectionReason = sanitizeText(req.body.reason);
 
   await verification.save();
   await User.findByIdAndUpdate(verification.user, { verified: false });

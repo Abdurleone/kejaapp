@@ -13,6 +13,7 @@ import { deleteUserCascade } from "../services/userDeletionService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { escapeRegExp } from "../utils/regex.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 
 const roles = ["tenant", "landlord", "agency", "admin"];
 
@@ -168,9 +169,10 @@ const updateUserStatus = asyncHandler(async (req, res) => {
   }
 
   const previousStatus = user.accountStatus || "active";
+  const reason = sanitizeText(req.body.reason);
 
   user.accountStatus = req.body.status;
-  user.accountStatusReason = req.body.reason || undefined;
+  user.accountStatusReason = reason || undefined;
   user.accountStatusUpdatedAt = new Date();
 
   await user.save();
@@ -179,12 +181,12 @@ const updateUserStatus = asyncHandler(async (req, res) => {
     changedBy: req.user._id,
     previousStatus,
     newStatus: req.body.status,
-    reason: req.body.reason,
+    reason,
   });
   await notifyUserStatusChanged({
     user,
     status: req.body.status,
-    reason: req.body.reason,
+    reason,
   });
 
   res.status(httpStatus.OK).json({

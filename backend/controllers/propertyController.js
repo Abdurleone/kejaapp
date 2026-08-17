@@ -57,14 +57,57 @@ const propertyFields = [
   "isAvailable",
 ];
 
-const pickPropertyPayload = (body) =>
-  propertyFields.reduce((payload, field) => {
-    if (body[field] !== undefined) {
-      payload[field] = field === "description" ? sanitizeText(body[field]) : body[field];
-    }
+// Every free-text field a caller can set on a property, sanitized in one
+// place so create/update (both routed through this same picker) can't drift
+// out of sync with each other the way two separate hand-written sanitize
+// calls eventually would.
+const sanitizePropertyPayload = (payload) => {
+  if (payload.title !== undefined) {
+    payload.title = sanitizeText(payload.title);
+  }
 
-    return payload;
-  }, {});
+  if (payload.description !== undefined) {
+    payload.description = sanitizeText(payload.description);
+  }
+
+  if (payload.viewingInstructions !== undefined) {
+    payload.viewingInstructions = sanitizeText(payload.viewingInstructions);
+  }
+
+  if (payload.amenities !== undefined) {
+    payload.amenities = payload.amenities.map(sanitizeText);
+  }
+
+  if (payload.location !== undefined) {
+    payload.location = {
+      ...payload.location,
+      county: sanitizeText(payload.location.county),
+      town: sanitizeText(payload.location.town),
+      area: sanitizeText(payload.location.area),
+    };
+  }
+
+  if (payload.contact !== undefined) {
+    payload.contact = {
+      ...payload.contact,
+      notes: sanitizeText(payload.contact.notes),
+      availableHours: sanitizeText(payload.contact.availableHours),
+    };
+  }
+
+  return payload;
+};
+
+const pickPropertyPayload = (body) =>
+  sanitizePropertyPayload(
+    propertyFields.reduce((payload, field) => {
+      if (body[field] !== undefined) {
+        payload[field] = body[field];
+      }
+
+      return payload;
+    }, {})
+  );
 
 const ensurePropertyOwner = (property, user) => {
   const isOwner = property.owner._id
@@ -239,7 +282,7 @@ const addPropertyImage = asyncHandler(async (req, res) => {
 
   property.images.push({
     url: req.body.url,
-    alt: req.body.alt,
+    alt: sanitizeText(req.body.alt),
   });
   const image = property.images[property.images.length - 1];
 
@@ -272,7 +315,7 @@ const uploadPropertyImage = asyncHandler(async (req, res) => {
 
   property.images.push({
     url: "pending-upload",
-    alt: req.body.alt,
+    alt: sanitizeText(req.body.alt),
   });
   const image = property.images[property.images.length - 1];
   const storedImage = await storePropertyImage({

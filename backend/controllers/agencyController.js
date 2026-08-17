@@ -3,6 +3,7 @@ import { roles } from "../constants/rbac.js";
 import AgencyVerification from "../models/AgencyVerification.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 
 const submitAgencyVerification = asyncHandler(async (req, res) => {
   if (req.user.role !== roles.agency) {
@@ -19,6 +20,9 @@ const submitAgencyVerification = asyncHandler(async (req, res) => {
     { user: req.user._id },
     {
       ...req.body,
+      agencyName: sanitizeText(req.body.agencyName),
+      registrationNumber: sanitizeText(req.body.registrationNumber),
+      officeAddress: sanitizeText(req.body.officeAddress),
       user: req.user._id,
       status: "pending",
       reviewedAt: null,

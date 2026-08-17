@@ -169,6 +169,28 @@ describe("moverController", () => {
     assert.deepEqual(res.body.data, expectedMover);
   });
 
+  it("strips HTML from the mover profile's free-text fields", async () => {
+    const expectedMover = { _id: new mongoose.Types.ObjectId() };
+    const update = mock.method(Mover, "findOneAndUpdate", async () => expectedMover);
+    const req = {
+      body: {
+        name: "<script>alert(1)</script>SwiftMove Nairobi",
+        location: { county: "<b>Nairobi</b>", town: "Westlands", areasServed: ["<i>Kilimani</i>", "Lavington"] },
+      },
+      user: { _id: new mongoose.Types.ObjectId(), role: "mover" },
+    };
+    const res = createResponse();
+
+    await submitMoverProfile(req, res, (error) => {
+      throw error;
+    });
+
+    const [, payload] = update.mock.calls[0].arguments;
+    assert.equal(payload.name, "alert(1)SwiftMove Nairobi");
+    assert.equal(payload.location.county, "Nairobi");
+    assert.deepEqual(payload.location.areasServed, ["Kilimani", "Lavington"]);
+  });
+
   it("returns not submitted status when a mover has no profile yet", async () => {
     mock.method(Mover, "findOne", async () => null);
     const req = { user: { _id: new mongoose.Types.ObjectId(), role: "mover" } };
