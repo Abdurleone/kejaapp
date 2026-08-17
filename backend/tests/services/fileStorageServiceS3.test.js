@@ -32,7 +32,9 @@ describe("fileStorageService (s3 driver)", () => {
       imageId,
       fileName: "Living Room.jpg",
       mimeType: "image/jpeg",
-      data: Buffer.from("image-bytes").toString("base64"),
+      // Real JPEG magic bytes (FF D8 FF) - decodeImagePayload now verifies
+      // the actual content, not just the claimed mimeType string.
+      data: Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.from("image-bytes")]).toString("base64"),
     });
 
     assert.equal(send.mock.callCount(), 1);

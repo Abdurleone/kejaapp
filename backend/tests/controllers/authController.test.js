@@ -546,6 +546,122 @@ describe("authController", () => {
     assert.equal(nextError.message, "Invalid credentials");
   });
 
+  describe("loginUser account lockout", () => {
+    const makeUser = (overrides = {}) => ({
+      _id: new mongoose.Types.ObjectId(),
+      email: "tenant@example.com",
+      username: "tenant1",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      async matchPassword() {
+        return false;
+      },
+      async save() {},
+      ...overrides,
+    });
+
+    it("increments failedLoginAttempts on a wrong password, without locking below the threshold", async () => {
+      const user = makeUser({ failedLoginAttempts: 1 });
+      mock.method(User, "findOne", () => ({ select: async () => user }));
+      const req = { body: { identifier: "tenant1", password: "wrong" } };
+      const res = createResponse();
+      let nextError;
+
+      await loginUser(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 401);
+      assert.equal(user.failedLoginAttempts, 2);
+      assert.equal(user.lockedUntil, null);
+    });
+
+    it("locks the account once failedLoginAttempts reaches the configured max", async () => {
+      const user = makeUser({ failedLoginAttempts: env.maxFailedLoginAttempts - 1 });
+      mock.method(User, "findOne", () => ({ select: async () => user }));
+      const req = { body: { identifier: "tenant1", password: "wrong" } };
+      const res = createResponse();
+      let nextError;
+
+      const before = Date.now();
+      await loginUser(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 401);
+      assert.equal(user.failedLoginAttempts, env.maxFailedLoginAttempts);
+      assert.ok(user.lockedUntil instanceof Date);
+      assert.ok(user.lockedUntil.getTime() >= before + env.accountLockDurationMs);
+    });
+
+    it("rejects a login attempt against an already-locked account without calling matchPassword", async () => {
+      let matchPasswordCalled = false;
+      const user = makeUser({
+        failedLoginAttempts: env.maxFailedLoginAttempts,
+        lockedUntil: new Date(Date.now() + 60000),
+        async matchPassword() {
+          matchPasswordCalled = true;
+          return true;
+        },
+      });
+      mock.method(User, "findOne", () => ({ select: async () => user }));
+      const req = { body: { identifier: "tenant1", password: "correct-password" } };
+      const res = createResponse();
+      let nextError;
+
+      await loginUser(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 401);
+      assert.match(nextError.message, /temporarily locked/);
+      assert.equal(matchPasswordCalled, false);
+    });
+
+    it("resets failedLoginAttempts and lockedUntil on a successful login", async () => {
+      const user = makeUser({
+        failedLoginAttempts: 3,
+        lockedUntil: null,
+        async matchPassword() {
+          return true;
+        },
+      });
+      mock.method(User, "findOne", () => ({ select: async () => user }));
+      mock.method(AuthSession, "create", async (payload) => payload);
+      const req = { body: { identifier: "tenant1", password: "correct-password" }, headers: {} };
+      const res = createResponse();
+
+      await loginUser(req, res, (error) => {
+        throw error;
+      });
+
+      assert.equal(res.statusCode, 200);
+      assert.equal(user.failedLoginAttempts, 0);
+      assert.equal(user.lockedUntil, null);
+    });
+
+    it("allows login again once lockedUntil is in the past", async () => {
+      const user = makeUser({
+        failedLoginAttempts: env.maxFailedLoginAttempts,
+        lockedUntil: new Date(Date.now() - 1000),
+        async matchPassword() {
+          return true;
+        },
+      });
+      mock.method(User, "findOne", () => ({ select: async () => user }));
+      mock.method(AuthSession, "create", async (payload) => payload);
+      const req = { body: { identifier: "tenant1", password: "correct-password" }, headers: {} };
+      const res = createResponse();
+
+      await loginUser(req, res, (error) => {
+        throw error;
+      });
+
+      assert.equal(res.statusCode, 200);
+      assert.equal(user.failedLoginAttempts, 0);
+    });
+  });
+
   it("rejects missing refresh tokens", async () => {
     const req = {
       body: {},
