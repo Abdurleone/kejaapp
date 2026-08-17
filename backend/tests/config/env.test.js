@@ -65,5 +65,10 @@ describe("env config", () => {
     assert.equal(env.staleListingFreshnessMs, 14 * 24 * 60 * 60 * 1000);
     assert.equal(env.reviewPromptLookbackMs, 14 * 24 * 60 * 60 * 1000);
   });
+
+  it("uses default account-lockout settings", () => {
+    assert.equal(env.maxFailedLoginAttempts, 5);
+    assert.equal(env.accountLockDurationMs, 15 * 60 * 1000);
+  });
 });
 

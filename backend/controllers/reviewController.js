@@ -6,6 +6,7 @@ import { notifyPropertyReviewCreated } from "../services/notificationService.js"
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 
 const listPropertyReviews = asyncHandler(async (req, res) => {
   const property = await Property.findById(req.params.id);
@@ -85,7 +86,7 @@ const createReview = asyncHandler(async (req, res) => {
     property: req.body.property,
     user: req.user._id,
     rating: req.body.rating,
-    comment: req.body.comment,
+    comment: sanitizeText(req.body.comment),
   });
 
   await review.populate("user", "name role");
@@ -110,7 +111,7 @@ const respondToReview = asyncHandler(async (req, res) => {
   }
 
   review.ownerResponse = {
-    message: req.body.message,
+    message: sanitizeText(req.body.message),
     respondedBy: req.user._id,
     respondedAt: new Date(),
   };

@@ -72,6 +72,17 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Account-lockout brute-force guard, separate from the IP-based rate
+    // limiter (middlewares/rateLimiter.js) - that one resets on IP rotation,
+    // this one follows the account regardless of where attempts come from.
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockedUntil: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

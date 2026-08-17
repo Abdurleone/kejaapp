@@ -133,6 +133,40 @@ describe("reviewController", () => {
     assert.ok(review.ownerResponse.respondedAt instanceof Date);
   });
 
+  it("strips HTML from an owner's response before storing it", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const reviewId = new mongoose.Types.ObjectId();
+    const review = {
+      _id: reviewId,
+      property: {
+        _id: new mongoose.Types.ObjectId(),
+        owner: ownerId,
+      },
+      ownerResponse: {},
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+
+    mock.method(Review, "findById", () => ({
+      populate() {
+        return Promise.resolve(review);
+      },
+    }));
+
+    const req = {
+      params: { id: reviewId.toString() },
+      body: { message: "<script>alert(1)</script>Thanks for the review!" },
+      user: { _id: ownerId, role: "agency" },
+    };
+    const res = createResponse();
+
+    await respondToReview(req, res, () => {});
+
+    assert.equal(review.ownerResponse.message, "alert(1)Thanks for the review!");
+  });
+
   it("rejects review responses from non-owners", async () => {
     const ownerId = new mongoose.Types.ObjectId();
     const review = {

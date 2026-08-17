@@ -13,6 +13,16 @@ import {
   storePropertyImage,
 } from "../../services/fileStorageService.js";
 
+// decodeImagePayload now verifies the decoded buffer's real magic bytes
+// match the claimed mimeType (see fileStorageService.js), not just the
+// client-asserted string - these helpers build data with a real signature
+// prefix so tests that go through decodeImagePayload/storePropertyImage
+// still exercise realistic content instead of tripping the new check.
+const pngBytes = (suffix = "image-bytes") =>
+  Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from(suffix)]);
+const jpegBytes = (suffix = "image-bytes") =>
+  Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.from(suffix)]);
+
 const withFakeClamd = (respond, testFn) => async () => {
   const server = net.createServer((socket) => {
     socket.on("data", () => {});
@@ -42,10 +52,10 @@ describe("fileStorageService", () => {
   it("decodes base64 image payloads", () => {
     const buffer = decodeImagePayload({
       mimeType: "image/png",
-      data: Buffer.from("image-bytes").toString("base64"),
+      data: pngBytes().toString("base64"),
     });
 
-    assert.equal(buffer.toString(), "image-bytes");
+    assert.deepEqual(buffer, pngBytes());
   });
 
   it("rejects unsupported image mime types", () => {
@@ -54,6 +64,18 @@ describe("fileStorageService", () => {
       {
         message: "mimeType must be one of: image/jpeg, image/png, image/webp",
       }
+    );
+  });
+
+  it("rejects image data whose magic bytes don't match the declared mimeType", () => {
+    assert.throws(
+      () =>
+        decodeImagePayload({
+          mimeType: "image/jpeg",
+          // Real PNG signature, but claimed as a JPEG.
+          data: pngBytes().toString("base64"),
+        }),
+      { message: "Image data does not match the declared mimeType" }
     );
   });
 
@@ -70,7 +92,7 @@ describe("fileStorageService", () => {
       imageId: new mongoose.Types.ObjectId(),
       fileName: "room.jpg",
       mimeType: "image/jpeg",
-      data: Buffer.from("image-bytes").toString("base64"),
+      data: jpegBytes().toString("base64"),
     });
 
     await assert.doesNotReject(() => fs.access(stored.storagePath));

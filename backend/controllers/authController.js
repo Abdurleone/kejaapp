@@ -9,6 +9,8 @@ import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
+import { logSecurityEvent } from "../utils/logger.js";
+import { compareAgainstDummyHash } from "../utils/passwords.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
 import { generateUniqueUsername, suggestUsernames } from "../utils/usernameGenerator.js";
 
@@ -152,8 +154,42 @@ const loginUser = asyncHandler(async (req, res) => {
     $or: [{ email: normalizedIdentifier }, { username: normalizedIdentifier }],
   }).select("+password");
 
-  if (!user || !(await user.matchPassword(password))) {
+  // Checked before the password comparison, not after - a locked account
+  // shouldn't get another free bcrypt-cost guess against it while locked.
+  if (user?.lockedUntil && user.lockedUntil > new Date()) {
+    logSecurityEvent("Login attempt against locked account", `identifier=${normalizedIdentifier}`);
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "Account temporarily locked due to too many failed login attempts. Try again later."
+    );
+  }
+
+  // compareAgainstDummyHash for a missing user, not a short-circuited
+  // `!user ||` - see its own comment for why that matters (timing-based
+  // user enumeration).
+  const passwordMatches = user ? await user.matchPassword(password) : await compareAgainstDummyHash(password);
+
+  if (!user || !passwordMatches) {
+    if (user) {
+      user.failedLoginAttempts += 1;
+
+      if (user.failedLoginAttempts >= env.maxFailedLoginAttempts) {
+        user.lockedUntil = new Date(Date.now() + env.accountLockDurationMs);
+        logSecurityEvent("Account locked after repeated failed logins", `identifier=${normalizedIdentifier}`);
+      } else {
+        logSecurityEvent("Failed login attempt", `identifier=${normalizedIdentifier}`);
+      }
+
+      await user.save();
+    }
+
     throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+  }
+
+  if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+    user.failedLoginAttempts = 0;
+    user.lockedUntil = null;
+    await user.save();
   }
 
   await sendAuthResponse(req, res, httpStatus.OK, user);

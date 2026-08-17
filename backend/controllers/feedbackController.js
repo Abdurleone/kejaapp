@@ -5,11 +5,12 @@ import { notifyFeedbackResponded } from "../services/notificationService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 
 const createFeedback = asyncHandler(async (req, res) => {
   const feedback = await Feedback.create({
     submitter: req.user._id,
-    message: req.body.message,
+    message: sanitizeText(req.body.message),
     allowPublicSharing: req.body.allowPublicSharing || false,
   });
 
@@ -73,7 +74,7 @@ const respondToFeedback = asyncHandler(async (req, res) => {
   feedback.status = "responded";
   feedback.isPublic = feedback.allowPublicSharing;
   feedback.response = {
-    message: req.body.message,
+    message: sanitizeText(req.body.message),
     respondedBy: req.user._id,
     respondedAt: new Date(),
   };
