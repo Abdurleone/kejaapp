@@ -39,6 +39,15 @@ const formatPagination = (page, limit, total) => ({
 const publicOwnerProjection = "name role verified";
 const ownerProjection = "name email role phone verified";
 
+// "images" is deliberately excluded - it has to stay reachable only through
+// addPropertyImage/uploadPropertyImage/removePropertyImage, the endpoints
+// that actually run URL-format validation, the malware scan, and the
+// magic-byte content check. Neither validator schema (createPropertySchema/
+// updatePropertySchema) defines "images" either, and validateRequest only
+// checks fields it knows about - it doesn't reject unknown ones - so this
+// list is the only thing that was ever standing between a client sending a
+// raw images array here and it landing on the property completely
+// unvalidated, bypassing every one of those checks.
 const propertyFields = [
   "title",
   "description",
@@ -48,7 +57,6 @@ const propertyFields = [
   "bedrooms",
   "bathrooms",
   "amenities",
-  "images",
   "listedBy",
   "status",
   "viewingType",
