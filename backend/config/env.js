@@ -175,6 +175,19 @@ const s3Config = {
   s3ForcePathStyle: parseBoolean(process.env.S3_FORCE_PATH_STYLE, false, "S3_FORCE_PATH_STYLE"),
 };
 
+// Optional, same "empty = disabled" pattern as googleClientId/sentryDsn/vapid*
+// above - unset means POST /api/support-payments 503s instead of trying (and
+// failing) to call Daraja with empty credentials. Unlike storageDriver's s3
+// mode there's no separate on/off flag; presence of these vars is the switch.
+// The callback URL specifically is validated eagerly (not just at first use)
+// for the same reason S3_ENDPOINT/S3_PUBLIC_BASE_URL are below - a malformed
+// value should crash loudly at boot, not silently until Safaricom's servers
+// try to reach it and just... can't, with no error visible anywhere in this
+// app's own logs.
+if (process.env.MPESA_CALLBACK_URL) {
+  assertValidUrl(process.env.MPESA_CALLBACK_URL, "MPESA_CALLBACK_URL");
+}
+
 if (storageDriver === "s3") {
   const requiredS3Env = {
     S3_BUCKET: s3Config.s3Bucket,
@@ -354,6 +367,30 @@ const env = {
     15,
     "ACCOUNT_LOCK_DURATION_MINUTES"
   ),
+  // Voluntary "support the developer" M-Pesa STK push - see
+  // services/mpesaService.js. Deliberately unrelated to any tenant/landlord/
+  // agency/mover payment: money goes straight to this shortcode's own owner,
+  // never held or routed by kejaapp itself (see docs/compliance/code-of-ethics.md
+  // for why that boundary matters here).
+  mpesaConsumerKey: process.env.MPESA_CONSUMER_KEY || "",
+  mpesaConsumerSecret: process.env.MPESA_CONSUMER_SECRET || "",
+  mpesaShortcode: process.env.MPESA_SHORTCODE || "",
+  mpesaPasskey: process.env.MPESA_PASSKEY || "",
+  mpesaCallbackUrl: process.env.MPESA_CALLBACK_URL || "",
+  mpesaEnvironment: process.env.MPESA_ENVIRONMENT === "production" ? "production" : "sandbox",
+  mpesaTransactionType:
+    process.env.MPESA_TRANSACTION_TYPE === "CustomerBuyGoodsOnline"
+      ? "CustomerBuyGoodsOnline"
+      : "CustomerPayBillOnline",
+  mpesaAccountReference: process.env.MPESA_ACCOUNT_REFERENCE || "KejaApp Support",
 };
+
+// Computed after the object above rather than inline, since it depends on
+// four of its own sibling fields - mirrors the single-field
+// `if (!env.googleClientId)` check in authController.js, just for a
+// multi-field integration instead of one DSN/key.
+env.mpesaEnabled = Boolean(
+  env.mpesaConsumerKey && env.mpesaConsumerSecret && env.mpesaShortcode && env.mpesaPasskey && env.mpesaCallbackUrl
+);
 
 export default env;

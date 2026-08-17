@@ -41,7 +41,7 @@ This document is written to align with the themes of Kenya's **Constitution of K
 
 ### 2.5 Fair dealing between roles
 
-- KejaApp is a discovery and coordination platform. It does not mediate, hold, or process rent, deposits, or agency fees between parties (see [Payment Boundary](../../README.md#payment-boundary) in the README) — financial arrangements remain a direct matter between tenant and landlord/agency, and between tenant and mover.
+- KejaApp is a discovery and coordination platform. It does not mediate, hold, or process rent, deposits, or agency fees between parties (see [Payment Boundary](../../README.md#payment-boundary) in the README) — financial arrangements remain a direct matter between tenant and landlord/agency, and between tenant and mover. The one M-Pesa integration that exists (see [Payments](../dev/Payments.md)) is a voluntary service charge paid directly to the developer, not to any other user — it doesn't cross this boundary.
 - Contact details a landlord or agency provides on a listing must be accurate and functional; tenants are entitled to reach an owner through the channel the owner themselves designated as preferred.
 - Movers accepting a service request are expected to honor the terms (service type, approximate distance, availability) under which the request was accepted, or decline/communicate a change promptly through the platform's status workflow rather than leaving a request unanswered.
 

@@ -70,5 +70,12 @@ describe("env config", () => {
     assert.equal(env.maxFailedLoginAttempts, 5);
     assert.equal(env.accountLockDurationMs, 15 * 60 * 1000);
   });
+
+  it("disables M-Pesa support payments by default", () => {
+    assert.equal(env.mpesaEnabled, false);
+    assert.equal(env.mpesaEnvironment, "sandbox");
+    assert.equal(env.mpesaTransactionType, "CustomerPayBillOnline");
+    assert.equal(env.mpesaAccountReference, "KejaApp Support");
+  });
 });
 
