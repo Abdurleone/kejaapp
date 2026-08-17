@@ -6,7 +6,7 @@ import {
   propertyViewingTypes,
 } from "../models/Property.js";
 import ApiError from "./apiError.js";
-import { escapeRegExp } from "./regex.js";
+import { escapeRegExpQueryParam } from "./regex.js";
 
 const earthRadiusKm = 6378.1;
 
@@ -68,15 +68,15 @@ const buildPropertyFilters = (query) => {
   }
 
   if (query.county) {
-    filters["location.county"] = new RegExp(escapeRegExp(query.county), "i");
+    filters["location.county"] = new RegExp(escapeRegExpQueryParam(query.county, "county"), "i");
   }
 
   if (query.town) {
-    filters["location.town"] = new RegExp(escapeRegExp(query.town), "i");
+    filters["location.town"] = new RegExp(escapeRegExpQueryParam(query.town, "town"), "i");
   }
 
   if (query.area) {
-    filters["location.area"] = new RegExp(escapeRegExp(query.area), "i");
+    filters["location.area"] = new RegExp(escapeRegExpQueryParam(query.area, "area"), "i");
   }
 
   if (query.lat !== undefined || query.lng !== undefined || query.radiusKm !== undefined) {
@@ -161,4 +161,4 @@ const haversineDistanceKm = ([lng1, lat1], [lng2, lat2]) => {
   return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
 };
 
-export { buildPropertyFilters, earthRadiusKm, escapeRegExp, haversineDistanceKm, parseGeoQueryNumber };
+export { buildPropertyFilters, earthRadiusKm, haversineDistanceKm, parseGeoQueryNumber };
