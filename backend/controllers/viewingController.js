@@ -8,6 +8,7 @@ import {
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 import { assertValidTransition } from "../utils/statusTransitions.js";
 
 const activeViewingStatuses = ["pending", "approved"];
@@ -70,7 +71,7 @@ const createViewingRequest = asyncHandler(async (req, res) => {
     requester: req.user._id,
     owner: property.owner,
     requestedDate: req.body.requestedDate,
-    message: req.body.message,
+    message: sanitizeText(req.body.message),
     status: property.viewingType === "open" ? "approved" : "pending",
   });
 
@@ -162,7 +163,7 @@ const updateViewingRequestStatus = asyncHandler(async (req, res) => {
   assertValidTransition(viewingRequest.status, req.body.status, allowedFromByTarget);
 
   viewingRequest.status = req.body.status;
-  viewingRequest.decisionReason = req.body.reason;
+  viewingRequest.decisionReason = sanitizeText(req.body.reason);
   viewingRequest.reviewedBy = req.user._id;
   viewingRequest.reviewedAt = new Date();
 

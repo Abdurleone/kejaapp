@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import {
   addPropertyImage,
+  createProperty,
   deleteProperty,
   getProperty,
   listMyProperties,
@@ -36,6 +37,51 @@ const createResponse = () => ({
 describe("propertyController", () => {
   afterEach(() => {
     mock.restoreAll();
+  });
+
+  it("strips HTML from every free-text field before creating a property", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    let createPayload;
+
+    mock.method(Property, "create", async (payload) => {
+      createPayload = payload;
+      return {
+        _id: new mongoose.Types.ObjectId(),
+        ...payload,
+        async populate() {
+          return this;
+        },
+      };
+    });
+
+    const req = {
+      body: {
+        title: "<b>Spacious</b> apartment",
+        description: "<script>alert(1)</script>Close to town",
+        // status: "draft" so notifyMatchingSavedSearches's "available"-only
+        // check short-circuits before it - no SavedSearch.find mock needed.
+        status: "draft",
+        amenities: ["<i>WiFi</i>", "Parking"],
+        viewingInstructions: "<a href=x>Call ahead</a>",
+        location: { county: "<u>Nairobi</u>", town: "Westlands", area: "" },
+        contact: { notes: "<script>bad()</script>Ask for John", availableHours: "9am<br>5pm" },
+      },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await createProperty(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(res.statusCode, 201);
+    assert.equal(createPayload.title, "Spacious apartment");
+    assert.equal(createPayload.description, "alert(1)Close to town");
+    assert.deepEqual(createPayload.amenities, ["WiFi", "Parking"]);
+    assert.equal(createPayload.viewingInstructions, "Call ahead");
+    assert.equal(createPayload.location.county, "Nairobi");
+    assert.equal(createPayload.contact.notes, "bad()Ask for John");
+    assert.equal(createPayload.contact.availableHours, "9am5pm");
   });
 
   it("lists only available properties by default", async () => {

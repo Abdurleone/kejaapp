@@ -10,6 +10,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { calculateMoverPriceEstimate } from "../utils/moverPricing.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 import { haversineDistanceKm } from "../utils/propertyFilters.js";
+import { sanitizeText } from "../utils/sanitizeText.js";
 import { assertValidTransition } from "../utils/statusTransitions.js";
 
 const allowedFromByTarget = {
@@ -77,7 +78,7 @@ const createMoverRequest = asyncHandler(async (req, res) => {
     tenant: req.user._id,
     property: req.body.property || null,
     homeSize: req.body.homeSize,
-    message: req.body.message,
+    message: sanitizeText(req.body.message),
     preferredDate: req.body.preferredDate,
     pickupLocation: hasPickupCoordinates
       ? { type: "Point", coordinates: [req.body.pickupLng, req.body.pickupLat] }
@@ -151,7 +152,7 @@ const updateMoverRequestStatus = asyncHandler(async (req, res) => {
   assertValidTransition(moverRequest.status, req.body.status, allowedFromByTarget);
 
   moverRequest.status = req.body.status;
-  moverRequest.response = req.body.response;
+  moverRequest.response = sanitizeText(req.body.response);
   moverRequest.respondedBy = req.user._id;
   moverRequest.respondedAt = new Date();
 
