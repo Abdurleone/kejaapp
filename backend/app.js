@@ -28,6 +28,7 @@ import propertyRoutes from "./routes/propertyRoutes.js";
 import pushSubscriptionRoutes from "./routes/pushSubscriptionRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import savedSearchRoutes from "./routes/savedSearchRoutes.js";
+import supportPaymentRoutes from "./routes/supportPaymentRoutes.js";
 import viewingRoutes from "./routes/viewingRoutes.js";
 
 const app = express();
@@ -139,6 +140,7 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/push-subscriptions", pushSubscriptionRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/saved-searches", savedSearchRoutes);
+app.use("/api/support-payments", supportPaymentRoutes);
 app.use("/api/viewings", viewingRoutes);
 
 // SPA client-side routing fallback (e.g. a direct hit on /discover) - only

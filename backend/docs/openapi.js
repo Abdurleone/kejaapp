@@ -783,6 +783,54 @@ const openApiSpec = {
         },
       },
     },
+    "/api/support-payments": {
+      post: {
+        tags: ["Support payments"],
+        summary: "Initiate a voluntary M-Pesa STK push to support the developer (unrelated to any tenancy payment)",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          201: {
+            description: "STK push accepted by Daraja; payment record created as pending",
+          },
+          503: {
+            description: "M-Pesa is not configured on this deployment",
+          },
+        },
+      },
+    },
+    "/api/support-payments/{id}": {
+      get: {
+        tags: ["Support payments"],
+        summary: "Get the status of a support payment the current user initiated",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Support payment status",
+          },
+        },
+      },
+    },
+    "/api/support-payments/callback": {
+      post: {
+        tags: ["Support payments"],
+        summary: "Daraja's own webhook for the STK push result - called by Safaricom, not the frontend",
+        responses: {
+          200: {
+            description: "Always 200 with {ResultCode, ResultDesc} - Daraja's own ack contract",
+          },
+        },
+      },
+    },
     "/api/device-tokens": {
       post: {
         tags: ["Device tokens"],

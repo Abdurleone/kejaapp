@@ -93,6 +93,8 @@ describe("frontend app utilities", () => {
     assert.equal(resolveViewFromPath("/data-protection"), "dataProtection");
     assert.equal(getViewPath("selectRole"), "/select-role");
     assert.equal(resolveViewFromPath("/select-role"), "selectRole");
+    assert.equal(getViewPath("support"), "/support");
+    assert.equal(resolveViewFromPath("/support"), "support");
   });
 
   it("routes property detail paths to the propertyDetail view and back", () => {
@@ -149,6 +151,13 @@ describe("frontend app utilities", () => {
     assert.equal(canAccessView(undefined, "selectRole"), true);
     assert.equal(canAccessView("tenant", "selectRole"), true);
     assert.equal(canAccessView("admin", "selectRole"), true);
+    // Same reasoning as selectRole above - App.jsx itself gates on signedIn
+    // before rendering SupportPage, so canAccessView doesn't need to (and
+    // shouldn't - it isn't role-specific, just auth-specific).
+    assert.equal(canAccessView(undefined, "support"), true);
+    assert.equal(canAccessView("tenant", "support"), true);
+    assert.equal(canAccessView("landlord", "support"), true);
+    assert.equal(canAccessView("admin", "support"), true);
     assert.equal(getDefaultViewForRole("tenant"), "dashboard");
     assert.equal(getDefaultViewForRole("landlord"), "dashboard");
     assert.equal(getDefaultViewForRole("admin"), "dashboard");

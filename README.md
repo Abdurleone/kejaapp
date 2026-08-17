@@ -26,6 +26,8 @@ The goal is to make rental discovery more transparent, more trusted, and more op
 
 KejaApp is a discovery and coordination platform. It does not process, hold, or mediate rent, deposits, agency fees, or mover charges. Those arrangements are agreed and settled directly between the parties involved. This is a **permanent** product boundary, not a placeholder pending a future payments feature.
 
+The one M-Pesa integration that exists ([Support KejaApp](docs/dev/Payments.md)) doesn't cross this line: it's a voluntary service charge a user can optionally pay directly to the app's developer, unrelated to any tenant/landlord/agency/mover transaction — kejaapp never holds, routes, or takes a cut of money between users.
+
 ## Key Features
 
 A short summary of the most important product capabilities:

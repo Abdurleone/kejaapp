@@ -624,3 +624,20 @@ export const confirmRole = async (role) => {
   const response = await apiFetch("/api/auth/role", { method: "PUT", body: { role } });
   return response.user;
 };
+
+// Voluntary "support the developer" M-Pesa STK push - unrelated to any
+// tenant/landlord/agency/mover payment, see SupportPage.jsx. No response
+// caching on either call: initiating is a one-off action, and polling
+// status needs each request to actually hit the network, not a stale cache.
+export const initiateSupportPayment = async ({ phoneNumber, amount }) => {
+  const response = await apiFetch("/api/support-payments", {
+    method: "POST",
+    body: { phoneNumber, amount },
+  });
+  return response.data;
+};
+
+export const fetchSupportPaymentStatus = async (paymentId) => {
+  const response = await apiFetch(`/api/support-payments/${paymentId}`, { method: "GET" });
+  return response.data;
+};

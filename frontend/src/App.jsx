@@ -21,6 +21,7 @@ import TermsPage from "./pages/TermsPage.jsx";
 import DataProtectionPage from "./pages/DataProtectionPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import SelectRolePage from "./pages/SelectRolePage.jsx";
+import SupportPage from "./pages/SupportPage.jsx";
 import {
   defaultApiBaseUrl,
   normalizeApiBaseUrl,
@@ -415,6 +416,16 @@ function App() {
         return <TermsPage />;
       case "deleteAccount":
         return <DeleteAccountPage />;
+      case "support":
+        if (!signedIn) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">Sign in to continue.</p>
+            </div>
+          );
+        }
+
+        return <SupportPage />;
       default:
         return <DiscoverPage />;
     }
@@ -525,6 +536,9 @@ function App() {
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("terms"))}>
                   Terms
+                </button>
+                <button className="text-button" type="button" onClick={() => navigate(getViewPath("support"))}>
+                  Support KejaApp
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
                   Delete account

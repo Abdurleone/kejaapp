@@ -57,6 +57,16 @@ services:
         sync: false
       - key: VAPID_SUBJECT
         sync: false
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_CALLBACK_URL
+        sync: false
       - key: STORAGE_DRIVER
         value: s3
       - key: S3_BUCKET
