@@ -129,6 +129,22 @@ describe("moverController", () => {
     assert.equal(find.mock.callCount(), 1);
   });
 
+  it("rejects a non-string county filter with a clean 400 instead of crashing", async () => {
+    // ?county[$gt]= parses to a nested object under Express's default query
+    // parser - listMovers must reject this cleanly, not throw an unhandled
+    // TypeError trying to regex-escape an object.
+    const req = { query: { county: { $gt: "" } } };
+    const res = createResponse();
+    let nextError;
+
+    await listMovers(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.equal(nextError.message, "county must be a string");
+  });
+
   it("rejects mover profile submission from non-mover users", async () => {
     const req = {
       body: { name: "SwiftMove Nairobi" },

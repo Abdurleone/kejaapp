@@ -12,7 +12,7 @@ import { notifyUserStatusChanged } from "../services/notificationService.js";
 import { deleteUserCascade } from "../services/userDeletionService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { escapeRegExp } from "../utils/regex.js";
+import { escapeRegExpQueryParam } from "../utils/regex.js";
 import { sanitizeText } from "../utils/sanitizeText.js";
 
 const roles = ["tenant", "landlord", "agency", "admin"];
@@ -46,7 +46,7 @@ const buildUserFilters = (query) => {
   }
 
   if (query.search) {
-    const escapedSearch = escapeRegExp(query.search);
+    const escapedSearch = escapeRegExpQueryParam(query.search, "search");
 
     filters.$or = [
       { name: new RegExp(escapedSearch, "i") },
