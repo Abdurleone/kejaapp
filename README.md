@@ -212,7 +212,7 @@ Other documents kept in this repository:
 The repository supports multiple deployment paths:
 
 - Docker and Docker Compose for local and staging-style runs
-- **Render Blueprint via [render.yaml](render.yaml) — the actual live production deployment** (`jakezapp-backend.onrender.com` — one URL for both the web app and its API)
+- **Render Blueprint via [render.yaml](render.yaml) — the actual live production deployment** (`kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API; still named `kejaapp-backend` post-rebrand, see the JakezApp CHANGELOG entry for why)
 - Kubernetes manifests in [k8s](k8s) — a reference/alternative path, exercised by CI's `k8s-smoke-test` job but not currently deployed anywhere
 
 For more detail, see [docs/dev/devops.md](docs/dev/devops.md).

@@ -37,18 +37,18 @@ Frontend at `http://localhost:8080`, backend at `http://localhost:5000`. Single 
 
 ## Deployment: Render — production
 
-This is the actual live deployed instance: a single URL, `jakezapp-backend.onrender.com`, serving both the web app and its API. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
+This is the actual live deployed instance: a single URL, `kejaapp-backend-7iu3.onrender.com`, serving both the web app and its API (still named `kejaapp-backend` post-JakezApp-rebrand - Render doesn't change a service's `.onrender.com` URL on a rename, and this name/URL is an internal infrastructure detail, invisible to users of the actual branded app; see `docs/project/CHANGELOG.md`'s rebrand entry). `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
 
-- **jakezapp-backend** — one web service, built from `backend/Dockerfile.render` (**not** the plain `backend/Dockerfile`), with `dockerContext: .` (repo root, not `backend/`).
-- **jakezapp-redis** — Render's managed Redis-compatible Key Value service.
+- **kejaapp-backend** — one web service, built from `backend/Dockerfile.render` (**not** the plain `backend/Dockerfile`), with `dockerContext: .` (repo root, not `backend/`).
+- **kejaapp-redis** — Render's managed Redis-compatible Key Value service.
 
-There used to be a separate **jakezapp-frontend** static site; it's retired, not renamed. `backend/Dockerfile.render` builds the frontend in its own stage and copies the output into the image as `./public`; `backend/app.js` serves it (static files + an SPA fallback route) whenever that directory exists, falling back to today's plain JSON message otherwise — so local dev / `docker compose` / Kubernetes (none of which ever have that directory) are unaffected. This makes the web app and its API genuinely same-origin — see `docs/devops.md` for the three non-obvious things that took to make that actually work (build-time env vars need to be Docker build args, `CORS_ORIGIN` is still required despite being same-origin, and Helmet's CSP needs a scoped exception for the Google Identity Services script).
+There used to be a separate **kejaapp-frontend** static site; it's retired, not renamed. `backend/Dockerfile.render` builds the frontend in its own stage and copies the output into the image as `./public`; `backend/app.js` serves it (static files + an SPA fallback route) whenever that directory exists, falling back to today's plain JSON message otherwise — so local dev / `docker compose` / Kubernetes (none of which ever have that directory) are unaffected. This makes the web app and its API genuinely same-origin — see `docs/devops.md` for the three non-obvious things that took to make that actually work (build-time env vars need to be Docker build args, `CORS_ORIGIN` is still required despite being same-origin, and Helmet's CSP needs a scoped exception for the Google Identity Services script).
 
 MongoDB is **not** provisioned — bring your own Atlas (or other) connection string.
 
 **First-time setup:**
 1. Render dashboard → **New > Blueprint**, point at this repo.
-2. Set `MONGODB_URI` on **jakezapp-backend** (the one secret the blueprint leaves blank). `JWT_SECRET` is auto-generated.
+2. Set `MONGODB_URI` on **kejaapp-backend** (the one secret the blueprint leaves blank). `JWT_SECRET` is auto-generated.
 3. Create an object storage bucket (see below) and set the five `sync: false` secrets: `S3_BUCKET`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`.
 4. Deploy. If Render assigns a different subdomain than the default baked into `render.yaml` (`CORS_ORIGIN`, `VITE_API_BASE_URL`), update both and redeploy.
 
