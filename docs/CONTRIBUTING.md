@@ -1,4 +1,4 @@
-# Contributing to KejaApp
+# Contributing to JakezApp
 
 This is a closed, all-rights-reserved project (see [LICENSE](./LICENSE)) —
 the source is publicly viewable but not open for unsolicited forks or pull
@@ -25,8 +25,8 @@ Each has its own `package.json`, ESLint flat config, and test suite. Root
 ## Getting set up
 
 ```bash
-git clone https://github.com/Abdurleone/kejaapp.git
-cd kejaapp
+git clone https://github.com/Abdurleone/jakezapp.git
+cd jakezapp
 npm --prefix backend install
 npm --prefix frontend install
 npm --prefix mobile install
@@ -67,7 +67,7 @@ If you changed backend code, also run the real-MongoDB integration tests
 before submitting (CI runs these too, against a disposable database):
 
 ```bash
-TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=kejaapp_test npm run test:backend
+TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=jakezapp_test npm run test:backend
 ```
 
 CI (`.github/workflows/ci.yml`) is defined to run lint + tests for all three
@@ -86,7 +86,7 @@ right now.
   `fix-discover-radius-alignment`, `add-mover-reviews`).
 - Write commit messages and PR titles as a short, imperative summary of the
   change (e.g. "Fix Discover radius filter alignment on narrow screens"),
-  matching the existing [commit history](https://github.com/Abdurleone/kejaapp/commits/main).
+  matching the existing [commit history](https://github.com/Abdurleone/jakezapp/commits/main).
 - PRs are squash-merged, so intermediate "fix typo"/"address review
   comments" commits within your branch are fine — they'll collapse into one
   commit on `main`. Focus on a clear final PR title and description instead
@@ -143,7 +143,7 @@ QA/test accounts accumulated this way across sessions before this existed.
 
 ## Reporting bugs and requesting features
 
-Open a [GitHub issue](https://github.com/Abdurleone/kejaapp/issues) with as
+Open a [GitHub issue](https://github.com/Abdurleone/jakezapp/issues) with as
 much detail as you can: what you expected, what happened instead, and steps
 to reproduce (for bugs), or the problem you're trying to solve (for feature
 requests).

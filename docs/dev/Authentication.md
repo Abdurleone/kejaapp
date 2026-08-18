@@ -1,8 +1,8 @@
 # Authentication
 
-KejaApp uses JWT authentication with HTTP-only refresh-token cookies, fully integrated between the backend and both clients (web, mobile).
+JakezApp uses JWT authentication with HTTP-only refresh-token cookies, fully integrated between the backend and both clients (web, mobile).
 
-For the complete code walkthrough (frontend state shape, exact request/response JSON, token storage) see [AUTHENTICATION_GUIDE.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/dev/AUTHENTICATION_GUIDE.md) in the repo. This page is the high-level summary.
+For the complete code walkthrough (frontend state shape, exact request/response JSON, token storage) see [AUTHENTICATION_GUIDE.md](https://github.com/Abdurleone/jakezapp/blob/main/docs/dev/AUTHENTICATION_GUIDE.md) in the repo. This page is the high-level summary.
 
 ## Registration
 
@@ -71,8 +71,8 @@ Same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/`VAPID_*`: with 
 1. Create/select a Google Cloud project, then configure the OAuth consent screen (External; scopes `email`/`profile`/`openid` only — this stays under Google's threshold for requiring a full verification review).
 2. Create a **Web application** OAuth client ID. Authorized JavaScript origins: the live Render frontend URL and `http://localhost:5173` for local dev. Set it as `GOOGLE_CLIENT_ID` (backend) and `VITE_GOOGLE_CLIENT_ID` (frontend build) in Render's dashboard, and in local `.env` files for dev.
 3. Mobile needs its own **iOS** and **Android** OAuth client IDs — `expo-auth-session/providers/google` requires a client ID for whichever platform it's actually running on (there's no single ID that works everywhere, unlike a plain web redirect flow):
-   - **iOS**: bundle identifier `com.kejaapp.mobile` (`mobile/app.json`'s `ios.bundleIdentifier`). No SHA-1/keystore needed.
-   - **Android**: package name `com.kejaapp.mobile` (`mobile/app.json`'s `android.package`), plus the signing certificate's SHA-1 fingerprint — get it from EAS (`eas credentials`, since builds are signed via EAS per `mobile/eas.json`) or a local debug keystore (`keytool -list -v -keystore ~/.android/debug.keystore` for local Expo Go/dev-client testing).
+   - **iOS**: bundle identifier `com.jakezapp.mobile` (`mobile/app.json`'s `ios.bundleIdentifier`). No SHA-1/keystore needed.
+   - **Android**: package name `com.jakezapp.mobile` (`mobile/app.json`'s `android.package`), plus the signing certificate's SHA-1 fingerprint — get it from EAS (`eas credentials`, since builds are signed via EAS per `mobile/eas.json`) or a local debug keystore (`keytool -list -v -keystore ~/.android/debug.keystore` for local Expo Go/dev-client testing).
    - Set the three resulting IDs as `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (mobile reuses the Web ID above as its "any other platform" fallback) — see `mobile/.env.example`. Unset means the button doesn't render at all (same "empty = disabled" convention), rather than the app crashing.
 
 ## Tokens and sessions
@@ -82,7 +82,7 @@ Same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/`VAPID_*`: with 
 - `POST /api/auth/refresh` rotates the refresh token and issues a new JWT.
 - `POST /api/auth/logout` revokes the current refresh session and clears both cookies.
 - Web never sees the JWT at all — the httpOnly cookie is the entire session, `apiFetch` (`frontend/app-utils/client.js`) just sends `credentials: "include"`. Mobile has no cookie jar, so it stores the JWT via the platform's secure storage (`expo-secure-store`, through `mobile/src/api/client.js`) and sends it as a Bearer token on every request instead.
-- **CSRF protection**: the auth cookie is `sameSite: "none"` in production (frontend and backend are cross-origin there), so it's sent on cross-site requests too. State-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) therefore require proof the request isn't forged (`backend/middlewares/csrfProtection.js`) — either a real `Authorization: Bearer` header (mobile: a forged request can't read the token to construct one), or a matching `X-CSRF-Token` header + `keja_csrf` cookie pair (web: `keja_csrf` is deliberately **not** httpOnly so frontend JS can read it and echo it back; a forged cross-site request has the cookie ride along automatically but can never read its value to also send it as a header). The cookie alone — of either kind — is only ever trusted for safe (`GET`) requests. `POST /api/auth/refresh` is the one exception: it trusts a refresh token supplied in the request body (unforgeable cross-site) since it never has an old access token to send as a header.
+- **CSRF protection**: the auth cookie is `sameSite: "none"` in production (frontend and backend are cross-origin there), so it's sent on cross-site requests too. State-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`) therefore require proof the request isn't forged (`backend/middlewares/csrfProtection.js`) — either a real `Authorization: Bearer` header (mobile: a forged request can't read the token to construct one), or a matching `X-CSRF-Token` header + `jakez_csrf` cookie pair (web: `jakez_csrf` is deliberately **not** httpOnly so frontend JS can read it and echo it back; a forged cross-site request has the cookie ride along automatically but can never read its value to also send it as a header). The cookie alone — of either kind — is only ever trusted for safe (`GET`) requests. `POST /api/auth/refresh` is the one exception: it trusts a refresh token supplied in the request body (unforgeable cross-site) since it never has an old access token to send as a header.
 
 ## Other auth endpoints
 

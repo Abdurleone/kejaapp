@@ -6,7 +6,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 // STORAGE_DRIVER must be set before config/env.js is first imported (by the
 // dynamic import below), since env.js reads process.env once at module load.
 process.env.STORAGE_DRIVER = "s3";
-process.env.S3_BUCKET = "kejaapp-test-bucket";
+process.env.S3_BUCKET = "jakezapp-test-bucket";
 process.env.S3_ACCESS_KEY_ID = "test-access-key-id";
 process.env.S3_SECRET_ACCESS_KEY = "test-secret-access-key";
 process.env.S3_PUBLIC_BASE_URL = "https://cdn.example.com/";
@@ -19,7 +19,7 @@ describe("fileStorageService (s3 driver)", () => {
   it("uploads to the configured bucket and returns a public URL", async () => {
     const send = mock.method(S3Client.prototype, "send", async (command) => {
       assert.equal(command.constructor.name, "PutObjectCommand");
-      assert.equal(command.input.Bucket, "kejaapp-test-bucket");
+      assert.equal(command.input.Bucket, "jakezapp-test-bucket");
       assert.equal(command.input.ContentType, "image/jpeg");
       return {};
     });
@@ -47,7 +47,7 @@ describe("fileStorageService (s3 driver)", () => {
   it("deletes the object for a stored image", async () => {
     const send = mock.method(S3Client.prototype, "send", async (command) => {
       assert.equal(command.constructor.name, "DeleteObjectCommand");
-      assert.equal(command.input.Bucket, "kejaapp-test-bucket");
+      assert.equal(command.input.Bucket, "jakezapp-test-bucket");
       assert.equal(command.input.Key, "properties/abc/def-image.jpg");
       return {};
     });

@@ -62,9 +62,9 @@ describe("logger", () => {
   });
 
   it("maskPii masks +254-prefixed numbers and multiple emails in one string", () => {
-    const masked = maskPii("Contact +254712345678 or admin@kejaapp.com, cc jane@example.co.ke");
+    const masked = maskPii("Contact +254712345678 or admin@jakezapp.com, cc jane@example.co.ke");
 
-    assert.equal(masked, "Contact +*********678 or a***@k***.com, cc j***@e***.ke");
+    assert.equal(masked, "Contact +*********678 or a***@j***.com, cc j***@e***.ke");
   });
 
   it("formats timestamps in Nairobi time with a stable +03:00 offset", () => {

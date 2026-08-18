@@ -10,7 +10,7 @@ const testMongoUri = process.env.TEST_MONGODB_URI;
 describe("MongoDB integration", { skip: !testMongoUri }, () => {
   before(async () => {
     await mongoose.connect(testMongoUri, {
-      dbName: process.env.TEST_MONGODB_DB_NAME || "kejaapp_test",
+      dbName: process.env.TEST_MONGODB_DB_NAME || "jakezapp_test",
     });
     await User.deleteMany({ email: /integration\+.*@example\.com/ });
     await PushReceipt.deleteMany({ ticketId: /^integration-/ });

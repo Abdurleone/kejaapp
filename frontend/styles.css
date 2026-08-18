@@ -98,7 +98,7 @@ body {
   font-family: var(--font-body);
   background:
     linear-gradient(color-mix(in srgb, var(--bg) 88%, transparent), color-mix(in srgb, var(--bg) 88%, transparent)),
-    url("assets/keja-logo.png") right bottom/480px no-repeat fixed,
+    url("assets/jakez-logo.png") right bottom/480px no-repeat fixed,
     radial-gradient(circle at top left, color-mix(in srgb, var(--green) 9%, transparent), transparent 32rem),
     var(--bg);
   color: var(--ink);
@@ -1402,7 +1402,7 @@ dialog {
    button just calls window.print()). Force light-mode colors regardless
    of the active color mode so a dark-mode reader doesn't print a black
    page, hide everything that isn't the policy itself, and layer a
-   translucent KejaApp watermark behind the text so a saved/printed copy
+   translucent JakezApp watermark behind the text so a saved/printed copy
    is traceable back to the app.  */
 @media print {
   :root,
@@ -1455,7 +1455,7 @@ dialog {
     width: 60vw;
     height: 60vw;
     transform: translate(-50%, -50%);
-    background: url("assets/keja-logo.png") center/contain no-repeat;
+    background: url("assets/jakez-logo.png") center/contain no-repeat;
     opacity: 0.5;
     z-index: -1;
     pointer-events: none;

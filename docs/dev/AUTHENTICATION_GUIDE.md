@@ -1,10 +1,10 @@
 # Authentication Flow Guide
 
-This document describes the complete authentication implementation in KejaApp, including frontend and backend integration.
+This document describes the complete authentication implementation in JakezApp, including frontend and backend integration.
 
 ## Overview
 
-KejaApp uses JWT (JSON Web Token) authentication with HTTP-only refresh token cookies. The auth flow is fully integrated between the React frontend and Node.js/Express backend.
+JakezApp uses JWT (JSON Web Token) authentication with HTTP-only refresh token cookies. The auth flow is fully integrated between the React frontend and Node.js/Express backend.
 
 ## Frontend Authentication
 
@@ -196,7 +196,7 @@ or equivalently:
   "csrfToken": "..."
 }
 ```
-Register's response carries the same shape (`201` instead of `200`). Both also set the `keja_token`/`keja_refresh`/`keja_csrf` cookies on the response directly — `token`/`refreshToken` in the body are for mobile (no cookie jar, stores them via `expo-secure-store`); `csrfToken` is what web reads to prime `client.js`'s in-memory CSRF value.
+Register's response carries the same shape (`201` instead of `200`). Both also set the `jakez_token`/`jakez_refresh`/`jakez_csrf` cookies on the response directly — `token`/`refreshToken` in the body are for mobile (no cookie jar, stores them via `expo-secure-store`); `csrfToken` is what web reads to prime `client.js`'s in-memory CSRF value.
 
 #### GET `/api/auth/me`
 Fetch the current authenticated user. Accepts either an `Authorization: Bearer <token>` header (mobile) or the httpOnly session cookie (web) — see `protect` in `backend/middlewares/authMiddleware.js`.
@@ -228,7 +228,7 @@ Revokes the current refresh session and clears the auth/refresh/CSRF cookies. Sa
 }
 ```
 
-**Other endpoints** (`POST /api/auth/google`, `PUT /api/auth/me`, `PUT /api/auth/role`, `PUT /api/auth/password`, `DELETE /api/auth/me`) are listed in [docs/Authentication.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/dev/Authentication.md) rather than duplicated here.
+**Other endpoints** (`POST /api/auth/google`, `PUT /api/auth/me`, `PUT /api/auth/role`, `PUT /api/auth/password`, `DELETE /api/auth/me`) are listed in [docs/Authentication.md](https://github.com/Abdurleone/jakezapp/blob/main/docs/dev/Authentication.md) rather than duplicated here.
 
 ### Role-Based Access Control
 
@@ -382,7 +382,7 @@ export const isAllowedCorsOrigin = (origin, { nodeEnv = env.nodeEnv, corsOrigins
 `authMiddleware.protect()` accepts either an `Authorization: Bearer` header (mobile) or the httpOnly session cookie (web). That cookie is `sameSite: "none"` on the cross-origin docker-compose/Kubernetes deployments, or `sameSite: "lax"` on the consolidated same-origin Render production deployment (`authCookieSameSite` in `backend/config/env.js`) — either way it rides along on requests automatically, and `"none"` specifically rides along on cross-site ones too, the classic CSRF setup. `backend/middlewares/csrfProtection.js` closes this for state-changing requests (`POST`/`PUT`/`PATCH`/`DELETE`), applied uniformly regardless of deployment shape:
 
 - **Mobile**: a real `Authorization: Bearer` header is proof enough — a forged cross-site request has no way to read the token to construct one.
-- **Web**: mobile has no cookie for this, but web does — a matching `X-CSRF-Token` header plus the `keja_csrf` cookie. That cookie is deliberately **not** httpOnly, so frontend JS can read it and echo it back as a header; a forged request gets the cookie for free but can never read its value to also send it as a header (Same-Origin Policy).
+- **Web**: mobile has no cookie for this, but web does — a matching `X-CSRF-Token` header plus the `jakez_csrf` cookie. That cookie is deliberately **not** httpOnly, so frontend JS can read it and echo it back as a header; a forged request gets the cookie for free but can never read its value to also send it as a header (Same-Origin Policy).
 
 The session cookie alone — of either kind — is only ever trusted for safe (`GET`) requests. The one exception is `POST /api/auth/refresh`: it never has a valid access token to send as a header (that's the whole reason it's being called), so it instead trusts a refresh token supplied in the request body, equally unforgeable cross-site but not requiring a header.
 
@@ -400,7 +400,7 @@ All protected endpoints validate:
 ### Session Not Persisting
 
 If a user appears signed out after a page reload:
-1. Confirm the `keja_token`/`keja_refresh` cookies are actually being set (browser devtools → Application/Storage → Cookies) — `httpOnly` cookies won't show up via `document.cookie`, only in devtools.
+1. Confirm the `jakez_token`/`jakez_refresh` cookies are actually being set (browser devtools → Application/Storage → Cookies) — `httpOnly` cookies won't show up via `document.cookie`, only in devtools.
 2. Check `AUTH_COOKIE_SECURE`/`AUTH_COOKIE_SAME_SITE` in the backend's env — a `secure: true` cookie is silently dropped by the browser over plain HTTP.
 3. Verify `fetchCurrentUser()`'s request actually includes `credentials: "include"` and isn't being blocked by CORS (see below).
 

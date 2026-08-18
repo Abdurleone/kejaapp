@@ -5,15 +5,15 @@
 	"__export_source": "Codex",
 	"resources": [
 		{
-			"_id": "wrk_kejaapp",
+			"_id": "wrk_jakezapp",
 			"_type": "workspace",
-			"name": "KejaApp API",
-			"description": "Insomnia collection for the KejaApp backend API."
+			"name": "JakezApp API",
+			"description": "Insomnia collection for the JakezApp backend API."
 		},
 		{
-			"_id": "env_kejaapp_base",
+			"_id": "env_jakezapp_base",
 			"_type": "environment",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Base Environment",
 			"data": {
 				"base_url": "http://localhost:5000",
@@ -50,7 +50,7 @@
 		{
 			"_id": "fld_health",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Health",
 			"description": ""
 		},
@@ -96,7 +96,7 @@
 		{
 			"_id": "fld_dashboard",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Dashboard",
 			"description": ""
 		},
@@ -117,7 +117,7 @@
 		{
 			"_id": "fld_auth",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Auth",
 			"description": ""
 		},
@@ -345,7 +345,7 @@
 		{
 			"_id": "fld_properties",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Properties",
 			"description": ""
 		},
@@ -545,7 +545,7 @@
 		{
 			"_id": "fld_favorites",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Favorites",
 			"description": ""
 		},
@@ -594,7 +594,7 @@
 		{
 			"_id": "fld_reviews",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Reviews",
 			"description": ""
 		},
@@ -659,7 +659,7 @@
 		{
 			"_id": "fld_inquiries",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Inquiries",
 			"description": ""
 		},
@@ -738,7 +738,7 @@
 		{
 			"_id": "fld_viewings",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Viewings",
 			"description": ""
 		},
@@ -839,7 +839,7 @@
 		{
 			"_id": "fld_notifications",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Notifications",
 			"description": ""
 		},
@@ -874,7 +874,7 @@
 		{
 			"_id": "fld_admin",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Admin",
 			"description": ""
 		},
@@ -1059,7 +1059,7 @@
 		{
 			"_id": "fld_agencies",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Agencies",
 			"description": ""
 		},
@@ -1102,7 +1102,7 @@
 		{
 			"_id": "fld_movers",
 			"_type": "request_group",
-			"parentId": "wrk_kejaapp",
+			"parentId": "wrk_jakezapp",
 			"name": "Movers",
 			"description": ""
 		},

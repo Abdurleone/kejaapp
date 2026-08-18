@@ -1,10 +1,10 @@
-# KejaApp User Manual — Admins
+# JakezApp User Manual — Admins
 
 See the [General Guide](general-manual.md) first for account creation, sign-in, notifications, and data/privacy basics common to every role. Admin accounts are not self-registered through the public sign-up form — they're provisioned directly.
 
 ## 1. What admins do (and don't do)
 
-Admins moderate **users**, not **listings**. There is no admin path anywhere in KejaApp — web, mobile, or API — to create, edit, delete, or view a landlord/agency's property inventory, respond to an inquiry, or manage a viewing request on someone else's behalf. This separation is deliberate: see [Code of Ethics §2.4](../compliance/code-of-ethics.md#24-safety-and-trust) on why moderation and listing control are kept apart.
+Admins moderate **users**, not **listings**. There is no admin path anywhere in JakezApp — web, mobile, or API — to create, edit, delete, or view a landlord/agency's property inventory, respond to an inquiry, or manage a viewing request on someone else's behalf. This separation is deliberate: see [Code of Ethics §2.4](../compliance/code-of-ethics.md#24-safety-and-trust) on why moderation and listing control are kept apart.
 
 What admins do have:
 
@@ -47,7 +47,7 @@ List all submitted feedback (from tenants, landlords, agencies, and movers — a
 - Notifies the submitter.
 - **Immediately publishes it** as a public testimonial on the landing page — there is no separate publish/unpublish step, so write your response as if it will be shown publicly right away.
 
-Some feedback submissions are appeals of an enforcement action rather than general comments — handle those per the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md#3-complaints-about-kejaapp-or-its-enforcement-decisions), which expects a real re-examination of the underlying record, not a form response.
+Some feedback submissions are appeals of an enforcement action rather than general comments — handle those per the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md#3-complaints-about-jakezapp-or-its-enforcement-decisions), which expects a real re-examination of the underlying record, not a form response.
 
 ## 6. Handling personal data responsibly
 
@@ -55,7 +55,7 @@ As an admin, you have visibility into other users' account details, violation hi
 
 - Don't look up or act on an account you have a personal or financial connection to — recuse yourself and note the conflict, per [Code of Ethics §2.6](../compliance/code-of-ethics.md#26-conflict-of-interest).
 - Don't share what you see in a user's account outside the moderation action it's needed for.
-- Direct any data-subject rights request you receive (access, correction, deletion) that comes to you directly rather than through `privacy@kejaapp.com` to that address, so it's handled and logged consistently — see the [Data Protection Policy](../compliance/data-protection-policy.md#10-data-subject-rights).
+- Direct any data-subject rights request you receive (access, correction, deletion) that comes to you directly rather than through `privacy@jakezapp.com` to that address, so it's handled and logged consistently — see the [Data Protection Policy](../compliance/data-protection-policy.md#10-data-subject-rights).
 - If you suspect a security or data-protection incident (not a routine violation) — unauthorized access, a suspected breach, anomalous account activity you can't attribute to a normal moderation action — follow the [Incident Response Plan](../compliance/incident-response-plan.md) rather than handling it ad hoc.
 
 ## 7. What admins can't do

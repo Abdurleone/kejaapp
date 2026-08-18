@@ -20,8 +20,8 @@ describe("cors config", () => {
   });
 
   it("still honors an explicit CORS_ORIGIN allowlist in production", () => {
-    const overrides = { nodeEnv: "production", corsOrigins: ["https://kejaapp.example.com"] };
-    assert.equal(isAllowedCorsOrigin("https://kejaapp.example.com", overrides), true);
+    const overrides = { nodeEnv: "production", corsOrigins: ["https://jakezapp.example.com"] };
+    assert.equal(isAllowedCorsOrigin("https://jakezapp.example.com", overrides), true);
     assert.equal(isAllowedCorsOrigin("https://evil.example.com", overrides), false);
   });
 });

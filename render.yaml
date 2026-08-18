@@ -4,11 +4,11 @@ services:
   # so the web app and its API are the same origin - no more relaying the
   # CSRF token through response bodies to work around a cookie a different
   # origin couldn't see (see docs/project/CHANGELOG.md's "Consolidate Web + API onto One
-  # Render Origin" entry). A separate kejaapp-frontend static site used to
-  # exist here; it's retired, not just renamed - kejaapp-backend's own URL
+  # Render Origin" entry). A separate jakezapp-frontend static site used to
+  # exist here; it's retired, not just renamed - jakezapp-backend's own URL
   # (whatever Render assigns it) is now the one public URL for everything.
   - type: web
-    name: kejaapp-backend
+    name: jakezapp-backend
     runtime: docker
     dockerfilePath: backend/Dockerfile.render
     dockerContext: .
@@ -21,6 +21,19 @@ services:
         value: "true"
       - key: MONGODB_URI
         sync: false
+      # Deliberately LEFT AS "kejaapp", not renamed to match the JakezApp
+      # rebrand: MONGODB_URI (above) is a bare cluster host with no database
+      # path, so this is the only thing selecting which Atlas database the
+      # app actually reads/writes (see config/env.js's normalizeMongoUri -
+      # it only ever falls back to this value when the URI's own path is
+      # empty). Every real production user/property/inquiry already lives in
+      # the "kejaapp" database - changing this value would silently point
+      # production at a brand-new, empty database on the next deploy, not
+      # rename or migrate the existing one. The database name is an internal
+      # identifier, invisible to users; there's no product reason to rename
+      # it, and real reasons not to. If this ever needs to genuinely change,
+      # that's a deliberate data migration (mongodump/mongorestore into a
+      # real "jakezapp" database), not a config edit.
       - key: MONGODB_DB_NAME
         value: kejaapp
       - key: JWT_SECRET
@@ -46,7 +59,7 @@ services:
       # own. Self-referential now: this same host is both the page's origin
       # and the API's.
       - key: CORS_ORIGIN
-        value: https://kejaapp-backend-7iu3.onrender.com
+        value: https://jakezapp-backend.onrender.com
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: SENTRY_DSN
@@ -83,20 +96,20 @@ services:
         sync: false
       - key: REDIS_URL
         fromService:
-          name: kejaapp-redis
+          name: jakezapp-redis
           type: keyvalue
           property: connectionString
       # Build-time only (backend/Dockerfile.render's frontend-build stage
       # declares matching ARGs) - Vite bakes these into the JS bundle when
       # `npm run build` runs, not read at container start. Self-referential
       # now: this same host serves both the page and the API it calls.
-      # "kejaapp-backend" was already taken by another Render user globally
+      # "jakezapp-backend" was already taken by another Render user globally
       # (Render subdomains are unique across all accounts, not just yours),
-      # so Render assigned this real deployment "kejaapp-backend-7iu3"
+      # so Render assigned this real deployment "jakezapp-backend-7iu3"
       # instead - update this if the service is ever recreated under a
       # different assigned name.
       - key: VITE_API_BASE_URL
-        value: https://kejaapp-backend-7iu3.onrender.com
+        value: https://jakezapp-backend.onrender.com
       # Public by nature (baked into the built JS bundle either way), but
       # left as sync: false rather than a literal value here since it's set
       # once in Google Cloud Console and may not exist yet on a fresh clone.
@@ -104,7 +117,7 @@ services:
         sync: false
 
   - type: keyvalue
-    name: kejaapp-redis
+    name: jakezapp-redis
     plan: free
     ipAllowList: []
 

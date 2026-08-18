@@ -41,7 +41,7 @@ Most tests mock Mongoose model methods directly (`mock.method(User, "findOne", .
 `backend/tests/integration/apiFlows.integration.test.js` and `backend/tests/integration/mongodb.integration.test.js` exercise the app over real HTTP against a real MongoDB — registration/login (including the username-conflict-with-suggestions flow), property CRUD, inquiries, viewing requests, reviews/ratings, favorites, and platform feedback. These are **opt-in**: they skip themselves unless `TEST_MONGODB_URI` is set.
 
 ```bash
-TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=kejaapp_test npm run test:backend
+TEST_MONGODB_URI="mongodb://127.0.0.1:27017" TEST_MONGODB_DB_NAME=jakezapp_test npm run test:backend
 ```
 
 CI runs this automatically against a `mongo:7` service container on every push/PR.

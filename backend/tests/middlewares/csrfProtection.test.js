@@ -17,7 +17,7 @@ describe("csrfProtection", () => {
   });
 
   it("allows safe methods (GET) even when only the session cookie is present", () => {
-    const req = baseReq({ method: "GET", headers: { cookie: "keja_token=abc" } });
+    const req = baseReq({ method: "GET", headers: { cookie: "jakez_token=abc" } });
     let nextCalled = false;
 
     csrfProtection(req, {}, () => {
@@ -40,7 +40,7 @@ describe("csrfProtection", () => {
 
   for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
     it(`rejects a cookie-only ${method} request with no Authorization header (CSRF guard)`, () => {
-      const req = baseReq({ method, headers: { cookie: "keja_token=abc; other=1" } });
+      const req = baseReq({ method, headers: { cookie: "jakez_token=abc; other=1" } });
 
       assert.throws(
         () => csrfProtection(req, {}, () => {}),
@@ -54,7 +54,7 @@ describe("csrfProtection", () => {
   }
 
   it("rejects a refresh-cookie-only request to a non-refresh route the same way (CSRF guard)", () => {
-    const req = baseReq({ method: "DELETE", headers: { cookie: "keja_refresh=abc" } });
+    const req = baseReq({ method: "DELETE", headers: { cookie: "jakez_refresh=abc" } });
 
     assert.throws(
       () => csrfProtection(req, {}, () => {}),
@@ -66,7 +66,7 @@ describe("csrfProtection", () => {
     const req = baseReq({
       method: "POST",
       originalUrl: "/api/auth/refresh",
-      headers: { cookie: "keja_refresh=abc" },
+      headers: { cookie: "jakez_refresh=abc" },
       body: {},
     });
 
@@ -85,7 +85,7 @@ describe("csrfProtection", () => {
       const req = baseReq({
         method: "POST",
         originalUrl: path,
-        headers: { cookie: "keja_token=stale-value; keja_refresh=stale-value" },
+        headers: { cookie: "jakez_token=stale-value; jakez_refresh=stale-value" },
         body: {},
       });
       let nextCalled = false;
@@ -102,7 +102,7 @@ describe("csrfProtection", () => {
     const req = baseReq({
       method: "POST",
       originalUrl: "/api/auth/refresh",
-      headers: { cookie: "keja_refresh=abc" },
+      headers: { cookie: "jakez_refresh=abc" },
       body: { refreshToken: "a-real-refresh-token" },
     });
     let nextCalled = false;
@@ -118,7 +118,7 @@ describe("csrfProtection", () => {
     const req = baseReq({
       method: "POST",
       headers: {
-        cookie: "keja_token=abc; keja_csrf=matching-csrf-value",
+        cookie: "jakez_token=abc; jakez_csrf=matching-csrf-value",
         "x-csrf-token": "matching-csrf-value",
       },
     });
@@ -135,7 +135,7 @@ describe("csrfProtection", () => {
     const req = baseReq({
       method: "POST",
       headers: {
-        cookie: "keja_token=abc; keja_csrf=real-csrf-value",
+        cookie: "jakez_token=abc; jakez_csrf=real-csrf-value",
         "x-csrf-token": "attacker-guessed-value",
       },
     });
@@ -149,7 +149,7 @@ describe("csrfProtection", () => {
   it("rejects an unsafe request with the csrf cookie but no X-CSRF-Token header (what a forged cross-site request looks like)", () => {
     const req = baseReq({
       method: "POST",
-      headers: { cookie: "keja_token=abc; keja_csrf=real-csrf-value" },
+      headers: { cookie: "jakez_token=abc; jakez_csrf=real-csrf-value" },
     });
 
     assert.throws(
@@ -161,7 +161,7 @@ describe("csrfProtection", () => {
   it("rejects an unsafe request with an X-CSRF-Token header but no matching cookie", () => {
     const req = baseReq({
       method: "POST",
-      headers: { cookie: "keja_token=abc", "x-csrf-token": "no-cookie-to-match" },
+      headers: { cookie: "jakez_token=abc", "x-csrf-token": "no-cookie-to-match" },
     });
 
     assert.throws(

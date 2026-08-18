@@ -1,8 +1,8 @@
-# KejaApp — Data Protection Impact Assessments (DPIA)
+# JakezApp — Data Protection Impact Assessments (DPIA)
 
 ## 1. Purpose
 
-A Data Protection Impact Assessment identifies and mitigates privacy risk **before** a processing activity ships, for activities that are novel, involve location/behavioral data, or could otherwise pose meaningful risk to users — the threshold GDPR Art. 35 and good Kenya DPA practice both point to. This document assesses the KejaApp processing activities that meet that bar. Lower-risk activities are already covered adequately by the [Data Protection Policy](data-protection-policy.md) and the [Records of Processing Activities](records-of-processing-activities.md) without a dedicated DPIA.
+A Data Protection Impact Assessment identifies and mitigates privacy risk **before** a processing activity ships, for activities that are novel, involve location/behavioral data, or could otherwise pose meaningful risk to users — the threshold GDPR Art. 35 and good Kenya DPA practice both point to. This document assesses the JakezApp processing activities that meet that bar. Lower-risk activities are already covered adequately by the [Data Protection Policy](data-protection-policy.md) and the [Records of Processing Activities](records-of-processing-activities.md) without a dedicated DPIA.
 
 ## 2. DPIA — Mover request pickup geolocation
 
@@ -26,7 +26,7 @@ A Data Protection Impact Assessment identifies and mitigates privacy risk **befo
 | Item | Assessment |
 |---|---|
 | Necessity | Directly supports a named trust-and-safety goal — detecting landlords/agencies who reuse another owner's listing photos to misrepresent a property, which is a form of fraud tenants have no other way to detect. |
-| Proportionality | The fingerprint is derived only from images voluntarily uploaded as part of a public listing — not from any private photo, and not compared against any source outside KejaApp's own uploaded-image set. |
+| Proportionality | The fingerprint is derived only from images voluntarily uploaded as part of a public listing — not from any private photo, and not compared against any source outside JakezApp's own uploaded-image set. |
 | Data minimization design | The fingerprint is a hash of image content, not of any person depicted in an image, and is not personal data about a data subject beyond identifying which account uploaded it. |
 | Consent / legal basis | Legitimate interest in fraud prevention — a landlord/agency uploading a public listing image should reasonably expect it to be checked for reuse, given this is disclosed in the [Data Protection Policy](data-protection-policy.md#5-purpose-and-legal-basis-for-processing) and [Acceptable Use Policy](acceptable-use-policy.md#1-listings-landlords-agencies). |
 | Risk to individuals | A false-positive match could incorrectly flag a legitimate owner's account. This is the primary identified risk given the automatic-suspension consequence after repeated violations. |
@@ -45,7 +45,7 @@ A Data Protection Impact Assessment identifies and mitigates privacy risk **befo
 | Risk to individuals | Concentration of visibility in a small number of admin accounts creates a conflict-of-interest and data-misuse risk if not governed. |
 | Mitigations in place | Every status-changing action is logged with actor, reason, and timestamp (audit trail); an admin cannot change their own account's status; [Code of Ethics §2.6](code-of-ethics.md#26-conflict-of-interest) and the [Admin Manual §6](../user-manual/admin-manual.md#6-handling-personal-data-responsibly) require admins to recuse themselves from any account they have a personal/financial connection to. |
 | Residual risk after mitigation | Low, contingent on the conflict-of-interest rule actually being followed — this is a governance control, not a technical one, so it depends on admin conduct rather than something the software can fully enforce. |
-| Outcome | Proceed as implemented. If KejaApp scales to multiple admins, consider adding a technical control (e.g. flagging when an admin's own name/email/phone matches the account they're viewing) as a defense-in-depth backstop to the governance rule. |
+| Outcome | Proceed as implemented. If JakezApp scales to multiple admins, consider adding a technical control (e.g. flagging when an admin's own name/email/phone matches the account they're viewing) as a defense-in-depth backstop to the governance rule. |
 
 ## 5. Review
 

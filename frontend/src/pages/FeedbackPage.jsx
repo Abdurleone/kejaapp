@@ -67,7 +67,7 @@ function SubmitFeedbackPanel() {
       <div className="view-header">
         <div>
           <h2>Feedback</h2>
-          <p>Tell us how KejaApp helped you find your next home — an admin will respond here.</p>
+          <p>Tell us how JakezApp helped you find your next home — an admin will respond here.</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ function SubmitFeedbackPanel() {
                 setSubmitted(false);
               }}
               maxLength={1000}
-              placeholder="Share your experience with KejaApp..."
+              placeholder="Share your experience with JakezApp..."
               required
             />
           </label>

@@ -5,19 +5,19 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: kejaapp-clamav
-  namespace: kejaapp
+  name: jakezapp-clamav
+  namespace: jakezapp
 spec:
-  serviceName: kejaapp-clamav
+  serviceName: jakezapp-clamav
   replicas: 1
   selector:
     matchLabels:
-      app: kejaapp
+      app: jakezapp
       component: clamav
   template:
     metadata:
       labels:
-        app: kejaapp
+        app: jakezapp
         component: clamav
     spec:
       containers:
@@ -62,12 +62,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kejaapp-clamav
-  namespace: kejaapp
+  name: jakezapp-clamav
+  namespace: jakezapp
 spec:
   clusterIP: None
   selector:
-    app: kejaapp
+    app: jakezapp
     component: clamav
   ports:
     - port: 3310

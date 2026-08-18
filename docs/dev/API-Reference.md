@@ -6,7 +6,7 @@ Authentication supports both:
 
 ```text
 Authorization: Bearer <token>
-Cookie: keja_token=<token>
+Cookie: jakez_token=<token>
 ```
 
 See **[Authentication](Authentication)** for the full register/login flow, including the email-or-username login and username-conflict-with-suggestions behavior.
@@ -198,7 +198,7 @@ Responses for all four routes above include a `distanceKm`/`priceEstimate` pair 
 
 ## Manual testing with Insomnia
 
-1. Import `docs/kejaapp-insomnia.json` into [Insomnia](https://insomnia.rest/).
+1. Import `docs/jakezapp-insomnia.json` into [Insomnia](https://insomnia.rest/).
 2. Select the `Base Environment`, confirm `base_url` is `http://localhost:5000`.
 3. Register or log in, copy the returned token into the `token` environment variable.
 4. After creating resources, copy returned ids into the matching environment variables (`property_id`, `review_id`, `image_id`, `inquiry_id`, `viewing_id`, `notification_id`, `verification_id`, `violation_id`, `user_id`).

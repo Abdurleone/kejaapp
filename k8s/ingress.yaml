@@ -3,34 +3,34 @@
 #
 # Two hosts (not one host with /api path-based routing) because the frontend
 # bundle bakes VITE_API_BASE_URL in at build time (see frontend/Dockerfile) -
-# ghcr.io/abdurleone/kejaapp-frontend:latest is built expecting
-# https://api.kejaapp.example.com. Using your own domain means rebuilding
+# ghcr.io/abdurleone/jakezapp-frontend:latest is built expecting
+# https://api.jakezapp.example.com. Using your own domain means rebuilding
 # that image with your own --build-arg VITE_API_BASE_URL (see docs/dev/devops.md).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kejaapp
-  namespace: kejaapp
+  name: jakezapp
+  namespace: jakezapp
 spec:
   ingressClassName: nginx
   rules:
-    - host: kejaapp.example.com
+    - host: jakezapp.example.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: kejaapp-frontend
+                name: jakezapp-frontend
                 port:
                   number: 80
-    - host: api.kejaapp.example.com
+    - host: api.jakezapp.example.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: kejaapp-backend
+                name: jakezapp-backend
                 port:
                   number: 80

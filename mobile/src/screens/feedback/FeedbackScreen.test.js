@@ -41,7 +41,7 @@ describe("FeedbackScreen", () => {
 
     await waitFor(() => expect(getByText("Share your experience")).toBeTruthy());
 
-    const input = getByPlaceholderText("Tell us how KejaApp helped you find your next home...");
+    const input = getByPlaceholderText("Tell us how JakezApp helped you find your next home...");
     fireEvent.changeText(input, "Loved it!");
     await waitFor(() => expect(input.props.value).toBe("Loved it!"));
 
@@ -61,7 +61,7 @@ describe("FeedbackScreen", () => {
 
     await waitFor(() => expect(getByText("Share your experience")).toBeTruthy());
 
-    const input = getByPlaceholderText("Tell us how KejaApp helped you find your next home...");
+    const input = getByPlaceholderText("Tell us how JakezApp helped you find your next home...");
     fireEvent.changeText(input, "Great!");
     await waitFor(() => expect(input.props.value).toBe("Great!"));
     fireEvent.press(getByRole("checkbox"));

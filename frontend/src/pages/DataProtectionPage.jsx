@@ -6,14 +6,14 @@ export default function DataProtectionPage() {
       <div className="view-header">
         <div>
           <h2>Privacy &amp; data protection</h2>
-          <p>How KejaApp handles your personal data under the Kenya Data Protection Act, 2019.</p>
+          <p>How JakezApp handles your personal data under the Kenya Data Protection Act, 2019.</p>
         </div>
       </div>
 
       <section className="panel stack">
         <h3>Who&apos;s responsible for your data</h3>
         <p className="muted-copy">
-          KejaApp is the data controller for the personal data described here, and aims to align its handling of that
+          JakezApp is the data controller for the personal data described here, and aims to align its handling of that
           data with the <strong>Kenya Data Protection Act, 2019</strong>, enforced by the{" "}
           <strong>Office of the Data Protection Commissioner (ODPC)</strong>.
         </p>
@@ -24,7 +24,7 @@ export default function DataProtectionPage() {
         <p className="muted-copy">
           Account details, listing/business data, and the inquiries, viewing requests, reviews, and mover requests
           you create are collected to operate the specific feature you used them for — never for an undisclosed
-          purpose. KejaApp does not ask for national ID/passport numbers, financial account or card details, health
+          purpose. JakezApp does not ask for national ID/passport numbers, financial account or card details, health
           information, or other sensitive personal data as defined by the Act.
         </p>
       </section>
@@ -33,7 +33,7 @@ export default function DataProtectionPage() {
         <h3>Signing in with Google</h3>
         <p className="muted-copy">
           If you choose to sign in or register with Google, Google shares your name, email address, and profile
-          photo with KejaApp so an account can be created or matched to an existing one — nothing else. KejaApp does
+          photo with JakezApp so an account can be created or matched to an existing one — nothing else. JakezApp does
           not receive your Google password, and does not access any other Google data (contacts, files, etc.).
         </p>
       </section>
@@ -44,14 +44,14 @@ export default function DataProtectionPage() {
           Consistent with the Act (s. 26), you have the right to be informed, to access your own data, to correct it,
           to have it deleted, to object to or restrict its processing, and to receive a copy of it in a portable
           format. Delete your account any time from the Account page, or reach every other right via{" "}
-          <strong>privacy@kejaapp.com</strong>.
+          <strong>privacy@jakezapp.com</strong>.
         </p>
       </section>
 
       <section className="panel stack">
         <h3>Breach notification</h3>
         <p className="muted-copy">
-          If a personal data breach occurs, KejaApp commits to notifying the ODPC within 72 hours of becoming aware,
+          If a personal data breach occurs, JakezApp commits to notifying the ODPC within 72 hours of becoming aware,
           where the breach is likely to pose a risk, and to notifying affected users directly where that risk is
           high.
         </p>

@@ -171,7 +171,7 @@ function SubmitFeedbackForm({ onSubmitted, styles }) {
         multiline
         numberOfLines={4}
         maxLength={1000}
-        placeholder="Tell us how KejaApp helped you find your next home..."
+        placeholder="Tell us how JakezApp helped you find your next home..."
       />
       <Pressable
         style={styles.switchRow}

@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 // - mirrors envS3.test.js's pattern exactly. All other required S3 vars are
 // given valid values so only the malformed S3_PUBLIC_BASE_URL trips the check.
 process.env.STORAGE_DRIVER = "s3";
-process.env.S3_BUCKET = "kejaapp-test-bucket";
+process.env.S3_BUCKET = "jakezapp-test-bucket";
 process.env.S3_ACCESS_KEY_ID = "test-access-key-id";
 process.env.S3_SECRET_ACCESS_KEY = "test-secret-access-key";
 process.env.S3_PUBLIC_BASE_URL = "not-a-url";

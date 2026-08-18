@@ -2,25 +2,30 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: backend-config
-  namespace: kejaapp
+  namespace: jakezapp
 data:
   NODE_ENV: production
   DB_REQUIRED: "true"
+  # Deliberately "kejaapp", not renamed for the JakezApp rebrand - see
+  # config/env.js's mongoDbName comment. This is a reference/alternative
+  # deployment path only (not actually deployed anywhere today), but keeping
+  # it consistent with the real Render deployment avoids the same mistake if
+  # it's ever brought up against a cluster that already has "kejaapp" data.
   MONGODB_DB_NAME: kejaapp
   JWT_EXPIRES_IN: 7d
   TRUST_PROXY: "1"
   AUTH_COOKIE_SECURE: "true"
   # Frontend Ingress host (k8s/ingress.yaml) - update if you change the domain.
-  CORS_ORIGIN: https://kejaapp.example.com
+  CORS_ORIGIN: https://jakezapp.example.com
   STORAGE_DRIVER: s3
   # Bucket name/endpoint/public URL aren't secret, just environment-specific.
   # See docs/dev/devops.md's Kubernetes section for provider setup (e.g. Cloudflare R2).
-  S3_BUCKET: kejaapp-uploads
+  S3_BUCKET: jakezapp-uploads
   S3_REGION: auto
   S3_ENDPOINT: https://<account-id>.r2.cloudflarestorage.com
-  S3_PUBLIC_BASE_URL: https://cdn.kejaapp.example.com
+  S3_PUBLIC_BASE_URL: https://cdn.jakezapp.example.com
   # In-cluster Redis (k8s/redis-statefulset.yaml), addressed by Service name.
-  REDIS_URL: redis://kejaapp-redis:6379
+  REDIS_URL: redis://jakezapp-redis:6379
   # In-cluster ClamAV (k8s/clamav-statefulset.yaml), addressed by Service name.
-  CLAMAV_HOST: kejaapp-clamav
+  CLAMAV_HOST: jakezapp-clamav
   CLAMAV_PORT: "3310"

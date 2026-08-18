@@ -1,6 +1,6 @@
 # Scaling and Load Balancing
 
-KejaApp can run behind a reverse proxy or load balancer as multiple Node.js instances. The backend should be treated as mostly stateless, with shared services handling durable or cross-instance state.
+JakezApp can run behind a reverse proxy or load balancer as multiple Node.js instances. The backend should be treated as mostly stateless, with shared services handling durable or cross-instance state.
 
 ## Runtime Model
 
@@ -79,7 +79,7 @@ AUTH_RATE_LIMIT_MAX=50
 REDIS_URL=redis://user:password@host:6379
 PROPERTIES_CACHE_TTL_MS=30000
 MOVERS_CACHE_TTL_MS=60000
-LOG_DIR=/var/log/kejaapp
+LOG_DIR=/var/log/jakezapp
 ```
 
 For container platforms, configure:

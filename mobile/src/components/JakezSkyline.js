@@ -11,10 +11,10 @@ import Svg, { Circle, G, Polygon, Rect, Text as SvgText } from "react-native-svg
 // mirroring web's day/night "matatu at night" gold-glow swap. Web's CSS
 // cascades `stroke: var(--stroke)` onto every shape inside .mp-outline,
 // including ones with no explicit stroke of their own (the ground band,
-// wheel hubs, the KEJA lettering) - <G stroke=...> reproduces that same
+// wheel hubs, the JAKEZ lettering) - <G stroke=...> reproduces that same
 // inheritance here, since react-native-svg follows the same SVG stroke/fill
 // inheritance model.
-export default function KejaSkyline({ stroke, size }) {
+export default function JakezSkyline({ stroke, size }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 400 400" pointerEvents="none">
       <Circle cx="320" cy="90" r="46" fill="#fffaf0" opacity="0.85" />
@@ -40,8 +40,8 @@ export default function KejaSkyline({ stroke, size }) {
         <Circle cx="70" cy="352" r="7" fill="#c7cdd2" />
         <Circle cx="160" cy="352" r="16" fill="#17130d" />
         <Circle cx="160" cy="352" r="7" fill="#c7cdd2" />
-        <SvgText x="115" y="316" textAnchor="middle" fontFamily="Bungee_400Regular" fontSize="14" fill="#fff8e6">
-          KEJA
+        <SvgText x="115" y="316" textAnchor="middle" fontFamily="Bungee_400Regular" fontSize="12" fill="#fff8e6">
+          JAKEZ
         </SvgText>
       </G>
     </Svg>

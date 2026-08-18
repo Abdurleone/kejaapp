@@ -18,13 +18,13 @@ export const createApiUrl = (path, baseUrl = defaultApiBaseUrl) => {
 //
 // The one thing frontend JS does need is proof a mutation actually came
 // from this site: a matching CSRF value echoed back as a header, checked
-// against the non-httpOnly keja_csrf cookie the backend also sets, exactly
+// against the non-httpOnly jakez_csrf cookie the backend also sets, exactly
 // as csrfProtection.js expects.
 //
 // That value used to be read directly via document.cookie - which works
 // only when the page and the cookie share an origin. In production the
-// frontend and backend are on different Render origins (kejaapp-frontend
-// vs kejaapp-backend-...), so the cookie the backend sets is stored under
+// frontend and backend are on different Render origins (jakezapp-frontend
+// vs jakezapp-backend-...), so the cookie the backend sets is stored under
 // the BACKEND's origin: the browser still attaches it automatically to
 // requests TO that origin (that part isn't same-origin-restricted), but
 // frontend JS calling document.cookie on ITS OWN page can never see a
@@ -105,7 +105,7 @@ export const buildQueryString = (filters) => {
 };
 
 export const apiFetch = async (path, options = {}, _isRetry = false) => {
-  const baseUrl = normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
+  const baseUrl = normalizeApiBaseUrl(localStorage.getItem("jakez_base_url") || defaultApiBaseUrl);
   const url = createApiUrl(path, baseUrl);
   const headers = new Headers(options.headers || {});
   const method = (options.method || "GET").toUpperCase();
