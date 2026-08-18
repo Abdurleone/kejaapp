@@ -5,7 +5,7 @@ import { describe, it } from "node:test";
 // dynamic import below), since env.js reads process.env once at module load
 // - mirrors fileStorageServiceS3.test.js's pattern exactly.
 process.env.STORAGE_DRIVER = "s3";
-process.env.S3_BUCKET = "kejaapp-test-bucket";
+process.env.S3_BUCKET = "jakezapp-test-bucket";
 process.env.S3_ACCESS_KEY_ID = "test-access-key-id";
 process.env.S3_SECRET_ACCESS_KEY = "test-secret-access-key";
 process.env.S3_PUBLIC_BASE_URL = "https://cdn.example.com/";

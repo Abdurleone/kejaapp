@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an idea or improvement for KejaApp.
+description: Suggest an idea or improvement for JakezApp.
 labels: ["enhancement"]
 body:
   - type: markdown

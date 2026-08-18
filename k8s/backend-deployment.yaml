@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kejaapp-backend
-  namespace: kejaapp
+  name: jakezapp-backend
+  namespace: jakezapp
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: kejaapp
+      app: jakezapp
       component: backend
   template:
     metadata:
       labels:
-        app: kejaapp
+        app: jakezapp
         component: backend
     spec:
       containers:
         - name: backend
-          image: ghcr.io/abdurleone/kejaapp-backend:latest
+          image: ghcr.io/abdurleone/jakezapp-backend:latest
           ports:
             - containerPort: 5000
           envFrom:
@@ -48,11 +48,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kejaapp-backend
-  namespace: kejaapp
+  name: jakezapp-backend
+  namespace: jakezapp
 spec:
   selector:
-    app: kejaapp
+    app: jakezapp
     component: backend
   ports:
     - port: 80

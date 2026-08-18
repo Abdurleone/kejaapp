@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import env from "../../config/env.js";
 
 describe("env config", () => {
-  it("uses the kejaapp database when Mongo URI has no database path", () => {
+  it("uses the kejaapp database when Mongo URI has no database path (deliberately not renamed for the JakezApp rebrand - see config/env.js's mongoDbName comment)", () => {
     assert.equal(env.mongoDbName, "kejaapp");
     assert.match(env.mongoUri, /\/kejaapp(?:\?|$)/);
   });
@@ -14,7 +14,7 @@ describe("env config", () => {
 
   it("uses default refresh token settings", () => {
     assert.equal(env.refreshTokenMaxAge, 30 * 24 * 60 * 60 * 1000);
-    assert.equal(env.refreshCookieName, "keja_refresh");
+    assert.equal(env.refreshCookieName, "jakez_refresh");
   });
 
   it("uses the default bcrypt salt rounds", () => {
@@ -75,7 +75,7 @@ describe("env config", () => {
     assert.equal(env.mpesaEnabled, false);
     assert.equal(env.mpesaEnvironment, "sandbox");
     assert.equal(env.mpesaTransactionType, "CustomerPayBillOnline");
-    assert.equal(env.mpesaAccountReference, "KejaApp Support");
+    assert.equal(env.mpesaAccountReference, "JakezApp Support");
   });
 });
 

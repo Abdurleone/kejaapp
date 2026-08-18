@@ -1,4 +1,4 @@
-# KejaApp User Manual — Landlords & Agencies
+# JakezApp User Manual — Landlords & Agencies
 
 See the [General Guide](general-manual.md) first for account creation, sign-in, notifications, and data/privacy basics common to every role.
 
@@ -27,7 +27,7 @@ Pricing fields are landlord/agency-only — tenants and admins cannot set or edi
 
 ## 4. Mover affiliates
 
-If you work with movers you trust, mark them as **affiliates** from Movers (its own tab on web; on mobile, via **More → Movers**) (add/remove). An affiliated mover appears under **"Recommended by the owner"** on every one of your properties' detail pages, ahead of the general "movers nearby" list — a way to vouch for movers you've had a good experience with, without KejaApp itself endorsing them.
+If you work with movers you trust, mark them as **affiliates** from Movers (its own tab on web; on mobile, via **More → Movers**) (add/remove). An affiliated mover appears under **"Recommended by the owner"** on every one of your properties' detail pages, ahead of the general "movers nearby" list — a way to vouch for movers you've had a good experience with, without JakezApp itself endorsing them.
 
 ## 5. Agency verification
 
@@ -39,9 +39,9 @@ Check your current status any time from the Dashboard.
 
 - Browse or open other owners' full property listings (see Section 1).
 - Moderate user accounts, review agency/mover verification decisions, or review platform-wide violations — those are admin capabilities.
-- Process rent, deposit, or agency-fee payments through KejaApp itself — that remains a direct arrangement with the tenant.
+- Process rent, deposit, or agency-fee payments through JakezApp itself — that remains a direct arrangement with the tenant.
 
-Your listings and conduct are governed by the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — misrepresenting a listing, discriminatory terms, and reused listing images are all grounds for account action. A disagreement with a specific tenant isn't mediated by KejaApp directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
+Your listings and conduct are governed by the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — misrepresenting a listing, discriminatory terms, and reused listing images are all grounds for account action. A disagreement with a specific tenant isn't mediated by JakezApp directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
 
 ## 7. Your data as a business account
 

@@ -44,7 +44,7 @@ jobs:
           JWT_SECRET: ci-test-secret-with-enough-length
           MONGODB_URI: mongodb://127.0.0.1:27017
           TEST_MONGODB_URI: mongodb://127.0.0.1:27017
-          TEST_MONGODB_DB_NAME: kejaapp_ci
+          TEST_MONGODB_DB_NAME: jakezapp_ci
         run: npm test
 
   frontend:
@@ -107,10 +107,10 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Build backend image
-        run: docker build -t kejaapp-backend:ci ./backend
+        run: docker build -t jakezapp-backend:ci ./backend
 
       - name: Build frontend image
-        run: docker build -t kejaapp-frontend:ci ./frontend
+        run: docker build -t jakezapp-frontend:ci ./frontend
 
   k8s-smoke-test:
     runs-on: ubuntu-latest
@@ -147,7 +147,7 @@ jobs:
               hostPort: 443
               protocol: TCP
           EOF
-          kind create cluster --name kejaapp-ci --config /tmp/kind-config.yaml
+          kind create cluster --name jakezapp-ci --config /tmp/kind-config.yaml
 
       - name: Install ingress-nginx
         run: |
@@ -161,12 +161,12 @@ jobs:
       # publish job's frontend build below, which targets the real ingress.
       - name: Build images
         run: |
-          docker build -t kejaapp-backend:ci-smoke ./backend
-          docker build --build-arg VITE_API_BASE_URL=http://api.kejaapp.example.com \
-            -t kejaapp-frontend:ci-smoke ./frontend
+          docker build -t jakezapp-backend:ci-smoke ./backend
+          docker build --build-arg VITE_API_BASE_URL=http://api.jakezapp.example.com \
+            -t jakezapp-frontend:ci-smoke ./frontend
 
       - name: Load images into kind
-        run: kind load docker-image kejaapp-backend:ci-smoke kejaapp-frontend:ci-smoke --name kejaapp-ci
+        run: kind load docker-image jakezapp-backend:ci-smoke jakezapp-frontend:ci-smoke --name jakezapp-ci
 
       # ConfigMap/Secret/Mongo here are smoke-test-only stand-ins for the real
       # backend-config/backend-secret + MongoDB Atlas used in an actual
@@ -181,26 +181,26 @@ jobs:
           kind: ConfigMap
           metadata:
             name: backend-config
-            namespace: kejaapp
+            namespace: jakezapp
           data:
             NODE_ENV: production
             DB_REQUIRED: "true"
-            MONGODB_DB_NAME: kejaapp
+            MONGODB_DB_NAME: jakezapp
             JWT_EXPIRES_IN: 7d
             TRUST_PROXY: "1"
             AUTH_COOKIE_SECURE: "false"
-            CORS_ORIGIN: http://kejaapp.example.com
+            CORS_ORIGIN: http://jakezapp.example.com
             STORAGE_DRIVER: local
-            REDIS_URL: redis://kejaapp-redis:6379
+            REDIS_URL: redis://jakezapp-redis:6379
           ---
           apiVersion: v1
           kind: Secret
           metadata:
             name: backend-secret
-            namespace: kejaapp
+            namespace: jakezapp
           type: Opaque
           stringData:
-            MONGODB_URI: "mongodb://mongo-ci.kejaapp.svc.cluster.local:27017"
+            MONGODB_URI: "mongodb://mongo-ci.jakezapp.svc.cluster.local:27017"
             JWT_SECRET: "ci-smoke-test-secret-not-for-real-use"
             S3_ACCESS_KEY_ID: ""
             S3_SECRET_ACCESS_KEY: ""
@@ -209,7 +209,7 @@ jobs:
           kind: Deployment
           metadata:
             name: mongo-ci
-            namespace: kejaapp
+            namespace: jakezapp
           spec:
             replicas: 1
             selector:
@@ -230,7 +230,7 @@ jobs:
           kind: Service
           metadata:
             name: mongo-ci
-            namespace: kejaapp
+            namespace: jakezapp
           spec:
             selector:
               app: mongo-ci
@@ -244,7 +244,7 @@ jobs:
           # while building this job, not a hypothetical. 180s because a cold
           # mongo:7 pull (~290MB, uncached on a fresh cluster) alone measured
           # ~1m45s locally, blowing past a tighter timeout on its own.
-          kubectl -n kejaapp rollout status deployment/mongo-ci --timeout=180s
+          kubectl -n jakezapp rollout status deployment/mongo-ci --timeout=180s
 
           kubectl apply -f k8s/redis-statefulset.yaml
           kubectl apply -f k8s/backend-deployment.yaml
@@ -253,53 +253,53 @@ jobs:
 
       - name: Point Deployments at the locally built images
         run: |
-          kubectl -n kejaapp patch deployment kejaapp-backend --type=json -p='[
-            {"op":"replace","path":"/spec/template/spec/containers/0/image","value":"kejaapp-backend:ci-smoke"},
+          kubectl -n jakezapp patch deployment jakezapp-backend --type=json -p='[
+            {"op":"replace","path":"/spec/template/spec/containers/0/image","value":"jakezapp-backend:ci-smoke"},
             {"op":"replace","path":"/spec/template/spec/containers/0/imagePullPolicy","value":"IfNotPresent"}
           ]'
-          kubectl -n kejaapp patch deployment kejaapp-frontend --type=json -p='[
-            {"op":"replace","path":"/spec/template/spec/containers/0/image","value":"kejaapp-frontend:ci-smoke"},
+          kubectl -n jakezapp patch deployment jakezapp-frontend --type=json -p='[
+            {"op":"replace","path":"/spec/template/spec/containers/0/image","value":"jakezapp-frontend:ci-smoke"},
             {"op":"replace","path":"/spec/template/spec/containers/0/imagePullPolicy","value":"IfNotPresent"}
           ]'
 
       - name: Wait for rollout
         run: |
-          kubectl -n kejaapp rollout status deployment/kejaapp-backend --timeout=120s
-          kubectl -n kejaapp rollout status deployment/kejaapp-frontend --timeout=90s
+          kubectl -n jakezapp rollout status deployment/jakezapp-backend --timeout=120s
+          kubectl -n jakezapp rollout status deployment/jakezapp-frontend --timeout=90s
 
       - name: Verify through the ingress
         run: |
-          echo "127.0.0.1 kejaapp.example.com api.kejaapp.example.com" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 jakezapp.example.com api.jakezapp.example.com" | sudo tee -a /etc/hosts
 
           echo "-- backend health --"
-          curl -sSf http://api.kejaapp.example.com/api/health | tee /tmp/health.json
+          curl -sSf http://api.jakezapp.example.com/api/health | tee /tmp/health.json
           python3 -c "import json; d=json.load(open('/tmp/health.json')); assert d['database']['status']=='connected', d"
 
           echo "-- frontend --"
-          curl -sSf -o /dev/null -w "HTTP %{http_code}\n" http://kejaapp.example.com/
+          curl -sSf -o /dev/null -w "HTTP %{http_code}\n" http://jakezapp.example.com/
 
           echo "-- register + create property + public discovery --"
-          TOKEN=$(curl -sSf -X POST http://api.kejaapp.example.com/api/auth/register \
+          TOKEN=$(curl -sSf -X POST http://api.jakezapp.example.com/api/auth/register \
             -H "Content-Type: application/json" \
             -d '{"name":"CI Smoke Test","email":"ci-smoke@example.com","password":"password123","role":"landlord"}' \
             | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
-          curl -sSf -X POST http://api.kejaapp.example.com/api/properties \
+          curl -sSf -X POST http://api.jakezapp.example.com/api/properties \
             -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
             -d '{"title":"CI Smoke Test Listing","price":{"rent":1000},"listedBy":"owner"}' > /dev/null
-          curl -sSf http://api.kejaapp.example.com/api/properties \
+          curl -sSf http://api.jakezapp.example.com/api/properties \
             | python3 -c "import sys,json; d=json.load(sys.stdin); assert len(d['data']) >= 1, d"
 
       - name: Dump diagnostics on failure
         if: failure()
         run: |
-          kubectl -n kejaapp get pods -o wide
-          kubectl -n kejaapp describe pods
-          kubectl -n kejaapp logs -l component=backend --tail=100 || true
-          kubectl -n kejaapp logs -l component=frontend --tail=100 || true
+          kubectl -n jakezapp get pods -o wide
+          kubectl -n jakezapp describe pods
+          kubectl -n jakezapp logs -l component=backend --tail=100 || true
+          kubectl -n jakezapp logs -l component=frontend --tail=100 || true
 
       - name: Delete kind cluster
         if: always()
-        run: kind delete cluster --name kejaapp-ci
+        run: kind delete cluster --name jakezapp-ci
 
   publish:
     runs-on: ubuntu-latest
@@ -322,23 +322,23 @@ jobs:
       - name: Build and push backend image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/kejaapp-backend:latest \
-            -t ghcr.io/${{ github.repository_owner }}/kejaapp-backend:${{ github.sha }} \
+            -t ghcr.io/${{ github.repository_owner }}/jakezapp-backend:latest \
+            -t ghcr.io/${{ github.repository_owner }}/jakezapp-backend:${{ github.sha }} \
             ./backend
-          docker push ghcr.io/${{ github.repository_owner }}/kejaapp-backend:latest
-          docker push ghcr.io/${{ github.repository_owner }}/kejaapp-backend:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/jakezapp-backend:latest
+          docker push ghcr.io/${{ github.repository_owner }}/jakezapp-backend:${{ github.sha }}
 
       # VITE_API_BASE_URL is baked into the static bundle at build time, so this
-      # published image only serves the example api.kejaapp.example.com host
+      # published image only serves the example api.jakezapp.example.com host
       # used in k8s/ingress.yaml. Deploying to a different domain means
       # rebuilding this image locally with your own --build-arg (see
       # docs/dev/devops.md's Kubernetes section).
       - name: Build and push frontend image
         run: |
           docker build \
-            --build-arg VITE_API_BASE_URL=https://api.kejaapp.example.com \
-            -t ghcr.io/${{ github.repository_owner }}/kejaapp-frontend:latest \
-            -t ghcr.io/${{ github.repository_owner }}/kejaapp-frontend:${{ github.sha }} \
+            --build-arg VITE_API_BASE_URL=https://api.jakezapp.example.com \
+            -t ghcr.io/${{ github.repository_owner }}/jakezapp-frontend:latest \
+            -t ghcr.io/${{ github.repository_owner }}/jakezapp-frontend:${{ github.sha }} \
             ./frontend
-          docker push ghcr.io/${{ github.repository_owner }}/kejaapp-frontend:latest
-          docker push ghcr.io/${{ github.repository_owner }}/kejaapp-frontend:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/jakezapp-frontend:latest
+          docker push ghcr.io/${{ github.repository_owner }}/jakezapp-frontend:${{ github.sha }}

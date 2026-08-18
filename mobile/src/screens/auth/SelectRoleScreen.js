@@ -41,7 +41,7 @@ export default function SelectRoleScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>One more thing</Text>
       <Text style={styles.subtitle}>
-        Tell us how you&apos;ll be using KejaApp. This can&apos;t be changed yourself afterward.
+        Tell us how you&apos;ll be using JakezApp. This can&apos;t be changed yourself afterward.
       </Text>
 
       <View style={styles.roleList}>

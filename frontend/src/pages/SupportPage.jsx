@@ -69,9 +69,9 @@ export default function SupportPage() {
     <div className="view active-view">
       <div className="view-header">
         <div>
-          <h2>Support KejaApp</h2>
+          <h2>Support JakezApp</h2>
           <p>
-            A voluntary service charge to the developer who builds and maintains KejaApp - not rent, a deposit, or
+            A voluntary service charge to the developer who builds and maintains JakezApp - not rent, a deposit, or
             any agency/mover fee. Those always stay a direct matter between you and the other party; this is just an
             optional way to support the app itself.
           </p>

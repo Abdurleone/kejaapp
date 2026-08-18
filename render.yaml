@@ -5,8 +5,17 @@ services:
   # CSRF token through response bodies to work around a cookie a different
   # origin couldn't see (see docs/project/CHANGELOG.md's "Consolidate Web + API onto One
   # Render Origin" entry). A separate kejaapp-frontend static site used to
-  # exist here; it's retired, not just renamed - kejaapp-backend's own URL
-  # (whatever Render assigns it) is now the one public URL for everything.
+  # exist here; it's retired, not just renamed - this service's own URL
+  # is now the one public URL for everything.
+  #
+  # Deliberately still "kejaapp-backend" (JakezApp rebrand notwithstanding -
+  # see docs/project/CHANGELOG.md's rebrand entry): Render doesn't change a
+  # service's .onrender.com URL on a rename, so getting a "jakezapp-backend"
+  # URL would mean creating a brand-new service and migrating traffic/data
+  # over - real downtime and risk for a cosmetic win. This name is an
+  # internal infrastructure identifier, invisible to users of the actual
+  # branded app; kept stable on purpose, same reasoning as MONGODB_DB_NAME
+  # below.
   - type: web
     name: kejaapp-backend
     runtime: docker
@@ -21,6 +30,19 @@ services:
         value: "true"
       - key: MONGODB_URI
         sync: false
+      # Deliberately LEFT AS "kejaapp", not renamed to match the JakezApp
+      # rebrand: MONGODB_URI (above) is a bare cluster host with no database
+      # path, so this is the only thing selecting which Atlas database the
+      # app actually reads/writes (see config/env.js's normalizeMongoUri -
+      # it only ever falls back to this value when the URI's own path is
+      # empty). Every real production user/property/inquiry already lives in
+      # the "kejaapp" database - changing this value would silently point
+      # production at a brand-new, empty database on the next deploy, not
+      # rename or migrate the existing one. The database name is an internal
+      # identifier, invisible to users; there's no product reason to rename
+      # it, and real reasons not to. If this ever needs to genuinely change,
+      # that's a deliberate data migration (mongodump/mongorestore into a
+      # real "jakezapp" database), not a config edit.
       - key: MONGODB_DB_NAME
         value: kejaapp
       - key: JWT_SECRET
@@ -94,7 +116,9 @@ services:
       # (Render subdomains are unique across all accounts, not just yours),
       # so Render assigned this real deployment "kejaapp-backend-7iu3"
       # instead - update this if the service is ever recreated under a
-      # different assigned name.
+      # different assigned name. (Still true after the JakezApp rebrand -
+      # see this file's top-of-file comment for why the name itself wasn't
+      # changed to match.)
       - key: VITE_API_BASE_URL
         value: https://kejaapp-backend-7iu3.onrender.com
       # Public by nature (baked into the built JS bundle either way), but

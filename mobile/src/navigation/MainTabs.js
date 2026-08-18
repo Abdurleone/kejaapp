@@ -15,20 +15,20 @@ import { getPrimaryTabs, getHiddenTabs } from "./roleTabs.js";
 const Tab = createBottomTabNavigator();
 
 // Mirrors frontend/src/App.jsx's .brand-block: a circular logo badge (same
-// keja-logo.png source web uses) next to a two-tone "Keja"/"App" wordmark
+// jakez-logo.png source web uses) next to a two-tone "Jakez"/"App" wordmark
 // (App in red) - web shows this in the header on every page; mobile's
 // header instead shows each tab's own title everywhere else (its
 // screen-level equivalent of web's separate .view-header h2), so this only
-// replaces the title on the one screen that's plain "KejaApp" text today.
+// replaces the title on the one screen that's plain "JakezApp" text today.
 function BrandTitle({ colors }) {
   return (
     <View style={brandStyles.row}>
       <Image
-        source={require("../../assets/keja-logo.png")}
+        source={require("../../assets/jakez-logo.png")}
         style={[brandStyles.mark, { borderWidth: colors.strokeWidthSm, borderColor: colors.stroke }, colors.shadowSm]}
       />
       <Text style={[brandStyles.wordmark, { color: colors.ink }]}>
-        Keja
+        Jakez
         <Text style={{ color: colors.red }}>App</Text>
       </Text>
     </View>

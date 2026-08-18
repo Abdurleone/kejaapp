@@ -1,8 +1,8 @@
 {
-  "name": "kejaapp",
+  "name": "jakezapp",
   "version": "1.0.0",
   "private": true,
-  "description": "KejaApp workspace",
+  "description": "JakezApp workspace",
   "scripts": {
     "dev": "npm --prefix backend run dev",
     "frontend": "npm --prefix frontend run start",

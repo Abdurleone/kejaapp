@@ -1,12 +1,12 @@
-# KejaApp User Manual — Movers
+# JakezApp User Manual — Movers
 
 See the [General Guide](general-manual.md) first for account creation, sign-in, notifications, and data/privacy basics common to every role.
 
-Movers are KejaApp's third business role, alongside landlords/agencies — a way for moving/relocation companies to run their side of the business through the platform, not just be listed in a directory.
+Movers are JakezApp's third business role, alongside landlords/agencies — a way for moving/relocation companies to run their side of the business through the platform, not just be listed in a directory.
 
 ## 1. You don't browse property listings
 
-As a mover, KejaApp routes you straight to your own **profile and received-requests dashboard** on the Movers tab, instead of the general property-browsing experience tenants and owners see. You work from **service requests and notifications**, framed as a transportation facilitator for tenants who've already found a home — not from individual listings. This is by design, not a bug: property detail pages tell you as much if you land on one directly.
+As a mover, JakezApp routes you straight to your own **profile and received-requests dashboard** on the Movers tab, instead of the general property-browsing experience tenants and owners see. You work from **service requests and notifications**, framed as a transportation facilitator for tenants who've already found a home — not from individual listings. This is by design, not a bug: property detail pages tell you as much if you land on one directly.
 
 ## 2. Setting up your business profile
 
@@ -51,11 +51,11 @@ The tenant is notified of every status change you make. They can also cancel the
 - Set or see rent/deposit/agency-fee pricing for any property — that's unrelated to your service.
 - Moderate accounts or verification decisions for other users — that's an admin capability.
 
-Your profile and conduct toward tenants are governed by the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — advertising services you can't deliver, or leaving accepted requests unfulfilled, are grounds for account action. A disagreement over a specific job isn't mediated by KejaApp directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
+Your profile and conduct toward tenants are governed by the [Terms of Service](../compliance/terms-of-service.md) and [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — advertising services you can't deliver, or leaving accepted requests unfulfilled, are grounds for account action. A disagreement over a specific job isn't mediated by JakezApp directly — see the [Dispute Resolution & Complaints Policy](../compliance/dispute-resolution-policy.md).
 
 ## 7. Payments
 
-KejaApp does not process payments for moving services. Whatever price you agree with a tenant is arranged and settled directly between you — the platform's role ends at connecting you and surfacing the request/response workflow.
+JakezApp does not process payments for moving services. Whatever price you agree with a tenant is arranged and settled directly between you — the platform's role ends at connecting you and surfacing the request/response workflow.
 
 ## 8. Deleting your account
 

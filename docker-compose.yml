@@ -58,6 +58,9 @@ services:
       PORT: 5000
       DB_REQUIRED: "true"
       MONGODB_URI: mongodb://mongo:27017
+      # Deliberately "kejaapp", not renamed for the JakezApp rebrand - see
+      # config/env.js's mongoDbName comment. A persistent docker-compose
+      # Mongo volume from before the rename already has data under this name.
       MONGODB_DB_NAME: kejaapp
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in a .env file next to docker-compose.yml}
       REDIS_URL: redis://redis:6379

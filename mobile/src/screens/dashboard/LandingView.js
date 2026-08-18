@@ -6,7 +6,7 @@ import { formatStatusLabel } from "../../utils/format.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { bodyText, boldText, displayText } from "../../theme/typography.js";
 import { openLegalPage } from "../../utils/webLinks.js";
-import KejaSkyline from "../../components/KejaSkyline.js";
+import JakezSkyline from "../../components/JakezSkyline.js";
 
 const proofPoints = [
   { label: "Trusted listings", rotate: "-2deg" },
@@ -83,7 +83,7 @@ export default function LandingView() {
         </View>
         <Text style={styles.headline}>Find the right home in Nairobi and beyond.</Text>
         <Text style={styles.subtext}>
-          KejaApp helps you discover verified rentals, save favorites, and manage requests from
+          JakezApp helps you discover verified rentals, save favorites, and manage requests from
           one clean workspace.
         </Text>
 
@@ -132,7 +132,7 @@ export default function LandingView() {
             >
               <Text style={[styles.testimonialMessage, { color: band.ink }]}>{item.message}</Text>
               <Text style={[styles.testimonialCite, { color: band.accent2 }]}>
-                — {item.submitter?.name || "KejaApp user"}
+                — {item.submitter?.name || "JakezApp user"}
                 {item.submitter?.role ? `, ${formatStatusLabel(item.submitter.role)}` : ""}
               </Text>
             </View>
@@ -146,7 +146,7 @@ export default function LandingView() {
       </View>
 
       <View style={styles.skylineWrap} pointerEvents="none">
-        <KejaSkyline stroke={colors.stroke} size={skylineSize} />
+        <JakezSkyline stroke={colors.stroke} size={skylineSize} />
       </View>
 
       <View style={styles.footer}>

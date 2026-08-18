@@ -66,7 +66,7 @@ describe("responsive stylesheet", () => {
     assert.match(styles, /@media print\s*{[\s\S]*?\.legal-page \.panel\s*{[^}]*background:\s*transparent;/s);
     assert.match(
       styles,
-      /@media print\s*{[\s\S]*?\.legal-page::before\s*{[^}]*background:\s*url\("assets\/keja-logo\.png"\)[^}]*opacity:\s*0\.5;/s,
+      /@media print\s*{[\s\S]*?\.legal-page::before\s*{[^}]*background:\s*url\("assets\/jakez-logo\.png"\)[^}]*opacity:\s*0\.5;/s,
     );
   });
 });

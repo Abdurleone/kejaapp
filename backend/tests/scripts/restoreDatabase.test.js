@@ -5,7 +5,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 // BACKUP_S3_* must be set before config/env.js is first imported (by the
 // dynamic import below, via restoreDatabase.js -> backupStorageService.js)
 // - mirrors backupStorageService.test.js's pattern.
-process.env.BACKUP_S3_BUCKET = "kejaapp-test-backups";
+process.env.BACKUP_S3_BUCKET = "jakezapp-test-backups";
 process.env.BACKUP_S3_ACCESS_KEY_ID = "test-access-key-id";
 process.env.BACKUP_S3_SECRET_ACCESS_KEY = "test-secret-access-key";
 

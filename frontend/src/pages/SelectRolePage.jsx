@@ -33,7 +33,7 @@ export default function SelectRolePage({ onRoleConfirmed }) {
       <div className="view-header">
         <div>
           <h2>One more thing</h2>
-          <p>Tell us how you&apos;ll be using KejaApp. This can&apos;t be changed yourself afterward.</p>
+          <p>Tell us how you&apos;ll be using JakezApp. This can&apos;t be changed yourself afterward.</p>
         </div>
       </div>
 

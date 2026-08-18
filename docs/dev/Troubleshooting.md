@@ -27,7 +27,7 @@ This means Expo CLI couldn't find an Android SDK/emulator — the suggested path
 If you're developing inside WSL2: install a native Android SDK + emulator directly inside the WSL2 distro (not the Windows side) at `/opt/android-sdk`, with `ANDROID_HOME`/`ANDROID_SDK_ROOT`/`PATH` set in `~/.bashrc`. Open a new terminal (or `source ~/.bashrc`), then:
 
 ```bash
-emulator -avd kejaapp_avd -no-window -no-audio -gpu swiftshader_indirect &
+emulator -avd jakezapp_avd -no-window -no-audio -gpu swiftshader_indirect &
 ```
 
 Wait for `adb devices` to show it as `device` (not `offline`), then run `npx expo start` and press `a` — Expo CLI finds it via `ANDROID_HOME` and loads the app into Expo Go automatically. Drop `-no-window` to see the emulator's screen (needs an X server/WSLg on the Windows side); headless is fine for just running/testing.
@@ -38,7 +38,7 @@ Wait for `adb devices` to show it as `device` (not `offline`), then run `npx exp
 
 ### Physical device can't reach the API
 
-`localhost` from a phone refers to the phone itself, not your dev machine. See [Mobile App: Pointing the app at your backend](Keja-App#pointing-the-app-at-your-backend) — set your computer's LAN IP via the sign-in screen's API server settings.
+`localhost` from a phone refers to the phone itself, not your dev machine. See [Mobile App: Pointing the app at your backend](Jakez-App#pointing-the-app-at-your-backend) — set your computer's LAN IP via the sign-in screen's API server settings.
 
 ## General
 

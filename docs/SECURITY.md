@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-KejaApp is developed on a single rolling `main` branch rather than versioned
+JakezApp is developed on a single rolling `main` branch rather than versioned
 releases. Only `main` is supported — please make sure you're testing against
 the latest commit before reporting an issue.
 

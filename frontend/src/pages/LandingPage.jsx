@@ -74,8 +74,8 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
           <circle cx="70" cy="352" r="7" fill="#c7cdd2" />
           <circle cx="160" cy="352" r="16" fill="#17130d" />
           <circle cx="160" cy="352" r="7" fill="#c7cdd2" />
-          <text x="115" y="316" textAnchor="middle" fontFamily="Bungee" fontSize="14" fill="#fff8e6">
-            KEJA
+          <text x="115" y="316" textAnchor="middle" fontFamily="Bungee" fontSize="12" fill="#fff8e6">
+            JAKEZ
           </text>
         </g>
       </svg>
@@ -83,7 +83,7 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
         <span className="landing-sticker">Karibu Nyumbani</span>
         <h2>Find the right home in Nairobi and beyond.</h2>
         <p>
-          KejaApp helps you discover verified rentals, save favorites, and manage
+          JakezApp helps you discover verified rentals, save favorites, and manage
           requests from one clean workspace.
         </p>
         <div className="landing-actions">
@@ -121,7 +121,7 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
             <blockquote key={item._id}>
               {item.message}
               <cite>
-                — {item.submitter?.name || "KejaApp user"}
+                — {item.submitter?.name || "JakezApp user"}
                 {item.submitter?.role ? `, ${formatStatusLabel(item.submitter.role)}` : ""}
               </cite>
             </blockquote>

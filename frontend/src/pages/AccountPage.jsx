@@ -361,7 +361,7 @@ export default function AccountPage({ onAccountDeleted, onBrowse }) {
       <div className="view-header">
         <div>
           <h2>Account</h2>
-          <p>Manage your KejaApp profile and data controls.</p>
+          <p>Manage your JakezApp profile and data controls.</p>
         </div>
       </div>
 

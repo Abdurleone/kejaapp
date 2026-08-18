@@ -181,7 +181,7 @@ describe("App - color mode", () => {
     await user.click(await screen.findByRole("radio", { name: "Dark mode" }));
 
     expect(document.documentElement.dataset.colorMode).toBe("dark");
-    expect(localStorage.getItem("keja_color_mode")).toBe("dark");
+    expect(localStorage.getItem("jakez_color_mode")).toBe("dark");
   });
 
   it("updates live when the OS preference changes while still in system mode", async () => {

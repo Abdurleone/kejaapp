@@ -3,13 +3,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: kejaapp-backend
-  namespace: kejaapp
+  name: jakezapp-backend
+  namespace: jakezapp
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: kejaapp-backend
+    name: jakezapp-backend
   minReplicas: 2
   maxReplicas: 6
   metrics:

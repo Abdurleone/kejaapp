@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kejaapp-frontend
-  namespace: kejaapp
+  name: jakezapp-frontend
+  namespace: jakezapp
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: kejaapp
+      app: jakezapp
       component: frontend
   template:
     metadata:
       labels:
-        app: kejaapp
+        app: jakezapp
         component: frontend
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/abdurleone/kejaapp-frontend:latest
+          image: ghcr.io/abdurleone/jakezapp-frontend:latest
           ports:
             - containerPort: 80
           resources:
@@ -43,11 +43,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kejaapp-frontend
-  namespace: kejaapp
+  name: jakezapp-frontend
+  namespace: jakezapp
 spec:
   selector:
-    app: kejaapp
+    app: jakezapp
     component: frontend
   ports:
     - port: 80

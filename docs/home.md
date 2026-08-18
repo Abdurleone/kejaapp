@@ -1,6 +1,6 @@
-# KejaApp Wiki
+# JakezApp Wiki
 
-KejaApp is a location-first rental platform for tenants, landlords, agencies, admins, and mover providers. It combines property discovery, trusted verification, transparent pricing, notifications, and relocation workflows in one product.
+JakezApp is a location-first rental platform for tenants, landlords, agencies, admins, and mover providers. It combines property discovery, trusted verification, transparent pricing, notifications, and relocation workflows in one product.
 
 This wiki is a navigable companion to the repository documentation. The [README](../README.md) is now the primary landing page for the project and is organized around quick start, project structure, development workflow, and documentation links. The wiki expands those areas into deeper reference material.
 
@@ -8,7 +8,7 @@ This wiki is a navigable companion to the repository documentation. The [README]
 
 - **[Getting Started](Getting-Started)** — prerequisites, install steps, local run commands, demo data, and Docker options.
 - **[Architecture](Architecture)** — project structure, backend implementation, frontend implementation.
-- **[Mobile App](Keja-App)** — Expo setup, running on device/emulator, EAS builds, troubleshooting.
+- **[Mobile App](Jakez-App)** — Expo setup, running on device/emulator, EAS builds, troubleshooting.
 - **[Features and User Stories](Features-and-User-Stories)** — what the app does, written as acceptance criteria per role.
 - **[API Reference](API-Reference)** — every backend route, grouped by resource.
 - **[Authentication](Authentication)** — JWT/refresh-token flow, email-or-username login, registration.

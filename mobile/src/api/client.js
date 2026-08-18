@@ -2,8 +2,8 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 
-const TOKEN_KEY = "keja_token";
-const BASE_URL_KEY = "keja_base_url";
+const TOKEN_KEY = "jakez_token";
+const BASE_URL_KEY = "jakez_base_url";
 
 // Loopback rules differ per target: the Android emulator can't reach the
 // host machine via "localhost" (that's the emulator itself) and needs the

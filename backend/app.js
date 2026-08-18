@@ -114,7 +114,7 @@ app.get("/", (req, res) => {
   }
 
   res.json({
-    message: "KejaApp API is running...",
+    message: "JakezApp API is running...",
     environment: env.nodeEnv,
   });
 });

@@ -5,7 +5,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 // BACKUP_S3_* must be set before config/env.js is first imported (by the
 // dynamic import below), since env.js reads process.env once at module load
 // - mirrors fileStorageServiceS3.test.js's pattern exactly.
-process.env.BACKUP_S3_BUCKET = "kejaapp-test-backups";
+process.env.BACKUP_S3_BUCKET = "jakezapp-test-backups";
 process.env.BACKUP_S3_ACCESS_KEY_ID = "test-access-key-id";
 process.env.BACKUP_S3_SECRET_ACCESS_KEY = "test-secret-access-key";
 
@@ -17,7 +17,7 @@ describe("backupStorageService", () => {
   it("uploads a gzip buffer to the configured private bucket", async () => {
     const send = mock.method(S3Client.prototype, "send", async (command) => {
       assert.equal(command.constructor.name, "PutObjectCommand");
-      assert.equal(command.input.Bucket, "kejaapp-test-backups");
+      assert.equal(command.input.Bucket, "jakezapp-test-backups");
       assert.equal(command.input.Key, "backups/2026-08-12T00-00-00-000Z.json.gz");
       assert.equal(command.input.ContentType, "application/gzip");
       return {};
@@ -29,7 +29,7 @@ describe("backupStorageService", () => {
     assert.equal(send.mock.callCount(), 1);
     assert.deepEqual(result, {
       key: "backups/2026-08-12T00-00-00-000Z.json.gz",
-      bucket: "kejaapp-test-backups",
+      bucket: "jakezapp-test-backups",
       bytes: buffer.length,
     });
 
@@ -39,7 +39,7 @@ describe("backupStorageService", () => {
   it("downloads and buffers an object's body", async () => {
     const send = mock.method(S3Client.prototype, "send", async (command) => {
       assert.equal(command.constructor.name, "GetObjectCommand");
-      assert.equal(command.input.Bucket, "kejaapp-test-backups");
+      assert.equal(command.input.Bucket, "jakezapp-test-backups");
       assert.equal(command.input.Key, "backups/target.json.gz");
 
       return { Body: { transformToByteArray: async () => new Uint8Array([1, 2, 3]) } };
@@ -56,7 +56,7 @@ describe("backupStorageService", () => {
   it("lists backups newest-first by key", async () => {
     const send = mock.method(S3Client.prototype, "send", async (command) => {
       assert.equal(command.constructor.name, "ListObjectsV2Command");
-      assert.equal(command.input.Bucket, "kejaapp-test-backups");
+      assert.equal(command.input.Bucket, "jakezapp-test-backups");
       assert.equal(command.input.Prefix, "backups/");
 
       return {
