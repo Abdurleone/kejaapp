@@ -275,3 +275,52 @@ describe("App - Google Sign-In role gating", () => {
     expect(screen.queryByRole("heading", { name: "One more thing" })).not.toBeInTheDocument();
   });
 });
+
+// Covers App.jsx's per-route document.title/description/canonical effect -
+// jsdom's default document has none of index.html's <meta>/<link> tags, so
+// the description/canonical case injects stand-ins for them first,
+// mirroring what the real static index.html provides.
+describe("App - per-route document metadata", () => {
+  beforeEach(() => {
+    fetchPublicTestimonials.mockResolvedValue([]);
+    fetchCurrentUser.mockRejectedValue(new Error("Not authorized"));
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("sets a distinct tab title per public route", async () => {
+    window.history.pushState({}, "", "/movers");
+    render(<App />);
+
+    await waitFor(() => expect(document.title).toBe("Movers | KejaApp"));
+  });
+
+  it("falls back to the default title on a route with no distinct entry", async () => {
+    window.history.pushState({}, "", "/account");
+    render(<App />);
+
+    await waitFor(() => expect(document.title).toBe("KejaApp"));
+  });
+
+  it("updates the meta description and canonical link on navigation", async () => {
+    const description = document.createElement("meta");
+    description.setAttribute("name", "description");
+    document.head.appendChild(description);
+    const canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    document.head.appendChild(canonical);
+
+    window.history.pushState({}, "", "/terms");
+    render(<App />);
+
+    await waitFor(() => expect(document.title).toBe("Terms of Service | KejaApp"));
+    expect(description.getAttribute("content")).toBe("The terms governing use of KejaApp.");
+    expect(canonical.getAttribute("href")).toBe("https://kejaapp-backend-7iu3.onrender.com/terms");
+
+    document.head.removeChild(description);
+    document.head.removeChild(canonical);
+  });
+});
