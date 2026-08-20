@@ -113,7 +113,7 @@ export const resolveViewFromPath = (path) => {
   }
 
   const match = Object.entries(viewPaths).find(([, viewPath]) => viewPath === normalizedPath);
-  return match?.[0] || "discover";
+  return match?.[0] || "notFound";
 };
 
 export const getViewPath = (view) => viewPaths[view] || viewPaths.discover;

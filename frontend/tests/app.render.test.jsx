@@ -298,11 +298,11 @@ describe("App - per-route document metadata", () => {
     await waitFor(() => expect(document.title).toBe("Movers | KejaApp"));
   });
 
-  it("falls back to the default title on a route with no distinct entry", async () => {
+  it("sets a distinct title on an authenticated route too, not just public ones", async () => {
     window.history.pushState({}, "", "/account");
     render(<App />);
 
-    await waitFor(() => expect(document.title).toBe("KejaApp"));
+    await waitFor(() => expect(document.title).toBe("Account | KejaApp"));
   });
 
   it("updates the meta description and canonical link on navigation", async () => {
@@ -322,5 +322,50 @@ describe("App - per-route document metadata", () => {
 
     document.head.removeChild(description);
     document.head.removeChild(canonical);
+  });
+});
+
+describe("App - unmatched routes and footer", () => {
+  beforeEach(() => {
+    fetchPublicTestimonials.mockResolvedValue([]);
+    fetchCurrentUser.mockRejectedValue(new Error("Not authorized"));
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("shows a real not-found page instead of silently falling back to Discover", async () => {
+    window.history.pushState({}, "", "/this-path-does-not-exist");
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    await waitFor(() => expect(document.title).toBe("Page Not Found | KejaApp"));
+    expect(screen.queryByRole("heading", { name: "Discover rentals" })).not.toBeInTheDocument();
+  });
+
+  it("returns to Discover from the not-found page", async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, "", "/this-path-does-not-exist");
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Go to Discover" }));
+
+    await waitFor(() => expect(window.location.pathname).toBe("/search"));
+  });
+
+  it("shows a current-year copyright line in the footer on both the landing and workspace shells", async () => {
+    window.history.pushState({}, "", "/");
+    const { unmount } = render(<App />);
+
+    expect(await screen.findByText(`© ${new Date().getFullYear()} KejaApp`)).toBeInTheDocument();
+    unmount();
+
+    fetchCurrentUser.mockResolvedValue({ _id: "t1", name: "Jane Tenant", role: "tenant" });
+    window.history.pushState({}, "", "/dashboard");
+    render(<App />);
+
+    expect(await screen.findByText(`© ${new Date().getFullYear()} KejaApp`)).toBeInTheDocument();
   });
 });

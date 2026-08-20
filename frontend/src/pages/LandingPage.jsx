@@ -140,6 +140,7 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
         <button className="text-button" type="button" onClick={() => onNavigateLegal("terms")}>
           Terms
         </button>
+        <span className="muted-copy footer-copyright">© {new Date().getFullYear()} KejaApp</span>
       </footer>
     </section>
   );

@@ -22,6 +22,7 @@ import DataProtectionPage from "./pages/DataProtectionPage.jsx";
 import DeleteAccountPage from "./pages/DeleteAccountPage.jsx";
 import SelectRolePage from "./pages/SelectRolePage.jsx";
 import SupportPage from "./pages/SupportPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 import {
   defaultApiBaseUrl,
   normalizeApiBaseUrl,
@@ -62,10 +63,11 @@ const defaultMeta = {
     "Find verified rentals, message landlords and agencies, and arrange moving services in Kenya - all from one KejaApp workspace.",
 };
 
-// Only the routes crawlers/sitemap.xml actually point at (public, not
-// behind sign-in) get distinct copy - every other view falls back to
-// defaultMeta rather than writing titles for pages no search engine or
-// social unfurler will ever be sent to.
+// The 6 routes crawlers/sitemap.xml actually point at (public, not behind
+// sign-in) also carry these as their real <meta name="description">/
+// canonical values (see the useEffect below) - everything else only ever
+// updates document.title, since no search engine or social unfurler is
+// sent to an authenticated page.
 const metaByView = {
   discover: {
     title: "Discover Homes | KejaApp",
@@ -81,6 +83,20 @@ const metaByView = {
     description: "KejaApp's data protection rights and how to exercise them.",
   },
   terms: { title: "Terms of Service | KejaApp", description: "The terms governing use of KejaApp." },
+  dashboard: { title: "Dashboard | KejaApp" },
+  saved: { title: "Saved Homes | KejaApp" },
+  propertyDetail: { title: "Property Details | KejaApp" },
+  propertyEdit: { title: "Edit Listing | KejaApp" },
+  propertyCreate: { title: "New Listing | KejaApp" },
+  owner: { title: "Workspace | KejaApp" },
+  admin: { title: "Admin | KejaApp" },
+  notifications: { title: "Notifications | KejaApp" },
+  feedback: { title: "Feedback | KejaApp" },
+  account: { title: "Account | KejaApp" },
+  selectRole: { title: "Choose Your Role | KejaApp" },
+  deleteAccount: { title: "Delete Account | KejaApp" },
+  support: { title: "Support KejaApp" },
+  notFound: { title: "Page Not Found | KejaApp" },
 };
 
 function App() {
@@ -211,7 +227,9 @@ function App() {
   useEffect(() => {
     const meta = metaByView[effectiveView] || defaultMeta;
     document.title = meta.title;
-    document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", meta.description || defaultMeta.description);
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.href = `https://kejaapp-backend-7iu3.onrender.com${path}`;
   }, [effectiveView, path]);
@@ -464,6 +482,8 @@ function App() {
         }
 
         return <SupportPage />;
+      case "notFound":
+        return <NotFoundPage onBrowse={() => navigate(getViewPath("discover"))} />;
       default:
         return <DiscoverPage />;
     }
@@ -581,6 +601,7 @@ function App() {
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
                   Delete account
                 </button>
+                <span className="muted-copy footer-copyright">© {new Date().getFullYear()} KejaApp</span>
               </footer>
             </div>
           )}
