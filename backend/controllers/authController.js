@@ -151,9 +151,15 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.body;
   const normalizedIdentifier = identifier.trim().toLowerCase();
+  // +googleId too, not just +password: both fields are `select: false`, and
+  // password's own `required` condition reads `this.googleId` - leaving it
+  // unselected makes Mongoose see it as falsy regardless of the account's
+  // real state, so a Google-only account (no password, real googleId) fails
+  // the failed-attempt save() below with a spurious "password is required"
+  // instead of the account's actual, harmless lack of one.
   const user = await User.findOne({
     $or: [{ email: normalizedIdentifier }, { username: normalizedIdentifier }],
-  }).select("+password");
+  }).select("+password +googleId");
 
   // Checked before the password comparison, not after - a locked account
   // shouldn't get another free bcrypt-cost guess against it while locked.
