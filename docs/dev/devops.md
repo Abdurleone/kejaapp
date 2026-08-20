@@ -11,7 +11,7 @@ Once unblocked, it runs the following jobs:
 - **mobile** job: `npm run lint` then `npm test`. Runs independently in parallel with the two above — it isn't in `docker`'s `needs:` list, so a mobile-only failure doesn't block the backend/frontend images from building or publishing.
 - **docker** job: builds the backend and frontend images (`docker build`, no push) to catch Dockerfile regressions, gated on the **backend** and **frontend** jobs passing (not **mobile** — see above).
 - **k8s-smoke-test** job: gated on **docker** passing. Spins up a real `kind` cluster, installs `ingress-nginx`, builds and loads the backend/frontend images straight into the cluster (no registry round-trip), applies the `k8s/` manifests (with a throwaway in-cluster MongoDB standing in for Atlas), and verifies the whole stack through the ingress end-to-end: health check, register, create a property, confirm it's publicly discoverable. This is the CI job that actually proves the `k8s/` manifests work together, not just that they build.
-- **publish** job: on pushes to `main` only (not PRs), gated on **docker** and **k8s-smoke-test** passing. Rebuilds both images and pushes them to GHCR (`ghcr.io/<owner>/jakezapp-backend`, `jakezapp-frontend`), tagged `latest` and the commit SHA. This is what the Kubernetes manifests in `k8s/` deploy — see "Deployment (Kubernetes)" below. Render doesn't use these; it builds directly from the Dockerfiles itself.
+- **publish** job: on pushes to `main` only (not PRs), gated on **docker** and **k8s-smoke-test** passing. Rebuilds both images and pushes them to GHCR (`ghcr.io/<owner>/kejaapp-backend`, `kejaapp-frontend`), tagged `latest` and the commit SHA. This is what the Kubernetes manifests in `k8s/` deploy — see "Deployment (Kubernetes)" below. Render doesn't use these; it builds directly from the Dockerfiles itself.
 
 ## Containers
 
@@ -72,7 +72,7 @@ No bucket lifecycle/retention rule is configured either - old backups accumulate
 
 ## Deployment (Render) — production
 
-This is the actual live deployed instance: `kejaapp-backend-7iu3.onrender.com` — the one URL for both the web app and its API (still named `kejaapp-backend` post-JakezApp-rebrand - Render doesn't change a service's `.onrender.com` URL on a rename, and this is an internal infrastructure detail invisible to users of the actual branded app; see `docs/project/CHANGELOG.md`'s rebrand entry). `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
+This is the actual live deployed instance: `kejaapp-backend-7iu3.onrender.com` — the one URL for both the web app and its API. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) that defines the whole stack:
 
 - **kejaapp-backend** — a single web service built from `backend/Dockerfile.render` (**not** the plain `backend/Dockerfile` — see below), with `dockerContext: .` (the repo root, not `backend/`, since this build needs to reach into `frontend/` too). Render injects `PORT` itself; `backend/config/env.js` already reads `process.env.PORT`, so no code change was needed.
 - **kejaapp-redis** — Render's managed Key Value (Redis-compatible) service, wired into the backend via `REDIS_URL`.
@@ -138,7 +138,7 @@ Mobile carries the same convention independently: `mobile/App.js` calls `Sentry.
 
 Files:
 
-- `namespace.yaml` — the `jakezapp` namespace everything else lives in.
+- `namespace.yaml` — the `kejaapp` namespace everything else lives in.
 - `backend-configmap.yaml` — non-secret backend env vars (CORS origin, S3 bucket/endpoint, in-cluster Redis/ClamAV addresses, etc.).
 - `backend-secret.example.yaml` — template for the one Secret the backend needs (`MONGODB_URI`, `JWT_SECRET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`). Copy to `backend-secret.yaml` (gitignored) and fill in real values before applying — never commit the filled-in version.
 - `backend-deployment.yaml` — Deployment (2 replicas) + Service, wired to the ConfigMap/Secret via `envFrom`, with `livenessProbe`/`readinessProbe` on the existing `/api/health/live` and `/api/health/ready` endpoints.
@@ -146,20 +146,20 @@ Files:
 - `frontend-deployment.yaml` — Deployment (2 replicas) + Service for the Nginx-served static build.
 - `redis-statefulset.yaml` — in-cluster Redis (StatefulSet + 1Gi PVC on the cluster's default StorageClass) for rate limiting/caching. Not used for data that needs to survive losing the whole cluster.
 - `clamav-statefulset.yaml` — in-cluster ClamAV (StatefulSet + 2Gi PVC, so the ~100MB signature database isn't re-downloaded on every pod restart) for malware scanning on property-image uploads (`backend/services/malwareScanService.js`). A cold signature-load takes roughly 10s in local testing, hence the readiness probe's `initialDelaySeconds: 30`; scanning fails closed (rejects the upload) if the backend can't reach it, rather than silently skipping the check, so a slow/crashed ClamAV pod shows up as upload failures, not a silent gap.
-- `backend-cronjob.yaml` — CronJob running `node scripts/runScheduledJobs.js` (the time-based notification sweeps: stale inquiry/viewing nudges, viewing reminders, etc. — see `backend/jobs/`) every 15 minutes, reusing the same backend image/ConfigMap/Secret. `concurrencyPolicy: Forbid` guarantees exactly one run at a time regardless of how many `jakezapp-backend` Deployment replicas are up, so a naive in-process `setInterval` (which would fire once per replica and double-send notifications) was deliberately avoided. Each job is also idempotent on its own (it marks the records it's already acted on), so an overlapping or re-run is harmless even without the concurrency guard. Each sweep's threshold (48h nudge, 24h reminder, 14-day freshness/lookback windows) is an env var (`STALE_NUDGE_THRESHOLD_HOURS`, `VIEWING_REMINDER_WINDOW_HOURS`, `STALE_LISTING_FRESHNESS_DAYS`, `REVIEW_PROMPT_LOOKBACK_DAYS` — see `backend/.env.example`) — add them to the ConfigMap to retune cadence without a code change.
+- `backend-cronjob.yaml` — CronJob running `node scripts/runScheduledJobs.js` (the time-based notification sweeps: stale inquiry/viewing nudges, viewing reminders, etc. — see `backend/jobs/`) every 15 minutes, reusing the same backend image/ConfigMap/Secret. `concurrencyPolicy: Forbid` guarantees exactly one run at a time regardless of how many `kejaapp-backend` Deployment replicas are up, so a naive in-process `setInterval` (which would fire once per replica and double-send notifications) was deliberately avoided. Each job is also idempotent on its own (it marks the records it's already acted on), so an overlapping or re-run is harmless even without the concurrency guard. Each sweep's threshold (48h nudge, 24h reminder, 14-day freshness/lookback windows) is an env var (`STALE_NUDGE_THRESHOLD_HOURS`, `VIEWING_REMINDER_WINDOW_HOURS`, `STALE_LISTING_FRESHNESS_DAYS`, `REVIEW_PROMPT_LOOKBACK_DAYS` — see `backend/.env.example`) — add them to the ConfigMap to retune cadence without a code change.
 - `ingress.yaml` — routes two hosts to the two Services. Assumes `ingress-nginx` is installed; no TLS/cert-manager wired up (same "left for later" posture as the Docker Compose stack).
 
 MongoDB stays external on Atlas, same as the Render setup — there's no in-cluster MongoDB manifest.
 
 ### Why two Ingress hosts, not one with path-based routing
 
-`frontend/src/App.jsx` reads `VITE_API_BASE_URL` at **build time** (baked into the static JS bundle by Vite), not at container start. A single shared host with `/api` path routing would need the frontend to call a relative URL instead, which isn't how the code is written today. Rather than change frontend code for this, `ingress.yaml` keeps the same two-domain shape already used for Render (`jakezapp.example.com` for the frontend, `api.jakezapp.example.com` for the backend) — no app code changes, just infra.
+`frontend/src/App.jsx` reads `VITE_API_BASE_URL` at **build time** (baked into the static JS bundle by Vite), not at container start. A single shared host with `/api` path routing would need the frontend to call a relative URL instead, which isn't how the code is written today. Rather than change frontend code for this, `ingress.yaml` keeps the same two-domain shape already used for Render (`kejaapp.example.com` for the frontend, `api.kejaapp.example.com` for the backend) — no app code changes, just infra.
 
-The practical consequence: the `publish` CI job's frontend image is baked for `https://api.jakezapp.example.com` specifically. If you use that exact placeholder domain (pointed at your Ingress), the published image works as-is. For your own domain, rebuild and push the frontend image yourself:
+The practical consequence: the `publish` CI job's frontend image is baked for `https://api.kejaapp.example.com` specifically. If you use that exact placeholder domain (pointed at your Ingress), the published image works as-is. For your own domain, rebuild and push the frontend image yourself:
 
 ```bash
-docker build --build-arg VITE_API_BASE_URL=https://api.<your-domain> -t ghcr.io/<owner>/jakezapp-frontend:latest ./frontend
-docker push ghcr.io/<owner>/jakezapp-frontend:latest
+docker build --build-arg VITE_API_BASE_URL=https://api.<your-domain> -t ghcr.io/<owner>/kejaapp-frontend:latest ./frontend
+docker push ghcr.io/<owner>/kejaapp-frontend:latest
 ```
 
 then update `CORS_ORIGIN` in `backend-configmap.yaml` to match your frontend domain.
@@ -218,7 +218,7 @@ Not shown: the `backend-cronjob.yaml` CronJob, which talks to the same Mongo/not
 1. Point DNS for both hosts in `ingress.yaml` at your ingress controller's load balancer IP/hostname (or edit the hosts to your own domain — see above).
 2. Install `ingress-nginx` and (optionally) `metrics-server` in the cluster if they aren't already there.
 3. Create an object storage bucket (see the Render section's "Object storage" above — same `STORAGE_DRIVER=s3` setup applies) and a MongoDB Atlas connection string.
-4. Make the images pullable: after the CI `publish` job's first run, set the GHCR packages (`jakezapp-backend`, `jakezapp-frontend`) to public in GitHub's package settings, or add an `imagePullSecrets` entry to the Deployments for private pulls.
+4. Make the images pullable: after the CI `publish` job's first run, set the GHCR packages (`kejaapp-backend`, `kejaapp-frontend`) to public in GitHub's package settings, or add an `imagePullSecrets` entry to the Deployments for private pulls.
 5. `cp k8s/backend-secret.example.yaml k8s/backend-secret.yaml`, fill in real values, then apply everything:
 
    ```bash

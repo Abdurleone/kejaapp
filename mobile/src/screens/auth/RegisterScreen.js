@@ -97,7 +97,7 @@ export default function RegisterScreen({ navigation }) {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Join JakezApp to save homes and message owners.</Text>
+        <Text style={styles.subtitle}>Join KejaApp to save homes and message owners.</Text>
 
         <View style={styles.field}>
           <Text style={styles.label}>Name</Text>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import jakezLogo from "../assets/jakez-logo.png";
+import kejaLogo from "../assets/keja-logo.png";
 import AuthModal from "./components/AuthModal.jsx";
 import UserMenu from "./components/UserMenu.jsx";
 import NotificationBadge from "./components/NotificationBadge.jsx";
@@ -42,7 +42,7 @@ import {
   canSearchListings,
 } from "../app-utils.js";
 
-const apiBaseUrl = normalizeApiBaseUrl(localStorage.getItem("jakez_base_url") || defaultApiBaseUrl);
+const apiBaseUrl = normalizeApiBaseUrl(localStorage.getItem("keja_base_url") || defaultApiBaseUrl);
 
 const navItems = [
   { view: "dashboard", label: "Dashboard", path: getViewPath("dashboard") },
@@ -57,7 +57,7 @@ const navItems = [
 ];
 
 function App() {
-  const [colorMode, setColorMode] = useState(() => localStorage.getItem("jakez_color_mode") || "system");
+  const [colorMode, setColorMode] = useState(() => localStorage.getItem("keja_color_mode") || "system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(
     () => window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
@@ -83,7 +83,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.dataset.colorMode = resolvedColorMode;
-    localStorage.setItem("jakez_color_mode", colorMode);
+    localStorage.setItem("keja_color_mode", colorMode);
   }, [colorMode, resolvedColorMode]);
 
   const navigate = (nextPath) => {
@@ -442,11 +442,11 @@ function App() {
         <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
           <div className="brand-block">
             <button type="button" className="brand-mark-button" onClick={() => navigate("/")} aria-label="Go to homepage">
-              <img className="brand-mark" src={jakezLogo} alt="" />
+              <img className="brand-mark" src={kejaLogo} alt="" />
             </button>
             <div>
               <h1>
-                Jakez<span className="brand-word-accent">App</span>
+                Keja<span className="brand-word-accent">App</span>
               </h1>
               {!showSplash && <p>Real rental pages powered by React.</p>}
             </div>
@@ -538,7 +538,7 @@ function App() {
                   Terms
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("support"))}>
-                  Support JakezApp
+                  Support KejaApp
                 </button>
                 <button className="text-button" type="button" onClick={() => navigate(getViewPath("deleteAccount"))}>
                   Delete account

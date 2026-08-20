@@ -68,7 +68,7 @@ describe("mpesaService", () => {
     const result = await initiateStkPush({
       phoneNumber: "254712345678",
       amount: 100,
-      transactionDesc: "JakezApp Support",
+      transactionDesc: "KejaApp Support",
     });
 
     assert.equal(result.CheckoutRequestID, "checkout-1");
@@ -99,7 +99,7 @@ describe("mpesaService", () => {
     });
 
     await assert.rejects(
-      () => initiateStkPush({ phoneNumber: "254712345678", amount: 100, transactionDesc: "JakezApp Support" }),
+      () => initiateStkPush({ phoneNumber: "254712345678", amount: 100, transactionDesc: "KejaApp Support" }),
       { message: "Invalid PartyA" }
     );
     mock.restoreAll();

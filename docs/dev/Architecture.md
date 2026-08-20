@@ -68,12 +68,12 @@ docs/
 ├── dev/                 # engineering/ops reference - API-Reference.md, Architecture.md,
 │                        # Authentication.md, Deployment.md, Getting-Started.md, Testing.md,
 │                        # Troubleshooting.md, devops.md, scaling-load-balancing.md,
-│                        # jakezapp-insomnia.json (all but the last two mirrored to the wiki)
+│                        # kejaapp-insomnia.json (all but the last two mirrored to the wiki)
 ├── project/             # project status/meta - Roadmap.md, live.md, qa-qc-report.md,
 │                        # demo-credentials.md, Features-and-User-Stories.md
 │                        # (Roadmap.md and Features-and-User-Stories.md mirrored to the wiki)
 ├── user-manual/         # general + one manual per role - mirrored to the wiki
-└── home.md, _Sidebar.md, _Footer.md, Jakez-App.md   # wiki-navigation source pages,
+└── home.md, _Sidebar.md, _Footer.md, Keja-App.md   # wiki-navigation source pages,
                          # stay flat since they're GitHub-wiki chrome, not content
 
 k8s/           Kubernetes manifests (see Deployment)
@@ -116,7 +116,7 @@ See **[Governance and Policies](Governance-and-Policies)** for what each `docs/`
 - Demo seed script: `backend/seeders/seedDemoData.js`.
 - Username backfill script (for accounts predating the username feature): `backend/seeders/backfillUsernames.js`.
 - Scheduled-jobs runner: `backend/scripts/runScheduledJobs.js` (`npm run jobs`).
-- Insomnia collection: `docs/jakezapp-insomnia.json`.
+- Insomnia collection: `docs/kejaapp-insomnia.json`.
 - Opt-in real-MongoDB integration tests via `TEST_MONGODB_URI` — see [Testing](Testing).
 
 ## Web frontend
@@ -140,4 +140,4 @@ The web frontend (`frontend/`) is a React 19 + Vite single-page app with **manua
 
 ## Mobile app
 
-See **[Mobile App](Jakez-App)** for the full picture — Expo setup, running on a device/emulator, pointing it at your backend, and known gaps versus the web frontend.
+See **[Mobile App](Keja-App)** for the full picture — Expo setup, running on a device/emulator, pointing it at your backend, and known gaps versus the web frontend.

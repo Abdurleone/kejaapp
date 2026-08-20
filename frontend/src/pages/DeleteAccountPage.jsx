@@ -4,7 +4,7 @@ export default function DeleteAccountPage() {
       <div className="view-header">
         <div>
           <h2>Delete account</h2>
-          <p>Request removal of your JakezApp account and associated data.</p>
+          <p>Request removal of your KejaApp account and associated data.</p>
         </div>
       </div>
 
@@ -18,9 +18,9 @@ export default function DeleteAccountPage() {
       <section className="panel stack">
         <h3>Web request</h3>
         <p className="muted-copy">
-          If you cannot access the app, send a deletion request from the email address linked to your JakezApp account. Include your account email, phone number if present, and whether you registered as a tenant, landlord, or agency.
+          If you cannot access the app, send a deletion request from the email address linked to your KejaApp account. Include your account email, phone number if present, and whether you registered as a tenant, landlord, or agency.
         </p>
-        <a className="primary-button legal-action" href="mailto:privacy@jakezapp.com?subject=JakezApp%20account%20deletion%20request">
+        <a className="primary-button legal-action" href="mailto:privacy@kejaapp.com?subject=KejaApp%20account%20deletion%20request">
           Email deletion request
         </a>
       </section>

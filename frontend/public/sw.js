@@ -5,7 +5,7 @@
 
 self.addEventListener("push", (event) => {
   const payload = event.data ? event.data.json() : {};
-  const title = payload.title || "JakezApp";
+  const title = payload.title || "KejaApp";
   const options = {
     body: payload.body || "",
     data: payload.data || {},

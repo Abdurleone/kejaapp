@@ -7,7 +7,7 @@ describe("Feedback model", () => {
   it("defaults new feedback to pending and not public", () => {
     const feedback = new Feedback({
       submitter: new mongoose.Types.ObjectId(),
-      message: "JakezApp helped me find my dream home in Kilimani.",
+      message: "KejaApp helped me find my dream home in Kilimani.",
     });
 
     assert.equal(feedback.status, "pending");

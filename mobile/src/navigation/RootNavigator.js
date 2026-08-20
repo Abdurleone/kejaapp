@@ -14,7 +14,7 @@ export default function RootNavigator() {
   const { loading, user } = useAuth();
 
   if (loading) {
-    return <LoadingView label="Loading JakezApp..." />;
+    return <LoadingView label="Loading KejaApp..." />;
   }
 
   // A fresh Google Sign-In account has no role yet - force this screen

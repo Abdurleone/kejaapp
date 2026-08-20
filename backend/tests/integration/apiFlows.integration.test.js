@@ -37,7 +37,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
 
   before(async () => {
     await mongoose.connect(testMongoUri, {
-      dbName: process.env.TEST_MONGODB_DB_NAME || "jakezapp_test",
+      dbName: process.env.TEST_MONGODB_DB_NAME || "kejaapp_test",
     });
 
     // Admins can't self-register through the public API (roleGroups.publicRegistration
@@ -367,7 +367,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       .post("/api/feedback")
       .set("Authorization", `Bearer ${tenantToken}`)
       .send({
-        message: "JakezApp helped me find my dream home in Kilimani.",
+        message: "KejaApp helped me find my dream home in Kilimani.",
         allowPublicSharing: true,
       });
 

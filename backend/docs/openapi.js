@@ -1,9 +1,9 @@
 const openApiSpec = {
   openapi: "3.1.0",
   info: {
-    title: "JakezApp API",
+    title: "KejaApp API",
     version: "1.0.0",
-    description: "Backend API for JakezApp property discovery, owner workflows, and moderation.",
+    description: "Backend API for KejaApp property discovery, owner workflows, and moderation.",
   },
   servers: [
     {

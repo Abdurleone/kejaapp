@@ -1,6 +1,6 @@
 # Payments
 
-JakezApp has exactly one payment integration: **Support JakezApp**, a voluntary M-Pesa service charge a signed-in user can optionally pay directly to the app's developer. It is unrelated to rent, deposits, agency fees, or mover charges — see the README's [Payment Boundary](../../README.md#payment-boundary), which this feature does not cross. JakezApp never holds, routes, or takes a cut of money between users; this is a separate, one-directional payment from a user to the app operator.
+KejaApp has exactly one payment integration: **Support KejaApp**, a voluntary M-Pesa service charge a signed-in user can optionally pay directly to the app's developer. It is unrelated to rent, deposits, agency fees, or mover charges — see the README's [Payment Boundary](../../README.md#payment-boundary), which this feature does not cross. KejaApp never holds, routes, or takes a cut of money between users; this is a separate, one-directional payment from a user to the app operator.
 
 ## Why STK push, not custody
 
@@ -18,7 +18,7 @@ Safaricom's M-Pesa STK push ("Lipa Na M-Pesa Online") always credits whoever own
 2. The backend calls Daraja's OAuth endpoint for an access token (cached ~1hr, `services/mpesaService.js`), then initiates the STK push. This only confirms Safaricom *accepted the request* — not that the user actually paid.
 3. A `SupportPayment` record is created with `status: "pending"` and Safaricom's own `CheckoutRequestID`.
 4. The user's phone shows the M-Pesa PIN prompt. The frontend (`SupportPage.jsx`) polls `GET /api/support-payments/:id` every 3s (up to 90s) for the final status.
-5. Safaricom calls back to `MPESA_CALLBACK_URL` (`POST /api/support-payments/callback`, public — no auth, since Safaricom's servers carry none of jakezapp's own cookies) with the real result, looked up by `CheckoutRequestID` and used to update the record to `completed`/`failed`/`cancelled` (`ResultCode` 1032 specifically means the user dismissed the prompt, distinguished from a genuine failure).
+5. Safaricom calls back to `MPESA_CALLBACK_URL` (`POST /api/support-payments/callback`, public — no auth, since Safaricom's servers carry none of kejaapp's own cookies) with the real result, looked up by `CheckoutRequestID` and used to update the record to `completed`/`failed`/`cancelled` (`ResultCode` 1032 specifically means the user dismissed the prompt, distinguished from a genuine failure).
 
 Same "empty = disabled" convention as `REDIS_URL`/`CLAMAV_HOST`/`VAPID_*`/`GOOGLE_CLIENT_ID`: with any of `MPESA_CONSUMER_KEY`/`MPESA_CONSUMER_SECRET`/`MPESA_SHORTCODE`/`MPESA_PASSKEY`/`MPESA_CALLBACK_URL` unset, `POST /api/support-payments` 503s instead of calling Daraja with empty credentials.
 

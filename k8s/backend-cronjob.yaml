@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: jakezapp-backend-jobs
-  namespace: jakezapp
+  name: kejaapp-backend-jobs
+  namespace: kejaapp
 spec:
   schedule: "*/15 * * * *"
   concurrencyPolicy: Forbid
@@ -13,7 +13,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: backend-jobs
-              image: ghcr.io/abdurleone/jakezapp-backend:latest
+              image: ghcr.io/abdurleone/kejaapp-backend:latest
               command: ["node", "scripts/runScheduledJobs.js"]
               envFrom:
                 - configMapRef:

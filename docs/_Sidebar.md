@@ -2,7 +2,7 @@
 
 **Setup**
 - [Getting Started](Getting-Started)
-- [Mobile App](Jakez-App)
+- [Mobile App](Keja-App)
 - [Troubleshooting](Troubleshooting)
 
 **Reference**

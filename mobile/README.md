@@ -1,4 +1,4 @@
-# JakezApp Mobile
+# KejaApp Mobile
 
 A React Native (Expo) app for iOS and Android, sharing the same backend API as the web frontend in `../frontend`.
 
@@ -85,7 +85,7 @@ eas build --platform android --profile production
 eas build --platform ios --profile production
 ```
 
-`eas build` runs in Expo's cloud, so it works without a local Mac even for the iOS build. `eas.json` already exists (`development`/`preview`/`production` profiles — the first two produce an installable `.apk` directly, `production` builds an `.aab` for store submission with auto-incrementing version codes via `appVersionSource: "remote"`), so `eas init` is the only one-time step needed before your first build — it's what actually registers the project and writes `extra.eas.projectId`. Bundle identifiers are already set in `app.json` as `com.jakezapp.mobile` (feel free to change before your first submission). **Free tier**: EAS Build gives 30 builds/month (up to 15 iOS) at no cost — plenty for occasional releases; for day-to-day dev/testing, Expo Go needs no build at all. See [Expo's EAS Build docs](https://docs.expo.dev/build/introduction/) for store submission steps.
+`eas build` runs in Expo's cloud, so it works without a local Mac even for the iOS build. `eas.json` already exists (`development`/`preview`/`production` profiles — the first two produce an installable `.apk` directly, `production` builds an `.aab` for store submission with auto-incrementing version codes via `appVersionSource: "remote"`), so `eas init` is the only one-time step needed before your first build — it's what actually registers the project and writes `extra.eas.projectId`. Bundle identifiers are already set in `app.json` as `com.kejaapp.mobile` (feel free to change before your first submission). **Free tier**: EAS Build gives 30 builds/month (up to 15 iOS) at no cost — plenty for occasional releases; for day-to-day dev/testing, Expo Go needs no build at all. See [Expo's EAS Build docs](https://docs.expo.dev/build/introduction/) for store submission steps.
 
 ## Project structure
 
@@ -93,7 +93,7 @@ eas build --platform ios --profile production
 mobile/
 ├── App.js                   # Providers + navigation root
 ├── app.json                 # Expo config (name, icons, bundle ids)
-├── assets/                  # App icons/splash, generated from frontend/assets/jakez-logo.png
+├── assets/                  # App icons/splash, generated from frontend/assets/keja-logo.png
 └── src/
     ├── api/                 # apiFetch client + domain functions (auth, properties, favorites, inquiries, viewings, movers, admin)
     ├── components/          # Shared UI (PropertyCard, LoadingView, MessageView, Skeleton + skeleton lists, ColorModeToggle)
@@ -125,7 +125,7 @@ This means Expo CLI couldn't find an Android SDK/emulator on your machine — th
 A native Android SDK + emulator is now installed directly inside this WSL2 distro (not the Windows side), at `/opt/android-sdk`, with `ANDROID_HOME`/`ANDROID_SDK_ROOT`/`PATH` set in `~/.bashrc`. Open a new terminal (or `source ~/.bashrc`) so the exports take effect, then:
 
 ```bash
-emulator -avd jakezapp_avd -no-window -no-audio -gpu swiftshader_indirect &
+emulator -avd kejaapp_avd -no-window -no-audio -gpu swiftshader_indirect &
 ```
 
 Wait for `adb devices` to show it as `device` (not `offline`), then run `npx expo start` and press `a` — Expo CLI will find it via `ANDROID_HOME` and load the app into Expo Go automatically. Drop `-no-window` if you want to see the emulator's screen (needs an X server/WSLg on the Windows side); headless is fine for just running/testing the app.

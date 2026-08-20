@@ -1,8 +1,8 @@
 # Deployment
 
-JakezApp has three deployment-related setups: local Docker Compose, a Render Blueprint (the actual live production deployment), and Kubernetes manifests (a reference/alternative path, not currently deployed anywhere). MongoDB is **external** (Atlas or your own instance) in all three — nothing here provisions a database.
+KejaApp has three deployment-related setups: local Docker Compose, a Render Blueprint (the actual live production deployment), and Kubernetes manifests (a reference/alternative path, not currently deployed anywhere). MongoDB is **external** (Atlas or your own instance) in all three — nothing here provisions a database.
 
-For the full detail behind every section here, see [docs/devops.md](https://github.com/Abdurleone/jakezapp/blob/main/docs/dev/devops.md) in the repo.
+For the full detail behind every section here, see [docs/devops.md](https://github.com/Abdurleone/kejaapp/blob/main/docs/dev/devops.md) in the repo.
 
 ## CI
 
@@ -13,7 +13,7 @@ For the full detail behind every section here, see [docs/devops.md](https://gith
 - **mobile** — lint + test, runs independently in parallel — doesn't gate the docker/publish pipeline below.
 - **docker** — builds both images (no push) to catch Dockerfile regressions, gated on **backend**/**frontend** passing (not **mobile**).
 - **k8s-smoke-test** — gated on **docker**. Spins up a real `kind` cluster, installs `ingress-nginx`, applies the `k8s/` manifests, and verifies the whole stack through the ingress end-to-end (register, create a property, confirm public discovery) — the job that actually proves the manifests work together, not just that they build.
-- **publish** — on `main` only, gated on **docker** and **k8s-smoke-test**. Rebuilds and pushes both images to GHCR (`ghcr.io/<owner>/jakezapp-backend`, `jakezapp-frontend`), tagged `latest` and the commit SHA. This is what the Kubernetes manifests deploy — Render builds its own images directly from the Dockerfiles.
+- **publish** — on `main` only, gated on **docker** and **k8s-smoke-test**. Rebuilds and pushes both images to GHCR (`ghcr.io/<owner>/kejaapp-backend`, `kejaapp-frontend`), tagged `latest` and the commit SHA. This is what the Kubernetes manifests deploy — Render builds its own images directly from the Dockerfiles.
 
 ## Containers
 
@@ -37,7 +37,7 @@ Frontend at `http://localhost:8080`, backend at `http://localhost:5000`. Single 
 
 ## Deployment: Render — production
 
-This is the actual live deployed instance: a single URL, `kejaapp-backend-7iu3.onrender.com`, serving both the web app and its API (still named `kejaapp-backend` post-JakezApp-rebrand - Render doesn't change a service's `.onrender.com` URL on a rename, and this name/URL is an internal infrastructure detail, invisible to users of the actual branded app; see `docs/project/CHANGELOG.md`'s rebrand entry). `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
+This is the actual live deployed instance: a single URL, `kejaapp-backend-7iu3.onrender.com`, serving both the web app and its API. `render.yaml` (repo root) is a [Render Blueprint](https://render.com/docs/blueprint-spec) defining:
 
 - **kejaapp-backend** — one web service, built from `backend/Dockerfile.render` (**not** the plain `backend/Dockerfile`), with `dockerContext: .` (repo root, not `backend/`).
 - **kejaapp-redis** — Render's managed Redis-compatible Key Value service.
@@ -71,7 +71,7 @@ AWS S3, Backblaze B2, and MinIO work the same way (MinIO/path-style-only provide
 
 | File | Purpose |
 |---|---|
-| `namespace.yaml` | the `jakezapp` namespace |
+| `namespace.yaml` | the `kejaapp` namespace |
 | `backend-configmap.yaml` | non-secret backend env vars |
 | `backend-secret.example.yaml` | template — copy to `backend-secret.yaml` (gitignored), fill in real values, never commit it |
 | `backend-deployment.yaml` | Deployment (2 replicas) + Service, liveness/readiness probes on `/api/health/live`/`/api/health/ready` |
@@ -82,11 +82,11 @@ AWS S3, Backblaze B2, and MinIO work the same way (MinIO/path-style-only provide
 | `backend-cronjob.yaml` | CronJob running the scheduled notification sweeps (`node scripts/runScheduledJobs.js`) every 15 minutes, reusing the same image/ConfigMap/Secret |
 | `ingress.yaml` | routes two hosts to the two Services — needs `ingress-nginx` |
 
-**Why two Ingress hosts instead of path-based routing:** the frontend reads `VITE_API_BASE_URL` at **build time** (baked into the static JS bundle by Vite), not at container start. Rather than rewrite the frontend to use a relative URL, `ingress.yaml` keeps two domains (`jakezapp.example.com` / `api.jakezapp.example.com`) — this is now a deliberate difference from Render (which consolidated onto one origin, see above), not a mirror of it; Kubernetes stays a genuinely two-origin deployment on purpose. The CI `publish` job's frontend image is baked for that exact placeholder API domain — using it as-is works out of the box; for your own domain, rebuild:
+**Why two Ingress hosts instead of path-based routing:** the frontend reads `VITE_API_BASE_URL` at **build time** (baked into the static JS bundle by Vite), not at container start. Rather than rewrite the frontend to use a relative URL, `ingress.yaml` keeps two domains (`kejaapp.example.com` / `api.kejaapp.example.com`) — this is now a deliberate difference from Render (which consolidated onto one origin, see above), not a mirror of it; Kubernetes stays a genuinely two-origin deployment on purpose. The CI `publish` job's frontend image is baked for that exact placeholder API domain — using it as-is works out of the box; for your own domain, rebuild:
 
 ```bash
-docker build --build-arg VITE_API_BASE_URL=https://api.<your-domain> -t ghcr.io/<owner>/jakezapp-frontend:latest ./frontend
-docker push ghcr.io/<owner>/jakezapp-frontend:latest
+docker build --build-arg VITE_API_BASE_URL=https://api.<your-domain> -t ghcr.io/<owner>/kejaapp-frontend:latest ./frontend
+docker push ghcr.io/<owner>/kejaapp-frontend:latest
 ```
 
 then update `CORS_ORIGIN` in `backend-configmap.yaml` to match.
