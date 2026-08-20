@@ -85,7 +85,7 @@ describe("frontend app utilities", () => {
     assert.equal(resolveViewFromPath("/admin"), "admin");
     assert.equal(resolveViewFromPath("/owner/"), "owner");
     assert.equal(resolveViewFromPath("/dashboard"), "dashboard");
-    assert.equal(resolveViewFromPath("/unknown"), "discover");
+    assert.equal(resolveViewFromPath("/unknown"), "notFound");
     assert.equal(getViewPath("discover"), "/search");
     assert.equal(getViewPath("saved"), "/saved");
     assert.equal(getViewPath("dashboard"), "/dashboard");
