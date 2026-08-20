@@ -1,0 +1,21 @@
+# KejaApp
+
+> KejaApp helps tenants, landlords, agencies, and movers find and manage
+> rental housing in Kenya - discover verified rentals, message about
+> viewings, manage listings, and arrange moving services from one
+> workspace.
+
+KejaApp is a rental-housing marketplace, not a general real-estate
+listings aggregator: every account has one role (tenant, landlord,
+agency, or mover), and most of the app is workspace-style tooling for
+signed-in users rather than public content. The pages below are the
+only ones meant for general browsing or citation.
+
+## Public pages
+
+- [Home](https://kejaapp-backend-7iu3.onrender.com/): landing page and property discovery entry point
+- [Search](https://kejaapp-backend-7iu3.onrender.com/search): browse listings without an account
+- [Movers](https://kejaapp-backend-7iu3.onrender.com/movers): find moving-service providers
+- [Privacy Policy](https://kejaapp-backend-7iu3.onrender.com/privacy)
+- [Terms of Service](https://kejaapp-backend-7iu3.onrender.com/terms)
+- [Data Protection](https://kejaapp-backend-7iu3.onrender.com/data-protection)

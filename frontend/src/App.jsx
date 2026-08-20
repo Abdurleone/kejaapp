@@ -56,6 +56,33 @@ const navItems = [
   { view: "account", label: "Account", path: getViewPath("account") },
 ];
 
+const defaultMeta = {
+  title: "KejaApp",
+  description:
+    "Find verified rentals, message landlords and agencies, and arrange moving services in Kenya - all from one KejaApp workspace.",
+};
+
+// Only the routes crawlers/sitemap.xml actually point at (public, not
+// behind sign-in) get distinct copy - every other view falls back to
+// defaultMeta rather than writing titles for pages no search engine or
+// social unfurler will ever be sent to.
+const metaByView = {
+  discover: {
+    title: "Discover Homes | KejaApp",
+    description: "Browse verified rental listings across Kenya - no account required to search.",
+  },
+  movers: {
+    title: "Movers | KejaApp",
+    description: "Find moving-service providers to help with your next move.",
+  },
+  privacy: { title: "Privacy Policy | KejaApp", description: "How KejaApp collects, uses, and protects your data." },
+  dataProtection: {
+    title: "Data Protection | KejaApp",
+    description: "KejaApp's data protection rights and how to exercise them.",
+  },
+  terms: { title: "Terms of Service | KejaApp", description: "The terms governing use of KejaApp." },
+};
+
 function App() {
   const [colorMode, setColorMode] = useState(() => localStorage.getItem("keja_color_mode") || "system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(
@@ -177,6 +204,17 @@ function App() {
   // what's on screen.
   const effectiveView = currentUser?.roleConfirmed === false ? "selectRole" : view;
   const showSplash = shouldShowSplash({ isSignedIn: signedIn, path });
+
+  // Real browser tabs and JS-executing crawlers (Googlebot) see this;
+  // non-JS social unfurlers only ever see index.html's static defaults,
+  // since this app has no SSR - see CHANGELOG.md's SEO-basics entry.
+  useEffect(() => {
+    const meta = metaByView[effectiveView] || defaultMeta;
+    document.title = meta.title;
+    document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.href = `https://kejaapp-backend-7iu3.onrender.com${path}`;
+  }, [effectiveView, path]);
 
   const openAuthPanel = () => setAuthPanelOpen(true);
 

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kejaapp-backend-7iu3.onrender.com/sitemap.xml
