@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "JakezApp",
-    "slug": "jakezapp",
-    "scheme": "jakezapp",
+    "name": "KejaApp",
+    "slug": "kejaapp",
+    "scheme": "kejaapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jakezapp.mobile"
+      "bundleIdentifier": "com.kejaapp.mobile"
     },
     "android": {
-      "package": "com.jakezapp.mobile",
+      "package": "com.kejaapp.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#046a38",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -29,7 +29,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "JakezApp accesses your photos so you can add pictures to your property listings.",
+          "photosPermission": "KejaApp accesses your photos so you can add pictures to your property listings.",
           "cameraPermission": false,
           "microphonePermission": false
         }

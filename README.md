@@ -1,10 +1,10 @@
-# JakezApp
+# KejaApp
 
-JakezApp is a location-first rental platform for tenants, landlords, agencies, admins, and movers. It combines property discovery, verification workflows, transparent pricing, notifications, and move coordination in a single product.
+KejaApp is a location-first rental platform for tenants, landlords, agencies, admins, and movers. It combines property discovery, verification workflows, transparent pricing, notifications, and move coordination in a single product.
 
 ## Current Status
 
-JakezApp is live in production and under active development — see [docs/project/live.md](docs/project/live.md) for exactly what's deployed right now and what's still pending. The repository includes:
+KejaApp is live in production and under active development — see [docs/project/live.md](docs/project/live.md) for exactly what's deployed right now and what's still pending. The repository includes:
 
 - a Node.js/Express backend API
 - a Vite + React web frontend
@@ -13,7 +13,7 @@ JakezApp is live in production and under active development — see [docs/projec
 
 ## Overview
 
-JakezApp is designed to support the full rental lifecycle:
+KejaApp is designed to support the full rental lifecycle:
 
 - tenants can discover and save properties
 - landlords and agencies can manage listings and owner workflows
@@ -24,9 +24,9 @@ The goal is to make rental discovery more transparent, more trusted, and more op
 
 ## Payment Boundary
 
-JakezApp is a discovery and coordination platform. It does not process, hold, or mediate rent, deposits, agency fees, or mover charges. Those arrangements are agreed and settled directly between the parties involved. This is a **permanent** product boundary, not a placeholder pending a future payments feature.
+KejaApp is a discovery and coordination platform. It does not process, hold, or mediate rent, deposits, agency fees, or mover charges. Those arrangements are agreed and settled directly between the parties involved. This is a **permanent** product boundary, not a placeholder pending a future payments feature.
 
-The one M-Pesa integration that exists ([Support JakezApp](docs/dev/Payments.md)) doesn't cross this line: it's a voluntary service charge a user can optionally pay directly to the app's developer, unrelated to any tenant/landlord/agency/mover transaction — jakezapp never holds, routes, or takes a cut of money between users.
+The one M-Pesa integration that exists ([Support KejaApp](docs/dev/Payments.md)) doesn't cross this line: it's a voluntary service charge a user can optionally pay directly to the app's developer, unrelated to any tenant/landlord/agency/mover transaction — kejaapp never holds, routes, or takes a cut of money between users.
 
 ## Key Features
 
@@ -192,7 +192,7 @@ npm test
 
 ## Documentation
 
-This README is a quick-start landing page, not the full reference. For everything else — API reference, per-role user stories, architecture, roadmap, governance/policy docs, and the user manual — see the [project Wiki](https://github.com/Abdurleone/jakezapp/wiki).
+This README is a quick-start landing page, not the full reference. For everything else — API reference, per-role user stories, architecture, roadmap, governance/policy docs, and the user manual — see the [project Wiki](https://github.com/Abdurleone/kejaapp/wiki).
 
 Other documents kept in this repository:
 
@@ -212,7 +212,7 @@ Other documents kept in this repository:
 The repository supports multiple deployment paths:
 
 - Docker and Docker Compose for local and staging-style runs
-- **Render Blueprint via [render.yaml](render.yaml) — the actual live production deployment** (`kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API; still named `kejaapp-backend` post-rebrand, see the JakezApp CHANGELOG entry for why)
+- **Render Blueprint via [render.yaml](render.yaml) — the actual live production deployment** (`kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API)
 - Kubernetes manifests in [k8s](k8s) — a reference/alternative path, exercised by CI's `k8s-smoke-test` job but not currently deployed anywhere
 
 For more detail, see [docs/dev/devops.md](docs/dev/devops.md).

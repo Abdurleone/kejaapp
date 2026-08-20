@@ -2,7 +2,7 @@
 
 A React Native (Expo) app for iOS and Android, sharing the same backend API as the web frontend.
 
-For the canonical, most up-to-date version of this page, see [mobile/README.md](https://github.com/Abdurleone/jakezapp/blob/main/mobile/README.md) in the repo.
+For the canonical, most up-to-date version of this page, see [mobile/README.md](https://github.com/Abdurleone/kejaapp/blob/main/mobile/README.md) in the repo.
 
 ## Why Expo
 
@@ -63,7 +63,7 @@ eas build --platform android
 eas build --platform ios
 ```
 
-Runs in Expo's cloud, so the iOS build works without a local Mac. First run creates `eas.json` and asks for bundle identifiers (already set in `app.json` as `com.jakezapp.mobile`). See [Expo's EAS Build docs](https://docs.expo.dev/build/introduction/) for store submission steps.
+Runs in Expo's cloud, so the iOS build works without a local Mac. First run creates `eas.json` and asks for bundle identifiers (already set in `app.json` as `com.kejaapp.mobile`). See [Expo's EAS Build docs](https://docs.expo.dev/build/introduction/) for store submission steps.
 
 ## Troubleshooting
 

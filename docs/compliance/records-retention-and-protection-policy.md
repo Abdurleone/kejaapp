@@ -1,8 +1,8 @@
-# JakezApp — Records Retention & Protection Policy
+# KejaApp — Records Retention & Protection Policy
 
 ## 1. Purpose and scope
 
-This covers **operational and business records** — audit logs, admin moderation/violation records, and incident-response documentation — as distinct from the **user-facing personal-data lifecycle** already covered in the [Data Protection Policy §9](data-protection-policy.md#9-retention-and-deletion). Read that document first if what you're looking for is "how a user's own data is deleted"; this one is about how JakezApp protects and retains its own records of what happened on the platform.
+This covers **operational and business records** — audit logs, admin moderation/violation records, and incident-response documentation — as distinct from the **user-facing personal-data lifecycle** already covered in the [Data Protection Policy §9](data-protection-policy.md#9-retention-and-deletion). Read that document first if what you're looking for is "how a user's own data is deleted"; this one is about how KejaApp protects and retains its own records of what happened on the platform.
 
 Written to address ISO/IEC 27001:2022 control **5.33 (Protection of records)** in the [Statement of Applicability](iso27001-statement-of-applicability.md), which this document is cross-referenced from.
 
@@ -35,4 +35,4 @@ This policy should be revisited whenever a new record type with retention implic
 
 ## 6. Scope and limitations
 
-This is an engineering-team-authored policy reflecting JakezApp's actual current practice and its honestly-acknowledged gaps — not a substitute for a records-management or legal review of retention obligations for a specific operating entity or jurisdiction.
+This is an engineering-team-authored policy reflecting KejaApp's actual current practice and its honestly-acknowledged gaps — not a substitute for a records-management or legal review of retention obligations for a specific operating entity or jurisdiction.

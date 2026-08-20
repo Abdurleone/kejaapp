@@ -1,12 +1,12 @@
-# JakezApp Accessibility Statement
+# KejaApp Accessibility Statement
 
 ## 1. Commitment
 
-JakezApp aims to be usable by as many people as possible, including people using assistive technology, people with low vision or motor impairments, and people on lower-powered devices or slower connections common across Kenya. This statement describes what's implemented today and what isn't yet, in the interest of honest self-disclosure rather than an unverified compliance claim.
+KejaApp aims to be usable by as many people as possible, including people using assistive technology, people with low vision or motor impairments, and people on lower-powered devices or slower connections common across Kenya. This statement describes what's implemented today and what isn't yet, in the interest of honest self-disclosure rather than an unverified compliance claim.
 
 ## 2. Target standard
 
-JakezApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Level AA** as its reference target — the standard most commonly referenced internationally and the one ISO/IEC 40500 formally adopts as an ISO standard. JakezApp has not undergone a formal WCAG conformance audit; this statement reflects a self-assessment against that target, not a certified conformance claim.
+KejaApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Level AA** as its reference target — the standard most commonly referenced internationally and the one ISO/IEC 40500 formally adopts as an ISO standard. KejaApp has not undergone a formal WCAG conformance audit; this statement reflects a self-assessment against that target, not a certified conformance claim.
 
 ## 3. What's implemented today
 
@@ -28,7 +28,7 @@ JakezApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Le
 
 ## 5. Feedback
 
-If you encounter an accessibility barrier using JakezApp, please tell us via the in-app Feedback tab, or email `privacy@jakezapp.com` if you'd rather not use the app to report it. Include the page/screen, what assistive technology (if any) you were using, and what you expected to happen.
+If you encounter an accessibility barrier using KejaApp, please tell us via the in-app Feedback tab, or email `privacy@kejaapp.com` if you'd rather not use the app to report it. Include the page/screen, what assistive technology (if any) you were using, and what you expected to happen.
 
 ## 6. Review
 

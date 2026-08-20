@@ -1,10 +1,10 @@
-# JakezApp — Records of Processing Activities (RoPA)
+# KejaApp — Records of Processing Activities (RoPA)
 
 ## 1. Purpose
 
-This register itemizes each distinct personal-data processing activity carried out by JakezApp, in the format expected by **Article 30 of the GDPR** and the equivalent record-keeping expected of a data controller under the **Kenya Data Protection Act, 2019**. It is the granular, tabular companion to the narrative [Data Protection Policy](data-protection-policy.md) — read that document first for definitions and general commitments.
+This register itemizes each distinct personal-data processing activity carried out by KejaApp, in the format expected by **Article 30 of the GDPR** and the equivalent record-keeping expected of a data controller under the **Kenya Data Protection Act, 2019**. It is the granular, tabular companion to the narrative [Data Protection Policy](data-protection-policy.md) — read that document first for definitions and general commitments.
 
-Every processing activity below is carried out by JakezApp acting as **data controller**. Security measures common to all activities are described once in the [Data Protection Policy §11](data-protection-policy.md#11-security-measures) rather than repeated per row.
+Every processing activity below is carried out by KejaApp acting as **data controller**. Security measures common to all activities are described once in the [Data Protection Policy §11](data-protection-policy.md#11-security-measures) rather than repeated per row.
 
 ## 2. Information classification scheme
 

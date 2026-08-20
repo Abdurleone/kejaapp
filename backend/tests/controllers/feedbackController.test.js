@@ -50,7 +50,7 @@ describe("feedbackController", () => {
     const created = {
       _id: new mongoose.Types.ObjectId(),
       submitter: submitterId,
-      message: "JakezApp helped me find my dream home.",
+      message: "KejaApp helped me find my dream home.",
       async populate() {
         return this;
       },
@@ -59,7 +59,7 @@ describe("feedbackController", () => {
     const create = mock.method(Feedback, "create", async (payload) => {
       assert.deepEqual(payload, {
         submitter: submitterId,
-        message: "JakezApp helped me find my dream home.",
+        message: "KejaApp helped me find my dream home.",
         allowPublicSharing: false,
       });
       return created;
@@ -67,7 +67,7 @@ describe("feedbackController", () => {
 
     const req = {
       user: { _id: submitterId },
-      body: { message: "JakezApp helped me find my dream home." },
+      body: { message: "KejaApp helped me find my dream home." },
     };
     const res = createResponse();
 

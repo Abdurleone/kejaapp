@@ -3,7 +3,7 @@ import { Appearance } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { darkColors, lightColors } from "../theme/colors.js";
 
-const COLOR_MODE_KEY = "jakez_color_mode";
+const COLOR_MODE_KEY = "keja_color_mode";
 
 const ThemeContext = createContext(null);
 

@@ -1,8 +1,8 @@
-# JakezApp Incident Response Plan
+# KejaApp Incident Response Plan
 
 ## 1. Purpose and scope
 
-This is the internal runbook for **handling** a security or data-protection incident once it's known about — distinct from [SECURITY.md](../SECURITY.md), which covers how an outsider **reports** a vulnerability to JakezApp in the first place. It applies to any incident involving JakezApp's systems or user data: a reported vulnerability, a detected breach, unauthorized access, or a significant service compromise. It operationalizes the breach-notification commitments in the [Data Protection Policy §12](data-protection-policy.md#12-breach-notification), aligned with ISO/IEC 27001 Annex A's incident-management control theme (A.5.24–A.5.28).
+This is the internal runbook for **handling** a security or data-protection incident once it's known about — distinct from [SECURITY.md](../SECURITY.md), which covers how an outsider **reports** a vulnerability to KejaApp in the first place. It applies to any incident involving KejaApp's systems or user data: a reported vulnerability, a detected breach, unauthorized access, or a significant service compromise. It operationalizes the breach-notification commitments in the [Data Protection Policy §12](data-protection-policy.md#12-breach-notification), aligned with ISO/IEC 27001 Annex A's incident-management control theme (A.5.24–A.5.28).
 
 ## 2. Severity levels
 
@@ -40,7 +40,7 @@ Per the [Data Protection Policy §12](data-protection-policy.md#12-breach-notifi
 
 1. Notify the **Office of the Data Protection Commissioner (ODPC)** within 72 hours of becoming aware of a breach likely to result in risk to data subjects.
 2. Notify **affected users directly**, without undue delay, if the breach is likely to result in high risk to their rights (e.g. exposed passwords, verification documents, or contact details usable for targeted fraud).
-3. Notification content: what happened, what data was involved, what JakezApp has done/is doing about it, and what the affected user can do (e.g. change their password, watch for suspicious contact).
+3. Notification content: what happened, what data was involved, what KejaApp has done/is doing about it, and what the affected user can do (e.g. change their password, watch for suspicious contact).
 
 ### 3.5 Remediation & recovery
 
@@ -69,13 +69,13 @@ This is an informal, engineering-team-authored procedure appropriate to this pro
 |---|---|
 | Incident owner | Coordinates the response end-to-end for a given incident; the first person to triage it unless explicitly handed off |
 | Anyone with admin/infrastructure access | Executes containment actions (account suspension, credential rotation) as directed by the incident owner |
-| Data protection contact (`privacy@jakezapp.com`) | Owns user-facing and ODPC notification content and timing |
+| Data protection contact (`privacy@kejaapp.com`) | Owns user-facing and ODPC notification content and timing |
 
 For a small team, one person may hold multiple roles above — the point is that every incident has a named owner, not that these are necessarily different people.
 
 ## 5. Related documents
 
-- [SECURITY.md](../SECURITY.md) — how vulnerabilities are reported to JakezApp.
+- [SECURITY.md](../SECURITY.md) — how vulnerabilities are reported to KejaApp.
 - [Data Protection Policy §12](data-protection-policy.md#12-breach-notification) — the notification commitments this plan operationalizes.
 - [Data Protection Impact Assessment](data-protection-impact-assessment.md) — pre-identified risk areas most likely to be the subject of a future incident.
 
@@ -85,4 +85,4 @@ This plan should be reviewed after every incident it's invoked for, and at least
 
 ## 7. Scope and limitations
 
-This is an operational runbook reflecting JakezApp's actual system architecture (logging, session model, admin tooling) — not a substitute for a breach-response review by legal counsel or a qualified incident-response professional at the time of an actual incident.
+This is an operational runbook reflecting KejaApp's actual system architecture (logging, session model, admin tooling) — not a substitute for a breach-response review by legal counsel or a qualified incident-response professional at the time of an actual incident.

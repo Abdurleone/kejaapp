@@ -16,8 +16,8 @@ This page mirrors the repository README's quick-start flow and adds a little mor
 From the repo root:
 
 ```bash
-git clone https://github.com/Abdurleone/jakezapp.git
-cd jakezapp
+git clone https://github.com/Abdurleone/kejaapp.git
+cd kejaapp
 npm --prefix backend install
 npm --prefix frontend install
 npm --prefix mobile install
@@ -30,7 +30,7 @@ The backend expects at minimum:
 - `MONGODB_URI`
 - `JWT_SECRET`
 
-You can configure those from the backend environment file or from the environment directly. The repo's backend config loader is in [backend/config/env.js](https://github.com/Abdurleone/jakezapp/blob/main/backend/config/env.js).
+You can configure those from the backend environment file or from the environment directly. The repo's backend config loader is in [backend/config/env.js](https://github.com/Abdurleone/kejaapp/blob/main/backend/config/env.js).
 
 For local development, the backend can start in a degraded state if MongoDB is not reachable yet, while database-backed routes remain unavailable until the connection is restored.
 
@@ -72,7 +72,7 @@ cd frontend && npm run build
 npm run mobile
 ```
 
-Starts the Expo/Metro bundler. See **[Mobile App](Jakez-App)** for how to open it in Expo Go, a simulator/emulator, or a browser preview, and how to point it at your backend from a physical device.
+Starts the Expo/Metro bundler. See **[Mobile App](Keja-App)** for how to open it in Expo Go, a simulator/emulator, or a browser preview, and how to point it at your backend from a physical device.
 
 ## Seed demo data
 

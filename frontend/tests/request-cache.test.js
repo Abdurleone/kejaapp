@@ -26,7 +26,7 @@ describe("frontend request cache", () => {
   const setupEnv = () => {
     const store = {};
     global.localStorage = {
-      getItem: (key) => (key === "jakez_base_url" ? "http://localhost:5000" : store[key] || null),
+      getItem: (key) => (key === "keja_base_url" ? "http://localhost:5000" : store[key] || null),
       setItem: (key, value) => {
         store[key] = value;
       },
@@ -234,7 +234,7 @@ describe("frontend request cache", () => {
     };
 
     await fetchMyFeedback();
-    await createFeedback({ message: "JakezApp helped me find my dream home." });
+    await createFeedback({ message: "KejaApp helped me find my dream home." });
     await fetchMyFeedback();
 
     assert.equal(calls, 3, "the second read after submitting should not be served from stale cache");

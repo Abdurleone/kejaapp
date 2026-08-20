@@ -3,12 +3,12 @@ import { describe, it } from "node:test";
 import request from "supertest";
 import app from "../app.js";
 
-describe("JakezApp API", () => {
+describe("KejaApp API", () => {
   it("returns health metadata", async () => {
     const response = await request(app).get("/");
 
     assert.equal(response.status, 200);
-    assert.equal(response.body.message, "JakezApp API is running...");
+    assert.equal(response.body.message, "KejaApp API is running...");
   });
 
   it("returns API health status", async () => {
@@ -45,7 +45,7 @@ describe("JakezApp API", () => {
 
     assert.equal(response.status, 200);
     assert.equal(response.body.openapi, "3.1.0");
-    assert.equal(response.body.info.title, "JakezApp API");
+    assert.equal(response.body.info.title, "KejaApp API");
   });
 
   it("returns database readiness status", async () => {
@@ -106,7 +106,7 @@ describe("JakezApp API", () => {
   });
 
   it("rejects malformed auth cookies for current user", async () => {
-    const response = await request(app).get("/api/auth/me").set("Cookie", "jakez_token=not-a-token");
+    const response = await request(app).get("/api/auth/me").set("Cookie", "keja_token=not-a-token");
 
     assert.equal(response.status, 401);
     assert.equal(response.body.message, "Not authorized, token invalid");
@@ -117,8 +117,8 @@ describe("JakezApp API", () => {
 
     assert.equal(response.status, 200);
     assert.equal(response.body.message, "Logged out");
-    assert.match(response.headers["set-cookie"].join(";"), /jakez_token=/);
-    assert.match(response.headers["set-cookie"].join(";"), /jakez_refresh=/);
+    assert.match(response.headers["set-cookie"].join(";"), /keja_token=/);
+    assert.match(response.headers["set-cookie"].join(";"), /keja_refresh=/);
   });
 
   it("logs out even with no request body at all, matching how the frontend actually calls it", async () => {

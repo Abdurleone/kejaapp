@@ -38,7 +38,7 @@ describe("feedbackValidators", () => {
 
   it("accepts a valid feedback payload", () => {
     const { nextCalled } = validate(createFeedbackSchema, {
-      message: "JakezApp helped me find my dream home.",
+      message: "KejaApp helped me find my dream home.",
     });
 
     assert.equal(nextCalled, true);

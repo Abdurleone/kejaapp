@@ -25,7 +25,7 @@ const initiateSupportPayment = asyncHandler(async (req, res) => {
   const stkResponse = await initiateStkPush({
     phoneNumber,
     amount: req.body.amount,
-    transactionDesc: "JakezApp Support",
+    transactionDesc: "KejaApp Support",
   });
 
   const payment = await SupportPayment.create({

@@ -4,10 +4,6 @@ import path from "node:path";
 dotenv.config({ quiet: true });
 
 const nodeEnv = process.env.NODE_ENV || (process.env.npm_lifecycle_event === "test" ? "test" : "development");
-// Deliberately "kejaapp", not "jakezapp" - an internal database identifier,
-// invisible to users, kept stable across the JakezApp rebrand rather than
-// silently orphaning every environment's existing data on next deploy/start
-// (see render.yaml's MONGODB_DB_NAME comment for the full reasoning).
 const mongoDbName = process.env.MONGODB_DB_NAME || "kejaapp";
 const mongoUri = process.env.MONGODB_URI || (nodeEnv === "test" ? "mongodb://127.0.0.1:27017" : "");
 const jwtSecret = process.env.JWT_SECRET || (nodeEnv === "test" ? "test-secret-with-enough-length" : "");
@@ -234,8 +230,8 @@ const env = {
   jwtSecret,
   refreshTokenMaxAge: parseCookieMaxAge(process.env.REFRESH_TOKEN_MAX_AGE_DAYS || 30),
   bcryptSaltRounds: parsePositiveInteger(process.env.BCRYPT_SALT_ROUNDS, 12, "BCRYPT_SALT_ROUNDS"),
-  authCookieName: process.env.AUTH_COOKIE_NAME || "jakez_token",
-  refreshCookieName: process.env.REFRESH_COOKIE_NAME || "jakez_refresh",
+  authCookieName: process.env.AUTH_COOKIE_NAME || "keja_token",
+  refreshCookieName: process.env.REFRESH_COOKIE_NAME || "keja_refresh",
   // Double-submit CSRF token, set alongside the auth cookies. Deliberately
   // NOT httpOnly - not because the frontend reads it via document.cookie
   // (it doesn't - see client.js's setCsrfToken/apiFetch, which learn the
@@ -243,7 +239,7 @@ const env = {
   // makes this cookie invisible to the frontend's own JS anyway) but so a
   // same-origin deployment (see authCookieSameSite below) could go back to
   // reading it directly without a backend change, if ever wanted.
-  csrfCookieName: process.env.CSRF_COOKIE_NAME || "jakez_csrf",
+  csrfCookieName: process.env.CSRF_COOKIE_NAME || "keja_csrf",
   authCookieMaxAge: parseCookieMaxAge(process.env.AUTH_COOKIE_MAX_AGE_DAYS),
   authCookieSecure: process.env.AUTH_COOKIE_SECURE === "true",
   // Independent of authCookieSecure on purpose: "served over HTTPS" and
@@ -288,7 +284,7 @@ const env = {
   // `npx web-push generate-vapid-keys`.
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || "",
-  vapidSubject: process.env.VAPID_SUBJECT || "mailto:support@jakezapp.example",
+  vapidSubject: process.env.VAPID_SUBJECT || "mailto:support@kejaapp.example",
   // Optional, same "empty = disabled" pattern as redisUrl/clamavHost/vapid*
   // above: unset means POST /api/auth/google 503s instead of trying (and
   // failing) to verify a Google ID token against a client ID that doesn't
@@ -374,7 +370,7 @@ const env = {
   // Voluntary "support the developer" M-Pesa STK push - see
   // services/mpesaService.js. Deliberately unrelated to any tenant/landlord/
   // agency/mover payment: money goes straight to this shortcode's own owner,
-  // never held or routed by jakezapp itself (see docs/compliance/code-of-ethics.md
+  // never held or routed by kejaapp itself (see docs/compliance/code-of-ethics.md
   // for why that boundary matters here).
   mpesaConsumerKey: process.env.MPESA_CONSUMER_KEY || "",
   mpesaConsumerSecret: process.env.MPESA_CONSUMER_SECRET || "",
@@ -386,7 +382,7 @@ const env = {
     process.env.MPESA_TRANSACTION_TYPE === "CustomerBuyGoodsOnline"
       ? "CustomerBuyGoodsOnline"
       : "CustomerPayBillOnline",
-  mpesaAccountReference: process.env.MPESA_ACCOUNT_REFERENCE || "JakezApp Support",
+  mpesaAccountReference: process.env.MPESA_ACCOUNT_REFERENCE || "KejaApp Support",
 };
 
 // Computed after the object above rather than inline, since it depends on

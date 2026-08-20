@@ -1,5 +1,5 @@
 ---
-name: JakezApp
+name: KejaApp
 description: A location-first rental discovery and move-coordination platform for Kenya.
 colors:
   primary: "#054a2b"
@@ -92,13 +92,13 @@ components:
     height: "18px"
 ---
 
-# Design System: JakezApp
+# Design System: KejaApp
 
 ## Overview
 
 **Creative North Star: "Matatu Poster"**
 
-JakezApp's visual system is a sign-painted, Nairobi-matatu-decoration-inspired identity: a warm, cream "poster stock" ground, the Kenyan flag's own hues pushed bolder and more saturated than a civic form would use, thick ink strokes, and hard offset drop-shadows with zero blur — the look of a screen-printed decal or a hand-painted matatu panel, not a generic SaaS card. Depth reads as a physical object's own edge (a sticker's registration shadow), not an ambient elevation effect. This became the app-wide base frame on 2026-08-09, after originating as a deliberately scoped, user-commissioned exception on the signed-out landing page only (PR #215) — see "Previously: The County Registry" below for what it replaced.
+KejaApp's visual system is a sign-painted, Nairobi-matatu-decoration-inspired identity: a warm, cream "poster stock" ground, the Kenyan flag's own hues pushed bolder and more saturated than a civic form would use, thick ink strokes, and hard offset drop-shadows with zero blur — the look of a screen-printed decal or a hand-painted matatu panel, not a generic SaaS card. Depth reads as a physical object's own edge (a sticker's registration shadow), not an ambient elevation effect. This became the app-wide base frame on 2026-08-09, after originating as a deliberately scoped, user-commissioned exception on the signed-out landing page only (PR #215) — see "Previously: The County Registry" below for what it replaced.
 
 There is no confirmed anti-reference on file; "flashy fintech/marketplace" was considered as a naming point during an earlier draft of this document but was not adopted as a stated rejection, so treat it as absent rather than binding.
 
@@ -224,7 +224,7 @@ Two radii: `8px` (`--radius-sm`, inputs/tables/nested chips) and `14px` (`--radi
 - **Focus:** a 3px outline in a 22%-opacity tint of Registry Green, plus the border switching to solid green — both together, not one or the other.
 
 ### Navigation
-- **Style:** a fixed-position (splash) or sticky (signed-in) header with an opaque Paper background and a thick (`2.5px`) `--stroke` bottom border — no blur/translucency (dropped along with the rest of the pre-matatu system). A circular logo badge with its own thick stroke and small Pop shadow, and a two-tone `Jakez`/`App` wordmark (red on the second half) in Bungee. Tabs sit inline, transparent at rest, filled green when active.
+- **Style:** a fixed-position (splash) or sticky (signed-in) header with an opaque Paper background and a thick (`2.5px`) `--stroke` bottom border — no blur/translucency (dropped along with the rest of the pre-matatu system). A circular logo badge with its own thick stroke and small Pop shadow, and a two-tone `Keja`/`App` wordmark (red on the second half) in Bungee. Tabs sit inline, transparent at rest, filled green when active.
 - **Splash vs. signed-in:** now visually identical (background, stroke, logo, wordmark, button treatment) — the one remaining difference is `position: fixed` (splash, floats over the landing hero) vs. `position: sticky` (signed-in, scrolls with page content), a layout choice unrelated to theming. The splash header's toggle+Sign-in staying nested on one row at narrow widths (rather than stacking, like the signed-in header's `UserMenu` does) is also unchanged — a genuine content-length difference (two compact actions vs. a variable-length username), not a leftover style override.
 
 ### Landing page exception: matatu-poster bespoke content
@@ -232,7 +232,7 @@ Two radii: `8px` (`--radius-sm`, inputs/tables/nested chips) and `14px` (`--radi
 The base frame above covers palette/type/shape everywhere now. What's still genuinely scoped to the landing page is its *content* — assets and mechanics that would be absurd anywhere else in the app:
 
 - **Sticker badge** (`.landing-sticker`, e.g. "Karibu Nyumbani"): a tilted (-3deg), thick-stroked, gold pill sitting above the headline — a physical decal, not a typographic eyebrow/kicker (the craft floor bans the latter outright; this reads and renders as an object with its own shape, fill, border, and shadow, the same device as the trust badges below it, not a quiet pre-headline label).
-- **Illustrated skyline** (`.landing-skyline`, inline SVG): buildings, a sun, and a matatu bus with its own "JAKEZ" placard — positioned behind the showcase panel, hidden below ~1180px where there's no clean spot for it. Outline color follows `--stroke` via a shared `.mp-outline` class (gold at night, same as the rest of the base frame now); building/bus fill colors stay fixed regardless of mode, since they depict actual materials, not a state.
+- **Illustrated skyline** (`.landing-skyline`, inline SVG): buildings, a sun, and a matatu bus with its own "KEJA" placard — positioned behind the showcase panel, hidden below ~1180px where there's no clean spot for it. Outline color follows `--stroke` via a shared `.mp-outline` class (gold at night, same as the rest of the base frame now); building/bus fill colors stay fixed regardless of mode, since they depict actual materials, not a state.
 - **Flip-mode testimonials card** (`.landing-testimonials`): half-width (capped at 620px, sits under the hero copy column, not full-bleed), and inverts relative to the page's own mode — dark card on the light page, light card on the dark page — via its own `--band*` tokens (scoped to `.landing-testimonials`, not the page-wide `--ink`/`--bg` pair). The accent pair differs by direction (gold/red on the dark card, red/green on the light card), not just inverted, because gold-on-cream measures ~1.8:1 contrast (fails WCAG AA); red and green were substituted for the light-card direction specifically for that reason, confirmed at ~4.7:1 and ~8.8:1. Includes a real empty state ("No shared experiences yet...") rather than either fabricated quotes or disappearing entirely when the API returns none.
 
 ## Do's and Don'ts

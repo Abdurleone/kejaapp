@@ -38,7 +38,7 @@ const jsonResponse = (body) =>
 
 describe("frontend API helpers", () => {
   before(() => {
-    const store = new Map([["jakez_base_url", "http://localhost:5000"]]);
+    const store = new Map([["keja_base_url", "http://localhost:5000"]]);
     global.localStorage = {
       getItem: (key) => (store.has(key) ? store.get(key) : null),
       setItem: (key, value) => store.set(key, value),
@@ -312,12 +312,12 @@ describe("frontend API helpers", () => {
       return jsonResponse({ data: { _id: "f1", status: "pending" } });
     };
 
-    const result = await createFeedback({ message: "JakezApp helped me find my dream home." });
+    const result = await createFeedback({ message: "KejaApp helped me find my dream home." });
 
     assert.equal(capturedUrl, "http://localhost:5000/api/feedback");
     assert.equal(capturedOptions.method, "POST");
     assert.deepEqual(JSON.parse(capturedOptions.body), {
-      message: "JakezApp helped me find my dream home.",
+      message: "KejaApp helped me find my dream home.",
     });
     assert.deepEqual(result, { _id: "f1", status: "pending" });
   });

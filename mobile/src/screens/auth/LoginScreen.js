@@ -66,11 +66,11 @@ export default function LoginScreen({ navigation }) {
           style={styles.hero}
         >
           <Image
-            source={require("../../../assets/jakez-logo.png")}
+            source={require("../../../assets/keja-logo.png")}
             style={styles.watermark}
             resizeMode="contain"
           />
-          <Text style={styles.brand}>JakezApp</Text>
+          <Text style={styles.brand}>KejaApp</Text>
           <Text style={styles.heroTitle}>Welcome back</Text>
           <Text style={styles.heroSubtitle}>Find and manage your rentals in Kenya.</Text>
         </LinearGradient>

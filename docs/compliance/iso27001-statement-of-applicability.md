@@ -1,8 +1,8 @@
-# JakezApp — ISO/IEC 27001:2022 Statement of Applicability (Self-Assessment)
+# KejaApp — ISO/IEC 27001:2022 Statement of Applicability (Self-Assessment)
 
 ## 1. Purpose and methodology
 
-A Statement of Applicability (SoA) is the core artifact of an ISO/IEC 27001 Information Security Management System — for every control in Annex A, it records whether the control applies and how it's implemented. This document is a **self-assessment against the actual JakezApp codebase and its documented policies**, not a certified SoA produced under a formal ISO audit. It exists so that JakezApp's real security posture is honestly and specifically mapped to a recognized control framework, gaps included, rather than glossed over.
+A Statement of Applicability (SoA) is the core artifact of an ISO/IEC 27001 Information Security Management System — for every control in Annex A, it records whether the control applies and how it's implemented. This document is a **self-assessment against the actual KejaApp codebase and its documented policies**, not a certified SoA produced under a formal ISO audit. It exists so that KejaApp's real security posture is honestly and specifically mapped to a recognized control framework, gaps included, rather than glossed over.
 
 **Last verified against the codebase:** 2026-07-23 (commit `df3ba4c`). This pass re-read every cited mechanism against current code rather than trusting the previous write-up, and found the document had drifted in both directions since its last update (2026-07-10, PR #33): two newly-shipped controls weren't credited yet (CSRF protection, tiered rate limiting — see `5.15`, `8.20`, `8.26`), and three controls were overstated (`8.4`, `8.25`, `8.32` — the `main` branch's GitHub ruleset was verified via `gh api` to require a PR but enforce **zero** required approving reviews and no required status check, so "branch protection requires PR review and CI checks" was not actually true of the live repo configuration). All three have been corrected below.
 
@@ -76,7 +76,7 @@ Two Phase 2 roadmap items have since been implemented and are upgraded to Y belo
 
 ## 4. A.7 — Physical controls (14)
 
-JakezApp has no company-owned premises — it runs on cloud/managed infrastructure (MongoDB Atlas, S3-compatible storage, Render or Kubernetes). Physical controls are accordingly delegated to those providers rather than satisfied directly.
+KejaApp has no company-owned premises — it runs on cloud/managed infrastructure (MongoDB Atlas, S3-compatible storage, Render or Kubernetes). Physical controls are accordingly delegated to those providers rather than satisfied directly.
 
 | # | Control | Status | Notes |
 |---|---|---|---|
@@ -220,4 +220,4 @@ This SoA should be revisited whenever a new control-relevant capability ships (a
 
 ## 9. Scope and limitations
 
-This is a **self-assessment**, produced by reading the actual codebase and existing documentation, not a certified Statement of Applicability produced under a formal ISO/IEC 27001 audit by an accredited certification body. JakezApp is not ISO/IEC 27001 certified. Treat every "Y" here as "implemented as of this writing, per the cited mechanism" — verify against current code before relying on it, and engage an accredited auditor before making any certification claim externally.
+This is a **self-assessment**, produced by reading the actual codebase and existing documentation, not a certified Statement of Applicability produced under a formal ISO/IEC 27001 audit by an accredited certification body. KejaApp is not ISO/IEC 27001 certified. Treat every "Y" here as "implemented as of this writing, per the cited mechanism" — verify against current code before relying on it, and engage an accredited auditor before making any certification claim externally.

@@ -23,7 +23,7 @@ import { apiFetch } from "../app-utils.js";
  * header on the next request.
  *
  * global.document.cookie is stubbed to always read as empty - deliberately,
- * not an oversight. It used to expose the non-httpOnly jakez_csrf cookie so
+ * not an oversight. It used to expose the non-httpOnly keja_csrf cookie so
  * client.js could read it directly, which happened to work in this test
  * (frontend and backend share TEST_API_BASE, i.e. one origin) but not in
  * the real deployment, where they're on two different Render origins - a
@@ -91,7 +91,7 @@ describe("Authentication flow end-to-end", { skip: !shouldRunAuthE2E }, () => {
   const jar = createCookieJar();
 
   before(() => {
-    const store = new Map([["jakez_base_url", TEST_API_BASE]]);
+    const store = new Map([["keja_base_url", TEST_API_BASE]]);
     global.localStorage = {
       getItem: (key) => (store.has(key) ? store.get(key) : null),
       setItem: (key, value) => store.set(key, value),

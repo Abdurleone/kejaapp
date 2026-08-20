@@ -55,19 +55,19 @@ describe("ThemeContext", () => {
 
     fireEvent.press(toggle);
     await waitFor(() => expect(getByTestId("colorMode")).toHaveTextContent("light"));
-    expect(await AsyncStorage.getItem("jakez_color_mode")).toBe("light");
+    expect(await AsyncStorage.getItem("keja_color_mode")).toBe("light");
 
     fireEvent.press(toggle);
     await waitFor(() => expect(getByTestId("colorMode")).toHaveTextContent("dark"));
-    expect(await AsyncStorage.getItem("jakez_color_mode")).toBe("dark");
+    expect(await AsyncStorage.getItem("keja_color_mode")).toBe("dark");
 
     fireEvent.press(toggle);
     await waitFor(() => expect(getByTestId("colorMode")).toHaveTextContent("system"));
-    expect(await AsyncStorage.getItem("jakez_color_mode")).toBe("system");
+    expect(await AsyncStorage.getItem("keja_color_mode")).toBe("system");
   });
 
   it("restores a previously persisted mode on mount", async () => {
-    await AsyncStorage.setItem("jakez_color_mode", "dark");
+    await AsyncStorage.setItem("keja_color_mode", "dark");
 
     const { getByTestId } = await renderConsumer();
 
@@ -75,7 +75,7 @@ describe("ThemeContext", () => {
   });
 
   it("ignores a corrupted stored value and falls back to system", async () => {
-    await AsyncStorage.setItem("jakez_color_mode", "not-a-real-mode");
+    await AsyncStorage.setItem("keja_color_mode", "not-a-real-mode");
 
     const { getByTestId } = await renderConsumer();
 

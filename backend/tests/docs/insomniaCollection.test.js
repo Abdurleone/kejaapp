@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { describe, it } from "node:test";
 
-const collection = JSON.parse(fs.readFileSync(new URL("../../../docs/dev/jakezapp-insomnia.json", import.meta.url)));
+const collection = JSON.parse(fs.readFileSync(new URL("../../../docs/dev/kejaapp-insomnia.json", import.meta.url)));
 
 describe("Insomnia collection", () => {
   it("uses environment variables for reusable resource ids", () => {
@@ -18,7 +18,7 @@ describe("Insomnia collection", () => {
   });
 
   it("defines reusable id environment variables", () => {
-    const environment = collection.resources.find((resource) => resource._id === "env_jakezapp_base");
+    const environment = collection.resources.find((resource) => resource._id === "env_kejaapp_base");
 
     assert.ok(environment);
     assert.equal(environment.data.property_id, "");

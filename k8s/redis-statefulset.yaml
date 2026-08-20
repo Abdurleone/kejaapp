@@ -4,19 +4,19 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: jakezapp-redis
-  namespace: jakezapp
+  name: kejaapp-redis
+  namespace: kejaapp
 spec:
-  serviceName: jakezapp-redis
+  serviceName: kejaapp-redis
   replicas: 1
   selector:
     matchLabels:
-      app: jakezapp
+      app: kejaapp
       component: redis
   template:
     metadata:
       labels:
-        app: jakezapp
+        app: kejaapp
         component: redis
     spec:
       containers:
@@ -51,12 +51,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: jakezapp-redis
-  namespace: jakezapp
+  name: kejaapp-redis
+  namespace: kejaapp
 spec:
   clusterIP: None
   selector:
-    app: jakezapp
+    app: kejaapp
     component: redis
   ports:
     - port: 6379

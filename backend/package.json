@@ -1,18 +1,18 @@
 {
-  "name": "jakezapp-backend",
+  "name": "kejaapp-backend",
   "version": "1.0.0",
-  "description": "Jakez App",
+  "description": "Keja App",
   "keywords": [
-    "Jakez",
+    "Keja",
     "App"
   ],
-  "homepage": "https://github.com/abdurleone/jakezapp#readme",
+  "homepage": "https://github.com/abdurleone/kejaapp#readme",
   "bugs": {
-    "url": "https://github.com/abdurleone/jakezapp/issues"
+    "url": "https://github.com/abdurleone/kejaapp/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/abdurleone/jakezapp.git"
+    "url": "git+https://github.com/abdurleone/kejaapp.git"
   },
   "license": "UNLICENSED",
   "author": "Abdurleone",

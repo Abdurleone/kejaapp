@@ -39,7 +39,7 @@ As a user, I want to manage my profile and password, so that my account informat
 
 ### Role-Aware Dashboard
 
-As a signed-in user of any role, I want a dashboard summary tailored to what I actually do on JakezApp, so that I see relevant counts instead of a generic, one-size-fits-all view.
+As a signed-in user of any role, I want a dashboard summary tailored to what I actually do on KejaApp, so that I see relevant counts instead of a generic, one-size-fits-all view.
 
 - Given I am signed in as any role, when I load my dashboard summary, then I see my unread notification count.
 - Given I am signed in as a tenant, then I additionally see my saved-properties count, my inquiries grouped by status, and my viewing requests grouped by status — I do not see owner, agency, or admin data.
@@ -101,7 +101,7 @@ As a landlord or agency, I want to add rent, deposit, and agency fee values to m
 
 ### Listing Contact Details
 
-As a landlord or agency, I want to define the best contact method and available contact hours on each listing, so that tenants know how to reach me without JakezApp handling payments or private negotiations.
+As a landlord or agency, I want to define the best contact method and available contact hours on each listing, so that tenants know how to reach me without KejaApp handling payments or private negotiations.
 
 - Given I am authenticated as a landlord or agency, when I create or update a property, then I can add a preferred contact method, phone, email, WhatsApp number, contact hours, and notes.
 - Given a tenant views a property, when contact details are present, then they can read but not edit them.
@@ -226,7 +226,7 @@ As a moving company, I want to create an account, get verified, and hear from te
 
 ### Platform Feedback
 
-As a tenant, landlord, agency, or mover, I want to tell JakezApp how the platform helped me, and have an admin respond, so that my experience can be shared as a testimonial for future users.
+As a tenant, landlord, agency, or mover, I want to tell KejaApp how the platform helped me, and have an admin respond, so that my experience can be shared as a testimonial for future users.
 
 - Given I am a signed-in tenant, landlord, agency, or mover, when I submit feedback, then it is saved as pending and I can see it in my own feedback list.
 - Given I am an admin, when I try to submit feedback, then the API rejects the request — admins only respond, they don't submit.
