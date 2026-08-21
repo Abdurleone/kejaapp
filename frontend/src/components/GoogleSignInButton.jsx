@@ -30,7 +30,16 @@ export default function GoogleSignInButton({ onAuthenticated, onError }) {
         return;
       }
 
-      window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredential });
+      // use_fedcm_for_button: without it, Chrome's rendered-button flow still
+      // defaults to the legacy popup mechanism (use_fedcm_for_prompt covers
+      // only the separate One Tap prompt, and is deprecated/ignored now that
+      // FedCM is mandatory there) - the legacy path hangs indefinitely on
+      // accounts.google.com/gsi/transform in current Chrome, confirmed live.
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredential,
+        use_fedcm_for_button: true,
+      });
       window.google.accounts.id.renderButton(buttonRef.current, {
         type: "standard",
         theme: "outline",
