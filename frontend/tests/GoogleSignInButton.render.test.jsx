@@ -40,7 +40,16 @@ describe("GoogleSignInButton", () => {
 
     await waitFor(() => expect(window.google.accounts.id.initialize).toHaveBeenCalledTimes(1));
     expect(window.google.accounts.id.initialize).toHaveBeenCalledWith(
-      expect.objectContaining({ client_id: "test-client-id", callback: expect.any(Function) }),
+      expect.objectContaining({
+        client_id: "test-client-id",
+        callback: expect.any(Function),
+        // Without this, Chrome's rendered-button flow falls back to the
+        // legacy popup mechanism, which hangs indefinitely on
+        // accounts.google.com/gsi/transform in current Chrome - confirmed
+        // live against production. use_fedcm_for_prompt is a *different*
+        // flag (One Tap only, now deprecated/ignored) and doesn't cover this.
+        use_fedcm_for_button: true,
+      }),
     );
     expect(window.google.accounts.id.renderButton).toHaveBeenCalledTimes(1);
   });
