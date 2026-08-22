@@ -64,7 +64,7 @@ docs/
 │                        # records-of-processing-activities.md, data-protection-impact-assessment.md,
 │                        # incident-response-plan.md, records-retention-and-protection-policy.md,
 │                        # database-access-policy.md, iso27001-statement-of-applicability.md,
-│                        # accessibility-statement.md,
+│                        # soc2-readiness-assessment.md, accessibility-statement.md,
 │                        # Governance-and-Policies.md (the hub - mirrored to the wiki)
 ├── dev/                 # engineering/ops reference - API-Reference.md, Architecture.md,
 │                        # Authentication.md, Deployment.md, Getting-Started.md, Testing.md,
