@@ -11,7 +11,21 @@ function PropertyCard({ property, isSaved, isSaving, signedIn, onSave, onOpenPro
   const bathrooms = property.bathrooms ?? property.details?.bathrooms;
 
   return (
-    <article className="property-card" onClick={() => onOpenProperty(propertyId)}>
+    <article
+      className="property-card"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenProperty(propertyId)}
+      onKeyDown={(event) => {
+        // Only the card's own focus, not a bubbled keydown from the nested
+        // Save/Details buttons (which already handle Enter/Space natively).
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpenProperty(propertyId);
+        }
+      }}
+    >
       <div className="property-photo">
         <PropertyImage src={getPropertyImage(property)} alt={property.title || "Rental property"} />
         <span className="status-pill">{property.status || "available"}</span>

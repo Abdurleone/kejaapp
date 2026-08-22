@@ -25,6 +25,7 @@ import MoverVerification from "../../models/MoverVerification.js";
 import Notification from "../../models/Notification.js";
 import Property from "../../models/Property.js";
 import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
+import PushSubscription from "../../models/PushSubscription.js";
 import Review from "../../models/Review.js";
 import SavedSearch from "../../models/SavedSearch.js";
 import User from "../../models/User.js";
@@ -155,6 +156,7 @@ describe("authController", () => {
     trackDeleteMany(Feedback, "Feedback");
     trackDeleteMany(SavedSearch, "SavedSearch");
     trackDeleteMany(DeviceToken, "DeviceToken");
+    trackDeleteMany(PushSubscription, "PushSubscription");
 
     let moverAffiliateUpdate;
     mock.method(Mover, "updateMany", async (filter, update) => {
@@ -162,6 +164,17 @@ describe("authController", () => {
       return { modifiedCount: 0 };
     });
     mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
+    const reviewerUnsetCalls = {};
+    const trackReviewerUnset = (Model, name) => {
+      mock.method(Model, "updateMany", async (filter) => {
+        reviewerUnsetCalls[name] = reviewerUnsetCalls[name] || [];
+        reviewerUnsetCalls[name].push(filter);
+        return { modifiedCount: 0 };
+      });
+    };
+    trackReviewerUnset(AgencyVerification, "AgencyVerification");
+    trackReviewerUnset(UserStatusLog, "UserStatusLog");
+    trackReviewerUnset(MoverVerification, "MoverVerification");
 
     const req = { user: { _id: userId } };
     const res = createResponse();
@@ -172,8 +185,17 @@ describe("authController", () => {
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(deleteManyCalls.Mover, [{ user: userId }]);
-    assert.deepEqual(deleteManyCalls.MoverVerification, [
-      { $or: [{ user: userId }, { reviewedBy: userId }] },
+    assert.deepEqual(deleteManyCalls.MoverVerification, [{ user: userId }]);
+    // A reviewer/actor reference on another user's record is unset, not
+    // deleted along with that record - see userDeletionService.js.
+    assert.deepEqual(reviewerUnsetCalls.AgencyVerification, [
+      { reviewedBy: userId, user: { $ne: userId } },
+    ]);
+    assert.deepEqual(reviewerUnsetCalls.UserStatusLog, [
+      { changedBy: userId, user: { $ne: userId } },
+    ]);
+    assert.deepEqual(reviewerUnsetCalls.MoverVerification, [
+      { reviewedBy: userId, user: { $ne: userId } },
     ]);
     // Owned-property side (shared cascade) then actor-only side (local).
     assert.deepEqual(deleteManyCalls.MoverRequest, [
@@ -236,11 +258,15 @@ describe("authController", () => {
       Feedback,
       SavedSearch,
       DeviceToken,
+      PushSubscription,
     ]) {
       mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
     }
     mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(AgencyVerification, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(UserStatusLog, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(MoverVerification, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const req = { user: { _id: userId } };
     const res = createResponse();
@@ -287,11 +313,15 @@ describe("authController", () => {
       Feedback,
       SavedSearch,
       DeviceToken,
+      PushSubscription,
     ]) {
       mock.method(Model, "deleteMany", async () => ({ deletedCount: 0 }));
     }
     mock.method(Mover, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(UserViolation, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(AgencyVerification, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(UserStatusLog, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(MoverVerification, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const recomputedIds = [];
     mock.method(Review, "updatePropertyRating", async (propertyId) => {
@@ -970,6 +1000,30 @@ describe("authController", () => {
 
       assert.equal(nextError.statusCode, 404);
       assert.equal(nextError.message, "User not found");
+    });
+
+    it("rejects changing an already-confirmed role, so this one-time picker can't be replayed", async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const user = {
+        _id: userId,
+        role: "landlord",
+        roleConfirmed: true,
+        async save() {
+          throw new Error("save should not be called once roleConfirmed is true");
+        },
+      };
+      mock.method(User, "findById", async () => user);
+
+      const req = { body: { role: "tenant" }, user: { _id: userId } };
+      const res = createResponse();
+      let nextError;
+
+      await confirmRole(req, res, (error) => {
+        nextError = error;
+      });
+
+      assert.equal(nextError.statusCode, 409);
+      assert.equal(user.role, "landlord");
     });
   });
 });

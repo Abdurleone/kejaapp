@@ -97,6 +97,25 @@ describe("MoversPage - directory (non-mover roles)", () => {
     await waitFor(() => expect(fetchMovers).toHaveBeenLastCalledWith(expect.objectContaining({ serviceType: "packing" })));
   });
 
+  it("debounces the county filter instead of fetching per keystroke", async () => {
+    fetchMovers.mockResolvedValue([sampleMover]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<MoversPage />, { signedIn: true, currentUser: { _id: "t1", role: "tenant" } });
+    await screen.findByText("Speedy Movers");
+
+    const callCountBeforeTyping = fetchMovers.mock.calls.length;
+
+    // A single settled fetch is enough to prove the county filter is
+    // debounced rather than firing once per keystroke - typing "Nairobi" is
+    // 7 keystrokes, but only one additional fetch should follow.
+    await user.type(screen.getByLabelText("County"), "Nairobi");
+
+    await waitFor(() => expect(fetchMovers).toHaveBeenLastCalledWith(expect.objectContaining({ county: "Nairobi" })));
+
+    expect(fetchMovers.mock.calls.length).toBe(callCountBeforeTyping + 1);
+  });
+
   it("shows the empty state when no movers match", async () => {
     fetchMovers.mockResolvedValue([]);
 
