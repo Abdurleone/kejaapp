@@ -8,7 +8,7 @@ A snapshot of what's actually deployed and working right now, separate from [CHA
 
 ## Live URL
 
-- `https://kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API now (the `-7iu3` suffix is real and permanent — the unsuffixed name was already taken by another Render account). The web app used to be served from a separate `kejaapp-frontend.onrender.com` static site before the two origins were consolidated — see CHANGELOG.md's "Consolidate Web + API onto One Render Origin" entry for why (closing out a cross-origin CSRF cookie problem at the source). **Correction**: this page previously said that old service was retired/deleted; re-checked while updating this page and it's still live on Render (`kejaapp-frontend.onrender.com` still resolves and responds `200`) - just unused, not actually torn down. Not urgent, but worth a deliberate delete-or-keep decision rather than leaving stray infrastructure running - see What's pending.
+- `https://kejaapp-backend-7iu3.onrender.com` — one URL for both the web app and its API now (the `-7iu3` suffix is real and permanent — the unsuffixed name was already taken by another Render account). The web app used to be served from a separate `kejaapp-frontend.onrender.com` static site before the two origins were consolidated — see CHANGELOG.md's "Consolidate Web + API onto One Render Origin" entry for why (closing out a cross-origin CSRF cookie problem at the source). That old service briefly lingered on Render after the consolidation (this page incorrectly said it was already gone) but has since actually been deleted by the account owner.
 - Still on Render's default `*.onrender.com` subdomain — no custom domain is wired up yet.
 
 ## Infrastructure
@@ -52,7 +52,6 @@ System/Light/Dark on both web and mobile — System (OS-preference-following, li
 - **Mobile Google Sign-In**: register iOS (`com.kejaapp.mobile`, no cert needed) and Android (`com.kejaapp.mobile` + SHA-1 from `eas credentials`) OAuth client IDs in Google Cloud Console, then set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`/`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Needs the account owner's own EAS login first.
 - **CI billing lock**: GitHub Actions is enabled but every job fails with "your account is locked due to a billing issue" — needs clearing at [github.com/settings/billing](https://github.com/settings/billing).
 - **Custom domain**: still on default `*.onrender.com` subdomains.
-- **Stray `kejaapp-frontend` Render service still exists**: this page previously (incorrectly) said it was retired/deleted after the frontend+backend consolidation - it's actually still deployed and responding, just unused since nothing links to it anymore. Needs the account owner's own call in Render's dashboard (delete it, since nothing depends on it, or leave it) - not something to act on unilaterally.
 - **Mobile iOS verification**: only ever verified on a real Android emulator; iOS device/simulator testing is still outstanding.
 - **`eslint`/`jest` version pinning**: both `frontend/` and `mobile/` are deliberately held back a major version (peer-dependency incompatibilities) — revisit once `eslint-config-expo`/`jest-expo`/`eslint-plugin-react` catch up.
 
