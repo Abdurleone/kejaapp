@@ -71,6 +71,22 @@ updates:
       # native module version.
       - dependency-name: "@sentry/react-native"
         update-types: ["version-update:semver-major"]
+      # react-native itself is the same class of issue again, but this time
+      # it broke on a plain MINOR bump, not just a major one: a
+      # mobile-dependencies group bump (PR #269) carried it 0.86.2 -> 0.87.0,
+      # one version past what the installed Expo SDK 57 actually bundles
+      # (`expo`'s own devDependencies pin react-native@0.86.2 exactly, and
+      # `npx expo-doctor` flagged the mismatch immediately once run). This
+      # broke `jest`/`expo-doctor` outright from a clean install - not a
+      # subtle runtime bug, a total inability to run the test suite at all -
+      # yet 986 tests kept "passing" for two more merged PRs afterward
+      # because nobody re-ran a truly clean `npm ci` in between (CI is
+      # disabled; local node_modules kept a stale, still-working resolution
+      # from before the bump). Caught only by a QA/QC pass that did a clean
+      # reinstall. react-native isn't semver-compatible across Expo SDK
+      # boundaries the way most packages are, so ignore it here entirely -
+      # bump it only via `npx expo install --fix` alongside an SDK upgrade.
+      - dependency-name: "react-native"
 
   - package-ecosystem: github-actions
     directory: /
