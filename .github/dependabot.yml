@@ -62,15 +62,16 @@ updates:
       - dependency-name: "@react-native-async-storage/async-storage"
         update-types: ["version-update:semver-major"]
       # Same class of issue as async-storage above: @sentry/react-native's
-      # major version is tied to the installed Expo SDK, not semver. `npx
-      # expo install` resolves ~7.11.0 as correct for Expo SDK 57; a
+      # version is tied to the installed Expo SDK, not semver. `npx expo
+      # install` resolves ~7.11.0 as correct for Expo SDK 57; a
       # mobile-dependencies group bump (PR #234) tried to carry it to 8.22.0
       # bundled alongside 11 unrelated safe patch/minor updates - caught only
       # by manually reading the PR diff during a QA/QC pass, since CI is
       # disabled and the test suite has no way to detect an SDK-incompatible
-      # native module version.
+      # native module version. Widened from major-only to all update types
+      # after PR #288 tried a plain *minor* bump (7.11.0 -> 7.13.0) - expo's
+      # own devDependencies pin this exact version, not a range.
       - dependency-name: "@sentry/react-native"
-        update-types: ["version-update:semver-major"]
       # react-native itself is the same class of issue again, but this time
       # it broke on a plain MINOR bump, not just a major one: a
       # mobile-dependencies group bump (PR #269) carried it 0.86.2 -> 0.87.0,
@@ -87,6 +88,30 @@ updates:
       # boundaries the way most packages are, so ignore it here entirely -
       # bump it only via `npx expo install --fix` alongside an SDK upgrade.
       - dependency-name: "react-native"
+      # The very next mobile-dependencies group bump after the react-native
+      # fix above (PR #288) proved the problem was never just react-native:
+      # it left react-native pinned (protected by the rule above) but bumped
+      # everything *around* it - react/react-dom, react-native-reanimated,
+      # react-native-safe-area-context, react-native-screens,
+      # react-native-svg, react-native-worklets, @react-native/jest-preset -
+      # back past what Expo SDK 57 actually bundles, plus typescript to a
+      # major version (7.0.2) `@typescript-eslint/eslint-plugin` doesn't
+      # support at all. Verified directly: that PR broke `jest` completely
+      # (38/38 suites failed, 0/216 tests ran) and crashed `npm run lint`
+      # outright ("typescript-eslint does not support TS 7.0"). All of these
+      # are either Expo-SDK-bundle-tied (first group) or peer-range-tied to
+      # a specific typescript major (last one) - ignored here entirely for
+      # the same reason as react-native above, rather than adding each one
+      # back individually the next time a group bump tries it again.
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "react-native-reanimated"
+      - dependency-name: "react-native-safe-area-context"
+      - dependency-name: "react-native-screens"
+      - dependency-name: "react-native-svg"
+      - dependency-name: "react-native-worklets"
+      - dependency-name: "@react-native/jest-preset"
+      - dependency-name: "typescript"
 
   - package-ecosystem: github-actions
     directory: /
