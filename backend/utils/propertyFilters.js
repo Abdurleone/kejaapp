@@ -1,7 +1,6 @@
 import httpStatus from "../constants/httpStatus.js";
 import {
   propertyListedByOptions,
-  propertyStatuses,
   propertyTypes,
   propertyViewingTypes,
 } from "../models/Property.js";
@@ -42,14 +41,6 @@ const buildPropertyFilters = (query) => {
     }
 
     filters.listedBy = query.listedBy;
-  }
-
-  if (query.status) {
-    if (!propertyStatuses.includes(query.status)) {
-      throw new ApiError(httpStatus.BAD_REQUEST, `status must be one of: ${propertyStatuses.join(", ")}`);
-    }
-
-    filters.status = query.status;
   }
 
   if (query.viewingType) {

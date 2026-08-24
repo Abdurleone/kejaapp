@@ -49,18 +49,21 @@ const run = async () => {
   ).lean();
   const reviewedPairs = new Set(existingReviews.map(({ property, user }) => `${property}:${user}`));
 
-  await Promise.all(
-    pastViewings
-      .filter(
-        (viewingRequest) => !reviewedPairs.has(`${propertyId(viewingRequest)}:${viewingRequest.requester}`)
-      )
-      .map((viewingRequest) => notifyReviewPrompt(viewingRequest))
-  );
+  // Sequential, one notify-then-save per viewing request (not a batch
+  // Promise.all followed by a separate bulk updateMany): if one
+  // notification fails mid-run, only the requests not yet processed stay
+  // eligible for the next run - a batch-then-bulk-update approach would
+  // leave every already-notified request's reviewPromptSentAt unset too,
+  // causing them to be re-notified on every subsequent run indefinitely.
+  for (const viewingRequest of pastViewings) {
+    if (!reviewedPairs.has(`${propertyId(viewingRequest)}:${viewingRequest.requester}`)) {
+      await notifyReviewPrompt(viewingRequest);
+    }
 
-  await ViewingRequest.updateMany(
-    { _id: { $in: pastViewings.map((viewingRequest) => viewingRequest._id) } },
-    { $set: { status: "completed", reviewPromptSentAt: new Date() } }
-  );
+    viewingRequest.status = "completed";
+    viewingRequest.reviewPromptSentAt = new Date();
+    await viewingRequest.save();
+  }
 
   return pastViewings.length;
 };

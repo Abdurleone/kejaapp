@@ -12,8 +12,15 @@ describe("buildPropertyFilters", () => {
     assert.equal(filters.type, "studio");
   });
 
-  it("rejects an unsupported status", () => {
-    assert.throws(() => buildPropertyFilters({ status: "not-a-status" }), /status must be one of/);
+  it("ignores any client-supplied status - always forces available", () => {
+    // buildPropertyFilters backs the fully unauthenticated public listing
+    // endpoint, with no ownership scoping - a client-supplied status
+    // override (draft/taken/archived) would let anyone enumerate every
+    // landlord's unpublished/archived listings. Status is only ever
+    // settable via the separate, owner-scoped listMyProperties path.
+    assert.deepEqual(buildPropertyFilters({ status: "draft" }), { status: "available" });
+    assert.deepEqual(buildPropertyFilters({ status: "archived" }), { status: "available" });
+    assert.deepEqual(buildPropertyFilters({ status: "not-a-status" }), { status: "available" });
   });
 
   it("rejects an unsupported type, listedBy, or viewingType", () => {
