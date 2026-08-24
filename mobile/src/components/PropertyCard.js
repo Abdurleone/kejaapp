@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext.js";
 import { formatKes } from "../utils/format.js";
@@ -7,7 +7,11 @@ import { bodyText, boldText } from "../theme/typography.js";
 
 function PropertyCard({ property, apiBaseUrl, onPress, isSaved, onToggleSave, savingFavorite }) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  // Memoized so this doesn't rebuild the whole StyleSheet.create() object on
+  // every render - matches every sibling list-row component's convention of
+  // computing styles once and only recreating them when colors actually
+  // changes (e.g. a theme toggle), not on every parent re-render.
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const rent = property.price?.rent ?? property.rent;
   const area = property.location?.area || property.area || "Nairobi";
   const county = property.location?.county || property.county || "Kenya";

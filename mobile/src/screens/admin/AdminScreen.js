@@ -12,6 +12,7 @@ const roleFilters = [
   { value: "tenant", label: "Tenant" },
   { value: "landlord", label: "Landlord" },
   { value: "agency", label: "Agency" },
+  { value: "mover", label: "Mover" },
   { value: "admin", label: "Admin" },
 ];
 
