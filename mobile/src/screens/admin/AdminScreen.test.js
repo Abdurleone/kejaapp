@@ -45,6 +45,24 @@ describe("AdminScreen", () => {
     await waitFor(() => expect(getByText("No users match this search")).toBeTruthy());
   });
 
+  it("can filter the user list down to the mover role", async () => {
+    // Regression test: the Mover role chip was missing entirely from
+    // roleFilters, even though the backend and web frontend both already
+    // supported filtering by it - an admin on mobile had no way to narrow
+    // the user list down to mover accounts.
+    fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
+
+    const { getByText } = await render(<AdminScreen />);
+
+    await waitFor(() => expect(fetchAdminUsers).toHaveBeenCalledTimes(1));
+
+    fireEvent.press(getByText("Mover"));
+
+    await waitFor(() =>
+      expect(fetchAdminUsers).toHaveBeenLastCalledWith(expect.objectContaining({ role: "mover" }))
+    );
+  });
+
   it("switches to the Reviews segment and shows a read-only review list", async () => {
     fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
     fetchAdminReviews.mockResolvedValue([
