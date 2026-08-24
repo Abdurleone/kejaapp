@@ -19,7 +19,15 @@ export function AuthProvider({ children }) {
     let active = true;
 
     (async () => {
-      const token = await getAuthToken();
+      let token;
+      try {
+        token = await getAuthToken();
+      } catch {
+        // SecureStore unavailable/failed - treat the same as no stored token
+        // rather than leaving the app stuck on the loading screen forever.
+        if (active) setLoading(false);
+        return;
+      }
 
       if (!token) {
         if (active) setLoading(false);

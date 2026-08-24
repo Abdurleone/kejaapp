@@ -94,6 +94,15 @@ describe("AuthContext", () => {
     await waitFor(() => expect(getByText("signed-out")).toBeTruthy());
   });
 
+  it("falls back to signed out, not stuck loading, when reading the stored token itself throws", async () => {
+    getAuthToken.mockRejectedValue(new Error("SecureStore unavailable"));
+
+    const { getByText } = await renderConsumer();
+
+    await waitFor(() => expect(getByText("signed-out")).toBeTruthy());
+    expect(fetchCurrentUser).not.toHaveBeenCalled();
+  });
+
   it("login signs the user in and registers for push", async () => {
     getAuthToken.mockResolvedValue("");
     loginUser.mockResolvedValue({ user: { name: "Jane" } });
