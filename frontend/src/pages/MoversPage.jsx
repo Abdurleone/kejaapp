@@ -208,7 +208,7 @@ function MoverDirectory({ signedIn, onRequireAuth, currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
-  const [filters, setFilters] = useState({ serviceType: "", county: "", maxBasePrice: "" });
+  const [filters, setFilters] = useState({ serviceType: "", county: "" });
   const [countyInput, setCountyInput] = useState("");
 
   // Debounce the free-text county input into `filters.county` (what

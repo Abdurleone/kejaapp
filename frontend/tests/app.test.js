@@ -64,10 +64,33 @@ describe("frontend app utilities", () => {
     );
   });
 
-  it("assigns status tones", () => {
+  it("assigns status tones for user accounts", () => {
     assert.equal(statusTone("active"), "status-active");
     assert.equal(statusTone("suspended"), "status-suspended");
     assert.equal(statusTone("banned"), "status-banned");
+  });
+
+  it("assigns status tones for properties, including draft/archived - not banned-red", () => {
+    assert.equal(statusTone("available"), "status-active");
+    assert.equal(statusTone("taken"), "status-suspended");
+    assert.equal(statusTone("draft"), "status-suspended");
+    assert.equal(statusTone("archived"), "status-suspended");
+  });
+
+  it("assigns status tones for mover requests, including accepted/completed - not banned-red", () => {
+    assert.equal(statusTone("pending"), "status-suspended");
+    assert.equal(statusTone("accepted"), "status-active");
+    assert.equal(statusTone("completed"), "status-active");
+    assert.equal(statusTone("declined"), "status-banned");
+    assert.equal(statusTone("cancelled"), "status-banned");
+  });
+
+  it("assigns status tones for viewing requests and inquiries/feedback", () => {
+    assert.equal(statusTone("approved"), "status-active");
+    assert.equal(statusTone("rejected"), "status-banned");
+    assert.equal(statusTone("open"), "status-suspended");
+    assert.equal(statusTone("responded"), "status-active");
+    assert.equal(statusTone("closed"), "status-suspended");
   });
 
   it("formats status labels", () => {
