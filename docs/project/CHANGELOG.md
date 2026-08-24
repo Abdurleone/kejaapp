@@ -83,6 +83,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Whole-Codebase Risk Register](#whole-codebase-risk-register)
 - [Dependabot Backlog Review: One More Mobile SDK-Drift Incident, Caught Before Merge](#dependabot-backlog-review-one-more-mobile-sdk-drift-incident-caught-before-merge)
 - [Fix: Auth Session-Restore Hung Forever When SecureStore Threw](#fix-auth-session-restore-hung-forever-when-securestore-threw)
+- [QA/QC and Risk Register Refresh: First Clean Mobile Live-Device Pass](#qaqc-and-risk-register-refresh-first-clean-mobile-live-device-pass)
 
 ---
 
@@ -873,3 +874,12 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Fix**: wrapped the `getAuthToken()` call in its own try/catch that treats any failure the same as "no stored token" - `setLoading(false)` and returns to a signed-out render, rather than leaving the effect (and the whole app) hung. This is correct regardless of *why* the read fails, not just for this specific Expo-Go-native-module quirk.
 - **New regression test**: `AuthContext.test.js` gained a case asserting the app reaches signed-out state (not stuck loading) when `getAuthToken()` itself rejects - the existing "invalid token" test only covered `fetchCurrentUser()` rejecting, a different code path that was already guarded. 38/38 mobile suites, 217/217 tests (+1), 0 lint errors.
 - **The underlying SecureStore native-module mismatch itself was not "fixed"** - it appears to be specific to the sideloaded Expo Go 57.0.9 build's own bundled native modules, not this project's `expo-secure-store` dependency version (already verified correct by `expo-doctor` earlier this session). Not something fixable from application code; noted here for anyone who hits the same symptom again.
+
+---
+
+## QA/QC and Risk Register Refresh: First Clean Mobile Live-Device Pass
+
+- **Full backend/frontend/mobile refresh** - see `docs/project/qa-qc-report.md` for the complete snapshot. All three packages clean on a fresh install: backend 584/584 tests, frontend 87 node:test + 186 Vitest, mobile 38/38 suites/217/217 tests from a truly `rm -rf node_modules` clean reinstall - no repeat of the SDK-drift regression from two entries above, confirming the widened `dependabot.yml` guard rails are holding. 0 lint errors and 0 `npm audit` vulnerabilities (backend/frontend) across the board. Production re-verified live and healthy.
+- **Dependabot alerts down to 1 open** (`minimatch`, ReDoS-class) - `image-size` resolved naturally via an upstream update since the last check. No open PRs. CI re-confirmed still disabled (billing lock, unchanged).
+- **The mobile section of the QA/QC report now records a real milestone**: live device verification "achieved" for the first time this project's QA history has tracked, rather than "not attempted." Cross-referenced against the AuthContext fix above and the Troubleshooting.md path that got there.
+- **`docs/compliance/risk.md` refreshed to match**: the mobile-dependency-drift item updated to reflect a fourth incident (#288, closed before merge rather than after - real progress, but proof the pattern isn't fully closed by one ignore rule); the Dependabot-alerts item's count corrected; a new item added specifically for how much infrastructure friction mobile live-device testing took to get through this session (Windows-emulator bridging blocked by this sandbox's own disabled port-forwarding, a native emulator blocked by memory, a manually-configured ngrok tunnel as what actually worked) - rated Low impact (a coverage-timing risk, not a live production issue) but flagged as worth reducing given every mobile bug found via live testing so far was only findable that way.
