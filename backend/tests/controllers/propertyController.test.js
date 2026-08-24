@@ -228,7 +228,12 @@ describe("propertyController", () => {
     assert.doesNotMatch(ownerProjection, /phone/);
   });
 
-  it("allows explicit property status filters", async () => {
+  it("ignores a client-supplied status filter and always lists only available properties", async () => {
+    // The public listing endpoint has no ownership scoping at all, so a
+    // client-supplied status (draft/taken/archived) would otherwise let
+    // anyone enumerate every landlord's unpublished/archived listings -
+    // status is only ever settable via listMyProperties, which is
+    // owner-scoped separately.
     let findFilters;
     mock.method(Property, "find", (filters) => {
       findFilters = filters;
@@ -250,26 +255,13 @@ describe("propertyController", () => {
     });
     mock.method(Property, "countDocuments", () => Promise.resolve(0));
 
-    const req = { query: { status: "taken" } };
+    const req = { query: { status: "draft" } };
     const res = createResponse();
 
     await listProperties(req, res, () => {});
 
-    assert.deepEqual(findFilters, { status: "taken" });
+    assert.deepEqual(findFilters, { status: "available" });
     assert.equal(res.statusCode, 200);
-  });
-
-  it("rejects invalid property status filters", async () => {
-    const req = { query: { status: "rented" } };
-    const res = createResponse();
-    let nextError;
-
-    await listProperties(req, res, (error) => {
-      nextError = error;
-    });
-
-    assert.equal(nextError.statusCode, 400);
-    assert.equal(nextError.message, "status must be one of: draft, available, taken, archived");
   });
 
   it("lists the current owner's properties across statuses", async () => {

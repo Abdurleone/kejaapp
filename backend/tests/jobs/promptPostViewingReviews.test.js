@@ -7,14 +7,23 @@ import Notification from "../../models/Notification.js";
 import Review from "../../models/Review.js";
 import ViewingRequest from "../../models/ViewingRequest.js";
 
-const buildViewingRequest = () => ({
-  _id: new mongoose.Types.ObjectId(),
-  requester: new mongoose.Types.ObjectId(),
-  owner: new mongoose.Types.ObjectId(),
-  property: { _id: new mongoose.Types.ObjectId(), title: "Modern Kilimani Apartment" },
-  status: "approved",
-  reviewPromptSentAt: null,
-});
+const buildViewingRequest = () => {
+  const viewingRequest = {
+    _id: new mongoose.Types.ObjectId(),
+    requester: new mongoose.Types.ObjectId(),
+    owner: new mongoose.Types.ObjectId(),
+    property: { _id: new mongoose.Types.ObjectId(), title: "Modern Kilimani Apartment" },
+    status: "approved",
+    reviewPromptSentAt: null,
+    saveCallCount: 0,
+  };
+
+  viewingRequest.save = async function () {
+    viewingRequest.saveCallCount += 1;
+  };
+
+  return viewingRequest;
+};
 
 const mockNoExistingReviews = () => mock.method(Review, "find", () => ({ lean: async () => [] }));
 
@@ -54,13 +63,6 @@ describe("promptPostViewingReviews job", () => {
     const viewingRequest = buildViewingRequest();
     const filtersByCall = mockScheduledOnly([viewingRequest]);
     mockNoExistingReviews();
-    let updateManyFilter;
-    let updateManyUpdate;
-    mock.method(ViewingRequest, "updateMany", async (filter, update) => {
-      updateManyFilter = filter;
-      updateManyUpdate = update;
-      return { acknowledged: true };
-    });
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
@@ -72,9 +74,9 @@ describe("promptPostViewingReviews job", () => {
     assert.ok(scheduledFilters.requestedDate.$lt instanceof Date);
     assert.ok(scheduledFilters.requestedDate.$gte instanceof Date);
     assert.equal(create.mock.callCount(), 1);
-    assert.deepEqual(updateManyFilter, { _id: { $in: [viewingRequest._id] } });
-    assert.equal(updateManyUpdate.$set.status, "completed");
-    assert.ok(updateManyUpdate.$set.reviewPromptSentAt instanceof Date);
+    assert.equal(viewingRequest.status, "completed");
+    assert.ok(viewingRequest.reviewPromptSentAt instanceof Date);
+    assert.equal(viewingRequest.saveCallCount, 1);
     assert.equal(processedCount, 1);
   });
 
@@ -82,13 +84,14 @@ describe("promptPostViewingReviews job", () => {
     const viewingRequest = buildViewingRequest();
     mockScheduledOnly([viewingRequest]);
     mockExistingReview(viewingRequest);
-    mock.method(ViewingRequest, "updateMany", async () => ({ acknowledged: true }));
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
     const processedCount = await run();
 
     assert.equal(create.mock.callCount(), 0);
+    assert.equal(viewingRequest.status, "completed");
+    assert.equal(viewingRequest.saveCallCount, 1);
     assert.equal(processedCount, 1);
   });
 
@@ -101,6 +104,40 @@ describe("promptPostViewingReviews job", () => {
 
     assert.equal(create.mock.callCount(), 0);
     assert.equal(processedCount, 0);
+  });
+
+  it("leaves only the failed viewing request (and anything after it) eligible for retry when a mid-batch notification throws - does not re-notify ones already processed", async () => {
+    // Regression test: this job used to batch every notify() call via
+    // Promise.all, then bulk-updateMany every candidate's status/
+    // reviewPromptSentAt in one separate step - so a single failure
+    // anywhere in the batch skipped the bulk update entirely, leaving even
+    // the requests that succeeded unmarked and re-notified on every
+    // subsequent run. The fix processes requests one at a time,
+    // notify-then-save, so a failure partway through only leaves the
+    // requests from that point onward eligible for retry.
+    const firstViewing = buildViewingRequest();
+    const secondViewing = buildViewingRequest();
+    const thirdViewing = buildViewingRequest();
+
+    mockScheduledOnly([firstViewing, secondViewing, thirdViewing]);
+    mockNoExistingReviews();
+    mock.method(DeviceToken, "find", async () => []);
+    mock.method(Notification, "create", async (payload) => {
+      if (payload.data.viewingRequest === secondViewing._id) {
+        throw new Error("transient write failure");
+      }
+
+      return payload;
+    });
+
+    await assert.rejects(() => run(), /transient write failure/);
+
+    assert.equal(firstViewing.status, "completed");
+    assert.equal(firstViewing.saveCallCount, 1);
+    assert.equal(secondViewing.status, "approved");
+    assert.equal(secondViewing.saveCallCount, 0);
+    assert.equal(thirdViewing.status, "approved");
+    assert.equal(thirdViewing.saveCallCount, 0);
   });
 
   it("also picks up an old-enough open viewing (no requestedDate), anchored on createdAt", async () => {
@@ -119,7 +156,6 @@ describe("promptPostViewingReviews job", () => {
       };
     });
     mockNoExistingReviews();
-    mock.method(ViewingRequest, "updateMany", async () => ({ acknowledged: true }));
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
@@ -150,13 +186,14 @@ describe("promptPostViewingReviews job", () => {
       };
     });
     mockNoExistingReviews();
-    mock.method(ViewingRequest, "updateMany", async () => ({ acknowledged: true }));
     mock.method(DeviceToken, "find", async () => []);
     const create = mock.method(Notification, "create", async (payload) => payload);
 
     const processedCount = await run();
 
     assert.equal(create.mock.callCount(), 2);
+    assert.equal(scheduledViewing.saveCallCount, 1);
+    assert.equal(openViewing.saveCallCount, 1);
     assert.equal(processedCount, 2);
   });
 });

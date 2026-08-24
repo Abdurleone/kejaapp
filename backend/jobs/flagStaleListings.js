@@ -25,16 +25,23 @@ const run = async () => {
     inquiryCounts.map(({ _id, count }) => [_id.toString(), count])
   );
 
-  await Promise.all(
-    staleCandidates
-      .filter((property) => !inquiryCountByProperty.get(property._id.toString()))
-      .map((property) => notifyStaleListing(property))
-  );
+  // Sequential, one notify-then-save per property (not a batch Promise.all
+  // followed by a separate bulk updateMany): if one notification fails
+  // mid-run, only the properties not yet processed stay eligible for the
+  // next run - a batch-then-bulk-update approach would leave every
+  // already-notified property's freshnessNudgeSentAt unset too, causing
+  // them to be re-notified on every subsequent run indefinitely.
+  for (const property of staleCandidates) {
+    if (inquiryCountByProperty.get(property._id.toString())) {
+      property.freshnessNudgeSentAt = new Date();
+      await property.save();
+      continue;
+    }
 
-  await Property.updateMany(
-    { _id: { $in: propertyIds } },
-    { $set: { freshnessNudgeSentAt: new Date() } }
-  );
+    await notifyStaleListing(property);
+    property.freshnessNudgeSentAt = new Date();
+    await property.save();
+  }
 
   return staleCandidates.length;
 };
