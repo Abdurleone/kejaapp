@@ -50,6 +50,24 @@ describe("DiscoverScreen", () => {
     expect(navigation.navigate).toHaveBeenCalledWith("PropertyDetail", { propertyId: "p1" });
   });
 
+  it("keeps the filter chips collapsed until Filters is tapped, showing an active-count badge", async () => {
+    const { getByText, queryByText } = await render(<DiscoverScreen navigation={navigation} />);
+
+    await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
+
+    expect(queryByText("Any type")).toBeNull();
+    expect(getByText("Filters")).toBeTruthy();
+
+    fireEvent.press(getByText("Filters"));
+    await waitFor(() => expect(getByText("Any type")).toBeTruthy());
+
+    fireEvent.press(getByText("Studio"));
+    await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ type: "studio" })));
+
+    fireEvent.press(getByText("Filters (1)"));
+    await waitFor(() => expect(queryByText("Any type")).toBeNull());
+  });
+
   it("redirects to sign in when saving a favorite while signed out", async () => {
     const { getByText } = await render(<DiscoverScreen navigation={navigation} />);
 
@@ -84,6 +102,8 @@ describe("DiscoverScreen", () => {
 
     await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
 
+    fireEvent.press(getByText("Filters"));
+    await waitFor(() => expect(getByText("Near me")).toBeTruthy());
     fireEvent.press(getByText("Near me"));
 
     await waitFor(() =>
@@ -107,6 +127,8 @@ describe("DiscoverScreen", () => {
 
     await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
 
+    fireEvent.press(getByText("Filters"));
+    await waitFor(() => expect(getByText("Near me")).toBeTruthy());
     fireEvent.press(getByText("Near me"));
 
     await waitFor(() => expect(getByText("Location permission was denied.")).toBeTruthy());
@@ -117,6 +139,8 @@ describe("DiscoverScreen", () => {
 
     await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
 
+    fireEvent.press(getByText("Filters"));
+    await waitFor(() => expect(getByText("Studio")).toBeTruthy());
     fireEvent.press(getByText("Studio"));
     await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ type: "studio" })));
 
@@ -150,6 +174,8 @@ describe("DiscoverScreen", () => {
 
     await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
 
+    fireEvent.press(getByText("Filters"));
+    await waitFor(() => expect(getByText("Studio")).toBeTruthy());
     fireEvent.press(getByText("Studio"));
     await waitFor(() => expect(fetchProperties).toHaveBeenCalledWith(expect.objectContaining({ type: "studio" })));
 
@@ -198,6 +224,8 @@ describe("DiscoverScreen", () => {
     const { getByText, queryByText } = await render(<DiscoverScreen navigation={navigation} />);
     await waitFor(() => expect(getByText("Cozy studio")).toBeTruthy());
 
+    fireEvent.press(getByText("Filters"));
+    await waitFor(() => expect(getByText("Studio")).toBeTruthy());
     fireEvent.press(getByText("Studio"));
     await waitFor(() => expect(fetchProperties).toHaveBeenCalledTimes(2));
 
