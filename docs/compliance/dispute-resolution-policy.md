@@ -50,4 +50,4 @@ Every account status change KejaApp's admins make is logged with a reason and vi
 
 ## 6. Review
 
-This policy should be revisited whenever KejaApp's enforcement mechanism (trust-and-safety violations, verification workflow) changes. Maintained in `docs/dispute-resolution-policy.md`.
+This policy should be revisited whenever KejaApp's enforcement mechanism (trust-and-safety violations, verification workflow) changes. Maintained in `docs/compliance/dispute-resolution-policy.md`.

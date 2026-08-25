@@ -70,7 +70,7 @@ Ethical violations are handled through the same trust-and-safety mechanism alrea
 
 ## 5. Ownership and review
 
-This document is maintained alongside the codebase in `docs/code-of-ethics.md` and should be reviewed whenever a new user role, verification workflow, or moderation mechanism is added — most recently updated for the mover role, mover verification, and role-scoped property access.
+This document is maintained alongside the codebase in `docs/compliance/code-of-ethics.md` and should be reviewed whenever a new user role, verification workflow, or moderation mechanism is added — most recently updated for the mover role, mover verification, and role-scoped property access.
 
 ## 6. Relationship to formal certification
 

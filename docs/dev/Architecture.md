@@ -112,6 +112,7 @@ See **[Governance and Policies](Governance-and-Policies)** for what each `docs/`
 - **Trust & safety**: property image fingerprinting, duplicate-image violation records, admin violation review, automatic ban on the 4th active violation.
 - **Platform feedback**: tenants/landlords/agencies/movers submit feedback, only admins respond, responding immediately publishes it as a public testimonial. See the [Platform Feedback](Features-and-User-Stories#platform-feedback) user story.
 - **Movers**: `mover` is a full user role (self-registers like tenant/landlord/agency); a `Mover` business-directory document links to that account plus a GeoJSON `location.coordinates` (2dsphere) for proximity search. `MoverVerification` mirrors agency verification exactly (admin approve/reject, syncs `Mover.verified`). Landlords/agencies manage trusted affiliates (`Mover.affiliatedOwners`); `GET /api/properties/:id/movers` returns a property's affiliated movers plus verified movers within a radius, deduplicated. `MoverRequest` (modeled on `Inquiry`) handles the tenant → mover service-request lifecycle (create, accept/decline/complete, cancel), with notifications on create and every status change. Public listing endpoint supports filters for service type, county, rating, base price, and proximity. Optionally captures the tenant's device location (`pickupLat`/`pickupLng`) at request time; a `haversineDistanceKm` util (`backend/utils/propertyFilters.js`) computes the pickup-to-dropoff distance against the destination property's coordinates on every response, rather than storing it, so it can't go stale.
+- **Support KejaApp (voluntary M-Pesa)**: a service charge paid directly to the app's own developer/shortcode, deliberately outside the inter-user Payment Boundary (see `CLAUDE.md`) — never routes money between tenants/landlords/agencies/movers. `POST /api/support-payments` (Daraja OAuth + STK push) and `POST /api/support-payments/callback` (Safaricom's own webhook, idempotent). Same "empty = disabled" convention as VAPID/Sentry: all five `MPESA_*` env vars required or the endpoint 503s. See [Payments](Payments).
 
 **Developer workflow**
 - Demo seed script: `backend/seeders/seedDemoData.js`.
@@ -126,7 +127,7 @@ The web frontend (`frontend/`) is a React 19 + Vite single-page app with **manua
 
 **Key files**
 - `src/App.jsx` — top-level component: header, nav, the sign-in/register modal, and a `renderCurrentPage()` switch over the current view.
-- `src/pages/` — one component per view: `LandingPage`, `DashboardPage`, `DiscoverPage`, `SavedPage`, `WorkspacePage`, `PropertyEditPage`, `PropertyCreatePage`, `AdminPage`, `NotificationsPage`, `FeedbackPage`, `MoversPage`, `AccountPage`, plus a few standalone pages (`PropertyDetailPage`, `PrivacyPage`, `TermsPage`, `DeleteAccountPage`).
+- `src/pages/` — one component per view: `LandingPage`, `DashboardPage`, `DiscoverPage`, `SavedPage`, `WorkspacePage`, `PropertyEditPage`, `PropertyCreatePage`, `AdminPage`, `NotificationsPage`, `FeedbackPage`, `MoversPage`, `AccountPage`, plus a few standalone pages (`PropertyDetailPage`, `DataProtectionPage` — serves both `/privacy` and `/data-protection`, `PrivacyPage` was consolidated into it — `TermsPage`, `DeleteAccountPage`, `SelectRolePage`, `SupportPage` — the voluntary M-Pesa "Support KejaApp" page, see `Payments.md` — `NotFoundPage`).
 - `src/components/PropertyForm.jsx` — shared create/edit form fields, used by both `PropertyCreatePage` and `PropertyEditPage`.
 - `app-utils/` (repo root of `frontend/`) — the "everything else" module set, split by concern: `client.js` (`apiFetch` wrapper, CSRF token handling, view-routing helpers), `api.js` (every domain-specific API helper — `fetchProperties`, `loginUser`, `createFeedback`, etc.), `access.js` (role/access-control helpers — `canAccessView`, `canManageListings`), plus `format.js`/`misc.js`. An in-memory request cache with TTL + prefix-based invalidation lives in `client.js` (`getCached`/`setCached`/`clearRequestCache`). `app-utils.js` (no trailing directory) still exists alongside it as a ~10-line barrel re-exporting all five, kept only so pre-existing imports/mocks of the old flat-file path keep working.
 
@@ -139,6 +140,80 @@ The web frontend (`frontend/`) is a React 19 + Vite single-page app with **manua
 
 **Caching**: several `fetch*` helpers in `app-utils/api.js` cache their result in-memory for 15–60 seconds (see the full list in [Scaling & Load Balancing](scaling-load-balancing.md#caching)) to avoid redundant refetches on remount. Writes invalidate the relevant cache prefix; login/logout/register/account-deletion clear everything.
 
+**Navigation flow**, per role (`canAccessView`/`roleViewAccess` in `app-utils/access.js`):
+
+```mermaid
+flowchart LR
+    Anon(["Signed out"]) --> Discover
+    Anon --> Movers
+
+    Tenant(["tenant"]) --> Dashboard
+    Tenant --> Discover
+    Tenant --> Saved
+    Tenant --> Movers
+    Tenant --> Notif
+    Tenant --> Feedback
+    Tenant --> Account
+
+    LA(["landlord / agency"]) --> Dashboard
+    LA --> Workspace
+    LA --> Movers
+    LA --> Notif
+    LA --> Feedback
+    LA --> Account
+
+    Mover(["mover"]) --> Dashboard
+    Mover --> Movers
+    Mover --> Notif
+    Mover --> Feedback
+    Mover --> Account
+
+    Admin(["admin"]) --> Dashboard
+    Admin --> AdminConsole["Admin"]
+    Admin --> Notif
+    Admin --> Feedback
+    Admin --> Account
+
+    Discover --> PropertyDetail
+    Workspace --> PropertyCreate["Property create"]
+    Workspace --> PropertyEdit["Property edit"]
+
+    Notif["Notifications"]
+```
+
+Always reachable regardless of role or sign-in state (not shown above, no nav entry): `privacy`/`terms`/`data protection`, `delete account`, `select role` (forced once when `roleConfirmed` is `false`), and `support` (Support KejaApp — signed-in only, prompts sign-in otherwise). `property detail` is also directly reachable by every role except `mover` and signed-out visitors without an active property.
+
 ## Mobile app
 
 See **[Mobile App](Keja-App)** for the full picture — Expo setup, running on a device/emulator, pointing it at your backend, and known gaps versus the web frontend.
+
+**Navigation structure** (`RootNavigator.js` → `MainTabs.js`, `roleTabs.js`): the bottom tab bar is always exactly 3 tabs — two role-specific tabs pinned, plus a **More** tab that pushes every other role-visible screen as a menu instead of consuming its own bar slot:
+
+```mermaid
+flowchart TD
+    Root["RootNavigator"] --> RoleCheck{"roleConfirmed === false?"}
+    RoleCheck -- yes --> SelectRole["SelectRoleScreen\n(replaces the whole tree)"]
+    RoleCheck -- no --> Tabs["MainTabs\nalways exactly 3 tabs"]
+
+    Tabs --> PinnedA["Pinned tab #1: Dashboard"]
+    Tabs --> PinnedB["Pinned tab #2: role's signature feature"]
+    Tabs --> More["More tab"]
+
+    More --> MoreMenu["lists every non-pinned\nscreen for this role"]
+    MoreMenu --> Saved["Saved (tenant only)"]
+    MoreMenu --> Requests["Requests (tenant only)\nInquiries / Viewings sub-tabs"]
+    MoreMenu --> MoversHidden["Movers (signed out, tenant, landlord/agency\n- pinned instead for mover, absent for admin)"]
+    MoreMenu --> Notifications
+    MoreMenu --> Feedback
+    MoreMenu --> Account
+
+    PinnedB -- "Discover\n(signed out / tenant)" --> PropertyDetail
+    PropertyDetail --> Inquiry["InquiryForm"]
+    PropertyDetail --> Viewing["ViewingRequestForm"]
+    PropertyDetail --> MoverReq["MoverRequestForm"]
+    PinnedB -- "Workspace\n(landlord / agency)" --> PropertyCreate
+    PinnedB -- "Workspace\n(landlord / agency)" --> PropertyEdit
+    PinnedB -- "Movers (mover) /\nAdmin (admin)" --> RoleScreen["own screen, no further drill-down shown here"]
+```
+
+Same screens are reused whether reached via a pinned tab or through More — `MoversScreen`, for example, renders the tenant/owner-facing directory or the mover's own profile/requests dashboard depending on role, regardless of which nav path got there. `mover` and signed-out visitors are excluded from Discover/property-detail entirely (movers work from requests/notifications instead); only `tenant` gets the Saved and Requests tabs; only `landlord`/`agency` gets Workspace; only `admin` gets the Admin tab.

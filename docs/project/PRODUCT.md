@@ -35,7 +35,7 @@ KejaApp is explicitly **not a party to any tenancy or payment** — it does not 
 ## Capabilities and Constraints
 
 - Role-based access (tenant/landlord/agency/mover/admin) enforced on both frontend and backend, including ownership scoping (a landlord only manages their own listings).
-- No on-platform payment processing, by design — not a missing feature, a firm product boundary.
+- No *inter-user* payment processing (rent, deposits, agency fees, mover charges), by design — not a missing feature, a firm product boundary (see [CLAUDE.md](../../CLAUDE.md)'s Payment Boundary). The one exception, deliberately outside that boundary: "Support KejaApp," a voluntary M-Pesa service charge paid directly to the app's own developer, never routing money between two other users.
 - A "Verified" badge (agency or mover) is a business-identity trust signal from admin document review — not a guarantee, endorsement, or warranty of listing accuracy or service quality.
 - Automatic account ban after repeated (4th) detected duplicate-listing-image violations.
 - No full internationalization system exists — English is the functional UI language; Swahili/Sheng appears as flavor in copy, not a translated locale.

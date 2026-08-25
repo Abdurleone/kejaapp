@@ -196,6 +196,16 @@ Responses for all four routes above include a `distanceKm`/`priceEstimate` pair 
 
 `pickupLat`/`pickupLng` (both optional) capture the tenant's device location at request time. Every mover-request response includes a computed `distanceKm` whenever both that pickup point and the destination property's coordinates are available — it's never stored, so it can't go stale if a property's location changes.
 
+## Support payments (voluntary M-Pesa)
+
+```text
+POST /api/support-payments             any signed-in user (Daraja STK push; rate-limited 5/window - each call is a real PIN prompt)
+GET  /api/support-payments/:id         any signed-in user (poll payment status)
+POST /api/support-payments/callback    Safaricom's own webhook, no auth (idempotent against retries)
+```
+
+A voluntary service charge paid directly to the app's own developer/shortcode - deliberately outside the inter-user Payment Boundary (see `CLAUDE.md`), never routes money between tenants/landlords/agencies/movers. Same "empty = disabled" convention as VAPID/Sentry: all five `MPESA_*` env vars required or `POST /api/support-payments` 503s. See [Payments](Payments) for the full setup.
+
 ## Manual testing with Insomnia
 
 1. Import `docs/kejaapp-insomnia.json` into [Insomnia](https://insomnia.rest/).

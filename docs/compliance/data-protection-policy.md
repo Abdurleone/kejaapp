@@ -147,4 +147,4 @@ Data protection questions, rights requests, and breach reports: `privacy@kejaapp
 
 ## 17. Review
 
-This policy is maintained in `docs/data-protection-policy.md` and should be revisited whenever a new data category, third-party processor, or user role is introduced — most recently updated to disclose Sentry as a third-party processor (Section 7) and, in a follow-up compliance pass, to correct Section 11's CSRF description (which had overstated `sameSite: "none"` as universal after the Render consolidation made production same-origin) and credit the frontend's new Content-Security-Policy.
+This policy is maintained in `docs/compliance/data-protection-policy.md` and should be revisited whenever a new data category, third-party processor, or user role is introduced — most recently updated to disclose Sentry as a third-party processor (Section 7) and, in a follow-up compliance pass, to correct Section 11's CSRF description (which had overstated `sameSite: "none"` as universal after the Render consolidation made production same-origin) and credit the frontend's new Content-Security-Policy.

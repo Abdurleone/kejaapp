@@ -19,7 +19,7 @@ For the full detail behind every section here, see [docs/devops.md](https://gith
 
 - `backend/Dockerfile` — Node 22 Alpine, production deps only, `HEALTHCHECK` against `GET /api/health/live`.
 - `frontend/Dockerfile` — multi-stage: Node builds the Vite bundle, Nginx Alpine serves it. `frontend/nginx.conf` handles SPA routing and long-cache headers for hashed assets.
-- `docker-compose.yml` — wires `mongo`, `redis`, `backend`, `frontend` together for a full local/staging stack.
+- `docker-compose.yml` — wires `mongo`, `redis`, `clamav`, `backend`, `frontend` together for a full local/staging stack.
 
 ```bash
 cp .env.example .env   # set JWT_SECRET

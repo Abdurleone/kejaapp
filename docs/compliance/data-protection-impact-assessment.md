@@ -49,7 +49,7 @@ A Data Protection Impact Assessment identifies and mitigates privacy risk **befo
 
 ## 5. Review
 
-Each assessment above should be revisited whenever its underlying feature changes materially (e.g. if mover location were ever persisted, or if image fingerprinting were extended beyond perceptual hashing). Maintained in `docs/data-protection-impact-assessment.md`.
+Each assessment above should be revisited whenever its underlying feature changes materially (e.g. if mover location were ever persisted, or if image fingerprinting were extended beyond perceptual hashing). Maintained in `docs/compliance/data-protection-impact-assessment.md`.
 
 ## 6. Scope and limitations
 

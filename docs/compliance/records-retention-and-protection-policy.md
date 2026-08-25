@@ -31,7 +31,7 @@ Documenting these honestly rather than implying a guarantee that doesn't exist:
 
 ## 5. Review
 
-This policy should be revisited whenever a new record type with retention implications is introduced, and at minimum whenever the [Statement of Applicability](iso27001-statement-of-applicability.md) is reviewed. Maintained in `docs/records-retention-and-protection-policy.md`.
+This policy should be revisited whenever a new record type with retention implications is introduced, and at minimum whenever the [Statement of Applicability](iso27001-statement-of-applicability.md) is reviewed. Maintained in `docs/compliance/records-retention-and-protection-policy.md`.
 
 ## 6. Scope and limitations
 
