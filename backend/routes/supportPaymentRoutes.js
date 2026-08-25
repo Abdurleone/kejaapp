@@ -34,9 +34,10 @@ router.get("/:id", protect, getSupportPaymentStatus);
 // No protect/CSRF here on purpose - Safaricom's servers call this directly,
 // carrying none of our own auth/CSRF cookies. csrfProtection.js (mounted
 // globally on /api) already lets a cookie-less request through unblocked;
-// this route's own defense is handleMpesaCallback's strict payload shape
-// check plus looking the payment up by Safaricom's own unguessable
-// CheckoutRequestID, not trusting anything else in the body.
-router.post("/callback", handleMpesaCallback);
+// this route's real defense is the :secret path segment, checked in
+// handleMpesaCallback against MPESA_CALLBACK_SECRET - never exposed to any
+// client, unlike CheckoutRequestID (returned to the paying user themselves in
+// initiateSupportPayment's response, so it can't double as an auth check).
+router.post("/callback/:secret", handleMpesaCallback);
 
 export default router;

@@ -188,6 +188,26 @@ if (process.env.MPESA_CALLBACK_URL) {
   assertValidUrl(process.env.MPESA_CALLBACK_URL, "MPESA_CALLBACK_URL");
 }
 
+// Required as soon as the rest of the M-Pesa config is present, not just an
+// optional hardening extra: Safaricom's STK callback carries no signature of
+// its own, and the CheckoutRequestID handleMpesaCallback looks payments up by
+// is returned directly to the initiating user in initiateSupportPayment's own
+// response - so it can't double as an unguessable secret against that same
+// user forging their own "payment completed" callback. This value never
+// reaches any client; it's appended to MPESA_CALLBACK_URL's path when
+// registering the callback with Safaricom, then compared against the
+// incoming request's own path segment (see supportPaymentRoutes.js).
+if (
+  process.env.MPESA_CONSUMER_KEY &&
+  process.env.MPESA_CONSUMER_SECRET &&
+  process.env.MPESA_SHORTCODE &&
+  process.env.MPESA_PASSKEY &&
+  process.env.MPESA_CALLBACK_URL &&
+  !process.env.MPESA_CALLBACK_SECRET
+) {
+  throw new Error("MPESA_CALLBACK_SECRET is required once the other MPESA_* variables are set");
+}
+
 if (storageDriver === "s3") {
   const requiredS3Env = {
     S3_BUCKET: s3Config.s3Bucket,
@@ -377,6 +397,7 @@ const env = {
   mpesaShortcode: process.env.MPESA_SHORTCODE || "",
   mpesaPasskey: process.env.MPESA_PASSKEY || "",
   mpesaCallbackUrl: process.env.MPESA_CALLBACK_URL || "",
+  mpesaCallbackSecret: process.env.MPESA_CALLBACK_SECRET || "",
   mpesaEnvironment: process.env.MPESA_ENVIRONMENT === "production" ? "production" : "sandbox",
   mpesaTransactionType:
     process.env.MPESA_TRANSACTION_TYPE === "CustomerBuyGoodsOnline"

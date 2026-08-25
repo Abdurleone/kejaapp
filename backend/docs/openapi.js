@@ -820,10 +820,21 @@ const openApiSpec = {
         },
       },
     },
-    "/api/support-payments/callback": {
+    "/api/support-payments/callback/{secret}": {
       post: {
         tags: ["Support payments"],
-        summary: "Daraja's own webhook for the STK push result - called by Safaricom, not the frontend",
+        summary:
+          "Daraja's own webhook for the STK push result - called by Safaricom, not the frontend. The path segment must match MPESA_CALLBACK_SECRET, since Daraja callbacks carry no signature of their own",
+        parameters: [
+          {
+            name: "secret",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
         responses: {
           200: {
             description: "Always 200 with {ResultCode, ResultDesc} - Daraja's own ack contract",
