@@ -11,6 +11,7 @@ process.env.MPESA_CONSUMER_SECRET = "test-consumer-secret";
 process.env.MPESA_SHORTCODE = "174379";
 process.env.MPESA_PASSKEY = "test-passkey";
 process.env.MPESA_CALLBACK_URL = "https://example.com/api/support-payments/callback";
+process.env.MPESA_CALLBACK_SECRET = "test-callback-secret";
 
 const { getSupportPaymentStatus, handleMpesaCallback, initiateSupportPayment } = await import(
   "../../controllers/supportPaymentController.js"
@@ -167,6 +168,7 @@ describe("supportPaymentController", () => {
     mock.method(SupportPayment, "findOne", async () => payment);
 
     const req = {
+      params: { secret: "test-callback-secret" },
       body: {
         Body: {
           stkCallback: {
@@ -202,6 +204,7 @@ describe("supportPaymentController", () => {
     mock.method(SupportPayment, "findOne", async () => payment);
 
     const req = {
+      params: { secret: "test-callback-secret" },
       body: {
         Body: {
           stkCallback: {
@@ -225,6 +228,7 @@ describe("supportPaymentController", () => {
     mock.method(SupportPayment, "findOne", async () => payment);
 
     const req = {
+      params: { secret: "test-callback-secret" },
       body: { Body: { stkCallback: { CheckoutRequestID: "checkout-1", ResultCode: 1, ResultDesc: "Insufficient funds" } } },
     };
     const res = createResponse();
@@ -240,6 +244,7 @@ describe("supportPaymentController", () => {
     mock.method(SupportPayment, "findOne", async () => payment);
 
     const req = {
+      params: { secret: "test-callback-secret" },
       body: { Body: { stkCallback: { CheckoutRequestID: "checkout-1", ResultCode: 0, ResultDesc: "duplicate" } } },
     };
     const res = createResponse();
@@ -253,7 +258,10 @@ describe("supportPaymentController", () => {
   it("handleMpesaCallback acks 200 for an unknown CheckoutRequestID rather than erroring", async () => {
     mock.method(SupportPayment, "findOne", async () => null);
 
-    const req = { body: { Body: { stkCallback: { CheckoutRequestID: "unknown", ResultCode: 0 } } } };
+    const req = {
+      params: { secret: "test-callback-secret" },
+      body: { Body: { stkCallback: { CheckoutRequestID: "unknown", ResultCode: 0 } } },
+    };
     const res = createResponse();
 
     await handleMpesaCallback(req, res, () => {});
@@ -263,12 +271,44 @@ describe("supportPaymentController", () => {
   });
 
   it("handleMpesaCallback acks 200 for a malformed payload rather than erroring", async () => {
-    const req = { body: { unexpected: "shape" } };
+    const req = { params: { secret: "test-callback-secret" }, body: { unexpected: "shape" } };
     const res = createResponse();
 
     await handleMpesaCallback(req, res, () => {});
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, { ResultCode: 0, ResultDesc: "Accepted" });
+  });
+
+  it("handleMpesaCallback acks 200 but never looks up or touches a payment when the path secret doesn't match", async () => {
+    const findOne = mock.method(SupportPayment, "findOne", async () => {
+      throw new Error("should not be called");
+    });
+
+    const req = {
+      params: { secret: "wrong-secret" },
+      body: { Body: { stkCallback: { CheckoutRequestID: "checkout-1", ResultCode: 0 } } },
+    };
+    const res = createResponse();
+
+    await handleMpesaCallback(req, res, () => {});
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { ResultCode: 0, ResultDesc: "Accepted" });
+    assert.equal(findOne.mock.callCount(), 0);
+  });
+
+  it("handleMpesaCallback acks 200 without processing when no path secret is sent at all", async () => {
+    const findOne = mock.method(SupportPayment, "findOne", async () => {
+      throw new Error("should not be called");
+    });
+
+    const req = { params: {}, body: { Body: { stkCallback: { CheckoutRequestID: "checkout-1", ResultCode: 0 } } } };
+    const res = createResponse();
+
+    await handleMpesaCallback(req, res, () => {});
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(findOne.mock.callCount(), 0);
   });
 });

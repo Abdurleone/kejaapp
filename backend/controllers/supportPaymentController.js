@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
 import SupportPayment from "../models/SupportPayment.js";
@@ -6,6 +7,15 @@ import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { logError, logWarn } from "../utils/logger.js";
 import { normalizeKenyanPhone } from "../utils/phone.js";
+
+// timingSafeEqual throws on a length mismatch rather than returning false -
+// guard that first (an actual secret's length isn't itself sensitive here).
+const secretsMatch = (a, b) => {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+};
 
 const initiateSupportPayment = asyncHandler(async (req, res) => {
   if (!env.mpesaEnabled) {
@@ -73,6 +83,11 @@ const getSupportPaymentStatus = asyncHandler(async (req, res) => {
 const mpesaAck = (res) => res.status(httpStatus.OK).json({ ResultCode: 0, ResultDesc: "Accepted" });
 
 const handleMpesaCallback = asyncHandler(async (req, res) => {
+  if (!env.mpesaCallbackSecret || !secretsMatch(req.params.secret, env.mpesaCallbackSecret)) {
+    logWarn("M-Pesa callback rejected: path secret missing or didn't match MPESA_CALLBACK_SECRET");
+    return mpesaAck(res);
+  }
+
   const stkCallback = req.body?.Body?.stkCallback;
 
   if (!stkCallback?.CheckoutRequestID) {

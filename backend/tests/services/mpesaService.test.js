@@ -9,6 +9,7 @@ process.env.MPESA_CONSUMER_SECRET = "test-consumer-secret";
 process.env.MPESA_SHORTCODE = "174379";
 process.env.MPESA_PASSKEY = "test-passkey";
 process.env.MPESA_CALLBACK_URL = "https://example.com/api/support-payments/callback";
+process.env.MPESA_CALLBACK_SECRET = "test-callback-secret";
 process.env.MPESA_ENVIRONMENT = "sandbox";
 
 const { getAccessToken, initiateStkPush, resetTokenCache } = await import("../../services/mpesaService.js");
