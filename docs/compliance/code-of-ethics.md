@@ -9,7 +9,7 @@ This Code of Ethics sets out the principles that govern how KejaApp is built, op
 
 It is a **platform and business ethics policy** — how KejaApp treats the people who use it and the decisions its operators make. It is distinct from [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md), which governs behavior of permitted contributors to the codebase itself (based on the Contributor Covenant).
 
-The principles here are made enforceable in the [Terms of Service](terms-of-service.md) and the [Acceptable Use Policy](acceptable-use-policy.md); how KejaApp handles disagreements — between users, or about an enforcement decision — is covered in the [Dispute Resolution & Complaints Policy](dispute-resolution-policy.md).
+The principles here are made enforceable in the [Terms of Service](terms-of-service.md) and the [Acceptable Use Policy](acceptable-use-policy.md); how KejaApp handles disagreements — between users, or about an enforcement decision — is covered in the [Dispute Resolution & Complaints Policy](dispute-resolution-policy.md). Bribery/corruption risk specifically — in how KejaApp itself is operated, not how users treat each other — has its own dedicated [Anti-Bribery and Anti-Corruption Policy](anti-bribery-and-anti-corruption-policy.md).
 
 This document is written to align with the themes of Kenya's **Constitution of Kenya, 2010** (notably Article 27, equality and freedom from discrimination, and Article 31, privacy), the **Kenya Data Protection Act, 2019**, the **Consumer Protection Act, 2012**, and internationally recognized frameworks including the **UN Guiding Principles on Business and Human Rights**, **ISO 26000** (guidance on social responsibility), and **ISO 37001** (anti-bribery management systems). It is an operational statement of intent, not a substitute for formal legal or compliance certification — see [Section 6](#6-relationship-to-formal-certification).
 
@@ -47,7 +47,7 @@ This document is written to align with the themes of Kenya's **Constitution of K
 
 ### 2.6 Conflict of interest
 
-- Anyone with admin access must not use that access to inspect, moderate, or influence outcomes for an account in which they have a personal or financial interest (their own account, a family member's, or a business associate's). Admin actions on user status are logged and auditable specifically so this can be checked.
+- Anyone with admin access must not use that access to inspect, moderate, or influence outcomes for an account in which they have a personal or financial interest (their own account, a family member's, or a business associate's). Admin actions on user status are logged and auditable specifically so this can be checked. The same logged trail is what makes agency/mover verification review resistant to bribery specifically — see the [Anti-Bribery and Anti-Corruption Policy](anti-bribery-and-anti-corruption-policy.md).
 - Staff and contributors with database or infrastructure access must not access personal data for any purpose other than debugging, support, or a request the data subject themselves initiated.
 
 ### 2.7 Respectful conduct

@@ -201,6 +201,8 @@ The canonical, detailed history is [CHANGELOG.md](https://github.com/Abdurleone/
 
 - **Mobile's Account screen was missing the copyright line web's footer already had** - added next to the existing Terms/Privacy links, mobile's closest analogue to a footer. 38/38 mobile suites, 220/220 tests (+1), 0 lint errors. See `CHANGELOG.md` for the full detail.
 
+- **New Anti-Bribery and Anti-Corruption Policy**, aligned with Kenya's Anti-Bribery Act, 2016 (Cap 79B) - grounded in the actual statutory text (Sections 9, 10/11, 14, 18, 21), scoped honestly to a small solo/small-team operation rather than a bigger company's program, and naming exactly where this risk shows up today (agency/mover verification review, vendor relationships). See `CHANGELOG.md` for the full detail.
+
 ## General health-check remediation — status
 
 **Complete.** All 28 items (27 findings plus the mobile regression above) from the follow-up appraisal shipped as 28 separate PRs (#80-#107), one per finding except two explicitly-agreed mechanical-repeat exceptions (pagination across 6 endpoints; the 11 aria-hidden spots). Table kept below for the historical record; each merged PR also has its own bullet above under Completed with the full detail.

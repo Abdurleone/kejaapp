@@ -89,6 +89,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Mobile Discover Screen: Collapsible Filters](#mobile-discover-screen-collapsible-filters)
 - [Fix: Liquid Glass Tab Bar Crash - the Redundant babel.config.js Was Never Actually Removed](#fix-liquid-glass-tab-bar-crash-the-redundant-babelconfigjs-was-never-actually-removed)
 - [Mobile: Missing Copyright Line on the Account Screen](#mobile-missing-copyright-line-on-the-account-screen)
+- [Anti-Bribery and Anti-Corruption Policy](#anti-bribery-and-anti-corruption-policy)
 
 ---
 
@@ -935,3 +936,12 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Web's footer already had a `© {year} KejaApp` line** (see the "Second Checklist Pass" entry above), computed at render time so it can't go stale. Mobile never got the equivalent - noticed by inspection, not a user report.
 - **Fix**: added the same copyright line to the Account screen, next to the existing Terms of Service/Privacy & Data Protection links - mobile's closest analogue to web's footer, since mobile has no persistent page footer (it's tab-based navigation, not a scrolling page).
 - **Verified**: 38/38 mobile suites, 220/220 tests (+1 new: asserts the current year renders), 0 lint errors.
+
+---
+
+## Anti-Bribery and Anti-Corruption Policy
+
+- **New `docs/compliance/anti-bribery-and-anti-corruption-policy.md`**, aligned with Kenya's Anti-Bribery Act, No. 47 of 2016 (Cap. 79B) - specifically Section 9's duty on private entities to have bribery-prevention procedures "appropriate to its size and the scale and to the nature of its operation," which this policy takes literally: scoped to a small, solo/small-team-operated platform (see `risk.md`'s organizational-risk item), not padded out to look like a bigger company's compliance program.
+- **Grounded in the actual statutory text**, not assumed from general knowledge - fetched and confirmed the specific sections cited: Section 9 (prevention-procedures duty), Section 10/11 (corporate liability for an "associated person"'s bribery, and how that term is defined), Section 14 (a 24-hour personal duty to report any knowledge or suspicion of bribery to the EACC - not discharged just by reporting internally), Section 18 (penalties), and Section 21 (whistleblower protection against retaliation, itself a separate offence).
+- **Names where this risk actually shows up in KejaApp today** rather than staying abstract: agency/mover verification review (the platform's one recurring point of discretionary admin judgment) is the clearest bribery target, mitigated by the same logged/auditable admin-action trail the Code of Ethics already requires for conflict-of-interest reasons - one control serving two related concerns. Vendor relationships (Render, MongoDB Atlas, Backblaze B2) are flagged as low-risk standard-rate subscriptions today, with an explicit note to re-assess if that ever changes (a large contract, a government partnership, a physical office).
+- Cross-linked from `Governance-and-Policies.md` (repo + wiki) and the `Code of Ethics`' frameworks paragraph and conflict-of-interest section. No code changes.
