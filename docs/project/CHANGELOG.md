@@ -87,6 +87,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Whole-App Appraisal: 3 Parallel Agents, 6 Findings, All 6 Fixed](#whole-app-appraisal-3-parallel-agents-6-findings-all-6-fixed)
 - [Fix: Sentry Crashed the App Under Expo Go, and a More Reliable Mobile Tunnel Setup](#fix-sentry-crashed-the-app-under-expo-go-and-a-more-reliable-mobile-tunnel-setup)
 - [Mobile Discover Screen: Collapsible Filters](#mobile-discover-screen-collapsible-filters)
+- [Fix: Liquid Glass Tab Bar Crash - the Redundant babel.config.js Was Never Actually Removed](#fix-liquid-glass-tab-bar-crash-the-redundant-babelconfigjs-was-never-actually-removed)
 
 ---
 
@@ -916,3 +917,12 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **The Discover screen's filter bar (search radius, property type, bedroom count, price range - four full rows of chips/inputs) was always fully expanded**, pushing the actual property results below the fold on most phones before a user had even looked at a single listing.
 - **Fix**: all four filter rows now collapse behind a single "Filters" toggle row, closed by default. The toggle label shows an active-filter count badge (e.g. "Filters (2)") whenever a non-default radius/type/bedrooms/price value is set, so it's clear filters are applied even while collapsed.
 - **Verified**: 38/38 mobile suites, 219/219 tests (+1 new: collapsed by default, expands on tap, shows the count badge, and every existing filter-interaction test updated to open the panel first), 0 lint errors.
+
+---
+
+## Fix: Liquid Glass Tab Bar Crash - the Redundant babel.config.js Was Never Actually Removed
+
+- **A genuine documentation error, found while finally being able to verify this on-device.** `Roadmap.md`'s Next section had recorded, since PR #254, that `mobile/babel.config.js` (which double-applies the Reanimated/worklets Babel plugin `babel-preset-expo` already auto-configures for SDK 57 - the leading theory for the Liquid Glass tab bar's crash-on-load) "has been deleted for real." It hadn't been: PR #254's actual merged commit touched 16 files (backend/frontend appraisal fixes, `mobile/package.json`'s `expo-dev-client` addition) but never modified `babel.config.js` at all - confirmed directly by diffing that exact commit against its parent. The file was still present and unchanged since the branch that introduced it (PR #253), three-plus weeks and several sessions later.
+- **Confirmed the redundancy itself directly this time**, rather than continuing to trust the earlier theory: `babel-preset-expo`'s own source (`configs/expo.js`) auto-detects `react-native-worklets` being installed and adds `react-native-worklets/plugin` itself whenever it's not explicitly disabled - so the project's own `babel.config.js` re-declaring that same plugin applied it twice per file, a real Babel footgun for any plugin that installs a global transform.
+- **Fix**: deleted `mobile/babel.config.js` for real this time. 38/38 mobile suites, 219/219 tests, 0 lint errors - confirmed unaffected by the removal, as expected (it's pure build tooling, not application code). Then actually verified live on an Android Studio emulator via Expo Go: the tab bar's spring animations that previously crashed the app now load and work correctly.
+- **The lesson generalizes beyond this one file**: a PR title or a Roadmap bullet describing a fix is not the same as the fix landing in the actual merged diff - worth spot-checking the real commit when a "should be fixed" item resurfaces as still-broken, rather than assuming the historical record is accurate.
