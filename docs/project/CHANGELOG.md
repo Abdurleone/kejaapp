@@ -88,6 +88,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Fix: Sentry Crashed the App Under Expo Go, and a More Reliable Mobile Tunnel Setup](#fix-sentry-crashed-the-app-under-expo-go-and-a-more-reliable-mobile-tunnel-setup)
 - [Mobile Discover Screen: Collapsible Filters](#mobile-discover-screen-collapsible-filters)
 - [Fix: Liquid Glass Tab Bar Crash - the Redundant babel.config.js Was Never Actually Removed](#fix-liquid-glass-tab-bar-crash-the-redundant-babelconfigjs-was-never-actually-removed)
+- [Mobile: Missing Copyright Line on the Account Screen](#mobile-missing-copyright-line-on-the-account-screen)
 
 ---
 
@@ -926,3 +927,11 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Confirmed the redundancy itself directly this time**, rather than continuing to trust the earlier theory: `babel-preset-expo`'s own source (`configs/expo.js`) auto-detects `react-native-worklets` being installed and adds `react-native-worklets/plugin` itself whenever it's not explicitly disabled - so the project's own `babel.config.js` re-declaring that same plugin applied it twice per file, a real Babel footgun for any plugin that installs a global transform.
 - **Fix**: deleted `mobile/babel.config.js` for real this time. 38/38 mobile suites, 219/219 tests, 0 lint errors - confirmed unaffected by the removal, as expected (it's pure build tooling, not application code). Then actually verified live on an Android Studio emulator via Expo Go: the tab bar's spring animations that previously crashed the app now load and work correctly.
 - **The lesson generalizes beyond this one file**: a PR title or a Roadmap bullet describing a fix is not the same as the fix landing in the actual merged diff - worth spot-checking the real commit when a "should be fixed" item resurfaces as still-broken, rather than assuming the historical record is accurate.
+
+---
+
+## Mobile: Missing Copyright Line on the Account Screen
+
+- **Web's footer already had a `© {year} KejaApp` line** (see the "Second Checklist Pass" entry above), computed at render time so it can't go stale. Mobile never got the equivalent - noticed by inspection, not a user report.
+- **Fix**: added the same copyright line to the Account screen, next to the existing Terms of Service/Privacy & Data Protection links - mobile's closest analogue to web's footer, since mobile has no persistent page footer (it's tab-based navigation, not a scrolling page).
+- **Verified**: 38/38 mobile suites, 220/220 tests (+1 new: asserts the current year renders), 0 lint errors.
