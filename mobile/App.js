@@ -4,7 +4,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import * as Sentry from "@sentry/react-native";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import { Bungee_400Regular } from "@expo-google-fonts/bungee";
 import { WorkSans_400Regular, WorkSans_800ExtraBold } from "@expo-google-fonts/work-sans";
 import { AuthProvider } from "./src/context/AuthContext.js";
@@ -18,12 +18,22 @@ import RootNavigator from "./src/navigation/RootNavigator.js";
 // Work Sans a moment later.
 SplashScreen.preventAutoHideAsync();
 
+// @sentry/react-native's NativeRNSentry.js calls
+// TurboModuleRegistry.getEnforcing('RNSentry') as an *import-time* side
+// effect, which throws (crashing the whole app natively, before any JS
+// error boundary can catch it) inside Expo Go - it doesn't ship that native
+// module. So, same as pushNotifications.js's expo-notifications guard, the
+// package must only ever be required lazily, from inside this check -
+// never imported at the top of this file.
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+const Sentry = isExpoGo ? null : require("@sentry/react-native");
+
 // Optional, same "empty = disabled" pattern as GoogleSignInButton.js's client
 // IDs: unset means crashes/errors are only visible locally, not reported to
 // Sentry. See mobile/.env.example.
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
-if (sentryDsn) {
+if (Sentry && sentryDsn) {
   Sentry.init({ dsn: sentryDsn });
 }
 
@@ -49,7 +59,7 @@ function ThemedApp() {
   );
 }
 
-export default Sentry.wrap(function App() {
+function App() {
   const [fontsLoaded, fontError] = useFonts({
     Bungee_400Regular,
     WorkSans_400Regular,
@@ -81,4 +91,6 @@ export default Sentry.wrap(function App() {
       </SettingsProvider>
     </SafeAreaProvider>
   );
-});
+}
+
+export default Sentry ? Sentry.wrap(App) : App;

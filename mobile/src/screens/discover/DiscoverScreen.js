@@ -50,6 +50,7 @@ export default function DiscoverScreen({ navigation }) {
   const [savingSearch, setSavingSearch] = useState(false);
   const [saveSearchMessage, setSaveSearchMessage] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // The filter set actually fetched, as opposed to the raw min/max rent
   // inputs below - those only feed a fetch once "Apply price" is tapped,
   // everything else applies immediately on change.
@@ -268,80 +269,103 @@ export default function DiscoverScreen({ navigation }) {
     );
   }
 
+  const activeFilterCount =
+    (radius !== 5 ? 1 : 0) +
+    (type ? 1 : 0) +
+    (bedrooms ? 1 : 0) +
+    (minRent ? 1 : 0) +
+    (maxRent ? 1 : 0);
+
   return (
     <View style={styles.container}>
       <View style={styles.filterBar}>
-        <View style={styles.filterRow}>
-          <View style={styles.radiusRow}>
-            {radiusOptions.map((option) => (
-              <Pressable
-                key={option}
-                style={[styles.radiusChip, radius === option && styles.radiusChipActive]}
-                onPress={() => handleRadiusChange(option)}
-              >
-                <Text style={[styles.radiusChipText, radius === option && styles.radiusChipTextActive]}>
-                  {option} km
-                </Text>
+        <Pressable
+          style={styles.filterToggle}
+          onPress={() => setFiltersOpen((open) => !open)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: filtersOpen }}
+        >
+          <Text style={styles.filterToggleText}>
+            Filters{activeFilterCount ? ` (${activeFilterCount})` : ""}
+          </Text>
+          <Text style={styles.filterToggleIcon}>{filtersOpen ? "▴" : "▾"}</Text>
+        </Pressable>
+
+        {filtersOpen ? (
+          <>
+            <View style={styles.filterRow}>
+              <View style={styles.radiusRow}>
+                {radiusOptions.map((option) => (
+                  <Pressable
+                    key={option}
+                    style={[styles.radiusChip, radius === option && styles.radiusChipActive]}
+                    onPress={() => handleRadiusChange(option)}
+                  >
+                    <Text style={[styles.radiusChipText, radius === option && styles.radiusChipTextActive]}>
+                      {option} km
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Pressable style={styles.nearMeButton} onPress={handleNearMe} disabled={locating}>
+                <Text style={styles.nearMeButtonText}>{locating ? "Locating..." : "Near me"}</Text>
               </Pressable>
-            ))}
-          </View>
-          <Pressable style={styles.nearMeButton} onPress={handleNearMe} disabled={locating}>
-            <Text style={styles.nearMeButtonText}>{locating ? "Locating..." : "Near me"}</Text>
-          </Pressable>
-          {coords ? (
-            <Pressable style={styles.nearMeButton} onPress={handleSaveSearch} disabled={savingSearch}>
-              <Text style={styles.nearMeButtonText}>{savingSearch ? "Saving..." : "Save search"}</Text>
-            </Pressable>
-          ) : null}
-        </View>
+              {coords ? (
+                <Pressable style={styles.nearMeButton} onPress={handleSaveSearch} disabled={savingSearch}>
+                  <Text style={styles.nearMeButtonText}>{savingSearch ? "Saving..." : "Save search"}</Text>
+                </Pressable>
+              ) : null}
+            </View>
 
-        <View style={styles.filterRow}>
-          {typeOptions.map((option) => (
-            <Pressable
-              key={option.value || "any-type"}
-              style={[styles.radiusChip, type === option.value && styles.radiusChipActive]}
-              onPress={() => handleTypeChange(option.value)}
-            >
-              <Text style={[styles.radiusChipText, type === option.value && styles.radiusChipTextActive]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+            <View style={styles.filterRow}>
+              {typeOptions.map((option) => (
+                <Pressable
+                  key={option.value || "any-type"}
+                  style={[styles.radiusChip, type === option.value && styles.radiusChipActive]}
+                  onPress={() => handleTypeChange(option.value)}
+                >
+                  <Text style={[styles.radiusChipText, type === option.value && styles.radiusChipTextActive]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
-        <View style={styles.filterRow}>
-          {bedroomOptions.map((option) => (
-            <Pressable
-              key={option.value || "any-beds"}
-              style={[styles.radiusChip, bedrooms === option.value && styles.radiusChipActive]}
-              onPress={() => handleBedroomsChange(option.value)}
-            >
-              <Text style={[styles.radiusChipText, bedrooms === option.value && styles.radiusChipTextActive]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+            <View style={styles.filterRow}>
+              {bedroomOptions.map((option) => (
+                <Pressable
+                  key={option.value || "any-beds"}
+                  style={[styles.radiusChip, bedrooms === option.value && styles.radiusChipActive]}
+                  onPress={() => handleBedroomsChange(option.value)}
+                >
+                  <Text style={[styles.radiusChipText, bedrooms === option.value && styles.radiusChipTextActive]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
-        <View style={styles.filterRow}>
-          <TextInput
-            style={styles.rentInput}
-            value={minRent}
-            onChangeText={setMinRent}
-            placeholder="Min rent"
-            keyboardType="number-pad"
-          />
-          <TextInput
-            style={styles.rentInput}
-            value={maxRent}
-            onChangeText={setMaxRent}
-            placeholder="Max rent"
-            keyboardType="number-pad"
-          />
-          <Pressable style={styles.nearMeButton} onPress={handleApplyPriceFilter}>
-            <Text style={styles.nearMeButtonText}>Apply price</Text>
-          </Pressable>
-        </View>
+            <View style={styles.filterRow}>
+              <TextInput
+                style={styles.rentInput}
+                value={minRent}
+                onChangeText={setMinRent}
+                placeholder="Min rent"
+                keyboardType="number-pad"
+              />
+              <TextInput
+                style={styles.rentInput}
+                value={maxRent}
+                onChangeText={setMaxRent}
+                placeholder="Max rent"
+                keyboardType="number-pad"
+              />
+              <Pressable style={styles.nearMeButton} onPress={handleApplyPriceFilter}>
+                <Text style={styles.nearMeButtonText}>Apply price</Text>
+              </Pressable>
+            </View>
+          </>
+        ) : null}
       </View>
 
       {locationError ? <Text style={styles.inlineError}>{locationError}</Text> : null}
@@ -380,6 +404,22 @@ const createStyles = (colors) =>
     paddingTop: 12,
     paddingBottom: 4,
     gap: 8,
+  },
+  filterToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 44,
+  },
+  filterToggleText: {
+    ...boldText,
+    fontSize: 14,
+    color: colors.ink,
+  },
+  filterToggleIcon: {
+    ...boldText,
+    fontSize: 14,
+    color: colors.muted,
   },
   filterRow: {
     flexDirection: "row",
