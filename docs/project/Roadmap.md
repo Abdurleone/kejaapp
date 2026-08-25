@@ -199,6 +199,8 @@ The canonical, detailed history is [CHANGELOG.md](https://github.com/Abdurleone/
 
 - **The Liquid Glass tab bar's crash-on-load is fixed and confirmed on-device.** Found, while finally able to verify this live, that the previous record here was wrong: PR #254 was recorded as having deleted the redundant `mobile/babel.config.js` "for real," but its actual merged commit never touched that file at all - confirmed by diffing the commit directly. Deleted it for real this time, confirmed `babel-preset-expo` genuinely auto-applies the Reanimated/worklets plugin on its own (so the manual file really was a duplicate), and verified live on an Android Studio emulator via Expo Go: the tab bar's spring animations now load without crashing. 38/38 mobile suites, 219/219 tests, 0 lint errors. See `CHANGELOG.md` for the full detail.
 
+- **Mobile's Account screen was missing the copyright line web's footer already had** - added next to the existing Terms/Privacy links, mobile's closest analogue to a footer. 38/38 mobile suites, 220/220 tests (+1), 0 lint errors. See `CHANGELOG.md` for the full detail.
+
 ## General health-check remediation — status
 
 **Complete.** All 28 items (27 findings plus the mobile regression above) from the follow-up appraisal shipped as 28 separate PRs (#80-#107), one per finding except two explicitly-agreed mechanical-repeat exceptions (pagination across 6 endpoints; the 11 aria-hidden spots). Table kept below for the historical record; each merged PR also has its own bullet above under Completed with the full detail.

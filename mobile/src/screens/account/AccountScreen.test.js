@@ -211,6 +211,19 @@ describe("AccountScreen", () => {
     expect(Linking.openURL).toHaveBeenCalledWith(expect.stringContaining("/privacy"));
   });
 
+  it("shows a copyright line with the current year", async () => {
+    useAuth.mockReturnValue({
+      signedIn: true,
+      user: { name: "Jane Doe", role: "tenant" },
+      logout: jest.fn(),
+    });
+    fetchSavedSearches.mockResolvedValue([]);
+
+    const { getByText } = await render(<AccountScreen />);
+
+    expect(getByText(`© ${new Date().getFullYear()} KejaApp`)).toBeTruthy();
+  });
+
   it("keeps the delete-account button disabled until the confirmation text exactly matches DELETE", async () => {
     useAuth.mockReturnValue({
       signedIn: true,
