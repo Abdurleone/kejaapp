@@ -50,7 +50,7 @@ Security-control-level findings (injection, authn/authz, secrets, crypto) are **
 
 ### 4.1. CI disabled: the risk multiplier behind most other entries here
 
-`.github/workflows/ci.yml` is enabled on GitHub Actions but every run fails immediately with "your account is locked due to a billing issue" (an account-level lock, re-confirmed as recently as 2026-08-24 — see `docs/project/Roadmap.md`'s "Next" section). This is not a standalone risk so much as the reason several others on this list exist at all:
+`.github/workflows/ci.yml` is enabled on GitHub Actions but every run fails immediately with "your account is locked due to a billing issue" (an account-level lock, re-confirmed as recently as 2026-08-25 — see `docs/project/Roadmap.md`'s "Next" section). This is not a standalone risk so much as the reason several others on this list exist at all:
 
 - The mobile SDK-drift incident (item 4) survived **two merged PRs** because nothing re-ran a clean install to catch it.
 - The stale integration-test fixture found in an earlier QA/QC pass survived because the integration suite only runs with `TEST_MONGODB_URI` set locally, which CI would otherwise do automatically.

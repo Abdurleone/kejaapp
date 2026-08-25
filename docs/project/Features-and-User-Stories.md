@@ -235,6 +235,16 @@ As a tenant, landlord, agency, or mover, I want to tell KejaApp how the platform
 - Given feedback has not yet received an admin response, then it does not appear in the public testimonial list.
 - Given I am a signed-out visitor, when I load the landing page, then I see published testimonials, if any exist, with no sign-in required.
 
+### Support KejaApp (Voluntary M-Pesa)
+
+As a user who wants to support KejaApp directly, I want to make a small voluntary M-Pesa payment to the app itself, so that I can contribute without it being tied to any listing, tenancy, or other user.
+
+- Given I am signed in, when I initiate a support payment with a valid amount, then an M-Pesa STK push (Daraja OAuth) is sent to my phone as a real PIN prompt.
+- Given `MPESA_*` environment variables are not fully configured, when I try to initiate a support payment, then the API responds with 503 rather than attempting a broken payment — the same "empty = disabled" convention every other optional integration follows.
+- Given I check the status of a payment I initiated, then I see its current state (pending/completed/failed), never another user's.
+- Given Safaricom's own webhook calls back with a payment result, then it's processed idempotently — a retried callback for the same payment never double-processes it.
+- This payment is a voluntary service charge paid directly to KejaApp's own developer/shortcode — it never routes money between two other users (tenant, landlord, agency, or mover), staying deliberately outside the Payment Boundary that governs every other feature on this list.
+
 ### Username Login
 
 As a user who would rather not type my email at login, I want to choose my own username at registration, so that I can sign in without exposing my email on the login screen.

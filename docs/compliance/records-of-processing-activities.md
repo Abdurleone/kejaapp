@@ -42,7 +42,7 @@ This is an informal scheme (ISO/IEC 27001 controls 5.12/5.13), not a formal DLP-
 
 ## 4. Review
 
-This register should be updated whenever a new processing activity, data category, or third-party recipient is introduced — most recently compiled alongside the mover role, mover request/verification workflows, and the notification bell. Maintained in `docs/records-of-processing-activities.md`.
+This register should be updated whenever a new processing activity, data category, or third-party recipient is introduced — most recently compiled alongside the mover role, mover request/verification workflows, and the notification bell. Maintained in `docs/compliance/records-of-processing-activities.md`.
 
 ## 5. Scope and limitations
 

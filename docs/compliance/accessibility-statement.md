@@ -32,4 +32,4 @@ If you encounter an accessibility barrier using KejaApp, please tell us via the 
 
 ## 6. Review
 
-This statement should be revisited whenever a UI/UX pass touches accessibility-relevant behavior, and reviewed at least annually otherwise. Maintained in `docs/accessibility-statement.md`.
+This statement should be revisited whenever a UI/UX pass touches accessibility-relevant behavior, and reviewed at least annually otherwise. Maintained in `docs/compliance/accessibility-statement.md`.

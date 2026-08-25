@@ -39,7 +39,7 @@ Current local-development defaults are fine for one instance, but production sca
 - **MongoDB Atlas**: primary source of truth for users, sessions, properties, inquiries, viewings, notifications, and moderation records.
 - **Refresh sessions**: already stored in MongoDB, so access-token refresh works across instances.
 - **Rate limiting and response caching**: backed by a shared store abstraction (`backend/config/redisClient.js`) used by both `backend/middlewares/rateLimiter.js` and `backend/middlewares/responseCache.js`. Set `REDIS_URL` to make rate limits and the public property/mover response cache consistent across instances; if `REDIS_URL` is unset, both fall back to a per-process in-memory store (fine for a single instance, not for multiple). If Redis is configured but briefly unreachable, both middlewares fail open to the in-memory store rather than rejecting requests.
-- **Property uploads**: currently local disk under `UPLOAD_DIR`. For multiple instances, move uploaded files to object storage such as S3, Cloudinary, or Azure Blob Storage and store public URLs in MongoDB.
+- **Property uploads**: already handled — `services/storageDrivers/` abstracts local disk vs. an S3-compatible bucket behind one interface, selected via `STORAGE_DRIVER`. Production (`render.yaml`) already runs with `STORAGE_DRIVER: s3`, so uploaded files are already off local disk and safe across multiple instances; `local` remains available for single-instance/dev setups only.
 - **Image fingerprinting**: current byte-derived perceptual hashes work as a no-dependency baseline. For stronger duplicate detection, use a real image-processing worker with a library such as Sharp and store perceptual hashes in MongoDB.
 
 ## Caching
@@ -91,7 +91,7 @@ For container platforms, configure:
 ## Production Upgrade Checklist
 
 - Set `REDIS_URL` so rate limiting and response caching are consistent across instances instead of per-process.
-- Replace local upload storage with object storage.
+- ~~Replace local upload storage with object storage~~ — done; production already runs `STORAGE_DRIVER: s3`.
 - Put CDN caching in front of uploaded image assets (in addition to the `Cache-Control` headers already set on `/uploads`).
 - Run at least two API instances across separate availability zones where possible.
 - Ship the local log files (or stdout/stderr) to a centralized log aggregator, and add metrics for request latency, status codes, MongoDB connection state, and rate-limit rejections.

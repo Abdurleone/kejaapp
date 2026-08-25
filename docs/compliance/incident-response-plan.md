@@ -81,7 +81,7 @@ For a small team, one person may hold multiple roles above — the point is that
 
 ## 6. Review
 
-This plan should be reviewed after every incident it's invoked for, and at least whenever a new category of personal data or third-party processor is introduced. Maintained in `docs/incident-response-plan.md`.
+This plan should be reviewed after every incident it's invoked for, and at least whenever a new category of personal data or third-party processor is introduced. Maintained in `docs/compliance/incident-response-plan.md`.
 
 ## 7. Scope and limitations
 

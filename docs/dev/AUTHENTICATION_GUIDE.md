@@ -283,7 +283,7 @@ export const canAccessView = (role, view) => {
   // other always-on legal pages - selectRole is forced by App.jsx whenever
   // the signed-in user's role isn't confirmed yet (first sign-in after
   // Google Sign-In).
-  if (["privacy", "terms", "dataProtection", "deleteAccount", "selectRole"].includes(view)) return true;
+  if (["privacy", "terms", "dataProtection", "deleteAccount", "selectRole", "support"].includes(view)) return true;
   if (!role) return ["discover", "movers"].includes(view);
   return Boolean(roleViewAccess[role]?.includes(view));
 };

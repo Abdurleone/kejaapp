@@ -40,7 +40,7 @@ This model was independently verified during a full-codebase security audit (bac
 - **Unauthenticated health endpoints** leaking the live Mongo hostname/db name and raw driver error text — fixed with a redaction helper (`backend/controllers/healthController.js`).
 - **`docker-compose.yml`'s MongoDB publicly reachable** — see [Section 2](#2-who-can-reach-the-database-at-all) above.
 
-See `docs/Roadmap.md`'s Completed section for the full detail on all of these.
+See `docs/project/Roadmap.md`'s Completed section for the full detail on all of these.
 
 ## 5. Database user privilege (Atlas)
 
