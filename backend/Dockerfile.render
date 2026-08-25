@@ -39,6 +39,10 @@ COPY backend/ .
 
 FROM node:22-alpine
 
+# Lets GitHub Container Registry auto-link a pushed image to this repo (shows
+# under the repo's own Packages sidebar) without any separate manual step.
+LABEL org.opencontainers.image.source="https://github.com/Abdurleone/kejaapp"
+
 WORKDIR /app
 
 COPY backend/package*.json ./
