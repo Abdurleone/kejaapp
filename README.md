@@ -4,7 +4,7 @@ KejaApp is a location-first rental platform for tenants, landlords, agencies, ad
 
 ## Current Status
 
-KejaApp is live in production and under active development — see [docs/project/live.md](docs/project/live.md) for exactly what's deployed right now and what's still pending. The repository includes:
+KejaApp is live in production and under active development — see [docs/project/live.md](docs/project/live.md) for exactly what's deployed right now and what's still pending. Development happens on a single rolling `main` branch (see [docs/SECURITY.md](docs/SECURITY.md)); [v1.0.0](https://github.com/Abdurleone/kejaapp/releases/tag/v1.0.0) is a tagged snapshot of that history, not a release-branch model. The repository includes:
 
 - a Node.js/Express backend API
 - a Vite + React web frontend
