@@ -375,6 +375,8 @@ export default function AccountScreen() {
         </Pressable>
       </View>
 
+      <Text style={styles.copyright}>© {new Date().getFullYear()} KejaApp</Text>
+
       <DangerZoneCard styles={styles} logout={logout} />
     </ScrollView>
   );
@@ -575,5 +577,11 @@ const createStyles = (colors) =>
       color: colors.muted,
       fontSize: 13,
       textDecorationLine: "underline",
+    },
+    copyright: {
+      ...bodyText,
+      color: colors.muted,
+      fontSize: 12,
+      textAlign: "center",
     },
   });
