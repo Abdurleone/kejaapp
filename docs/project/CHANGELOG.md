@@ -90,6 +90,7 @@ A running, chronological (oldest first) record of what was built and why — inc
 - [Fix: Liquid Glass Tab Bar Crash - the Redundant babel.config.js Was Never Actually Removed](#fix-liquid-glass-tab-bar-crash-the-redundant-babelconfigjs-was-never-actually-removed)
 - [Mobile: Missing Copyright Line on the Account Screen](#mobile-missing-copyright-line-on-the-account-screen)
 - [Anti-Bribery and Anti-Corruption Policy](#anti-bribery-and-anti-corruption-policy)
+- [Resolved: the "Send Inquiry"/"Request Viewing" Click Mystery Was Test Tooling, Not a Bug](#resolved-the-send-inquiryrequest-viewing-click-mystery-was-test-tooling-not-a-bug)
 
 ---
 
@@ -945,3 +946,11 @@ A running, chronological (oldest first) record of what was built and why — inc
 - **Grounded in the actual statutory text**, not assumed from general knowledge - fetched and confirmed the specific sections cited: Section 9 (prevention-procedures duty), Section 10/11 (corporate liability for an "associated person"'s bribery, and how that term is defined), Section 14 (a 24-hour personal duty to report any knowledge or suspicion of bribery to the EACC - not discharged just by reporting internally), Section 18 (penalties), and Section 21 (whistleblower protection against retaliation, itself a separate offence).
 - **Names where this risk actually shows up in KejaApp today** rather than staying abstract: agency/mover verification review (the platform's one recurring point of discretionary admin judgment) is the clearest bribery target, mitigated by the same logged/auditable admin-action trail the Code of Ethics already requires for conflict-of-interest reasons - one control serving two related concerns. Vendor relationships (Render, MongoDB Atlas, Backblaze B2) are flagged as low-risk standard-rate subscriptions today, with an explicit note to re-assess if that ever changes (a large contract, a government partnership, a physical office).
 - Cross-linked from `Governance-and-Policies.md` (repo + wiki) and the `Code of Ethics`' frameworks paragraph and conflict-of-interest section. No code changes.
+
+---
+
+## Resolved: the "Send Inquiry"/"Request Viewing" Click Mystery Was Test Tooling, Not a Bug
+
+- **`figma.md`'s "Known limitations" section flagged an open question**: clicking "Send inquiry"/"Request viewing" on the web Property Detail page never opened their modals during automated headless-browser screenshotting, reproduced across roughly a dozen attempts and several click methods, while every other interaction on the same page worked reliably. Left genuinely unresolved at the time - not asserted as a bug, but not ruled out either.
+- **Root-caused this session with a controlled, side-by-side test**: a temporary debug line (reverted immediately after) plus a direct `document.querySelectorAll('form').length` check showed `0` both before and after a Playwright-synthesized click on the exact button - but calling the native `HTMLButtonElement.click()` method directly on that *same* element, in the *same* test run, correctly rendered the form (`1`). `PropertyDetailPage.jsx`'s actual handler (`onClick={() => { setInquirySent(false); openForm(...) }}`) is a plain, correct state update with nothing unusual about it.
+- **Conclusion**: this is specifically how this headless-automation setup synthesizes mouse events for these particular buttons, not anything a real user's mouse or touch input would ever hit - the application code was never the problem. `figma.md` corrected to reflect this rather than leaving it as an open question.
