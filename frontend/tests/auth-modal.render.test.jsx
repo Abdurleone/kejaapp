@@ -44,6 +44,7 @@ describe("AuthModal", () => {
     expect(screen.getByLabelText("Phone")).toBeInTheDocument();
     expect(screen.getByLabelText("Role")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /agree to the terms of service/i })).toBeInTheDocument();
   });
 
   it("logs in with the identifier/password and reports the authenticated user", async () => {
@@ -76,6 +77,7 @@ describe("AuthModal", () => {
     await user.type(screen.getByLabelText("Password"), "password123");
     await user.type(screen.getByLabelText("Confirm password"), "password123");
     await user.selectOptions(screen.getByLabelText("Role"), "landlord");
+    await user.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
     const form = container.querySelector("form");
     await user.click(within(form).getByRole("button", { name: "Register" }));
 
@@ -87,9 +89,27 @@ describe("AuthModal", () => {
         password: "password123",
         phone: "",
         role: "landlord",
+        termsAccepted: true,
       })
     );
     expect(onAuthenticated).toHaveBeenCalledWith({ _id: "u2", role: "landlord" });
+  });
+
+  it("rejects registration locally when the terms checkbox isn't checked, without calling the API", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<AuthModal onClose={vi.fn()} onAuthenticated={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    await user.type(screen.getByLabelText("Name"), "Jane Landlord");
+    await user.type(screen.getByLabelText("Username"), "janelandlord");
+    await user.type(screen.getByLabelText("Email"), "jane@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123");
+    await user.type(screen.getByLabelText("Confirm password"), "password123");
+    const form = container.querySelector("form");
+    await user.click(within(form).getByRole("button", { name: "Register" }));
+
+    expect(await screen.findByText("You must agree to the Terms of Service to create an account.")).toBeInTheDocument();
+    expect(registerUser).not.toHaveBeenCalled();
   });
 
   it("shows an error and username suggestions on a register conflict, and fills the field on click", async () => {
@@ -104,6 +124,7 @@ describe("AuthModal", () => {
     await user.type(screen.getByLabelText("Email"), "jane@example.com");
     await user.type(screen.getByLabelText("Password"), "password123");
     await user.type(screen.getByLabelText("Confirm password"), "password123");
+    await user.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
     const form = container.querySelector("form");
     await user.click(within(form).getByRole("button", { name: "Register" }));
 

@@ -67,6 +67,7 @@ describe("KejaApp API", () => {
       "email is required",
       "username is required",
       "password is required",
+      "termsAccepted is required",
     ]);
   });
 

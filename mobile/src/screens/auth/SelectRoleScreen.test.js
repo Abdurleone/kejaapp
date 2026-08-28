@@ -21,12 +21,13 @@ describe("SelectRoleScreen", () => {
     useAuth.mockReturnValue({ updateUser });
     confirmRole.mockResolvedValue({ id: "u1", role: "landlord", roleConfirmed: true });
 
-    const { getByText } = await render(<SelectRoleScreen />);
+    const { getByText, getByLabelText } = await render(<SelectRoleScreen />);
 
     await fireEvent.press(getByText("Landlord - I own properties to rent out"));
+    await fireEvent.press(getByLabelText("I agree to the Terms of Service and Privacy & Data Protection Policy"));
     await fireEvent.press(getByText("Continue"));
 
-    await waitFor(() => expect(confirmRole).toHaveBeenCalledWith("landlord"));
+    await waitFor(() => expect(confirmRole).toHaveBeenCalledWith("landlord", true));
     expect(updateUser).toHaveBeenCalledWith({ id: "u1", role: "landlord", roleConfirmed: true });
   });
 
@@ -35,12 +36,26 @@ describe("SelectRoleScreen", () => {
     useAuth.mockReturnValue({ updateUser });
     confirmRole.mockRejectedValue(new Error("Invalid role"));
 
-    const { getByText } = await render(<SelectRoleScreen />);
+    const { getByText, getByLabelText } = await render(<SelectRoleScreen />);
+
+    await fireEvent.press(getByLabelText("I agree to the Terms of Service and Privacy & Data Protection Policy"));
+    await fireEvent.press(getByText("Continue"));
+
+    await waitFor(() => expect(confirmRole).toHaveBeenCalledWith("tenant", true));
+    expect(await getByText("Invalid role")).toBeTruthy();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it("rejects submission when the terms checkbox isn't checked, without calling confirmRole", async () => {
+    const updateUser = jest.fn();
+    useAuth.mockReturnValue({ updateUser });
+
+    const { getByText, findByText } = await render(<SelectRoleScreen />);
 
     await fireEvent.press(getByText("Continue"));
 
-    await waitFor(() => expect(confirmRole).toHaveBeenCalledWith("tenant"));
-    expect(await getByText("Invalid role")).toBeTruthy();
+    expect(await findByText("You must agree to the Terms of Service to continue.")).toBeTruthy();
+    expect(confirmRole).not.toHaveBeenCalled();
     expect(updateUser).not.toHaveBeenCalled();
   });
 });

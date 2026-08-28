@@ -22,8 +22,8 @@ export const loginWithGoogle = async (idToken) => {
   return response;
 };
 
-export const confirmRole = async (role) => {
-  const response = await apiFetch("/api/auth/role", { method: "PUT", body: { role } });
+export const confirmRole = async (role, termsAccepted) => {
+  const response = await apiFetch("/api/auth/role", { method: "PUT", body: { role, termsAccepted } });
   return response.user;
 };
 

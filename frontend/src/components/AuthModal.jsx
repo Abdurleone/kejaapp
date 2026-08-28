@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { loginUser, registerUser } from "../../app-utils.js";
 import GoogleSignInButton from "./GoogleSignInButton.jsx";
 
-const emptyAuthForm = { name: "", email: "", username: "", password: "", phone: "", role: "tenant" };
+const emptyAuthForm = {
+  name: "",
+  email: "",
+  username: "",
+  password: "",
+  phone: "",
+  role: "tenant",
+  termsAccepted: false,
+};
 const focusableSelector = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 // Extracted out of App.jsx, which owned this as inline state/JSX alongside
@@ -71,6 +79,10 @@ export default function AuthModal({ onClose, onAuthenticated }) {
     setAuthForm((prev) => ({ ...prev, [field]: event.target.value }));
   };
 
+  const handleTermsAcceptedChange = (event) => {
+    setAuthForm((prev) => ({ ...prev, termsAccepted: event.target.checked }));
+  };
+
   const applyUsernameSuggestion = (suggestion) => {
     setAuthForm((prev) => ({ ...prev, username: suggestion }));
     setUsernameSuggestions([]);
@@ -83,6 +95,11 @@ export default function AuthModal({ onClose, onAuthenticated }) {
 
     if (authMode === "register" && authForm.password !== confirmPassword) {
       setAuthError("Password and confirmation don't match.");
+      return;
+    }
+
+    if (authMode === "register" && !authForm.termsAccepted) {
+      setAuthError("You must agree to the Terms of Service to create an account.");
       return;
     }
 
@@ -216,6 +233,20 @@ export default function AuthModal({ onClose, onAuthenticated }) {
                 minLength={8}
                 required
               />
+            </label>
+          )}
+          {authMode === "register" && (
+            <label className="checkbox-field">
+              <input type="checkbox" checked={authForm.termsAccepted} onChange={handleTermsAcceptedChange} />
+              I agree to the{" "}
+              <a href="/terms" target="_blank" rel="noopener noreferrer">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy &amp; Data Protection Policy
+              </a>
+              .
             </label>
           )}
           {authError && <p className="error-text">{authError}</p>}

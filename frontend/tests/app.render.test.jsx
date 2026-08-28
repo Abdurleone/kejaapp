@@ -268,6 +268,7 @@ describe("App - Google Sign-In role gating", () => {
 
     await screen.findByRole("heading", { name: "One more thing" });
     await user.selectOptions(screen.getByLabelText("I am a"), "landlord");
+    await user.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
 
     const dashboardTab = await screen.findByRole("tab", { name: "Dashboard" });

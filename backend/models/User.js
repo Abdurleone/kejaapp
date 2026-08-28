@@ -52,6 +52,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Set once, at whichever step first requires it (registerUser for a
+    // direct signup, confirmRole for a Google signup's forced role-picker) -
+    // never re-required afterward. Undefined for any account that existed
+    // before this field did, same "grandfathered" convention as
+    // roleConfirmed's default above - this isn't retroactively enforced.
+    termsAcceptedAt: {
+      type: Date,
+    },
     phone: {
       type: String,
       trim: true,

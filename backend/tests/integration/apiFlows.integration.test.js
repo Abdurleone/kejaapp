@@ -82,6 +82,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       password: "password123",
       role: "tenant",
       phone: "+254700111111",
+      termsAccepted: true,
     });
 
     assert.equal(response.status, 201);
@@ -98,6 +99,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       password: "password123",
       role: "landlord",
       phone: "+254700222222",
+      termsAccepted: true,
     });
 
     assert.equal(response.status, 201);
@@ -113,6 +115,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       username: `${landlordUsername}again`,
       password: "password123",
       role: "landlord",
+      termsAccepted: true,
     });
 
     assert.equal(response.status, 409);
@@ -125,6 +128,7 @@ describe("API flows (real database)", { skip: !testMongoUri }, () => {
       username: tenantUsername,
       password: "password123",
       role: "tenant",
+      termsAccepted: true,
     });
 
     assert.equal(response.status, 409);
