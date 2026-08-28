@@ -133,6 +133,7 @@ const registerUser = asyncHandler(async (req, res) => {
       password,
       phone: sanitizeText(phone),
       role,
+      termsAcceptedAt: new Date(),
     });
   } catch (err) {
     // Rare race: another registration claimed this exact username between our
@@ -281,6 +282,7 @@ const confirmRole = asyncHandler(async (req, res) => {
 
   user.role = role;
   user.roleConfirmed = true;
+  user.termsAcceptedAt = new Date();
   await user.save();
 
   res.status(httpStatus.OK).json({

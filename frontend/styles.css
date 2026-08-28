@@ -799,6 +799,18 @@ button:disabled {
   font-weight: 800;
 }
 
+.checkbox-field {
+  display: flex !important;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin-top: 3px;
+  width: auto;
+}
+
 .password-field {
   position: relative;
 }

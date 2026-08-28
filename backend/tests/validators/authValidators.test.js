@@ -45,4 +45,26 @@ describe("authValidators", () => {
     assert.equal(confirmRoleSchema.role.required, true);
     assert.deepEqual(confirmRoleSchema.role.enum, ["tenant", "landlord", "agency", "mover"]);
   });
+
+  it("requires termsAccepted to be exactly true during registration", () => {
+    assert.equal(registerUserSchema.termsAccepted.required, true);
+    assert.equal(
+      registerUserSchema.termsAccepted.validate(false),
+      "You must accept the Terms of Service to register"
+    );
+    assert.equal(
+      registerUserSchema.termsAccepted.validate("true"),
+      "You must accept the Terms of Service to register"
+    );
+    assert.equal(registerUserSchema.termsAccepted.validate(true), undefined);
+  });
+
+  it("requires termsAccepted to be exactly true when confirming a role", () => {
+    assert.equal(confirmRoleSchema.termsAccepted.required, true);
+    assert.equal(
+      confirmRoleSchema.termsAccepted.validate(false),
+      "You must accept the Terms of Service to confirm your role"
+    );
+    assert.equal(confirmRoleSchema.termsAccepted.validate(true), undefined);
+  });
 });

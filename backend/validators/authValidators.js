@@ -35,6 +35,19 @@ const registerUserSchema = {
   phone: {
     type: "string",
   },
+  // `required: true` alone only catches an omitted field - validateRequest.js's
+  // required check rejects undefined/null/"", but `false` is none of those,
+  // so a false value would otherwise sail through as "present." The custom
+  // validate() is what actually enforces "must be true," not just "must be
+  // present."
+  termsAccepted: {
+    required: true,
+    validate(value) {
+      if (value !== true) {
+        return "You must accept the Terms of Service to register";
+      }
+    },
+  },
 };
 
 const loginUserSchema = {
@@ -90,6 +103,18 @@ const confirmRoleSchema = {
     required: true,
     type: "string",
     enum: roleGroups.publicRegistration,
+  },
+  // A Google signup never sees registerUserSchema's own termsAccepted check -
+  // its account already exists (roleConfirmed: false) before this, its own
+  // forced next step, ever runs. Same requirement, same custom validate as
+  // registerUserSchema's, just gated at this step instead for this one path.
+  termsAccepted: {
+    required: true,
+    validate(value) {
+      if (value !== true) {
+        return "You must accept the Terms of Service to confirm your role";
+      }
+    },
   },
 };
 

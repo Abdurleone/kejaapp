@@ -2,7 +2,7 @@
 
 ## 1. Acceptance of these terms
 
-By creating a KejaApp account or using KejaApp without an account (browsing available listings), you agree to these Terms of Service, the [Code of Ethics](code-of-ethics.md), the [Acceptable Use Policy](acceptable-use-policy.md), and the [Data Protection Policy](data-protection-policy.md). If you don't agree, don't use KejaApp.
+By creating a KejaApp account or using KejaApp without an account (browsing available listings), you agree to these Terms of Service, the [Code of Ethics](code-of-ethics.md), the [Acceptable Use Policy](acceptable-use-policy.md), and the [Data Protection Policy](data-protection-policy.md). If you don't agree, don't use KejaApp. Registration itself requires ticking a checkbox affirming this agreement before an account can be created — an explicit acknowledgment, not just an implied one — and the date you did so is recorded on your account.
 
 ## 2. What KejaApp is — and isn't
 
@@ -50,7 +50,7 @@ KejaApp is provided **"as is"** and **"as available."** To the fullest extent pe
 - KejaApp is not responsible for the conduct — online or in person — of any user, including but not limited to a landlord, agency, tenant, or mover you interact with through the platform.
 - Any tenancy, viewing, or moving-service arrangement you enter into with another user is solely between you and that user.
 
-Nothing in this section limits any right or protection you have under the **Consumer Protection Act, 2012 (Kenya)** or other applicable law that cannot lawfully be excluded or limited by agreement.
+Nothing in this section limits any right or protection you have under the **Consumer Protection Act, 2012 (Kenya)** or other applicable law that cannot lawfully be excluded or limited by agreement. See the [Disclaimer](disclaimer.md) for the fuller version of this section.
 
 ## 9. Limitation of liability
 

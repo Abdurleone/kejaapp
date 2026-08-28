@@ -10,16 +10,23 @@ const roleOptions = [
 
 export default function SelectRolePage({ onRoleConfirmed }) {
   const [role, setRole] = useState("tenant");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+
+    if (!termsAccepted) {
+      setError("You must agree to the Terms of Service to continue.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const user = await confirmRole(role);
+      const user = await confirmRole(role, termsAccepted);
       onRoleConfirmed(user);
     } catch (err) {
       setError(err.message || "Could not save your role. Please try again.");
@@ -48,6 +55,22 @@ export default function SelectRolePage({ onRoleConfirmed }) {
                 </option>
               ))}
             </select>
+          </label>
+          <label className="checkbox-field">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(event) => setTermsAccepted(event.target.checked)}
+            />
+            I agree to the{" "}
+            <a href="/terms" target="_blank" rel="noopener noreferrer">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer">
+              Privacy &amp; Data Protection Policy
+            </a>
+            .
           </label>
           {error && <p className="error-text">{error}</p>}
           <div className="form-actions">

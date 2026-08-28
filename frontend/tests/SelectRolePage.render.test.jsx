@@ -25,9 +25,10 @@ describe("SelectRolePage", () => {
     render(<SelectRolePage onRoleConfirmed={onRoleConfirmed} />);
 
     await user.selectOptions(screen.getByLabelText("I am a"), "landlord");
+    await user.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
 
-    await waitFor(() => expect(confirmRole).toHaveBeenCalledWith("landlord"));
+    await waitFor(() => expect(confirmRole).toHaveBeenCalledWith("landlord", true));
     expect(onRoleConfirmed).toHaveBeenCalledWith({ id: "u1", role: "landlord", roleConfirmed: true });
   });
 
@@ -38,9 +39,23 @@ describe("SelectRolePage", () => {
 
     render(<SelectRolePage onRoleConfirmed={onRoleConfirmed} />);
 
+    await user.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(await screen.findByText("Invalid role")).toBeInTheDocument();
+    expect(onRoleConfirmed).not.toHaveBeenCalled();
+  });
+
+  it("rejects locally when the terms checkbox isn't checked, without calling confirmRole", async () => {
+    const user = userEvent.setup();
+    const onRoleConfirmed = vi.fn();
+
+    render(<SelectRolePage onRoleConfirmed={onRoleConfirmed} />);
+
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(await screen.findByText("You must agree to the Terms of Service to continue.")).toBeInTheDocument();
+    expect(confirmRole).not.toHaveBeenCalled();
     expect(onRoleConfirmed).not.toHaveBeenCalled();
   });
 });

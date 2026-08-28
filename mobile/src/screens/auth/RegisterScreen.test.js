@@ -33,6 +33,7 @@ describe("RegisterScreen", () => {
     await fireEvent.changeText(getByLabelText("Phone"), "0700000000");
     await fireEvent.changeText(getByLabelText("Password"), "password123");
     await fireEvent.press(getByText("Landlord"));
+    await fireEvent.press(getByLabelText("I agree to the Terms of Service and Privacy & Data Protection Policy"));
     // "Create account" is both the screen title and the submit button label -
     // the button is the last (and only interactive) match.
     const submitButtons = getAllByText("Create account");
@@ -46,7 +47,27 @@ describe("RegisterScreen", () => {
       password: "password123",
       phone: "0700000000",
       role: "landlord",
+      termsAccepted: true,
     });
+  });
+
+  it("rejects submission when the terms checkbox isn't checked, without calling register", async () => {
+    const register = jest.fn();
+    useAuth.mockReturnValue({ register });
+
+    const { getAllByText, getByLabelText, findByText } = await render(
+      <RegisterScreen navigation={{ goBack: jest.fn(), navigate: jest.fn() }} />,
+    );
+
+    await fireEvent.changeText(getByLabelText("Name"), "Jane Tenant");
+    await fireEvent.changeText(getByLabelText("Email"), "jane@example.com");
+    await fireEvent.changeText(getByLabelText("Username"), "janet");
+    await fireEvent.changeText(getByLabelText("Password"), "password123");
+    const submitButtons = getAllByText("Create account");
+    await fireEvent.press(submitButtons[submitButtons.length - 1]);
+
+    expect(await findByText("You must agree to the Terms of Service to create an account.")).toBeTruthy();
+    expect(register).not.toHaveBeenCalled();
   });
 
   it("shows an error and username suggestions when registration fails", async () => {
@@ -63,6 +84,7 @@ describe("RegisterScreen", () => {
     await fireEvent.changeText(getByLabelText("Email"), "jane@example.com");
     await fireEvent.changeText(getByLabelText("Username"), "janet");
     await fireEvent.changeText(getByLabelText("Password"), "password123");
+    await fireEvent.press(getByLabelText("I agree to the Terms of Service and Privacy & Data Protection Policy"));
     const submitButtons = getAllByText("Create account");
     await fireEvent.press(submitButtons[submitButtons.length - 1]);
 
@@ -85,6 +107,7 @@ describe("RegisterScreen", () => {
     await fireEvent.changeText(getByLabelText("Email"), "jane@example.com");
     await fireEvent.changeText(getByLabelText("Username"), "janet");
     await fireEvent.changeText(getByLabelText("Password"), "password123");
+    await fireEvent.press(getByLabelText("I agree to the Terms of Service and Privacy & Data Protection Policy"));
     const submitButtons = getAllByText("Create account");
     await fireEvent.press(submitButtons[submitButtons.length - 1]);
     await findByText("janet2");

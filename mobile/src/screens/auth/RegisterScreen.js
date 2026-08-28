@@ -13,6 +13,7 @@ import GoogleSignInButton from "../../components/GoogleSignInButton.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { bodyText, boldText } from "../../theme/typography.js";
+import { openLegalPage } from "../../utils/webLinks.js";
 
 // Mirrors the backend's registerUserSchema (backend/validators/authValidators.js)
 // so obviously-invalid input is caught here instead of round-tripping to the
@@ -39,6 +40,7 @@ export default function RegisterScreen({ navigation }) {
     password: "",
     phone: "",
     role: "tenant",
+    termsAccepted: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,6 +79,11 @@ export default function RegisterScreen({ navigation }) {
 
     if (form.password.length < minPasswordLength) {
       setError(`Password must be at least ${minPasswordLength} characters.`);
+      return;
+    }
+
+    if (!form.termsAccepted) {
+      setError("You must agree to the Terms of Service to create an account.");
       return;
     }
 
@@ -189,6 +196,29 @@ export default function RegisterScreen({ navigation }) {
           </View>
         </View>
 
+        <Pressable
+          style={styles.termsRow}
+          onPress={() => setField("termsAccepted")(!form.termsAccepted)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: form.termsAccepted }}
+          accessibilityLabel="I agree to the Terms of Service and Privacy & Data Protection Policy"
+        >
+          <View style={[styles.checkbox, form.termsAccepted && styles.checkboxChecked]}>
+            {form.termsAccepted ? <Text style={styles.checkboxMark}>✓</Text> : null}
+          </View>
+          <Text style={styles.termsText}>
+            I agree to the{" "}
+            <Text style={styles.termsLink} onPress={() => openLegalPage("/terms")}>
+              Terms of Service
+            </Text>{" "}
+            and{" "}
+            <Text style={styles.termsLink} onPress={() => openLegalPage("/privacy")}>
+              Privacy &amp; Data Protection Policy
+            </Text>
+            .
+          </Text>
+        </Pressable>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={loading}>
@@ -273,6 +303,42 @@ const createStyles = (colors) =>
   error: {
     ...bodyText,
     color: colors.red,
+    fontSize: 13,
+  },
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.green,
+    borderColor: colors.green,
+  },
+  checkboxMark: {
+    ...boldText,
+    color: colors.onAccent,
+    fontSize: 13,
+    lineHeight: 14,
+  },
+  termsText: {
+    ...bodyText,
+    flex: 1,
+    fontSize: 13,
+    color: colors.muted,
+  },
+  termsLink: {
+    ...boldText,
+    color: colors.green,
     fontSize: 13,
   },
   primaryButton: {

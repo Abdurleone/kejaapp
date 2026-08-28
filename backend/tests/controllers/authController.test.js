@@ -482,6 +482,7 @@ describe("authController", () => {
     assert.equal(res.statusCode, 201);
     assert.equal(res.body.user.username, "johnkamau");
     assert.equal(createdPayload.username, "johnkamau");
+    assert.ok(createdPayload.termsAcceptedAt instanceof Date);
 
     // The CSRF double-submit cookie must be readable by frontend JS (unlike
     // the auth/refresh cookies), and set to some real random value.
@@ -982,6 +983,7 @@ describe("authController", () => {
 
       assert.equal(user.role, "landlord");
       assert.equal(user.roleConfirmed, true);
+      assert.ok(user.termsAcceptedAt instanceof Date);
       assert.equal(res.statusCode, 200);
       assert.equal(res.body.user.role, "landlord");
       assert.equal(res.body.user.roleConfirmed, true);
