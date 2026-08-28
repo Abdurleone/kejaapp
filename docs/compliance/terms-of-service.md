@@ -58,7 +58,7 @@ To the fullest extent permitted by law, KejaApp's aggregate liability for any cl
 
 ## 10. Indemnity
 
-You agree to indemnify KejaApp against claims, losses, or damages arising from your breach of these terms, your listing content, or your conduct toward another user, to the extent permitted by law.
+You agree to indemnify KejaApp against claims, losses, or damages arising from your breach of these terms, your listing content, or your conduct toward another user, to the extent permitted by law. See the [Indemnity Policy](indemnity-policy.md) for what this means in practice, what it doesn't cover, and how it's grounded in Kenyan contract and consumer-protection law.
 
 ## 11. Governing law and dispute resolution
 
