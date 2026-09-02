@@ -40,6 +40,42 @@ const reviewSchema = new mongoose.Schema(
         default: null,
       },
     },
+    // Set by reportReview, cleared by dismissReport (a dismissed report is
+    // indistinguishable from never having been reported - there's no
+    // separate history log, matching how a violation this codebase
+    // dismisses elsewhere isn't kept around either). hidden is the actual
+    // visibility outcome, deliberately independent of report - it's set by
+    // hideReview and never automatically implied by a report existing.
+    report: {
+      reason: {
+        type: String,
+        trim: true,
+        maxlength: 500,
+        default: null,
+      },
+      reportedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+      reportedAt: {
+        type: Date,
+        default: null,
+      },
+    },
+    hidden: {
+      type: Boolean,
+      default: false,
+    },
+    hiddenBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    hiddenAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -57,7 +93,7 @@ reviewSchema.statics.updatePropertyRating = async function updatePropertyRating(
   const id = new mongoose.Types.ObjectId(propertyId?._id || propertyId);
 
   const [stats] = await this.aggregate([
-    { $match: { property: id } },
+    { $match: { property: id, hidden: { $ne: true } } },
     {
       $group: {
         _id: "$property",

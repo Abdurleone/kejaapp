@@ -9,12 +9,18 @@ const {
   fetchAdminUserSummary,
   fetchAdminUserStatusHistory,
   fetchAdminReviews,
+  fetchReportedReviews,
+  hideReview,
+  dismissReviewReport,
   updateAdminUserStatus,
 } = vi.hoisted(() => ({
   fetchAdminUsers: vi.fn(),
   fetchAdminUserSummary: vi.fn(),
   fetchAdminUserStatusHistory: vi.fn(),
   fetchAdminReviews: vi.fn(),
+  fetchReportedReviews: vi.fn(),
+  hideReview: vi.fn(),
+  dismissReviewReport: vi.fn(),
   updateAdminUserStatus: vi.fn(),
 }));
 
@@ -26,6 +32,9 @@ vi.mock("../app-utils.js", async (importOriginal) => {
     fetchAdminUserSummary,
     fetchAdminUserStatusHistory,
     fetchAdminReviews,
+    fetchReportedReviews,
+    hideReview,
+    dismissReviewReport,
     updateAdminUserStatus,
   };
 });
@@ -196,5 +205,84 @@ describe("AdminPage", () => {
     expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
     expect(screen.getByText("Great place!")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /respond/i })).not.toBeInTheDocument();
+  });
+
+  it("switches to the Reported tab and shows the report reason/reporter", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchReportedReviews.mockResolvedValue([
+      {
+        _id: "rev-2",
+        property: { title: "Leafy Lavington House" },
+        user: { name: "Sam Tenant" },
+        rating: 1,
+        comment: "This is fake",
+        report: { reason: "This looks fabricated", reportedBy: { name: "Jane Tenant" } },
+        createdAt: "2026-01-02T00:00:00.000Z",
+      },
+    ]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+    await user.click(screen.getByRole("button", { name: "Reviews" }));
+    await user.click(screen.getByRole("button", { name: "Reported" }));
+
+    expect(await screen.findByText("Leafy Lavington House")).toBeInTheDocument();
+    expect(screen.getByText("This looks fabricated")).toBeInTheDocument();
+    expect(fetchReportedReviews).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides a reported review and removes it from the list", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchReportedReviews.mockResolvedValue([
+      {
+        _id: "rev-2",
+        property: { title: "Leafy Lavington House" },
+        user: { name: "Sam Tenant" },
+        rating: 1,
+        report: { reason: "Fake", reportedBy: { name: "Jane Tenant" } },
+        createdAt: "2026-01-02T00:00:00.000Z",
+      },
+    ]);
+    hideReview.mockResolvedValue({});
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+    await user.click(screen.getByRole("button", { name: "Reviews" }));
+    await user.click(screen.getByRole("button", { name: "Reported" }));
+    await screen.findByText("Leafy Lavington House");
+
+    await user.click(screen.getByRole("button", { name: "Hide" }));
+
+    expect(hideReview).toHaveBeenCalledWith("rev-2");
+    await waitFor(() => expect(screen.queryByText("Leafy Lavington House")).not.toBeInTheDocument());
+  });
+
+  it("dismisses a report and removes it from the list without hiding the review", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchReportedReviews.mockResolvedValue([
+      {
+        _id: "rev-2",
+        property: { title: "Leafy Lavington House" },
+        user: { name: "Sam Tenant" },
+        rating: 1,
+        report: { reason: "Fake", reportedBy: { name: "Jane Tenant" } },
+        createdAt: "2026-01-02T00:00:00.000Z",
+      },
+    ]);
+    dismissReviewReport.mockResolvedValue({});
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+    await user.click(screen.getByRole("button", { name: "Reviews" }));
+    await user.click(screen.getByRole("button", { name: "Reported" }));
+    await screen.findByText("Leafy Lavington House");
+
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+
+    expect(dismissReviewReport).toHaveBeenCalledWith("rev-2");
+    await waitFor(() => expect(screen.queryByText("Leafy Lavington House")).not.toBeInTheDocument());
   });
 });
