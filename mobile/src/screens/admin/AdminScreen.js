@@ -1,7 +1,13 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { fetchAdminReviews, fetchAdminUsers } from "../../api/index.js";
+import {
+  dismissReviewReport,
+  fetchAdminReviews,
+  fetchAdminUsers,
+  fetchReportedReviews,
+  hideReview,
+} from "../../api/index.js";
 import { useTheme } from "../../context/ThemeContext.js";
 import { bodyText, boldText } from "../../theme/typography.js";
 import { formatStatusLabel } from "../../utils/format.js";
@@ -36,10 +42,12 @@ const UserRow = memo(function UserRow({ user, onPress, styles }) {
   );
 });
 
-// Read-only by design - review moderation isn't offered anywhere in this
-// app (see docs/compliance/terms-of-service.md), so there are no action affordances
-// here, matching the web admin console's reviews segment.
-const ReviewRow = memo(function ReviewRow({ review, styles }) {
+// Mostly read-only by design - review moderation isn't offered for the
+// general case (see docs/compliance/code-of-ethics.md). The one narrow
+// exception is the Reported sub-tab below: an admin can hide (never delete)
+// a review only after a report against it was actually upheld, matching the
+// web admin console's reviews segment.
+const ReviewRow = memo(function ReviewRow({ review, reported, onHide, onDismiss, actioning, styles }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeaderRow}>
@@ -55,6 +63,23 @@ const ReviewRow = memo(function ReviewRow({ review, styles }) {
           <Text style={styles.responseLabel}>Owner response</Text>
           <Text style={styles.responseText}>{review.ownerResponse.message}</Text>
         </View>
+      ) : null}
+      {reported ? (
+        <>
+          <View style={styles.responseBox}>
+            <Text style={styles.responseLabel}>Report reason</Text>
+            <Text style={styles.responseText}>{review.report?.reason || "-"}</Text>
+            <Text style={styles.cardSubtitle}>Reported by {review.report?.reportedBy?.name || "someone"}</Text>
+          </View>
+          <View style={styles.filterRow}>
+            <Pressable style={styles.secondaryButton} onPress={() => onHide(review._id)} disabled={actioning}>
+              <Text style={styles.secondaryButtonText}>Hide</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} onPress={() => onDismiss(review._id)} disabled={actioning}>
+              <Text style={styles.secondaryButtonText}>Dismiss</Text>
+            </Pressable>
+          </View>
+        </>
       ) : null}
     </View>
   );
@@ -215,21 +240,24 @@ function UsersSegment({ styles }) {
 }
 
 function ReviewsSegment({ styles }) {
+  const [reviewFilter, setReviewFilter] = useState("all");
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [actioningId, setActioningId] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   const load = useCallback(async () => {
     setError("");
 
     try {
-      const data = await fetchAdminReviews();
+      const data = reviewFilter === "reported" ? await fetchReportedReviews() : await fetchAdminReviews();
       setReviews(data);
     } catch (err) {
       setError(err.message || "Failed to load reviews.");
     }
-  }, []);
+  }, [reviewFilter]);
 
   useEffect(() => {
     // Kicking off a real fetch here, not deriving avoidable state.
@@ -244,35 +272,96 @@ function ReviewsSegment({ styles }) {
     setRefreshing(false);
   };
 
+  const handleHide = useCallback(async (reviewId) => {
+    setActionError("");
+    setActioningId(reviewId);
+
+    try {
+      await hideReview(reviewId);
+      setReviews((current) => current.filter((review) => review._id !== reviewId));
+    } catch (err) {
+      setActionError(err.message || "Could not hide this review.");
+    } finally {
+      setActioningId(null);
+    }
+  }, []);
+
+  const handleDismiss = useCallback(async (reviewId) => {
+    setActionError("");
+    setActioningId(reviewId);
+
+    try {
+      await dismissReviewReport(reviewId);
+      setReviews((current) => current.filter((review) => review._id !== reviewId));
+    } catch (err) {
+      setActionError(err.message || "Could not dismiss this report.");
+    } finally {
+      setActioningId(null);
+    }
+  }, []);
+
   const renderReviewItem = useCallback(
-    ({ item }) => <ReviewRow review={item} styles={styles} />,
-    [styles]
+    ({ item }) => (
+      <ReviewRow
+        review={item}
+        reported={reviewFilter === "reported"}
+        onHide={handleHide}
+        onDismiss={handleDismiss}
+        actioning={actioningId === item._id}
+        styles={styles}
+      />
+    ),
+    [styles, reviewFilter, handleHide, handleDismiss, actioningId]
   );
 
-  if (loading) {
-    return (
-      <ScrollView contentContainerStyle={styles.list}>
-        <Text style={styles.cardMessage}>Loading reviews...</Text>
-      </ScrollView>
-    );
-  }
-
-  if (error) {
-    return <MessageView title="Couldn't load reviews" message={error} actionLabel="Retry" onAction={load} />;
-  }
-
-  if (reviews.length === 0) {
-    return <MessageView title="No reviews yet" message="Reviews tenants leave on listings will show up here." />;
-  }
-
   return (
-    <FlatList
-      data={reviews}
-      keyExtractor={(item) => item._id}
-      contentContainerStyle={styles.list}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-      renderItem={renderReviewItem}
-    />
+    <View style={styles.flex}>
+      <View style={styles.filterRow}>
+        <Pressable
+          style={[styles.filterChip, reviewFilter === "all" && styles.filterChipActive]}
+          onPress={() => setReviewFilter("all")}
+        >
+          <Text style={[styles.filterChipText, reviewFilter === "all" && styles.filterChipTextActive]}>
+            All reviews
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[styles.filterChip, reviewFilter === "reported" && styles.filterChipActive]}
+          onPress={() => setReviewFilter("reported")}
+        >
+          <Text style={[styles.filterChipText, reviewFilter === "reported" && styles.filterChipTextActive]}>
+            Reported
+          </Text>
+        </Pressable>
+      </View>
+
+      {actionError ? <Text style={styles.cardMessage}>{actionError}</Text> : null}
+
+      {loading ? (
+        <ScrollView contentContainerStyle={styles.list}>
+          <Text style={styles.cardMessage}>Loading reviews...</Text>
+        </ScrollView>
+      ) : error ? (
+        <MessageView title="Couldn't load reviews" message={error} actionLabel="Retry" onAction={load} />
+      ) : reviews.length === 0 ? (
+        <MessageView
+          title={reviewFilter === "reported" ? "No reported reviews" : "No reviews yet"}
+          message={
+            reviewFilter === "reported"
+              ? "Reviews tenants report will show up here."
+              : "Reviews tenants leave on listings will show up here."
+          }
+        />
+      ) : (
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          renderItem={renderReviewItem}
+        />
+      )}
+    </View>
   );
 }
 
@@ -433,5 +522,17 @@ const createStyles = (colors) =>
       ...bodyText,
       fontSize: 13,
       color: colors.ink,
+    },
+    secondaryButton: {
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.green,
+      borderRadius: 999,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    secondaryButtonText: {
+      ...boldText,
+      color: colors.green,
+      fontSize: 13,
     },
   });

@@ -342,3 +342,28 @@ export const fetchAdminReviews = async () => {
   const response = await apiFetch("/api/admin/reviews", { method: "GET" });
   return response.data || [];
 };
+
+export const fetchReportedReviews = async () => {
+  const response = await apiFetch("/api/admin/reviews/reported", { method: "GET" });
+  return response.data || [];
+};
+
+export const hideReview = async (reviewId) => {
+  const response = await apiFetch(`/api/admin/reviews/${reviewId}/hide`, { method: "PUT" });
+  return response.data;
+};
+
+export const dismissReviewReport = async (reviewId) => {
+  const response = await apiFetch(`/api/admin/reviews/${reviewId}/dismiss-report`, { method: "PUT" });
+  return response.data;
+};
+
+export const createReview = async (payload) => {
+  const response = await apiFetch("/api/reviews", { method: "POST", body: payload });
+  return response.data;
+};
+
+export const reportReview = async (reviewId, reason) => {
+  const response = await apiFetch(`/api/reviews/${reviewId}/report`, { method: "POST", body: { reason } });
+  return response.data;
+};

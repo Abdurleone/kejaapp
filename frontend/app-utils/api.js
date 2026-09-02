@@ -90,6 +90,42 @@ export const removePropertyImage = async (propertyId, imageId) => {
   return response.data;
 };
 
+const propertyReviewsCacheTtlMs = 15000;
+
+export const fetchPropertyReviews = async (propertyId, query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `propertyReviews:${propertyId}:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/properties/${propertyId}/reviews${queryString}`, {
+    method: "GET",
+  });
+  setCached(cacheKey, response, propertyReviewsCacheTtlMs);
+  return response;
+};
+
+export const createReview = async (payload) => {
+  const response = await apiFetch("/api/reviews", {
+    method: "POST",
+    body: payload,
+  });
+  clearRequestCache("propertyReviews");
+  clearRequestCache("property");
+  return response.data;
+};
+
+export const reportReview = async (reviewId, reason) => {
+  const response = await apiFetch(`/api/reviews/${reviewId}/report`, {
+    method: "POST",
+    body: { reason },
+  });
+  return response.data;
+};
+
 const myPropertiesCacheTtlMs = 15000;
 const receivedInquiriesCacheTtlMs = 15000;
 
@@ -211,6 +247,41 @@ export const fetchAdminReviews = async () => {
   const data = response.data || [];
   setCached(cacheKey, data, adminReviewsCacheTtlMs);
   return data;
+};
+
+export const fetchReportedReviews = async () => {
+  const cacheKey = "reportedReviews:";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/admin/reviews/reported", {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, adminReviewsCacheTtlMs);
+  return data;
+};
+
+export const hideReview = async (reviewId) => {
+  const response = await apiFetch(`/api/admin/reviews/${reviewId}/hide`, {
+    method: "PUT",
+  });
+  clearRequestCache("adminReviews");
+  clearRequestCache("reportedReviews");
+  clearRequestCache("propertyReviews");
+  return response.data;
+};
+
+export const dismissReviewReport = async (reviewId) => {
+  const response = await apiFetch(`/api/admin/reviews/${reviewId}/dismiss-report`, {
+    method: "PUT",
+  });
+  clearRequestCache("adminReviews");
+  clearRequestCache("reportedReviews");
+  return response.data;
 };
 
 const moversCacheTtlMs = 15000;
