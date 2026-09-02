@@ -30,6 +30,15 @@ const contactMethodLabels = {
   inquiry: "In-app inquiry",
 };
 
+const accessibilityFeatureLabels = {
+  wheelchairRamp: "Wheelchair ramp",
+  wideDoorways: "Wide doorways/entrances",
+  elevatorAccess: "Elevator/lift access",
+  groundFloorUnit: "Ground-floor unit",
+  accessibleBathroom: "Accessible/roll-in bathroom",
+  accessibleParking: "Accessible parking",
+};
+
 const contactPreferences = [
   { value: "in_app", label: "In-app" },
   { value: "phone", label: "Phone" },
@@ -505,6 +514,17 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
             <div className="property-meta">
               {property.amenities.map((amenity) => (
                 <span key={amenity}>{amenity}</span>
+              ))}
+            </div>
+          </>
+        )}
+
+        {property.accessibilityFeatures?.length > 0 && (
+          <>
+            <h3>Accessibility features</h3>
+            <div className="property-meta">
+              {property.accessibilityFeatures.map((feature) => (
+                <span key={feature}>{accessibilityFeatureLabels[feature] || feature}</span>
               ))}
             </div>
           </>

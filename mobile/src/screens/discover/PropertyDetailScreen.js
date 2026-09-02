@@ -17,6 +17,15 @@ const contactMethodLabels = {
   inquiry: "In-app inquiry",
 };
 
+const accessibilityFeatureLabels = {
+  wheelchairRamp: "Wheelchair ramp",
+  wideDoorways: "Wide doorways/entrances",
+  elevatorAccess: "Elevator/lift access",
+  groundFloorUnit: "Ground-floor unit",
+  accessibleBathroom: "Accessible/roll-in bathroom",
+  accessibleParking: "Accessible parking",
+};
+
 const openContactUrl = (url) => {
   if (url) Linking.openURL(url).catch(() => {});
 };
@@ -287,6 +296,19 @@ export default function PropertyDetailScreen({ route, navigation }) {
             {property.amenities.map((amenity) => (
               <View key={amenity} style={styles.amenityChip}>
                 <Text style={styles.amenityChipText}>{amenity}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {property.accessibilityFeatures?.length ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Accessibility features</Text>
+          <View style={styles.amenityRow}>
+            {property.accessibilityFeatures.map((feature) => (
+              <View key={feature} style={styles.amenityChip}>
+                <Text style={styles.amenityChipText}>{accessibilityFeatureLabels[feature] || feature}</Text>
               </View>
             ))}
           </View>

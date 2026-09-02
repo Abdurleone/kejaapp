@@ -1,6 +1,14 @@
 const listingTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const propertyStatuses = ["draft", "available", "taken", "archived"];
 const viewingTypes = ["scheduled", "open"];
+const accessibilityFeatureOptions = [
+  { value: "wheelchairRamp", label: "Wheelchair ramp" },
+  { value: "wideDoorways", label: "Wide doorways/entrances" },
+  { value: "elevatorAccess", label: "Elevator/lift access" },
+  { value: "groundFloorUnit", label: "Ground-floor unit" },
+  { value: "accessibleBathroom", label: "Accessible/roll-in bathroom" },
+  { value: "accessibleParking", label: "Accessible parking" },
+];
 const contactMethods = [
   { value: "inquiry", label: "In-app inquiry" },
   { value: "phone", label: "Phone" },
@@ -24,6 +32,7 @@ export const emptyPropertyForm = {
   bedrooms: "",
   bathrooms: "",
   amenities: "",
+  accessibilityFeatures: [],
   contactPreferredMethod: "inquiry",
   contactPhone: "",
   contactEmail: "",
@@ -48,6 +57,7 @@ export const propertyToForm = (property) => ({
   bedrooms: property.bedrooms ?? "",
   bathrooms: property.bathrooms ?? "",
   amenities: (property.amenities || []).join(", "),
+  accessibilityFeatures: property.accessibilityFeatures || [],
   contactPreferredMethod: property.contact?.preferredMethod || "inquiry",
   contactPhone: property.contact?.phone || "",
   contactEmail: property.contact?.email || "",
@@ -104,6 +114,7 @@ export const formToPropertyPayload = (form, originalProperty) => {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean),
+    accessibilityFeatures: form.accessibilityFeatures,
     contact,
   };
 };
@@ -132,6 +143,14 @@ export default function PropertyForm({
   onCancel,
 }) {
   const updateField = (field) => (event) => onFieldChange(field, event.target.value);
+
+  const toggleAccessibilityFeature = (value) => (event) => {
+    const current = form.accessibilityFeatures || [];
+    const next = event.target.checked
+      ? [...current, value]
+      : current.filter((item) => item !== value);
+    onFieldChange("accessibilityFeatures", next);
+  };
 
   return (
     <form className="panel detail-panel auth-panel-form" onSubmit={onSubmit}>
@@ -178,6 +197,19 @@ export default function PropertyForm({
         Amenities (comma separated)
         <input type="text" value={form.amenities} onChange={updateField("amenities")} placeholder="Parking, Wifi, Borehole" />
       </label>
+      <fieldset className="checkbox-field-group">
+        <legend>Accessibility features</legend>
+        {accessibilityFeatureOptions.map((option) => (
+          <label key={option.value} className="checkbox-field">
+            <input
+              type="checkbox"
+              checked={form.accessibilityFeatures.includes(option.value)}
+              onChange={toggleAccessibilityFeature(option.value)}
+            />
+            {option.label}
+          </label>
+        ))}
+      </fieldset>
 
       <h3>Cost</h3>
       <div className="detail-grid">

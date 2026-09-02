@@ -49,6 +49,25 @@ describe("PropertyCreateScreen", () => {
     expect(uploadPropertyImage).not.toHaveBeenCalled();
   });
 
+  it("submits checked accessibility features and omits unchecked ones", async () => {
+    createProperty.mockResolvedValue({ _id: "p1" });
+    const goBack = jest.fn();
+
+    const { getByLabelText, getByText } = await renderScreen({ goBack });
+
+    await fireEvent.changeText(getByLabelText("Title"), "Cozy studio");
+    await fireEvent.changeText(getByLabelText("Monthly rent (KES)"), "15000");
+    await fireEvent.press(getByLabelText("Wheelchair ramp"));
+    await fireEvent.press(getByLabelText("Elevator/lift access"));
+
+    await fireEvent.press(getByText("Create listing"));
+
+    await waitFor(() => expect(goBack).toHaveBeenCalledTimes(1));
+    expect(createProperty).toHaveBeenCalledWith(
+      expect.objectContaining({ accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"] })
+    );
+  });
+
   it("stages a picked photo locally, then uploads it only after the listing is created", async () => {
     createProperty.mockResolvedValue({ _id: "p1" });
     pickImagesOrEmpty.mockResolvedValue([

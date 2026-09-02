@@ -63,6 +63,7 @@ describe("propertyController", () => {
         // check short-circuits before it - no SavedSearch.find mock needed.
         status: "draft",
         amenities: ["<i>WiFi</i>", "Parking"],
+        accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"],
         viewingInstructions: "<a href=x>Call ahead</a>",
         location: { county: "<u>Nairobi</u>", town: "Westlands", area: "" },
         contact: { notes: "<script>bad()</script>Ask for John", availableHours: "9am<br>5pm" },
@@ -79,6 +80,7 @@ describe("propertyController", () => {
     assert.equal(createPayload.title, "Spacious apartment");
     assert.equal(createPayload.description, "alert(1)Close to town");
     assert.deepEqual(createPayload.amenities, ["WiFi", "Parking"]);
+    assert.deepEqual(createPayload.accessibilityFeatures, ["wheelchairRamp", "elevatorAccess"]);
     assert.equal(createPayload.viewingInstructions, "Call ahead");
     assert.equal(createPayload.location.county, "Nairobi");
     assert.equal(createPayload.contact.notes, "bad()Ask for John");
