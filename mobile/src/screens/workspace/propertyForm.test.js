@@ -19,6 +19,7 @@ describe("propertyToForm", () => {
       bedrooms: 1,
       bathrooms: 1,
       amenities: ["Parking", "Wifi"],
+      accessibilityFeatures: ["wheelchairRamp"],
       contact: {
         preferredMethod: "phone",
         phone: "0700000000",
@@ -45,6 +46,7 @@ describe("propertyToForm", () => {
       bedrooms: 1,
       bathrooms: 1,
       amenities: "Parking, Wifi",
+      accessibilityFeatures: ["wheelchairRamp"],
       contactPreferredMethod: "phone",
       contactPhone: "0700000000",
       contactEmail: "owner@example.com",
@@ -67,6 +69,7 @@ describe("formToPropertyPayload", () => {
     bedrooms: "1",
     bathrooms: "1",
     amenities: "Parking, Wifi, ",
+    accessibilityFeatures: ["wheelchairRamp", "groundFloorUnit"],
   };
 
   it("builds a payload with trimmed/typed fields", () => {
@@ -77,6 +80,7 @@ describe("formToPropertyPayload", () => {
     expect(payload.bedrooms).toBe(1);
     expect(payload.bathrooms).toBe(1);
     expect(payload.amenities).toEqual(["Parking", "Wifi"]);
+    expect(payload.accessibilityFeatures).toEqual(["wheelchairRamp", "groundFloorUnit"]);
     expect(payload.location.coordinates).toBeUndefined();
   });
 

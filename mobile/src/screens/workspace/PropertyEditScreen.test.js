@@ -83,6 +83,34 @@ describe("PropertyEditScreen", () => {
     );
   });
 
+  it("pre-checks existing accessibility features and lets one be unchecked", async () => {
+    fetchProperty.mockResolvedValue({
+      ...baseProperty,
+      accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"],
+    });
+    updateProperty.mockResolvedValue({});
+
+    const { getByDisplayValue, getByLabelText, getByText } = await renderScreen();
+
+    await waitFor(() => expect(getByDisplayValue("Cozy studio")).toBeTruthy());
+
+    expect(getByLabelText("Wheelchair ramp").props.accessibilityState.checked).toBe(true);
+    expect(getByLabelText("Elevator/lift access").props.accessibilityState.checked).toBe(true);
+    expect(getByLabelText("Ground-floor unit").props.accessibilityState.checked).toBe(false);
+
+    fireEvent.press(getByLabelText("Wheelchair ramp"));
+    await waitFor(() => expect(getByLabelText("Wheelchair ramp").props.accessibilityState.checked).toBe(false));
+
+    fireEvent.press(getByText("Save changes"));
+
+    await waitFor(() =>
+      expect(updateProperty).toHaveBeenCalledWith(
+        "p1",
+        expect.objectContaining({ accessibilityFeatures: ["elevatorAccess"] })
+      )
+    );
+  });
+
   it("adds a photo and shows a duplicate-flag notice", async () => {
     fetchProperty.mockResolvedValue(baseProperty);
     pickImagesOrEmpty.mockResolvedValue([

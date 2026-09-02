@@ -68,6 +68,29 @@ describe("PropertyEditPage", () => {
     expect(onSaved).toHaveBeenCalledWith(updated);
   });
 
+  it("pre-checks existing accessibility features and lets one be unchecked", async () => {
+    fetchPropertyById.mockResolvedValue({ ...sampleProperty, accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"] });
+    updateProperty.mockResolvedValue({});
+    const user = userEvent.setup();
+
+    render(<PropertyEditPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={vi.fn()} />);
+    await screen.findByDisplayValue("Modern Kilimani Apartment");
+
+    expect(screen.getByRole("checkbox", { name: "Wheelchair ramp" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Elevator/lift access" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Ground-floor unit" })).not.toBeChecked();
+
+    await user.click(screen.getByRole("checkbox", { name: "Wheelchair ramp" }));
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(updateProperty).toHaveBeenCalledWith(
+        "prop-1",
+        expect.objectContaining({ accessibilityFeatures: ["elevatorAccess"] })
+      )
+    );
+  });
+
   it("shows a load error with a way back to the workspace", async () => {
     fetchPropertyById.mockRejectedValue(new Error("Property not found."));
     const onBack = vi.fn();

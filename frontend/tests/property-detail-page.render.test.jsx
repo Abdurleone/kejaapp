@@ -121,6 +121,24 @@ describe("PropertyDetailPage", () => {
     expect(screen.getByText("Jane Landlord")).toBeInTheDocument();
   });
 
+  it("shows accessibility features when the property has any", async () => {
+    renderDetailPage({
+      property: { ...sampleProperty, accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"] },
+    });
+
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.getByText("Accessibility features")).toBeInTheDocument();
+    expect(screen.getByText("Wheelchair ramp")).toBeInTheDocument();
+    expect(screen.getByText("Elevator/lift access")).toBeInTheDocument();
+  });
+
+  it("doesn't show an accessibility features section when the property has none", async () => {
+    renderDetailPage();
+
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.queryByText("Accessibility features")).not.toBeInTheDocument();
+  });
+
   it("shows a Verified agency badge only when the owner is a verified agency", async () => {
     renderDetailPage({
       property: { ...sampleProperty, owner: { ...sampleProperty.owner, role: "agency", verified: true } },

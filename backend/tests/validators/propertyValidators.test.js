@@ -51,6 +51,18 @@ describe("propertyValidators", () => {
     assert.deepEqual(updatePropertySchema.status.enum, ["draft", "available", "taken", "archived"]);
   });
 
+  it("only allows known accessibility feature values", () => {
+    assert.equal(
+      createPropertySchema.accessibilityFeatures.validate(["wheelchairRamp", "elevatorAccess"]),
+      null
+    );
+    assert.match(
+      createPropertySchema.accessibilityFeatures.validate(["wheelchairRamp", "sauna"]),
+      /accessibilityFeatures must only contain/
+    );
+    assert.equal(updatePropertySchema.accessibilityFeatures.validate(["groundFloorUnit"]), null);
+  });
+
   it("limits viewing instructions", () => {
     const message = createPropertySchema.viewingInstructions.validate("a".repeat(1001));
 

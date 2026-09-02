@@ -95,6 +95,21 @@ describe("PropertyDetailScreen", () => {
     expect(getAllByText(formatKes(30000)).length).toBe(2);
   });
 
+  it("shows accessibility features when the property has any", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue({
+      ...baseProperty,
+      accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"],
+    });
+
+    const { findByText, getByText } = await renderScreen();
+
+    expect(await findByText("Cozy studio")).toBeTruthy();
+    expect(getByText("Accessibility features")).toBeTruthy();
+    expect(getByText("Wheelchair ramp")).toBeTruthy();
+    expect(getByText("Elevator/lift access")).toBeTruthy();
+  });
+
   it("blocks a landlord from viewing another owner's listing", async () => {
     useAuth.mockReturnValue({ signedIn: true, user: { _id: "otherOwner", role: "landlord" } });
     fetchProperty.mockResolvedValue(baseProperty);

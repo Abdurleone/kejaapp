@@ -33,6 +33,15 @@ const contactMethodLabels = {
   inquiry: "In-app inquiry",
 };
 
+const accessibilityFeatureLabels = {
+  wheelchairRamp: "Wheelchair ramp",
+  wideDoorways: "Wide doorways/entrances",
+  elevatorAccess: "Elevator/lift access",
+  groundFloorUnit: "Ground-floor unit",
+  accessibleBathroom: "Accessible/roll-in bathroom",
+  accessibleParking: "Accessible parking",
+};
+
 const contactPreferences = [
   { value: "in_app", label: "In-app" },
   { value: "phone", label: "Phone" },

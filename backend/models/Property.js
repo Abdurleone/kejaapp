@@ -4,6 +4,19 @@ const propertyStatuses = ["draft", "available", "taken", "archived"];
 const propertyTypes = ["apartment", "bedsitter", "maisonette", "house", "studio", "other"];
 const propertyListedByOptions = ["owner", "agency"];
 const propertyViewingTypes = ["scheduled", "open"];
+// A fixed checklist, not free text like `amenities` - deliberately, since a
+// tenant filtering/scanning for accessibility needs benefits from a known,
+// consistent set of values a landlord ticks off, not whatever free-form
+// phrase they happened to type. See docs/compliance/accessibility-statement.md
+// §3 (Persons with Disabilities Act, 2025) for why this matters here.
+const propertyAccessibilityFeatures = [
+  "wheelchairRamp",
+  "wideDoorways",
+  "elevatorAccess",
+  "groundFloorUnit",
+  "accessibleBathroom",
+  "accessibleParking",
+];
 
 const propertySchema = new mongoose.Schema(
   {
@@ -81,6 +94,12 @@ const propertySchema = new mongoose.Schema(
       {
         type: String,
         trim: true,
+      },
+    ],
+    accessibilityFeatures: [
+      {
+        type: String,
+        enum: propertyAccessibilityFeatures,
       },
     ],
     images: [
@@ -185,5 +204,11 @@ propertySchema.index({ owner: 1, status: 1 });
 
 const Property = mongoose.model("Property", propertySchema);
 
-export { propertyListedByOptions, propertyStatuses, propertyTypes, propertyViewingTypes };
+export {
+  propertyAccessibilityFeatures,
+  propertyListedByOptions,
+  propertyStatuses,
+  propertyTypes,
+  propertyViewingTypes,
+};
 export default Property;
