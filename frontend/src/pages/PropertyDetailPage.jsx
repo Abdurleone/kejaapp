@@ -9,10 +9,12 @@ import {
   canManageListings,
   createInquiry,
   createMoverRequest,
+  createReview,
   createViewingRequest,
   fetchFavorites,
   fetchPropertyById,
   fetchPropertyMovers,
+  fetchPropertyReviews,
   formatKes,
   formatRatingSummary,
   formatStatusLabel,
@@ -20,6 +22,7 @@ import {
   getPreferredContactUrl,
   getPropertyImage,
   homeSizeOptions,
+  reportReview,
   saveFavorite,
 } from "../../app-utils.js";
 
@@ -72,6 +75,19 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
   const [viewingError, setViewingError] = useState("");
   const [viewingSubmitting, setViewingSubmitting] = useState(false);
   const [viewingSent, setViewingSent] = useState(false);
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewError, setReviewError] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSent, setReviewSent] = useState(false);
+  const [reportingReviewId, setReportingReviewId] = useState(null);
+  const [reportReason, setReportReason] = useState("");
+  const [reportError, setReportError] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportedReviewIds, setReportedReviewIds] = useState(new Set());
 
   const [propertyMovers, setPropertyMovers] = useState({ affiliates: [], nearby: [] });
   const [moverRequestFormId, setMoverRequestFormId] = useState(null);
@@ -144,6 +160,30 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
       active = false;
     };
   }, [propertyId]);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setReviewsLoading(true);
+
+      try {
+        const data = await fetchPropertyReviews(propertyId);
+        if (active) setReviews(data.data || []);
+      } catch {
+        // Leave whatever reviews were already loaded; the section just
+        // won't refresh this time.
+      } finally {
+        if (active) setReviewsLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [propertyId, reviewSent]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -259,6 +299,52 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
       setViewingError(err.message || "Could not send your viewing request.");
     } finally {
       setViewingSubmitting(false);
+    }
+  };
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+    setReviewError("");
+    setReviewSubmitting(true);
+
+    try {
+      await createReview({
+        property: propertyId,
+        rating: Number(reviewRating),
+        comment: reviewComment.trim(),
+      });
+      setReviewSent(true);
+      setReviewComment("");
+    } catch (err) {
+      // Surfaced verbatim - this is where "you can only review a property
+      // after a completed viewing" (the actual eligibility rule) reaches the
+      // tenant, not a generic failure message.
+      setReviewError(err.message || "Could not submit your review.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const handleReportSubmit = async (event, reviewId) => {
+    event.preventDefault();
+    setReportError("");
+
+    if (!reportReason.trim()) {
+      setReportError("A reason is required.");
+      return;
+    }
+
+    setReportSubmitting(true);
+
+    try {
+      await reportReview(reviewId, reportReason.trim());
+      setReportedReviewIds((current) => new Set(current).add(reviewId));
+      setReportingReviewId(null);
+      setReportReason("");
+    } catch (err) {
+      setReportError(err.message || "Could not submit this report.");
+    } finally {
+      setReportSubmitting(false);
     }
   };
 
@@ -519,15 +605,78 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
           </>
         )}
 
-        {property.accessibilityFeatures?.length > 0 && (
-          <>
-            <h3>Accessibility features</h3>
-            <div className="property-meta">
-              {property.accessibilityFeatures.map((feature) => (
-                <span key={feature}>{accessibilityFeatureLabels[feature] || feature}</span>
-              ))}
-            </div>
-          </>
+        <h3>Reviews</h3>
+        {reviewsLoading ? (
+          <p className="muted-copy">Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p className="muted-copy">No reviews yet.</p>
+        ) : (
+          <div className="stack">
+            {reviews.map((review) => {
+              const isOwnReview = signedIn && String(review.user?._id) === String(currentUser?._id);
+              const alreadyReported = reportedReviewIds.has(review._id);
+
+              return (
+                <div className="panel detail-panel" key={review._id}>
+                  <p>
+                    <strong>{review.user?.name || "Tenant"}</strong> — {review.rating}/5
+                  </p>
+                  {review.comment && <p>{review.comment}</p>}
+                  <p className="muted-copy">{new Date(review.createdAt).toLocaleDateString()}</p>
+                  {review.ownerResponse?.message && (
+                    <p className="muted-copy">Owner response: {review.ownerResponse.message}</p>
+                  )}
+                  {signedIn && !isOwnReview && (
+                    <>
+                      {alreadyReported ? (
+                        <p className="muted-copy">Reported — an admin will review it.</p>
+                      ) : reportingReviewId === review._id ? (
+                        <form className="stack" onSubmit={(event) => handleReportSubmit(event, review._id)}>
+                          <label>
+                            Why are you reporting this review?
+                            <textarea
+                              value={reportReason}
+                              onChange={(event) => setReportReason(event.target.value)}
+                              rows={2}
+                              maxLength={500}
+                            />
+                          </label>
+                          {reportError && <p className="error-text">{reportError}</p>}
+                          <div className="form-actions">
+                            <button className="primary-button" type="submit" disabled={reportSubmitting}>
+                              {reportSubmitting ? "Submitting..." : "Submit report"}
+                            </button>
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              onClick={() => {
+                                setReportingReviewId(null);
+                                setReportError("");
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <button
+                          className="text-button"
+                          type="button"
+                          onClick={() => {
+                            setReportingReviewId(review._id);
+                            setReportReason("");
+                            setReportError("");
+                          }}
+                        >
+                          Report
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {hasMovers && (
@@ -579,6 +728,19 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
           >
             Request viewing
           </button>
+          {signedIn && currentUser?.role === "tenant" && (
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => {
+                setReviewSent(false);
+                setReviewError("");
+                openForm(activeForm === "review" ? null : "review");
+              }}
+            >
+              Write a review
+            </button>
+          )}
         </div>
       </div>
 
@@ -680,6 +842,49 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
               <div className="form-actions">
                 <button className="primary-button" type="submit" disabled={viewingSubmitting}>
                   {viewingSubmitting ? "Sending..." : "Request viewing"}
+                </button>
+                <button className="secondary-button" type="button" onClick={() => setActiveForm(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
+      {activeForm === "review" && (
+        <div className="panel detail-panel">
+          {reviewSent ? (
+            <>
+              <h3>Review submitted</h3>
+              <p className="muted-copy">Thanks for sharing your experience.</p>
+            </>
+          ) : (
+            <form className="auth-panel-form" onSubmit={handleReviewSubmit}>
+              <h3>Write a review</h3>
+              <label>
+                Rating
+                <select value={reviewRating} onChange={(event) => setReviewRating(event.target.value)}>
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} star{value === 1 ? "" : "s"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Comment (optional)
+                <textarea
+                  value={reviewComment}
+                  onChange={(event) => setReviewComment(event.target.value)}
+                  rows={4}
+                  maxLength={1000}
+                />
+              </label>
+              {reviewError && <p className="error-text">{reviewError}</p>}
+              <div className="form-actions">
+                <button className="primary-button" type="submit" disabled={reviewSubmitting}>
+                  {reviewSubmitting ? "Submitting..." : "Submit review"}
                 </button>
                 <button className="secondary-button" type="button" onClick={() => setActiveForm(null)}>
                   Cancel

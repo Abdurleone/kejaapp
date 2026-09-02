@@ -2,6 +2,9 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import PropertyDetailScreen from "./PropertyDetailScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
+jest.mock("@react-navigation/native", () => ({
+  useFocusEffect: (callback) => require("react").useEffect(callback, [callback]),
+}));
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
 jest.mock("../../context/SettingsContext.js", () => ({
   useSettings: jest.fn(),
@@ -12,13 +15,20 @@ jest.mock("../../api/index.js", () => ({
   fetchProperty: jest.fn(),
   fetchFavorites: jest.fn(),
   fetchPropertyMovers: jest.fn(),
+  fetchPropertyReviews: jest.fn(),
   saveFavorite: jest.fn(),
 }));
 
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
 import { useTheme } from "../../context/ThemeContext.js";
-import { fetchFavorites, fetchProperty, fetchPropertyMovers, saveFavorite } from "../../api/index.js";
+import {
+  fetchFavorites,
+  fetchProperty,
+  fetchPropertyMovers,
+  fetchPropertyReviews,
+  saveFavorite,
+} from "../../api/index.js";
 import { formatKes } from "../../utils/format.js";
 
 const baseProperty = {
@@ -48,6 +58,7 @@ describe("PropertyDetailScreen", () => {
     useSettings.mockReturnValue({ apiBaseUrl: "http://localhost:5000" });
     fetchFavorites.mockResolvedValue([]);
     fetchPropertyMovers.mockResolvedValue({ affiliates: [], nearby: [] });
+    fetchPropertyReviews.mockResolvedValue([]);
   });
 
   it("prompts sign-in when signed out", async () => {
@@ -198,5 +209,79 @@ describe("PropertyDetailScreen", () => {
 
     await fireEvent.press(getByText("Request viewing"));
     expect(navigate).toHaveBeenCalledWith("ViewingRequestForm", { propertyId: "p1", viewingType: "scheduled" });
+  });
+
+  it("shows existing reviews, including an owner response", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+    fetchPropertyReviews.mockResolvedValue([
+      {
+        _id: "r1",
+        user: { _id: "otherTenant", name: "Amina" },
+        rating: 4,
+        comment: "Nice place",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        ownerResponse: { message: "Thanks for staying!" },
+      },
+    ]);
+
+    const { findByText, getByText } = await renderScreen();
+    await findByText("Cozy studio");
+
+    expect(await findByText("Amina — 4/5")).toBeTruthy();
+    expect(getByText("Nice place")).toBeTruthy();
+    expect(getByText("Owner response: Thanks for staying!")).toBeTruthy();
+  });
+
+  it("shows a Write a review button for tenants only", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+
+    const { findByText, getByText } = await renderScreen();
+    await findByText("Cozy studio");
+
+    expect(getByText("Write a review")).toBeTruthy();
+  });
+
+  it("hides the Write a review button for non-tenants", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "owner1", role: "landlord" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+
+    const { findByText, queryByText } = await renderScreen();
+    await findByText("Cozy studio");
+
+    expect(queryByText("Write a review")).toBeNull();
+  });
+
+  it("navigates to the review form", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+    const navigate = jest.fn();
+
+    const { findByText, getByText } = await renderScreen({ navigate });
+    await findByText("Cozy studio");
+
+    await fireEvent.press(getByText("Write a review"));
+    expect(navigate).toHaveBeenCalledWith("ReviewForm", { propertyId: "p1", viewingType: "scheduled" });
+  });
+
+  it("offers Report on another tenant's review but not on the signed-in user's own", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+    fetchPropertyReviews.mockResolvedValue([
+      { _id: "r1", user: { _id: "otherTenant", name: "Amina" }, rating: 4, comment: "", createdAt: "2026-01-01" },
+      { _id: "r2", user: { _id: "u1", name: "Me" }, rating: 5, comment: "", createdAt: "2026-01-02" },
+    ]);
+    const navigate = jest.fn();
+
+    const { findByText, getAllByText } = await renderScreen({ navigate });
+    await findByText("Cozy studio");
+    await findByText("Amina — 4/5");
+
+    const reportButtons = getAllByText("Report");
+    expect(reportButtons).toHaveLength(1);
+
+    await fireEvent.press(reportButtons[0]);
+    expect(navigate).toHaveBeenCalledWith("ReportReviewForm", { reviewId: "r1" });
   });
 });

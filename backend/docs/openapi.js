@@ -581,6 +581,28 @@ const openApiSpec = {
         },
       },
     },
+    "/api/reviews/{id}/report": {
+      post: {
+        tags: ["Reviews"],
+        summary: "Report a review for admin attention (not its own author)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Review flagged for admin review",
+          },
+        },
+      },
+    },
     "/api/inquiries": {
       get: {
         tags: ["Inquiries"],
@@ -1079,11 +1101,67 @@ const openApiSpec = {
     "/api/admin/reviews": {
       get: {
         tags: ["Admin"],
-        summary: "List all property reviews and ratings without deletion rights",
+        summary: "List all property reviews and ratings - no general deletion/edit rights, see /reviews/reported for the one narrow exception",
         security: [{ bearerAuth: [] }],
         responses: {
           200: {
             description: "All property reviews",
+          },
+        },
+      },
+    },
+    "/api/admin/reviews/reported": {
+      get: {
+        tags: ["Admin"],
+        summary: "List reviews with an active, unresolved report",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Reported reviews awaiting a hide/dismiss decision",
+          },
+        },
+      },
+    },
+    "/api/admin/reviews/{id}/hide": {
+      put: {
+        tags: ["Admin"],
+        summary: "Hide a reported review that was upheld as fraudulent (never deletes it)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Review hidden",
+          },
+        },
+      },
+    },
+    "/api/admin/reviews/{id}/dismiss-report": {
+      put: {
+        tags: ["Admin"],
+        summary: "Dismiss a report - the review stays fully visible",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Report dismissed",
           },
         },
       },

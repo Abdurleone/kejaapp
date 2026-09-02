@@ -35,14 +35,23 @@ export const fetchPropertyById = async (propertyId) => {
   return response.data;
 };
 
+// "property" does NOT also match "properties:" list-query cache keys -
+// "properties" diverges from "property" at the 8th character ("i" vs "y"),
+// so clearRequestCache's startsWith check treats them as unrelated prefixes.
+// Every mutation that invalidates a single property's cache must clear both
+// prefixes explicitly, or the properties list view (and its cached
+// ratingAverage/ratingCount) can stay stale for up to its own cache TTL.
+const clearPropertyCaches = () => {
+  clearRequestCache("property");
+  clearRequestCache("properties");
+};
+
 export const createProperty = async (payload) => {
   const response = await apiFetch("/api/properties", {
     method: "POST",
     body: payload,
   });
-  // "property" also matches "properties:" list-query cache keys, since both
-  // start with that prefix - see clearRequestCache's startsWith check.
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response.data;
 };
@@ -52,7 +61,7 @@ export const updateProperty = async (propertyId, payload) => {
     method: "PUT",
     body: payload,
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response.data;
 };
@@ -66,7 +75,7 @@ export const addPropertyImage = async (propertyId, payload) => {
     method: "POST",
     body: payload,
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response;
 };
@@ -76,7 +85,7 @@ export const uploadPropertyImage = async (propertyId, payload) => {
     method: "POST",
     body: payload,
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response;
 };
@@ -85,8 +94,44 @@ export const removePropertyImage = async (propertyId, imageId) => {
   const response = await apiFetch(`/api/properties/${propertyId}/images/${imageId}`, {
     method: "DELETE",
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
+  return response.data;
+};
+
+const propertyReviewsCacheTtlMs = 15000;
+
+export const fetchPropertyReviews = async (propertyId, query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `propertyReviews:${propertyId}:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/properties/${propertyId}/reviews${queryString}`, {
+    method: "GET",
+  });
+  setCached(cacheKey, response, propertyReviewsCacheTtlMs);
+  return response;
+};
+
+export const createReview = async (payload) => {
+  const response = await apiFetch("/api/reviews", {
+    method: "POST",
+    body: payload,
+  });
+  clearRequestCache("propertyReviews");
+  clearPropertyCaches();
+  return response.data;
+};
+
+export const reportReview = async (reviewId, reason) => {
+  const response = await apiFetch(`/api/reviews/${reviewId}/report`, {
+    method: "POST",
+    body: { reason },
+  });
   return response.data;
 };
 
@@ -211,6 +256,42 @@ export const fetchAdminReviews = async () => {
   const data = response.data || [];
   setCached(cacheKey, data, adminReviewsCacheTtlMs);
   return data;
+};
+
+export const fetchReportedReviews = async () => {
+  const cacheKey = "reportedReviews:";
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch("/api/admin/reviews/reported", {
+    method: "GET",
+  });
+  const data = response.data || [];
+  setCached(cacheKey, data, adminReviewsCacheTtlMs);
+  return data;
+};
+
+export const hideReview = async (reviewId) => {
+  const response = await apiFetch(`/api/admin/reviews/${reviewId}/hide`, {
+    method: "PUT",
+  });
+  clearRequestCache("adminReviews");
+  clearRequestCache("reportedReviews");
+  clearRequestCache("propertyReviews");
+  clearPropertyCaches();
+  return response.data;
+};
+
+export const dismissReviewReport = async (reviewId) => {
+  const response = await apiFetch(`/api/admin/reviews/${reviewId}/dismiss-report`, {
+    method: "PUT",
+  });
+  clearRequestCache("adminReviews");
+  clearRequestCache("reportedReviews");
+  return response.data;
 };
 
 const moversCacheTtlMs = 15000;

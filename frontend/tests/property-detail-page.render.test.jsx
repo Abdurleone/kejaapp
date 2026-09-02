@@ -8,19 +8,25 @@ const {
   fetchPropertyById,
   fetchFavorites,
   fetchPropertyMovers,
+  fetchPropertyReviews,
   saveFavorite,
   createInquiry,
   createViewingRequest,
   createMoverRequest,
+  createReview,
+  reportReview,
   getCurrentPositionOrNull,
 } = vi.hoisted(() => ({
   fetchPropertyById: vi.fn(),
   fetchFavorites: vi.fn(),
   fetchPropertyMovers: vi.fn(),
+  fetchPropertyReviews: vi.fn(),
   saveFavorite: vi.fn(),
   createInquiry: vi.fn(),
   createViewingRequest: vi.fn(),
   createMoverRequest: vi.fn(),
+  createReview: vi.fn(),
+  reportReview: vi.fn(),
   getCurrentPositionOrNull: vi.fn(),
 }));
 
@@ -31,10 +37,13 @@ vi.mock("../app-utils.js", async (importOriginal) => {
     fetchPropertyById,
     fetchFavorites,
     fetchPropertyMovers,
+    fetchPropertyReviews,
     saveFavorite,
     createInquiry,
     createViewingRequest,
     createMoverRequest,
+    createReview,
+    reportReview,
     getCurrentPositionOrNull,
   };
 });
@@ -57,6 +66,7 @@ const renderDetailPage = (props = {}) => {
   fetchFavorites.mockResolvedValue({ favorites: props.favorites ?? [] });
   fetchPropertyMovers.mockResolvedValue(props.movers ?? noMovers);
   fetchPropertyById.mockResolvedValue(props.property ?? sampleProperty);
+  fetchPropertyReviews.mockResolvedValue({ data: props.reviews ?? [], pagination: {} });
 
   return renderWithAuth(
     <PropertyDetailPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={props.onBack ?? vi.fn()} />,
@@ -276,5 +286,104 @@ describe("PropertyDetailPage", () => {
       )
     );
     expect(await screen.findByText(/Estimated price: Ksh\s*4,950/)).toBeInTheDocument();
+  });
+
+  it("shows existing reviews, including an owner response", async () => {
+    renderDetailPage({
+      reviews: [
+        {
+          _id: "rev-1",
+          user: { _id: "tenant-1", name: "Sam Tenant" },
+          rating: 4,
+          comment: "Nice place",
+          createdAt: "2026-01-01T00:00:00.000Z",
+          ownerResponse: { message: "Thanks Sam!" },
+        },
+      ],
+    });
+
+    expect(await screen.findByText("Sam Tenant")).toBeInTheDocument();
+    expect(screen.getByText("Nice place")).toBeInTheDocument();
+    expect(screen.getByText("Owner response: Thanks Sam!")).toBeInTheDocument();
+  });
+
+  it("only shows Write a review to signed-in tenants", async () => {
+    renderDetailPage({ signedIn: true, currentUser: { _id: "tenant-1", role: "tenant" } });
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Write a review" })).toBeInTheDocument();
+  });
+
+  it("doesn't show Write a review to a signed-out visitor or a non-tenant", async () => {
+    renderDetailPage({ signedIn: false });
+    await screen.findByText("Modern Kilimani Apartment");
+    expect(screen.queryByRole("button", { name: "Write a review" })).not.toBeInTheDocument();
+  });
+
+  it("submits a review and shows the confirmation", async () => {
+    createReview.mockResolvedValue({});
+    const user = userEvent.setup();
+    renderDetailPage({ signedIn: true, currentUser: { _id: "tenant-1", role: "tenant" } });
+
+    await screen.findByText("Modern Kilimani Apartment");
+    await user.click(screen.getByRole("button", { name: "Write a review" }));
+
+    const form = screen.getByText("Write a review", { selector: "h3" }).closest("form");
+    await user.selectOptions(within(form).getByLabelText("Rating"), "4");
+    await user.type(within(form).getByLabelText("Comment (optional)"), "Loved it here");
+    await user.click(within(form).getByRole("button", { name: "Submit review" }));
+
+    await waitFor(() =>
+      expect(createReview).toHaveBeenCalledWith({ property: "prop-1", rating: 4, comment: "Loved it here" })
+    );
+    expect(await screen.findByText("Review submitted")).toBeInTheDocument();
+  });
+
+  it("surfaces the eligibility error verbatim when the tenant hasn't had a completed viewing", async () => {
+    createReview.mockRejectedValue(new Error("You can only review a property after a completed viewing"));
+    const user = userEvent.setup();
+    renderDetailPage({ signedIn: true, currentUser: { _id: "tenant-1", role: "tenant" } });
+
+    await screen.findByText("Modern Kilimani Apartment");
+    await user.click(screen.getByRole("button", { name: "Write a review" }));
+    await user.click(screen.getByRole("button", { name: "Submit review" }));
+
+    expect(
+      await screen.findByText("You can only review a property after a completed viewing")
+    ).toBeInTheDocument();
+  });
+
+  it("lets a signed-in user report another tenant's review, but not show Report on their own", async () => {
+    reportReview.mockResolvedValue({});
+    const user = userEvent.setup();
+    renderDetailPage({
+      signedIn: true,
+      currentUser: { _id: "tenant-1", role: "tenant" },
+      reviews: [
+        {
+          _id: "rev-own",
+          user: { _id: "tenant-1", name: "Me" },
+          rating: 5,
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+        {
+          _id: "rev-other",
+          user: { _id: "tenant-2", name: "Someone Else" },
+          rating: 1,
+          comment: "Fake review",
+          createdAt: "2026-01-02T00:00:00.000Z",
+        },
+      ],
+    });
+
+    await screen.findByText("Someone Else");
+    // Exactly one Report button - the tenant's own review doesn't get one.
+    expect(screen.getAllByRole("button", { name: "Report" })).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Report" }));
+    await user.type(screen.getByLabelText("Why are you reporting this review?"), "This looks fake");
+    await user.click(screen.getByRole("button", { name: "Submit report" }));
+
+    await waitFor(() => expect(reportReview).toHaveBeenCalledWith("rev-other", "This looks fake"));
+    expect(await screen.findByText("Reported — an admin will review it.")).toBeInTheDocument();
   });
 });

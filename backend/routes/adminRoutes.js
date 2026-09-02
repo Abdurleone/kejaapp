@@ -18,7 +18,10 @@ import {
   updateUserStatus,
 } from "../controllers/adminUserController.js";
 import {
+  dismissReport,
+  hideReview,
   listMyPropertyReviews,
+  listReportedReviews,
 } from "../controllers/reviewController.js";
 import {
   listFeedbackForAdmin,
@@ -49,6 +52,11 @@ router.put("/users/:id/status", validateRequest(updateUserStatusSchema), updateU
 router.delete("/users/:id", deleteUser);
 router.get("/users/:id", getUser);
 router.get("/reviews", listMyPropertyReviews);
+// Static route ("/reviews/reported") must be declared before "/reviews/:id/..."
+// below, or Express would try to match "reported" itself as an :id.
+router.get("/reviews/reported", listReportedReviews);
+router.put("/reviews/:id/hide", hideReview);
+router.put("/reviews/:id/dismiss-report", dismissReport);
 router.get("/agencies/verifications", listAgencyVerifications);
 router.put("/agencies/verifications/:id/approve", approveAgencyVerification);
 router.put(
