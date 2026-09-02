@@ -8,7 +8,19 @@ KejaApp aims to be usable by as many people as possible, including people using 
 
 KejaApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Level AA** as its reference target — the standard most commonly referenced internationally and the one ISO/IEC 40500 formally adopts as an ISO standard. KejaApp has not undergone a formal WCAG conformance audit; this statement reflects a self-assessment against that target, not a certified conformance claim.
 
-## 3. What's implemented today
+## 3. Kenya's Persons with Disabilities Act, 2025
+
+WCAG is an international standard, not a Kenyan legal requirement on its own — Kenya's own statutory basis is the **Persons with Disabilities Act, No. 4 of 2025** (which replaced the 2003 Act), and it's directly relevant to a platform like KejaApp, not just to government services:
+
+- **Section 26(3)**: "Public and private institutions shall provide information intended for the general public, including through the internet, to persons with disabilities in accessible formats and technologies appropriate to different kinds of disabilities." This is the actual statutory duty behind the WCAG target above, not just a best-practice aspiration.
+- **Section 26(5)**: "All public and private media enterprises and telephone service providers shall provide information and services in accessible formats and technologies appropriate to different kinds of persons with disabilities."
+- **Section 27**: "Institutions that provide financial services, including online services and mobile money, shall ensure that their services, equipment and platforms are available to persons with disabilities in accessible formats and technologies" — directly relevant to [Support KejaApp](../dev/Payments.md), the one payment-adjacent feature on the platform.
+- **Section 30(2)**: a general right to accessibility covering "information and communications, including appropriate technologies and systems... open or provided to the public."
+- **Section 26(10)** attaches a real, non-trivial consequence to non-compliance for a licensed entity: "Any public and private institution which fails to comply with the provisions of this section shall have its license suspended and shall not be reinstated until it complies." KejaApp doesn't hold a license this provision could suspend, but it's a sign of how seriously the Act treats this duty for entities that do.
+
+Nothing in the Act, or in this statement, changes what's actually implemented today (Section 4 below) or not (Section 5) — this section grounds the existing WCAG target in actual Kenyan law rather than treating it as a voluntary international standard, since the two turn out to require substantially the same thing here.
+
+## 4. What's implemented today
 
 - **Touch targets**: interactive controls (buttons, tabs, form fields) target a minimum 44px touch area on both web and mobile, following a dedicated UI/UX pass to fix undersized controls.
 - **Reduced motion**: skeleton loading placeholders and other animated UI respect the `prefers-reduced-motion` media query (`frontend/styles.css`), falling back to a static state instead of a pulsing animation for users who've requested it at the OS level.
@@ -19,17 +31,17 @@ KejaApp is built with the **Web Content Accessibility Guidelines (WCAG) 2.1, Lev
 - **Error/empty states**: pages that could previously dead-end silently on failure now show a visible error state with a retry action, rather than leaving a screen reader user on an unexplained blank screen.
 - **Loading-state announcements**: every loading skeleton across the app uses `role="status"` with a descriptive `aria-label`, and `aria-hidden` is applied only to the decorative placeholder shapes inside it, not the status region itself - a general health-check pass found 11 spots where `aria-hidden` had been placed on the same element as `role="status"`, which silently removed the loading announcement from the accessibility tree entirely; all 11 now follow the pattern the property-listing skeleton already used correctly.
 
-## 4. Known gaps
+## 5. Known gaps
 
 - No dedicated screen-reader pass (VoiceOver/TalkBack) has been performed across every screen — the items above address specific fixed issues, not a full audit.
 - No formal automated accessibility testing (e.g. axe-core) is wired into CI yet.
 - Some third-party form controls (native date pickers, native `<select>` elements) inherit whatever accessibility behavior the browser/OS provides, which hasn't been independently verified against WCAG 2.1 AA success criteria.
 - Color contrast has not been checked against every text/background combination with an automated contrast-ratio tool — the dark-mode accent-color gap above was found via manual live inspection (a screenshot that looked wrong, then measured), not a systematic sweep, so other unchecked combinations may still have issues.
 
-## 5. Feedback
+## 6. Feedback
 
 If you encounter an accessibility barrier using KejaApp, please tell us via the in-app Feedback tab, or email `privacy@kejaapp.com` if you'd rather not use the app to report it. Include the page/screen, what assistive technology (if any) you were using, and what you expected to happen.
 
-## 6. Review
+## 7. Review
 
 This statement should be revisited whenever a UI/UX pass touches accessibility-relevant behavior, and reviewed at least annually otherwise. Maintained in `docs/compliance/accessibility-statement.md`.

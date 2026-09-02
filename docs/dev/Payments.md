@@ -6,6 +6,10 @@ KejaApp has exactly one payment integration: **Support KejaApp**, a voluntary M-
 
 Safaricom's M-Pesa STK push ("Lipa Na M-Pesa Online") always credits whoever owns the paybill/till shortcode the request is made against — there's no way to have a tenant's STK push land directly in an arbitrary third party's account. That constraint is exactly why this feature is scoped the way it is: it only ever pays the app operator's own shortcode, never a landlord/agency/mover's. A genuinely non-custodial "pay my landlord via M-Pesa" feature would need each landlord to register and configure their own Daraja API credentials — real friction most individual landlords wouldn't have, and out of scope here.
 
+## National Payment System Act applicability
+
+Kenya's **National Payment System Act, 2011** requires a **Payment Service Provider (PSP)** to be authorized by the Central Bank of Kenya (§12: "No person shall, in Kenya conduct the business of a payment service provider except an authorized payment service provider"). This doesn't apply to KejaApp: the Act's own definition of "payment service provider" is about *acting as provider* of payment infrastructure — sending, receiving, storing, or processing payments *for others*, or operating the underlying payment system itself. Support KejaApp does neither. It triggers Safaricom's own STK push API against KejaApp's own paybill/till — Safaricom (the licensed PSP and designated payment system operator behind M-Pesa) is the entity actually moving the money; KejaApp is simply the beneficiary of its own transaction, in exactly the same position as any ordinary Kenyan business that accepts M-Pesa payments at a till number without holding its own CBK authorization. If KejaApp ever began processing or routing payments *between* other users — which the [Payment Boundary](../../README.md#payment-boundary) already rules out as a permanent product decision, not a future roadmap item — this assessment would need revisiting from scratch.
+
 ## Flow
 
 `POST /api/support-payments` (authenticated)

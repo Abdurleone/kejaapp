@@ -41,6 +41,20 @@ Violations of this policy are handled through the exact mechanism described in t
 - **Personal-data or account-security concerns**: `privacy@kejaapp.com`.
 - **Security vulnerabilities**: see [SECURITY.md](../SECURITY.md).
 
-## 6. Relationship to other documents
+## 6. Legal grounding: the Computer Misuse and Cybercrimes Act, 2018
 
-This policy is the practical, enforceable list of dos and don'ts; the [Code of Ethics](code-of-ethics.md) explains the *why* behind it, and the [Terms of Service](terms-of-service.md) is the contract that makes violating it grounds for account action.
+Several prohibitions above aren't just platform policy — they're criminal offences under Kenya's **Computer Misuse and Cybercrimes Act, No. 5 of 2018**, independent of anything KejaApp itself does:
+
+- **[Section 3](#3-conduct-every-role)'s ban on harassment, threats, or discriminatory language** overlaps with the Act's **Section 27 (cyber harassment)** — wilfully communicating in a way that causes fear, is detrimentally affecting, or is grossly offensive is an offence in its own right (up to KES 20,000,000 or ten years' imprisonment), and a victim can apply to court **directly**, independent of any action KejaApp takes, for an order compelling the harasser to stop — including outside normal court hours for urgent cases.
+- **[Section 3](#3-conduct-every-role)'s ban on interfering with, probing, or bypassing security controls** overlaps with **Section 16 (unauthorised interference)** and **Section 17 (unauthorised interception)** — up to KES 20,000,000 or ten years' imprisonment where it causes significant financial loss, threatens public safety, or causes injury.
+- **A fabricated listing or a review "you know to be false"** ([Section 1](#1-listings-landlords-agencies), [Section 3](#3-conduct-every-role)) can overlap with **Section 22 (false publications)** or **Section 23 (publication of false information)** where the falsehood is intended to be acted on as authentic, or is calculated to cause panic or damage someone's reputation.
+- **Misusing another user's account, password, or identity** overlaps with **Section 29 (identity theft and impersonation)**.
+- **A mover or agency using another business's registered name without authority** overlaps with **Section 28 (cybersquatting)**.
+
+This cuts both ways: it's why these are enforced seriously here, and it's a reminder that KejaApp's own account-status action (suspension, ban) is a **separate, platform-level consequence** from any criminal liability a violation might also carry — one doesn't substitute for the other, and a serious violation may be reported to law enforcement independent of KejaApp's own enforcement action.
+
+One provision of the Act that does **not** apply to KejaApp: **Section 11**'s mandatory incident-reporting duty is scoped to operators of systems formally **designated as critical infrastructure** — KejaApp isn't, and hasn't been, so its own incident-reporting obligations remain governed by the Data Protection Act, 2019 (see the [Incident Response Plan](incident-response-plan.md)), not this Act.
+
+## 7. Relationship to other documents
+
+This policy is the practical, enforceable list of dos and don'ts; the [Code of Ethics](code-of-ethics.md) explains the *why* behind it, and the [Terms of Service](terms-of-service.md) is the contract that makes violating it grounds for account action. This document is not legal advice and hasn't been reviewed by a lawyer licensed in Kenya — see [Terms of Service §14](terms-of-service.md#14-scope-and-limitations) for the same caveat applied more generally.

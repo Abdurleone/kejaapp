@@ -4,6 +4,8 @@
 
 By creating a KejaApp account or using KejaApp without an account (browsing available listings), you agree to these Terms of Service, the [Code of Ethics](code-of-ethics.md), the [Acceptable Use Policy](acceptable-use-policy.md), and the [Data Protection Policy](data-protection-policy.md). If you don't agree, don't use KejaApp. Registration itself requires ticking a checkbox affirming this agreement before an account can be created — an explicit acknowledgment, not just an implied one — and the date you did so is recorded on your account.
 
+This acceptance is a valid, enforceable contract even though it's formed entirely electronically. Kenya's **Information and Communications Act (Cap. 411A) §83J** recognizes that "an offer and acceptance of an offer may be expressed by means of electronic messages," and that a contract "shall not be denied validity or enforceability solely on the ground that an electronic message was used." A checkbox tick and an account record is exactly this kind of electronic message. The Act does carve out a short list of matters electronic acceptance can't cover (§83B(1)) — wills, negotiable instruments, and documents of title — none of which describes a Terms of Service agreement.
+
 ## 2. What KejaApp is — and isn't
 
 KejaApp is a **discovery and coordination platform** connecting tenants, landlords, agencies, and mover/relocation providers. KejaApp:
@@ -26,7 +28,7 @@ KejaApp is a **discovery and coordination platform** connecting tenants, landlor
 - **Movers** are solely responsible for the accuracy of their business profile and their ability to deliver the services they advertise.
 - A **"Verified"** badge (agency or mover) reflects that KejaApp's admin team reviewed submitted business documents against its verification workflow — it is a trust signal about business identity, not a guarantee, endorsement, or warranty of listing accuracy, service quality, or transaction outcome.
 - By submitting a listing, review, inquiry message, or feedback, you grant KejaApp a non-exclusive, worldwide, royalty-free license to host, display, and distribute that content within the platform for the purpose of operating the service. You retain ownership of what you submit.
-- You must have the rights to any image or content you upload. Uploading content you don't have the rights to, or that infringes someone else's rights, is prohibited and may result in removal and account action.
+- You must have the rights to any image or content you upload. Uploading content you don't have the rights to, or that infringes someone else's rights, is prohibited and may result in removal and account action. See the [Copyright and Takedown Policy](copyright-and-takedown-policy.md) for how a copyright claim against uploaded content is handled.
 
 ## 5. Reviews
 
