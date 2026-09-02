@@ -35,14 +35,23 @@ export const fetchPropertyById = async (propertyId) => {
   return response.data;
 };
 
+// "property" does NOT also match "properties:" list-query cache keys -
+// "properties" diverges from "property" at the 8th character ("i" vs "y"),
+// so clearRequestCache's startsWith check treats them as unrelated prefixes.
+// Every mutation that invalidates a single property's cache must clear both
+// prefixes explicitly, or the properties list view (and its cached
+// ratingAverage/ratingCount) can stay stale for up to its own cache TTL.
+const clearPropertyCaches = () => {
+  clearRequestCache("property");
+  clearRequestCache("properties");
+};
+
 export const createProperty = async (payload) => {
   const response = await apiFetch("/api/properties", {
     method: "POST",
     body: payload,
   });
-  // "property" also matches "properties:" list-query cache keys, since both
-  // start with that prefix - see clearRequestCache's startsWith check.
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response.data;
 };
@@ -52,7 +61,7 @@ export const updateProperty = async (propertyId, payload) => {
     method: "PUT",
     body: payload,
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response.data;
 };
@@ -66,7 +75,7 @@ export const addPropertyImage = async (propertyId, payload) => {
     method: "POST",
     body: payload,
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response;
 };
@@ -76,7 +85,7 @@ export const uploadPropertyImage = async (propertyId, payload) => {
     method: "POST",
     body: payload,
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response;
 };
@@ -85,7 +94,7 @@ export const removePropertyImage = async (propertyId, imageId) => {
   const response = await apiFetch(`/api/properties/${propertyId}/images/${imageId}`, {
     method: "DELETE",
   });
-  clearRequestCache("property");
+  clearPropertyCaches();
   clearRequestCache("myProperties");
   return response.data;
 };
@@ -114,7 +123,7 @@ export const createReview = async (payload) => {
     body: payload,
   });
   clearRequestCache("propertyReviews");
-  clearRequestCache("property");
+  clearPropertyCaches();
   return response.data;
 };
 
@@ -272,6 +281,7 @@ export const hideReview = async (reviewId) => {
   clearRequestCache("adminReviews");
   clearRequestCache("reportedReviews");
   clearRequestCache("propertyReviews");
+  clearPropertyCaches();
   return response.data;
 };
 
