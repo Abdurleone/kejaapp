@@ -57,6 +57,7 @@ const propertyFields = [
   "bedrooms",
   "bathrooms",
   "amenities",
+  "accessibilityFeatures",
   "listedBy",
   "status",
   "viewingType",

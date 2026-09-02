@@ -12,6 +12,14 @@ export const contactMethods = [
   { value: "email", label: "Email" },
   { value: "whatsapp", label: "WhatsApp" },
 ];
+export const accessibilityFeatureOptions = [
+  { value: "wheelchairRamp", label: "Wheelchair ramp" },
+  { value: "wideDoorways", label: "Wide doorways/entrances" },
+  { value: "elevatorAccess", label: "Elevator/lift access" },
+  { value: "groundFloorUnit", label: "Ground-floor unit" },
+  { value: "accessibleBathroom", label: "Accessible/roll-in bathroom" },
+  { value: "accessibleParking", label: "Accessible parking" },
+];
 
 export const emptyPropertyForm = {
   title: "",
@@ -29,6 +37,7 @@ export const emptyPropertyForm = {
   bedrooms: "",
   bathrooms: "",
   amenities: "",
+  accessibilityFeatures: [],
   contactPreferredMethod: "inquiry",
   contactPhone: "",
   contactEmail: "",
@@ -53,6 +62,7 @@ export const propertyToForm = (property) => ({
   bedrooms: property.bedrooms ?? "",
   bathrooms: property.bathrooms ?? "",
   amenities: (property.amenities || []).join(", "),
+  accessibilityFeatures: property.accessibilityFeatures || [],
   contactPreferredMethod: property.contact?.preferredMethod || "inquiry",
   contactPhone: property.contact?.phone || "",
   contactEmail: property.contact?.email || "",
@@ -109,6 +119,7 @@ export const formToPropertyPayload = (form, originalProperty) => {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean),
+    accessibilityFeatures: form.accessibilityFeatures,
     contact,
   };
 };

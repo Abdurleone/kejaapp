@@ -66,6 +66,26 @@ describe("PropertyCreatePage", () => {
     expect(await screen.findByText("Could not create this listing.")).toBeInTheDocument();
   });
 
+  it("submits checked accessibility features and omits unchecked ones", async () => {
+    const created = { _id: "prop-new", title: "Cozy Studio" };
+    createProperty.mockResolvedValue(created);
+    const user = userEvent.setup();
+
+    render(<PropertyCreatePage onBack={vi.fn()} onCreated={vi.fn()} />);
+
+    await user.type(screen.getByLabelText("Title"), "Cozy Studio");
+    await user.type(screen.getByLabelText("Monthly rent (KES)"), "30000");
+    await user.click(screen.getByRole("checkbox", { name: "Wheelchair ramp" }));
+    await user.click(screen.getByRole("checkbox", { name: "Elevator/lift access" }));
+    await user.click(screen.getByRole("button", { name: "Create listing" }));
+
+    await waitFor(() =>
+      expect(createProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ accessibilityFeatures: ["wheelchairRamp", "elevatorAccess"] })
+      )
+    );
+  });
+
   it("calls onBack when Done/back is clicked", async () => {
     const onBack = vi.fn();
     const user = userEvent.setup();

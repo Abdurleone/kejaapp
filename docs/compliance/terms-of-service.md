@@ -32,7 +32,7 @@ KejaApp is a **discovery and coordination platform** connecting tenants, landlor
 
 ## 5. Reviews
 
-Reviews are authored by tenants and reflect their own experience. A property owner may post a public response to a review, but neither the owner nor an admin can delete a review or alter its rating — see [Code of Ethics §2.4](code-of-ethics.md#24-safety-and-trust). Submitting a review you know to be false, or on a property you have no genuine connection to, is prohibited under the [Acceptable Use Policy](acceptable-use-policy.md).
+Reviews are authored by tenants and reflect their own experience. You can only review a property after a completed viewing on record for it — submitting a review on a property you have no genuine connection to is both technically blocked and prohibited under the [Acceptable Use Policy](acceptable-use-policy.md), as is submitting one you know to be false. A property owner may post a public response to a review, but neither the owner nor an admin can delete a review or alter its rating outside one narrow exception: an admin may hide a review that another user has reported, removing it from public view and from the property's rating — see [Code of Ethics §2.4](code-of-ethics.md#24-safety-and-trust) for the full scope of that exception.
 
 ## 6. Acceptable use
 

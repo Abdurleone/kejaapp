@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import validateRequest from "../../middlewares/validateRequest.js";
 import {
   createReviewSchema,
+  reportReviewSchema,
   updateReviewResponseSchema,
 } from "../../validators/reviewValidators.js";
 
@@ -69,6 +70,22 @@ describe("reviewValidators", () => {
     const { nextCalled } = validate(updateReviewResponseSchema, {
       message: "Thank you for the feedback.",
     });
+
+    assert.equal(nextCalled, true);
+  });
+
+  it("rejects a blank or oversized report reason", () => {
+    const blank = validate(reportReviewSchema, { reason: "   " });
+    const oversized = validate(reportReviewSchema, { reason: "x".repeat(501) });
+
+    assert.equal(blank.res.statusCode, 400);
+    assert.deepEqual(blank.res.body.errors, ["reason is required"]);
+    assert.equal(oversized.res.statusCode, 400);
+    assert.deepEqual(oversized.res.body.errors, ["reason must be 500 characters or fewer"]);
+  });
+
+  it("accepts a valid report reason", () => {
+    const { nextCalled } = validate(reportReviewSchema, { reason: "This looks fake." });
 
     assert.equal(nextCalled, true);
   });

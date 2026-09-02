@@ -4,6 +4,8 @@ import PropertyDetailScreen from "../screens/discover/PropertyDetailScreen.js";
 import InquiryFormScreen from "../screens/discover/InquiryFormScreen.js";
 import ViewingRequestFormScreen from "../screens/discover/ViewingRequestFormScreen.js";
 import MoverRequestFormScreen from "../screens/discover/MoverRequestFormScreen.js";
+import ReviewFormScreen from "../screens/discover/ReviewFormScreen.js";
+import ReportReviewFormScreen from "../screens/discover/ReportReviewFormScreen.js";
 import { useTheme } from "../context/ThemeContext.js";
 import ColorModeToggle from "../components/ColorModeToggle.js";
 import { displayText } from "../theme/typography.js";
@@ -41,6 +43,16 @@ export default function DiscoverStack() {
         name="MoverRequestForm"
         component={MoverRequestFormScreen}
         options={{ title: "Request a mover", presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="ReviewForm"
+        component={ReviewFormScreen}
+        options={{ title: "Write a review", presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="ReportReviewForm"
+        component={ReportReviewFormScreen}
+        options={{ title: "Report review", presentation: "modal" }}
       />
     </Stack.Navigator>
   );

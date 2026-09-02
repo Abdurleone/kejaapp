@@ -5,6 +5,9 @@ import {
   fetchAdminUserSummary,
   fetchAdminUserStatusHistory,
   fetchAdminReviews,
+  fetchReportedReviews,
+  dismissReviewReport,
+  hideReview,
   updateAdminUserStatus,
   formatStatusLabel,
   statusTone,
@@ -222,14 +225,20 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
   );
 }
 
-// Read-only by design - review moderation (deleting or altering a review) is
-// not offered to owners or admins anywhere in this app; see
-// docs/terms-of-service.md.
+// Mostly read-only by design - review moderation (deleting or altering a
+// review) isn't offered to owners or admins for the general case; see
+// docs/compliance/code-of-ethics.md. The one narrow exception is the
+// "Reported" tab below: an admin can hide (never delete) a review only
+// after a report against it was actually upheld - not a blanket
+// content-moderation capability.
 function AdminReviewsPanel() {
+  const [filter, setFilter] = useState("all");
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  const [actioningId, setActioningId] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -239,7 +248,7 @@ function AdminReviewsPanel() {
       setError("");
 
       try {
-        const data = await fetchAdminReviews();
+        const data = filter === "reported" ? await fetchReportedReviews() : await fetchAdminReviews();
         if (active) setReviews(data);
       } catch (err) {
         if (active) setError(err.message || "Failed to load reviews.");
@@ -253,59 +262,134 @@ function AdminReviewsPanel() {
     return () => {
       active = false;
     };
-  }, [retryKey]);
+  }, [filter, retryKey]);
 
-  if (loading) {
-    return (
-      <div className="stack" role="status" aria-label="Loading reviews">
-        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
-        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
-        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
-      </div>
-    );
-  }
+  const handleHide = async (reviewId) => {
+    setActionError("");
+    setActioningId(reviewId);
 
-  if (error) {
-    return (
-      <div className="stack">
-        <p className="error-text">{error}</p>
-        <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
-          Retry
-        </button>
-      </div>
-    );
-  }
+    try {
+      await hideReview(reviewId);
+      setReviews((current) => current.filter((review) => review._id !== reviewId));
+    } catch (err) {
+      setActionError(err.message || "Could not hide this review.");
+    } finally {
+      setActioningId(null);
+    }
+  };
 
-  if (reviews.length === 0) {
-    return <p className="muted-copy">No reviews yet.</p>;
-  }
+  const handleDismiss = async (reviewId) => {
+    setActionError("");
+    setActioningId(reviewId);
+
+    try {
+      await dismissReviewReport(reviewId);
+      setReviews((current) => current.filter((review) => review._id !== reviewId));
+    } catch (err) {
+      setActionError(err.message || "Could not dismiss this report.");
+    } finally {
+      setActioningId(null);
+    }
+  };
 
   return (
-    <div className="table-panel">
-      <table>
-        <thead>
-          <tr>
-            <th>Property</th>
-            <th>Tenant</th>
-            <th>Rating</th>
-            <th>Comment</th>
-            <th>Owner response</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reviews.map((review) => (
-            <tr key={review._id}>
-              <td>{review.property?.title || "Property"}</td>
-              <td>{review.user?.name || "Tenant"}</td>
-              <td>{review.rating}</td>
-              <td>{review.comment || "-"}</td>
-              <td>{review.ownerResponse?.message || "-"}</td>
-              <td>{new Date(review.createdAt).toLocaleDateString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="stack">
+      <div className="auth-panel-tabs">
+        <button
+          type="button"
+          className={filter === "all" ? "active" : "secondary-button"}
+          onClick={() => setFilter("all")}
+        >
+          All reviews
+        </button>
+        <button
+          type="button"
+          className={filter === "reported" ? "active" : "secondary-button"}
+          onClick={() => setFilter("reported")}
+        >
+          Reported
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="stack" role="status" aria-label="Loading reviews">
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+          <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+        </div>
+      ) : error ? (
+        <div className="stack">
+          <p className="error-text">{error}</p>
+          <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+            Retry
+          </button>
+        </div>
+      ) : reviews.length === 0 ? (
+        <p className="muted-copy">{filter === "reported" ? "No reported reviews." : "No reviews yet."}</p>
+      ) : (
+        <div className="table-panel">
+          {actionError && <p className="error-text">{actionError}</p>}
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Tenant</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Owner response</th>
+                {filter === "reported" && (
+                  <>
+                    <th>Report reason</th>
+                    <th>Reported by</th>
+                  </>
+                )}
+                <th>Date</th>
+                {filter === "reported" && <th>Action</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {reviews.map((review) => (
+                <tr key={review._id}>
+                  <td>{review.property?.title || "Property"}</td>
+                  <td>{review.user?.name || "Tenant"}</td>
+                  <td>{review.rating}</td>
+                  <td>{review.comment || "-"}</td>
+                  <td>{review.ownerResponse?.message || "-"}</td>
+                  {filter === "reported" && (
+                    <>
+                      <td>{review.report?.reason || "-"}</td>
+                      <td>{review.report?.reportedBy?.name || "-"}</td>
+                    </>
+                  )}
+                  <td>{new Date(review.createdAt).toLocaleDateString()}</td>
+                  {filter === "reported" && (
+                    <td>
+                      <div className="form-actions">
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          disabled={actioningId === review._id}
+                          onClick={() => handleHide(review._id)}
+                        >
+                          Hide
+                        </button>
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          disabled={actioningId === review._id}
+                          onClick={() => handleDismiss(review._id)}
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

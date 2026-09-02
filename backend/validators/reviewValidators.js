@@ -44,4 +44,22 @@ const updateReviewResponseSchema = {
   },
 };
 
-export { createReviewSchema, updateReviewResponseSchema };
+const reportReviewSchema = {
+  reason: {
+    required: true,
+    type: "string",
+    validate(value) {
+      if (value.trim().length === 0) {
+        return "reason is required";
+      }
+
+      if (value.length > 500) {
+        return "reason must be 500 characters or fewer";
+      }
+
+      return null;
+    },
+  },
+};
+
+export { createReviewSchema, reportReviewSchema, updateReviewResponseSchema };

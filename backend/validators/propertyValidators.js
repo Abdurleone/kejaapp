@@ -3,6 +3,14 @@ const listedByTypes = ["owner", "agency"];
 const propertyStatuses = ["draft", "available", "taken", "archived"];
 const viewingTypes = ["scheduled", "open"];
 const contactMethods = ["phone", "email", "whatsapp", "inquiry"];
+const accessibilityFeatureOptions = [
+  "wheelchairRamp",
+  "wideDoorways",
+  "elevatorAccess",
+  "groundFloorUnit",
+  "accessibleBathroom",
+  "accessibleParking",
+];
 const imageUrlPattern = /^https?:\/\/\S+$/i;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const coordinateType = "Point";
@@ -80,6 +88,16 @@ const validateLocation = (value) => {
   return null;
 };
 
+const validateAccessibilityFeatures = (value) => {
+  const invalid = value.filter((item) => !accessibilityFeatureOptions.includes(item));
+
+  if (invalid.length > 0) {
+    return `accessibilityFeatures must only contain: ${accessibilityFeatureOptions.join(", ")}`;
+  }
+
+  return null;
+};
+
 const validateContact = (value) => {
   if (value.preferredMethod !== undefined && !contactMethods.includes(value.preferredMethod)) {
     return `contact.preferredMethod must be one of: ${contactMethods.join(", ")}`;
@@ -127,6 +145,10 @@ const createPropertySchema = {
   },
   bathrooms: {
     type: "number",
+  },
+  accessibilityFeatures: {
+    type: "array",
+    validate: validateAccessibilityFeatures,
   },
   listedBy: {
     type: "string",
@@ -184,6 +206,10 @@ const updatePropertySchema = {
   },
   bathrooms: {
     type: "number",
+  },
+  accessibilityFeatures: {
+    type: "array",
+    validate: validateAccessibilityFeatures,
   },
   listedBy: {
     type: "string",

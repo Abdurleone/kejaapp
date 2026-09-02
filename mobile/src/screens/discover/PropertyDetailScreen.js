@@ -1,6 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { fetchFavorites, fetchProperty, fetchPropertyMovers, saveFavorite } from "../../api/index.js";
+import { useFocusEffect } from "@react-navigation/native";
+import {
+  fetchFavorites,
+  fetchProperty,
+  fetchPropertyMovers,
+  fetchPropertyReviews,
+  saveFavorite,
+} from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { resolveAssetUrl, useSettings } from "../../context/SettingsContext.js";
 import PropertyDetailSkeleton from "../../components/PropertyDetailSkeleton.js";
@@ -15,6 +22,15 @@ const contactMethodLabels = {
   email: "Email",
   whatsapp: "WhatsApp",
   inquiry: "In-app inquiry",
+};
+
+const accessibilityFeatureLabels = {
+  wheelchairRamp: "Wheelchair ramp",
+  wideDoorways: "Wide doorways/entrances",
+  elevatorAccess: "Elevator/lift access",
+  groundFloorUnit: "Ground-floor unit",
+  accessibleBathroom: "Accessible/roll-in bathroom",
+  accessibleParking: "Accessible parking",
 };
 
 const openContactUrl = (url) => {
@@ -38,6 +54,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [propertyMovers, setPropertyMovers] = useState({ affiliates: [], nearby: [] });
+  const [reviews, setReviews] = useState([]);
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
@@ -102,6 +119,24 @@ export default function PropertyDetailScreen({ route, navigation }) {
       active = false;
     };
   }, [canViewDetails, propertyId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!canViewDetails) return undefined;
+
+      let active = true;
+
+      fetchPropertyReviews(propertyId)
+        .then((data) => {
+          if (active) setReviews(data);
+        })
+        .catch(() => {});
+
+      return () => {
+        active = false;
+      };
+    }, [canViewDetails, propertyId])
+  );
 
   const handleSave = async () => {
     setSaving(true);
@@ -293,6 +328,37 @@ export default function PropertyDetailScreen({ route, navigation }) {
         </View>
       ) : null}
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Reviews</Text>
+        {reviews.length === 0 ? (
+          <Text style={styles.contactLine}>No reviews yet.</Text>
+        ) : (
+          reviews.map((review) => {
+            const isOwnReview = String(review.user?._id) === String(user?._id);
+            return (
+              <View key={review._id} style={styles.reviewCard}>
+                <Text style={styles.reviewMeta}>
+                  {review.user?.name || "Tenant"} — {review.rating}/5
+                </Text>
+                {review.comment ? <Text style={styles.contactLine}>{review.comment}</Text> : null}
+                <Text style={styles.reviewDate}>{new Date(review.createdAt).toLocaleDateString()}</Text>
+                {review.ownerResponse?.message ? (
+                  <Text style={styles.reviewDate}>Owner response: {review.ownerResponse.message}</Text>
+                ) : null}
+                {!isOwnReview ? (
+                  <Pressable
+                    style={styles.reportLink}
+                    onPress={() => navigation.navigate("ReportReviewForm", { reviewId: review._id })}
+                  >
+                    <Text style={styles.reportLinkText}>Report</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            );
+          })
+        )}
+      </View>
+
       <View style={styles.actions}>
         <Pressable
           style={[styles.primaryButton, isSaved && styles.primaryButtonDisabled]}
@@ -309,6 +375,11 @@ export default function PropertyDetailScreen({ route, navigation }) {
         <Pressable style={styles.secondaryButton} onPress={() => requireAuth("ViewingRequestForm")}>
           <Text style={styles.secondaryButtonText}>Request viewing</Text>
         </Pressable>
+        {user?.role === "tenant" ? (
+          <Pressable style={styles.secondaryButton} onPress={() => requireAuth("ReviewForm")}>
+            <Text style={styles.secondaryButtonText}>Write a review</Text>
+          </Pressable>
+        ) : null}
       </View>
     </ScrollView>
   );
@@ -521,6 +592,32 @@ const createStyles = (colors) =>
     fontSize: 12,
     color: colors.ink,
     textTransform: "capitalize",
+  },
+  reviewCard: {
+    borderWidth: colors.strokeWidthSm,
+    borderColor: colors.stroke,
+    borderRadius: colors.radiusSm,
+    padding: 12,
+    gap: 4,
+    backgroundColor: colors.surfaceSoft,
+  },
+  reviewMeta: {
+    ...boldText,
+    fontSize: 13,
+    color: colors.ink,
+  },
+  reviewDate: {
+    ...bodyText,
+    fontSize: 12,
+    color: colors.muted,
+  },
+  reportLink: {
+    alignSelf: "flex-start",
+  },
+  reportLinkText: {
+    ...boldText,
+    fontSize: 12,
+    color: colors.red,
   },
   actions: {
     gap: 8,

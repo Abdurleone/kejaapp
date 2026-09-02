@@ -18,6 +18,7 @@ import { pickImagesOrEmpty } from "../../utils/imagePicker.js";
 import MessageView from "../../components/MessageView.js";
 import { bodyText, boldText } from "../../theme/typography.js";
 import {
+  accessibilityFeatureOptions,
   contactMethods,
   formToPropertyPayload,
   listingTypes,
@@ -41,6 +42,32 @@ function ChipRow({ options, value, onChange, styles }) {
             onPress={() => onChange(optionValue)}
           >
             <Text style={[styles.chipText, value === optionValue && styles.chipTextActive]}>{optionLabel}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function AccessibilityChecklist({ options, value, onToggle, styles }) {
+  return (
+    <View style={styles.checklistGroup}>
+      {options.map((option) => {
+        const checked = value.includes(option.value);
+
+        return (
+          <Pressable
+            key={option.value}
+            style={styles.checkboxRow}
+            onPress={() => onToggle(option.value, !checked)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked }}
+            accessibilityLabel={option.label}
+          >
+            <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+              {checked ? <Text style={styles.checkboxMark}>✓</Text> : null}
+            </View>
+            <Text style={styles.checkboxLabel}>{option.label}</Text>
           </Pressable>
         );
       })}
@@ -84,6 +111,15 @@ export default function PropertyEditScreen({ route, navigation }) {
   }, [load]);
 
   const updateField = (field) => (value) => setForm((current) => ({ ...current, [field]: value }));
+
+  const toggleAccessibilityFeature = (value, checked) => {
+    setForm((current) => ({
+      ...current,
+      accessibilityFeatures: checked
+        ? [...current.accessibilityFeatures, value]
+        : current.accessibilityFeatures.filter((item) => item !== value),
+    }));
+  };
 
   const handleSubmit = async () => {
     setError("");
@@ -227,6 +263,16 @@ export default function PropertyEditScreen({ route, navigation }) {
             value={form.amenities}
             onChangeText={updateField("amenities")}
             placeholder="Parking, Wifi, Borehole"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Accessibility features</Text>
+          <AccessibilityChecklist
+            options={accessibilityFeatureOptions}
+            value={form.accessibilityFeatures}
+            onToggle={toggleAccessibilityFeature}
+            styles={styles}
           />
         </View>
 
@@ -456,6 +502,38 @@ const createStyles = (colors) =>
     },
     chipTextActive: {
       color: colors.onAccent,
+    },
+    checklistGroup: {
+      gap: 10,
+    },
+    checkboxRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    checkboxChecked: {
+      backgroundColor: colors.green,
+      borderColor: colors.green,
+    },
+    checkboxMark: {
+      ...boldText,
+      color: colors.onAccent,
+      fontSize: 13,
+      lineHeight: 14,
+    },
+    checkboxLabel: {
+      ...bodyText,
+      color: colors.ink,
+      fontSize: 14,
     },
     error: {
       ...bodyText,

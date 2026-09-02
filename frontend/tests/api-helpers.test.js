@@ -6,6 +6,7 @@ import {
   createApiUrl,
   createFeedback,
   createInquiry,
+  createReview,
   createSavedSearch,
   createViewingRequest,
   deleteSavedSearch,
@@ -26,7 +27,9 @@ import {
   respondToInquiry,
   uploadPropertyImage,
   updateCurrentUser,
+  updateProperty,
   changeCurrentUserPassword,
+  clearRequestCache,
   setCsrfToken,
 } from "../app-utils.js";
 
@@ -544,5 +547,51 @@ describe("frontend API helpers", () => {
     assert.equal(capturedOptions.method, "PUT");
     assert.deepEqual(JSON.parse(capturedOptions.body), { currentPassword: "old1", newPassword: "new12345" });
     assert.deepEqual(result, { message: "Password updated" });
+  });
+
+  // Regression test: "property" and "properties" diverge at the 8th
+  // character, so clearRequestCache("property") never touched the
+  // "properties:" list-query cache keys fetchProperties writes - a mutation
+  // could leave the properties list showing a stale ratingAverage/etc. for
+  // up to the cache's own TTL. updateProperty/createReview/hideReview must
+  // each invalidate both prefixes.
+  it("invalidates the properties list cache after updating a property", async () => {
+    clearRequestCache();
+    let fetchCount = 0;
+    global.fetch = async (url) => {
+      fetchCount += 1;
+      if (String(url).includes("/api/properties/p1") && !String(url).includes("?")) {
+        return jsonResponse({ data: { _id: "p1" } });
+      }
+      return jsonResponse({ data: [{ _id: "p1", ratingAverage: fetchCount }] });
+    };
+
+    const first = await fetchProperties();
+    assert.equal(first[0].ratingAverage, 1);
+
+    await updateProperty("p1", { title: "New title" });
+
+    const second = await fetchProperties();
+    assert.equal(second[0].ratingAverage, 3, "a second real fetch happened - the list cache was invalidated");
+  });
+
+  it("invalidates the properties list cache after creating a review", async () => {
+    clearRequestCache();
+    let fetchCount = 0;
+    global.fetch = async (url) => {
+      fetchCount += 1;
+      if (String(url).includes("/api/reviews")) {
+        return jsonResponse({ data: { _id: "r1" } });
+      }
+      return jsonResponse({ data: [{ _id: "p1", ratingAverage: fetchCount }] });
+    };
+
+    const first = await fetchProperties();
+    assert.equal(first[0].ratingAverage, 1);
+
+    await createReview({ property: "p1", rating: 5, comment: "Great" });
+
+    const second = await fetchProperties();
+    assert.equal(second[0].ratingAverage, 3, "a second real fetch happened - the list cache was invalidated");
   });
 });
