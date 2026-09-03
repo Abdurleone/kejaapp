@@ -40,21 +40,36 @@ export default function SavedPage({ onOpenProperty, onBrowse }) {
     };
   }, [page, retryKey]);
 
-  const handleRemove = useCallback(async (propertyId) => {
-    setActionError("");
-    setRemovingPropertyId(propertyId);
+  const handleRemove = useCallback(
+    async (propertyId) => {
+      setActionError("");
+      setRemovingPropertyId(propertyId);
 
-    try {
-      await removeFavorite(propertyId);
-      setSaved((current) =>
-        current.filter((favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId)
-      );
-    } catch (err) {
-      setActionError(err.message || "Unable to remove favorite.");
-    } finally {
-      setRemovingPropertyId(null);
-    }
-  }, []);
+      try {
+        await removeFavorite(propertyId);
+
+        const remaining = saved.filter(
+          (favorite) => (favorite.property?._id || favorite._id || favorite.id) !== propertyId
+        );
+
+        if (remaining.length === 0 && page > 1) {
+          // Removing the last item on a page beyond the first would otherwise
+          // show a false "no saved listings" empty state with no way back to
+          // the earlier pages that still have real data - go back a page
+          // instead, which the effect above re-fetches for real rather than
+          // trusting this now-empty local slice.
+          setPage((current) => current - 1);
+        } else {
+          setSaved(remaining);
+        }
+      } catch (err) {
+        setActionError(err.message || "Unable to remove favorite.");
+      } finally {
+        setRemovingPropertyId(null);
+      }
+    },
+    [saved, page]
+  );
 
   return (
     <div className="view active-view">

@@ -151,12 +151,6 @@ function MoverCard({ mover, currentUser, onRequireAuth, onAffiliateChange }) {
           <strong>{formatKes(mover.basePrice)}</strong>
           <span>base price</span>
         </div>
-        {mover.ratingCount > 0 && (
-          <p className="muted-copy">
-            {Number(mover.ratingAverage || 0).toFixed(1)} rating ({mover.ratingCount})
-          </p>
-        )}
-
         {canManageListings(currentUser?.role) && (
           <div className="form-actions">
             {affiliateError && <p className="error-text">{affiliateError}</p>}

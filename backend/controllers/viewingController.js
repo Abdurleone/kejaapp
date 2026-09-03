@@ -1,6 +1,6 @@
 import httpStatus from "../constants/httpStatus.js";
 import Property from "../models/Property.js";
-import ViewingRequest from "../models/ViewingRequest.js";
+import ViewingRequest, { activeViewingStatuses } from "../models/ViewingRequest.js";
 import {
   notifyViewingRequestCreated,
   notifyViewingRequestStatusChanged,
@@ -10,8 +10,6 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { formatPagination, parsePaginationParams } from "../utils/pagination.js";
 import { sanitizeText } from "../utils/sanitizeText.js";
 import { assertValidTransition } from "../utils/statusTransitions.js";
-
-const activeViewingStatuses = ["pending", "approved"];
 
 const allowedFromByTarget = {
   approved: ["pending"],
@@ -66,14 +64,28 @@ const createViewingRequest = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.CONFLICT, "You already have an active viewing request for this property");
   }
 
-  const viewingRequest = await ViewingRequest.create({
-    property: property._id,
-    requester: req.user._id,
-    owner: property.owner,
-    requestedDate: req.body.requestedDate,
-    message: sanitizeText(req.body.message),
-    status: property.viewingType === "open" ? "approved" : "pending",
-  });
+  let viewingRequest;
+
+  try {
+    viewingRequest = await ViewingRequest.create({
+      property: property._id,
+      requester: req.user._id,
+      owner: property.owner,
+      requestedDate: req.body.requestedDate,
+      message: sanitizeText(req.body.message),
+      status: property.viewingType === "open" ? "approved" : "pending",
+    });
+  } catch (err) {
+    // The partial unique index on ViewingRequest is the real guard against
+    // two near-simultaneous requests both passing the findOne check above -
+    // this just gives that race the same friendly message as the common,
+    // non-racy case instead of a raw duplicate-key error.
+    if (err.code === 11000) {
+      throw new ApiError(httpStatus.CONFLICT, "You already have an active viewing request for this property");
+    }
+
+    throw err;
+  }
 
   await viewingRequest.populate("property", "title location price listedBy status viewingType viewingInstructions isAvailable");
   await viewingRequest.populate("requester", "name email phone role");

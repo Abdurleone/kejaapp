@@ -74,9 +74,10 @@ describe("FeedbackScreen", () => {
 
   it("lets an admin respond to a submitted feedback item", async () => {
     useAuth.mockReturnValue({ signedIn: true, user: { role: "admin" } });
-    fetchAdminFeedback.mockResolvedValue([
-      { _id: "f1", message: "Loved it!", status: "open", submitter: { name: "Jane", role: "tenant" } },
-    ]);
+    fetchAdminFeedback.mockResolvedValue({
+      feedback: [{ _id: "f1", message: "Loved it!", status: "open", submitter: { name: "Jane", role: "tenant" } }],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     respondToFeedback.mockResolvedValue({
       _id: "f1",
       message: "Loved it!",
@@ -104,7 +105,7 @@ describe("FeedbackScreen", () => {
 
   it("shows an admin-specific empty state", async () => {
     useAuth.mockReturnValue({ signedIn: true, user: { role: "admin" } });
-    fetchAdminFeedback.mockResolvedValue([]);
+    fetchAdminFeedback.mockResolvedValue({ feedback: [], pagination: { page: 1, pages: 1, total: 0 } });
 
     const { getByText } = await render(<FeedbackScreen />);
 

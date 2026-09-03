@@ -149,6 +149,8 @@ function SubmitFeedbackPanel() {
 
 function AdminFeedbackPanel() {
   const [feedback, setFeedback] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
@@ -165,8 +167,12 @@ function AdminFeedbackPanel() {
       setError("");
 
       try {
-        const data = await fetchAdminFeedback();
-        if (active) setFeedback(data);
+        const { feedback: data, pagination: paginationData } = await fetchAdminFeedback({ page });
+
+        if (active) {
+          setFeedback(data);
+          setPagination(paginationData);
+        }
       } catch (err) {
         if (active) setError(err.message || "Failed to load feedback.");
       } finally {
@@ -179,7 +185,7 @@ function AdminFeedbackPanel() {
     return () => {
       active = false;
     };
-  }, [retryKey]);
+  }, [page, retryKey]);
 
   const handleRespond = async (event, feedbackId) => {
     event.preventDefault();
@@ -289,6 +295,30 @@ function AdminFeedbackPanel() {
                 </div>
               </article>
             ))}
+          </div>
+        )}
+
+        {pagination && pagination.pages > 1 && (
+          <div className="form-actions">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+            >
+              Previous
+            </button>
+            <span className="muted-copy">
+              Page {pagination.page} of {pagination.pages}
+            </span>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={page >= pagination.pages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>

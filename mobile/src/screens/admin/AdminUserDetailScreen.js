@@ -68,6 +68,12 @@ export default function AdminUserDetailScreen({ route }) {
   const handleSubmit = async () => {
     setError("");
     setMessage("");
+
+    if ((status === "suspended" || status === "banned") && !reason.trim()) {
+      setError("A reason is required to suspend or ban an account.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {

@@ -83,26 +83,32 @@ export default function PropertyDetailScreen({ route, navigation }) {
     };
   }, [canViewDetails, propertyId, retryKey]);
 
-  useEffect(() => {
-    if (!canViewDetails) return undefined;
+  // Runs on every focus, not just the first mount - so unsaving this
+  // property from the Saved tab (or saving it from Discover) is reflected
+  // here on return, instead of the stale isSaved snapshot from whenever this
+  // screen last mounted.
+  useFocusEffect(
+    useCallback(() => {
+      if (!canViewDetails) return undefined;
 
-    let active = true;
+      let active = true;
 
-    fetchFavorites()
-      .then((favorites) => {
-        if (!active) return;
+      fetchFavorites()
+        .then((favorites) => {
+          if (!active) return;
 
-        const saved = favorites.some(
-          (favorite) => (favorite.property?._id || favorite.property?.id || favorite._id) === propertyId
-        );
-        setIsSaved(saved);
-      })
-      .catch(() => {});
+          const saved = favorites.some(
+            (favorite) => (favorite.property?._id || favorite.property?.id || favorite._id) === propertyId
+          );
+          setIsSaved(saved);
+        })
+        .catch(() => {});
 
-    return () => {
-      active = false;
-    };
-  }, [canViewDetails, propertyId]);
+      return () => {
+        active = false;
+      };
+    }, [canViewDetails, propertyId])
+  );
 
   useEffect(() => {
     if (!canViewDetails) return undefined;
@@ -256,7 +262,7 @@ export default function PropertyDetailScreen({ route, navigation }) {
         </View>
       </View>
 
-      {(contact.phone || contact.email || contact.whatsapp || contact.availableHours) ? (
+      {(contact.phone || contact.email || contact.whatsapp || contact.availableHours || contact.notes) ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contact</Text>
           <Text style={styles.contactLine}>
@@ -322,6 +328,19 @@ export default function PropertyDetailScreen({ route, navigation }) {
             {property.amenities.map((amenity) => (
               <View key={amenity} style={styles.amenityChip}>
                 <Text style={styles.amenityChipText}>{amenity}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {property.accessibilityFeatures?.length ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Accessibility features</Text>
+          <View style={styles.amenityRow}>
+            {property.accessibilityFeatures.map((feature) => (
+              <View key={feature} style={styles.amenityChip}>
+                <Text style={styles.amenityChipText}>{accessibilityFeatureLabels[feature] || feature}</Text>
               </View>
             ))}
           </View>

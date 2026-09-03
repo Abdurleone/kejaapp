@@ -92,6 +92,20 @@ describe("AdminUserDetailScreen", () => {
     expect(await findByText(/Admin One/)).toBeTruthy();
   });
 
+  it("blocks suspending an account with a blank reason, without calling updateAdminUserStatus", async () => {
+    fetchAdminUserSummary.mockResolvedValue(tenantSummary);
+    fetchAdminUserStatusHistory.mockResolvedValue([]);
+
+    const { findByText, getByText } = await renderScreen();
+    await findByText("Jane Tenant");
+
+    await fireEvent.press(getByText("Suspended"));
+    await fireEvent.press(getByText("Update status"));
+
+    await waitFor(() => expect(getByText("A reason is required to suspend or ban an account.")).toBeTruthy());
+    expect(updateAdminUserStatus).not.toHaveBeenCalled();
+  });
+
   it("shows a retry action when loading fails", async () => {
     fetchAdminUserSummary.mockRejectedValueOnce(new Error("Could not load user"));
     fetchAdminUserStatusHistory.mockRejectedValueOnce(new Error("Could not load user"));

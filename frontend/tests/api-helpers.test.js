@@ -334,11 +334,15 @@ describe("frontend API helpers", () => {
   });
 
   it("fetches all feedback for admins", async () => {
-    global.fetch = async () => jsonResponse({ data: [{ _id: "f1", status: "pending" }] });
+    global.fetch = async () =>
+      jsonResponse({ data: [{ _id: "f1", status: "pending" }], pagination: { page: 1, pages: 1, total: 1 } });
 
     const result = await fetchAdminFeedback();
 
-    assert.deepEqual(result, [{ _id: "f1", status: "pending" }]);
+    assert.deepEqual(result, {
+      feedback: [{ _id: "f1", status: "pending" }],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
   });
 
   it("responds to feedback as an admin", async () => {

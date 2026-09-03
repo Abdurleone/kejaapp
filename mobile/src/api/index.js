@@ -305,7 +305,7 @@ export const fetchPublicTestimonials = async () => {
 
 export const fetchAdminFeedback = async (query = {}) => {
   const response = await apiFetch(`/api/admin/feedback${buildQueryString(query)}`, { method: "GET" });
-  return response.data || [];
+  return { feedback: response.data || [], pagination: response.pagination };
 };
 
 export const respondToFeedback = async (feedbackId, { message }) => {
@@ -338,14 +338,14 @@ export const updateAdminUserStatus = async (userId, payload) => {
   return response.data;
 };
 
-export const fetchAdminReviews = async () => {
-  const response = await apiFetch("/api/admin/reviews", { method: "GET" });
-  return response.data || [];
+export const fetchAdminReviews = async (query = {}) => {
+  const response = await apiFetch(`/api/admin/reviews${buildQueryString(query)}`, { method: "GET" });
+  return { reviews: response.data || [], pagination: response.pagination };
 };
 
-export const fetchReportedReviews = async () => {
-  const response = await apiFetch("/api/admin/reviews/reported", { method: "GET" });
-  return response.data || [];
+export const fetchReportedReviews = async (query = {}) => {
+  const response = await apiFetch(`/api/admin/reviews/reported${buildQueryString(query)}`, { method: "GET" });
+  return { reviews: response.data || [], pagination: response.pagination };
 };
 
 export const hideReview = async (reviewId) => {

@@ -164,4 +164,38 @@ describe("SavedPage", () => {
     expect(screen.getByText("Modern Kilimani Apartment")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
   });
+
+  it("goes back a page instead of showing a false empty state after removing the last item on page 2", async () => {
+    const pageTwoFavorite = {
+      property: {
+        _id: "prop-2",
+        title: "Nyali Beach View Apartment",
+        price: { rent: 60000 },
+        location: { area: "Nyali" },
+      },
+    };
+    fetchFavorites.mockImplementation(({ page } = {}) =>
+      page === 2
+        ? Promise.resolve({ favorites: [pageTwoFavorite], pagination: { page: 2, limit: 20, total: 2, pages: 2 } })
+        : Promise.resolve({ favorites: [sampleFavorite], pagination: { page: 1, limit: 20, total: 2, pages: 2 } })
+    );
+    removeFavorite.mockResolvedValue({});
+    const user = userEvent.setup();
+
+    render(<SavedPage onOpenProperty={vi.fn()} />);
+    await screen.findByText("Modern Kilimani Apartment");
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByText("Nyali Beach View Apartment");
+
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+
+    expect(removeFavorite).toHaveBeenCalledWith("prop-2");
+    // Removing the only item on page 2 goes back to page 1, which still has
+    // real saved data - not the "no saved listings" empty state, and not
+    // stuck on page 2 with pagination hidden.
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.queryByText("No saved listings yet. Explore properties to add your favorites.")).not.toBeInTheDocument();
+    expect(fetchFavorites).toHaveBeenLastCalledWith({ page: 1 });
+  });
 });

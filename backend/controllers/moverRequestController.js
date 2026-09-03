@@ -21,7 +21,7 @@ const allowedFromByTarget = {
 };
 
 const populatePaths = [
-  { path: "mover", select: "name phone email serviceTypes location basePrice ratingAverage" },
+  { path: "mover", select: "name phone email serviceTypes location basePrice" },
   { path: "property", select: "title location" },
   { path: "tenant", select: "name email phone role" },
   { path: "moverAccount", select: "name email phone role" },

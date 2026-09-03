@@ -242,8 +242,10 @@ function UsersSegment({ styles }) {
 function ReviewsSegment({ styles }) {
   const [reviewFilter, setReviewFilter] = useState("all");
   const [reviews, setReviews] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState(null);
   const [actionError, setActionError] = useState("");
@@ -252,8 +254,10 @@ function ReviewsSegment({ styles }) {
     setError("");
 
     try {
-      const data = reviewFilter === "reported" ? await fetchReportedReviews() : await fetchAdminReviews();
+      const { reviews: data, pagination: paginationData } =
+        reviewFilter === "reported" ? await fetchReportedReviews({ page: 1 }) : await fetchAdminReviews({ page: 1 });
       setReviews(data);
+      setPagination(paginationData);
     } catch (err) {
       setError(err.message || "Failed to load reviews.");
     }
@@ -271,6 +275,28 @@ function ReviewsSegment({ styles }) {
     await load();
     setRefreshing(false);
   };
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !pagination || pagination.page >= pagination.pages) {
+      return;
+    }
+
+    setLoadingMore(true);
+
+    try {
+      const nextPage = pagination.page + 1;
+      const { reviews: data, pagination: paginationData } =
+        reviewFilter === "reported"
+          ? await fetchReportedReviews({ page: nextPage })
+          : await fetchAdminReviews({ page: nextPage });
+      setReviews((current) => [...current, ...data]);
+      setPagination(paginationData);
+    } catch {
+      // Best-effort - scrolling again re-triggers onEndReached.
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, pagination, reviewFilter]);
 
   const handleHide = useCallback(async (reviewId) => {
     setActionError("");
@@ -358,6 +384,8 @@ function ReviewsSegment({ styles }) {
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
           renderItem={renderReviewItem}
         />
       )}
@@ -410,7 +438,8 @@ const createStyles = (colors) =>
       borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      minHeight: 44,
+      justifyContent: "center",
     },
     tabActive: {
       backgroundColor: colors.green,
@@ -448,7 +477,8 @@ const createStyles = (colors) =>
       borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 12,
-      paddingVertical: 8,
+      minHeight: 44,
+      justifyContent: "center",
     },
     filterChipActive: {
       backgroundColor: colors.green,

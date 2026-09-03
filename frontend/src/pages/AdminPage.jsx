@@ -66,9 +66,15 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
     setMessage("");
     setError("");
+
+    if ((status === "suspended" || status === "banned") && !reason.trim()) {
+      setError("A reason is required to suspend or ban an account.");
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       const updated = await updateAdminUserStatus(userId, { status, reason: reason || undefined });
@@ -234,6 +240,8 @@ function UserDetail({ userId, currentUser, onStatusUpdated }) {
 function AdminReviewsPanel() {
   const [filter, setFilter] = useState("all");
   const [reviews, setReviews] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
@@ -248,8 +256,13 @@ function AdminReviewsPanel() {
       setError("");
 
       try {
-        const data = filter === "reported" ? await fetchReportedReviews() : await fetchAdminReviews();
-        if (active) setReviews(data);
+        const { reviews: data, pagination: paginationData } =
+          filter === "reported" ? await fetchReportedReviews({ page }) : await fetchAdminReviews({ page });
+
+        if (active) {
+          setReviews(data);
+          setPagination(paginationData);
+        }
       } catch (err) {
         if (active) setError(err.message || "Failed to load reviews.");
       } finally {
@@ -262,7 +275,12 @@ function AdminReviewsPanel() {
     return () => {
       active = false;
     };
-  }, [filter, retryKey]);
+  }, [filter, page, retryKey]);
+
+  const handleFilterChange = (nextFilter) => {
+    setFilter(nextFilter);
+    setPage(1);
+  };
 
   const handleHide = async (reviewId) => {
     setActionError("");
@@ -298,14 +316,14 @@ function AdminReviewsPanel() {
         <button
           type="button"
           className={filter === "all" ? "active" : "secondary-button"}
-          onClick={() => setFilter("all")}
+          onClick={() => handleFilterChange("all")}
         >
           All reviews
         </button>
         <button
           type="button"
           className={filter === "reported" ? "active" : "secondary-button"}
-          onClick={() => setFilter("reported")}
+          onClick={() => handleFilterChange("reported")}
         >
           Reported
         </button>
@@ -388,6 +406,30 @@ function AdminReviewsPanel() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pagination && pagination.pages > 1 && (
+        <div className="form-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={page <= 1}
+            onClick={() => setPage((current) => current - 1)}
+          >
+            Previous
+          </button>
+          <span className="muted-copy">
+            Page {pagination.page} of {pagination.pages}
+          </span>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={page >= pagination.pages}
+            onClick={() => setPage((current) => current + 1)}
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

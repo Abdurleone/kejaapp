@@ -60,17 +60,6 @@ const moverSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-    ratingAverage: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    ratingCount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     isAvailable: {
       type: Boolean,
       default: true,

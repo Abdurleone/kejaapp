@@ -145,6 +145,37 @@ describe("viewingController", () => {
     assert.equal(nextError.message, "You already have an active viewing request for this property");
   });
 
+  it("converts a duplicate-key race (two near-simultaneous requests both passing the findOne check) into the same friendly 409", async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const propertyId = new mongoose.Types.ObjectId();
+    mock.method(Property, "findById", async () => ({
+      _id: propertyId,
+      owner: new mongoose.Types.ObjectId(),
+      status: "available",
+      isAvailable: true,
+      viewingType: "open",
+    }));
+    mock.method(ViewingRequest, "findOne", async () => null);
+    mock.method(ViewingRequest, "create", async () => {
+      const error = new Error("E11000 duplicate key error");
+      error.code = 11000;
+      throw error;
+    });
+    const req = {
+      body: { property: propertyId.toString() },
+      user: { _id: userId },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await createViewingRequest(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 409);
+    assert.equal(nextError.message, "You already have an active viewing request for this property");
+  });
+
   it("returns not found when updating a missing viewing request", async () => {
     mock.method(ViewingRequest, "findById", () => ({
       populate: async () => null,

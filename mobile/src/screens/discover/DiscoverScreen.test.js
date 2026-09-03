@@ -1,10 +1,17 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import DiscoverScreen from "./DiscoverScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
 jest.mock("expo-location", () => ({
   requestForegroundPermissionsAsync: jest.fn(),
   getCurrentPositionAsync: jest.fn(),
+}));
+let focusCallback = null;
+jest.mock("@react-navigation/native", () => ({
+  useFocusEffect: (callback) => {
+    focusCallback = callback;
+    return require("react").useEffect(callback, [callback]);
+  },
 }));
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
 jest.mock("../../context/SettingsContext.js", () => ({
@@ -90,6 +97,25 @@ describe("DiscoverScreen", () => {
     fireEvent.press(getByText("Save"));
 
     await waitFor(() => expect(saveFavorite).toHaveBeenCalledWith("p1"));
+  });
+
+  it("refetches saved state on refocus, so saving elsewhere is reflected without remounting", async () => {
+    useAuth.mockReturnValue({ signedIn: true });
+    fetchFavorites.mockResolvedValueOnce([]);
+
+    const { getByText } = await render(<DiscoverScreen navigation={navigation} />);
+
+    await waitFor(() => expect(getByText("Save")).toBeTruthy());
+
+    // The property was saved elsewhere (e.g. from PropertyDetailScreen)
+    // while this tab was out of focus.
+    fetchFavorites.mockResolvedValueOnce([{ property: { _id: "p1" } }]);
+
+    await act(async () => {
+      focusCallback();
+    });
+
+    await waitFor(() => expect(getByText("Saved")).toBeTruthy());
   });
 
   it("finds nearby properties and offers to save the search", async () => {

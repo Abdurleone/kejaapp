@@ -144,8 +144,6 @@ const movers = [
       },
     },
     basePrice: 3500,
-    ratingAverage: 4.7,
-    ratingCount: 38,
     affiliatedOwnerEmails: ["agency@example.com"],
   },
   {
@@ -164,8 +162,6 @@ const movers = [
       },
     },
     basePrice: 12000,
-    ratingAverage: 4.4,
-    ratingCount: 21,
     affiliatedOwnerEmails: ["landlord@example.com"],
   },
   {
@@ -184,8 +180,6 @@ const movers = [
       },
     },
     basePrice: 5000,
-    ratingAverage: 4.6,
-    ratingCount: 27,
   },
   {
     userEmail: "mover4@example.com",
@@ -203,8 +197,6 @@ const movers = [
       },
     },
     basePrice: 4500,
-    ratingAverage: 4.3,
-    ratingCount: 14,
   },
   {
     userEmail: "mover5@example.com",
@@ -222,8 +214,6 @@ const movers = [
       },
     },
     basePrice: 8000,
-    ratingAverage: 4.1,
-    ratingCount: 9,
   },
   {
     userEmail: "mover6@example.com",
@@ -241,8 +231,6 @@ const movers = [
       },
     },
     basePrice: 3000,
-    ratingAverage: 3.9,
-    ratingCount: 5,
   },
 ];
 
