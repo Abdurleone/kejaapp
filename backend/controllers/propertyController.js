@@ -235,7 +235,7 @@ const listPropertyMovers = asyncHandler(async (req, res) => {
   const affiliates = await Mover.find({
     affiliatedOwners: property.owner,
     verified: true,
-  }).sort("-ratingAverage name");
+  }).sort("name");
 
   const affiliateIds = affiliates.map((mover) => mover._id);
   const coordinates = property.location?.coordinates?.coordinates;
@@ -253,7 +253,7 @@ const listPropertyMovers = asyncHandler(async (req, res) => {
           $centerSphere: [[longitude, latitude], radiusKm / earthRadiusKm],
         },
       },
-    }).sort("-ratingAverage name");
+    }).sort("name");
   }
 
   res.status(httpStatus.OK).json({
@@ -270,10 +270,29 @@ const updateProperty = asyncHandler(async (req, res) => {
 
   ensurePropertyOwner(property, req.user);
 
+  const wasAvailable = property.status === "available";
+  const previousCoordinates = property.location?.coordinates?.coordinates;
+
   Object.assign(property, pickPropertyPayload(req.body));
   await property.save();
   await property.populate("owner", ownerProjection);
   await invalidateNamespace("properties");
+
+  const nextCoordinates = property.location?.coordinates?.coordinates;
+  if (
+    previousCoordinates?.[0] !== nextCoordinates?.[0] ||
+    previousCoordinates?.[1] !== nextCoordinates?.[1]
+  ) {
+    await invalidateNamespace("movers");
+  }
+
+  // Only the draft/pending -> available transition is covered here (the
+  // moment a listing actually becomes discoverable) - re-matching every
+  // saved search on every subsequent edit to an already-available listing
+  // would re-notify the same tenants repeatedly for no new reason.
+  if (!wasAvailable && property.status === "available") {
+    await notifyMatchingSavedSearches(property);
+  }
 
   res.status(httpStatus.OK).json({
     data: attachCostSummary(property),

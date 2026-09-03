@@ -27,16 +27,23 @@ export default function FeedbackScreen() {
   const isAdmin = signedIn && user?.role === "admin";
 
   const [feedback, setFeedback] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setError("");
 
     try {
-      const data = isAdmin ? await fetchAdminFeedback() : await fetchMyFeedback();
-      setFeedback(data);
+      if (isAdmin) {
+        const { feedback: data, pagination: paginationData } = await fetchAdminFeedback({ page: 1 });
+        setFeedback(data);
+        setPagination(paginationData);
+      } else {
+        setFeedback(await fetchMyFeedback());
+      }
     } catch (err) {
       setError(err.message || "Failed to load feedback.");
     }
@@ -58,6 +65,26 @@ export default function FeedbackScreen() {
     await load();
     setRefreshing(false);
   };
+
+  const loadMore = useCallback(async () => {
+    if (!isAdmin || loadingMore || !pagination || pagination.page >= pagination.pages) {
+      return;
+    }
+
+    setLoadingMore(true);
+
+    try {
+      const { feedback: data, pagination: paginationData } = await fetchAdminFeedback({
+        page: pagination.page + 1,
+      });
+      setFeedback((current) => [...current, ...data]);
+      setPagination(paginationData);
+    } catch {
+      // Best-effort - scrolling again re-triggers onEndReached.
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [isAdmin, loadingMore, pagination]);
 
   const handleSubmitted = (created) => {
     setFeedback((current) => [created, ...current]);
@@ -114,6 +141,8 @@ export default function FeedbackScreen() {
             {isAdmin ? "No feedback submitted yet." : "You have not submitted any feedback yet."}
           </Text>
         }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         renderItem={renderFeedbackItem}
       />
     </KeyboardAvoidingView>

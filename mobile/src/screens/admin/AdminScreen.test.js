@@ -74,16 +74,19 @@ describe("AdminScreen", () => {
 
   it("switches to the Reviews segment and shows a read-only review list", async () => {
     fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
-    fetchAdminReviews.mockResolvedValue([
-      {
-        _id: "r1",
-        rating: 4,
-        comment: "Great place",
-        property: { title: "Cozy studio" },
-        user: { name: "Jane Doe" },
-        ownerResponse: null,
-      },
-    ]);
+    fetchAdminReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "r1",
+          rating: 4,
+          comment: "Great place",
+          property: { title: "Cozy studio" },
+          user: { name: "Jane Doe" },
+          ownerResponse: null,
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
 
     const { getByText, queryByText } = await render(<AdminScreen />);
 
@@ -100,17 +103,20 @@ describe("AdminScreen", () => {
 
   it("shows report reason/reporter and Hide/Dismiss actions on the Reported sub-tab", async () => {
     fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
-    fetchAdminReviews.mockResolvedValue([]);
-    fetchReportedReviews.mockResolvedValue([
-      {
-        _id: "r1",
-        rating: 2,
-        comment: "Not accurate",
-        property: { title: "Cozy studio" },
-        user: { name: "Jane Doe" },
-        report: { reason: "Fake review", reportedBy: { name: "Amina" } },
-      },
-    ]);
+    fetchAdminReviews.mockResolvedValue({ reviews: [], pagination: { page: 1, pages: 1, total: 0 } });
+    fetchReportedReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "r1",
+          rating: 2,
+          comment: "Not accurate",
+          property: { title: "Cozy studio" },
+          user: { name: "Jane Doe" },
+          report: { reason: "Fake review", reportedBy: { name: "Amina" } },
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
 
     const { getByText, queryByText } = await render(<AdminScreen />);
 
@@ -129,17 +135,20 @@ describe("AdminScreen", () => {
 
   it("removes a review from the Reported list after Hide", async () => {
     fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
-    fetchAdminReviews.mockResolvedValue([]);
-    fetchReportedReviews.mockResolvedValue([
-      {
-        _id: "r1",
-        rating: 2,
-        comment: "Not accurate",
-        property: { title: "Cozy studio" },
-        user: { name: "Jane Doe" },
-        report: { reason: "Fake review", reportedBy: { name: "Amina" } },
-      },
-    ]);
+    fetchAdminReviews.mockResolvedValue({ reviews: [], pagination: { page: 1, pages: 1, total: 0 } });
+    fetchReportedReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "r1",
+          rating: 2,
+          comment: "Not accurate",
+          property: { title: "Cozy studio" },
+          user: { name: "Jane Doe" },
+          report: { reason: "Fake review", reportedBy: { name: "Amina" } },
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     hideReview.mockResolvedValue({});
 
     const { getByText, queryByText } = await render(<AdminScreen />);
@@ -158,17 +167,20 @@ describe("AdminScreen", () => {
 
   it("removes a review from the Reported list after Dismiss", async () => {
     fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
-    fetchAdminReviews.mockResolvedValue([]);
-    fetchReportedReviews.mockResolvedValue([
-      {
-        _id: "r1",
-        rating: 2,
-        comment: "Not accurate",
-        property: { title: "Cozy studio" },
-        user: { name: "Jane Doe" },
-        report: { reason: "Fake review", reportedBy: { name: "Amina" } },
-      },
-    ]);
+    fetchAdminReviews.mockResolvedValue({ reviews: [], pagination: { page: 1, pages: 1, total: 0 } });
+    fetchReportedReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "r1",
+          rating: 2,
+          comment: "Not accurate",
+          property: { title: "Cozy studio" },
+          user: { name: "Jane Doe" },
+          report: { reason: "Fake review", reportedBy: { name: "Amina" } },
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     dismissReviewReport.mockResolvedValue({});
 
     const { getByText, queryByText } = await render(<AdminScreen />);

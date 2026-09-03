@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchFavorites, removeFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { useSettings } from "../../context/SettingsContext.js";
@@ -33,16 +33,29 @@ export default function SavedScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!signedIn) {
-      return;
-    }
+  // Runs on every focus, not just the first mount - so unsaving a property
+  // from Discover/PropertyDetailScreen (or saving one there) is reflected
+  // here on return, instead of the stale favorites snapshot from whenever
+  // this tab last mounted.
+  useFocusEffect(
+    useCallback(() => {
+      if (!signedIn) {
+        return undefined;
+      }
 
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [signedIn, load]);
+      let active = true;
+
+      // Kicking off a real fetch here, not deriving avoidable state.
+      setLoading(true);
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [signedIn, load])
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);

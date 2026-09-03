@@ -162,6 +162,28 @@ describe("AdminPage", () => {
     expect(await screen.findByText("Account status updated.")).toBeInTheDocument();
   });
 
+  it("blocks suspending an account with a blank reason, without calling updateAdminUserStatus", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchAdminUserSummary.mockResolvedValue({
+      user: janeUser,
+      summary: { violations: { open: 0 }, tenant: { savedProperties: 2, inquiries: { open: 1 } } },
+    });
+    fetchAdminUserStatusHistory.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+
+    await user.click(screen.getByText("Jane Tenant"));
+    expect(await screen.findByText("Open violations")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Account status"), "suspended");
+    await user.click(screen.getByRole("button", { name: "Update status" }));
+
+    expect(await screen.findByText("A reason is required to suspend or ban an account.")).toBeInTheDocument();
+    expect(updateAdminUserStatus).not.toHaveBeenCalled();
+  });
+
   it("prevents an admin from changing their own account status", async () => {
     fetchAdminUsers.mockResolvedValue({
       users: [adminUser],
@@ -185,16 +207,19 @@ describe("AdminPage", () => {
 
   it("switches to the Reviews segment and renders read-only review data", async () => {
     fetchAdminUsers.mockResolvedValue(usersPage);
-    fetchAdminReviews.mockResolvedValue([
-      {
-        _id: "rev-1",
-        property: { title: "Modern Kilimani Apartment" },
-        user: { name: "Jane Tenant" },
-        rating: 5,
-        comment: "Great place!",
-        createdAt: "2026-01-01T00:00:00.000Z",
-      },
-    ]);
+    fetchAdminReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "rev-1",
+          property: { title: "Modern Kilimani Apartment" },
+          user: { name: "Jane Tenant" },
+          rating: 5,
+          comment: "Great place!",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     const user = userEvent.setup();
 
     renderWithAuth(<AdminPage />, { currentUser: adminUser });
@@ -207,19 +232,71 @@ describe("AdminPage", () => {
     expect(screen.queryByRole("button", { name: /respond/i })).not.toBeInTheDocument();
   });
 
+  it("paginates the reviews list past the first page", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchAdminReviews.mockImplementation(({ page } = {}) =>
+      Promise.resolve(
+        page === 2
+          ? {
+              reviews: [
+                {
+                  _id: "rev-page2",
+                  property: { title: "Second Page Property" },
+                  user: { name: "Page Two Tenant" },
+                  rating: 4,
+                  comment: "Also good",
+                  createdAt: "2026-01-03T00:00:00.000Z",
+                },
+              ],
+              pagination: { page: 2, pages: 2, total: 21 },
+            }
+          : {
+              reviews: [
+                {
+                  _id: "rev-page1",
+                  property: { title: "First Page Property" },
+                  user: { name: "Jane Tenant" },
+                  rating: 5,
+                  comment: "Great!",
+                  createdAt: "2026-01-01T00:00:00.000Z",
+                },
+              ],
+              pagination: { page: 1, pages: 2, total: 21 },
+            }
+      )
+    );
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+    await user.click(screen.getByRole("button", { name: "Reviews" }));
+
+    expect(await screen.findByText("First Page Property")).toBeInTheDocument();
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(await screen.findByText("Second Page Property")).toBeInTheDocument();
+    expect(screen.queryByText("First Page Property")).not.toBeInTheDocument();
+    expect(fetchAdminReviews).toHaveBeenLastCalledWith({ page: 2 });
+  });
+
   it("switches to the Reported tab and shows the report reason/reporter", async () => {
     fetchAdminUsers.mockResolvedValue(usersPage);
-    fetchReportedReviews.mockResolvedValue([
-      {
-        _id: "rev-2",
-        property: { title: "Leafy Lavington House" },
-        user: { name: "Sam Tenant" },
-        rating: 1,
-        comment: "This is fake",
-        report: { reason: "This looks fabricated", reportedBy: { name: "Jane Tenant" } },
-        createdAt: "2026-01-02T00:00:00.000Z",
-      },
-    ]);
+    fetchReportedReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "rev-2",
+          property: { title: "Leafy Lavington House" },
+          user: { name: "Sam Tenant" },
+          rating: 1,
+          comment: "This is fake",
+          report: { reason: "This looks fabricated", reportedBy: { name: "Jane Tenant" } },
+          createdAt: "2026-01-02T00:00:00.000Z",
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     const user = userEvent.setup();
 
     renderWithAuth(<AdminPage />, { currentUser: adminUser });
@@ -234,16 +311,19 @@ describe("AdminPage", () => {
 
   it("hides a reported review and removes it from the list", async () => {
     fetchAdminUsers.mockResolvedValue(usersPage);
-    fetchReportedReviews.mockResolvedValue([
-      {
-        _id: "rev-2",
-        property: { title: "Leafy Lavington House" },
-        user: { name: "Sam Tenant" },
-        rating: 1,
-        report: { reason: "Fake", reportedBy: { name: "Jane Tenant" } },
-        createdAt: "2026-01-02T00:00:00.000Z",
-      },
-    ]);
+    fetchReportedReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "rev-2",
+          property: { title: "Leafy Lavington House" },
+          user: { name: "Sam Tenant" },
+          rating: 1,
+          report: { reason: "Fake", reportedBy: { name: "Jane Tenant" } },
+          createdAt: "2026-01-02T00:00:00.000Z",
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     hideReview.mockResolvedValue({});
     const user = userEvent.setup();
 
@@ -261,16 +341,19 @@ describe("AdminPage", () => {
 
   it("dismisses a report and removes it from the list without hiding the review", async () => {
     fetchAdminUsers.mockResolvedValue(usersPage);
-    fetchReportedReviews.mockResolvedValue([
-      {
-        _id: "rev-2",
-        property: { title: "Leafy Lavington House" },
-        user: { name: "Sam Tenant" },
-        rating: 1,
-        report: { reason: "Fake", reportedBy: { name: "Jane Tenant" } },
-        createdAt: "2026-01-02T00:00:00.000Z",
-      },
-    ]);
+    fetchReportedReviews.mockResolvedValue({
+      reviews: [
+        {
+          _id: "rev-2",
+          property: { title: "Leafy Lavington House" },
+          user: { name: "Sam Tenant" },
+          rating: 1,
+          report: { reason: "Fake", reportedBy: { name: "Jane Tenant" } },
+          createdAt: "2026-01-02T00:00:00.000Z",
+        },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     dismissReviewReport.mockResolvedValue({});
     const user = userEvent.setup();
 

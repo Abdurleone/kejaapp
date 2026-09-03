@@ -334,6 +334,57 @@ describe("adminUserController", () => {
     assert.equal(res.body.message, "User status updated");
   });
 
+  it("requires a reason to suspend or ban an account", async () => {
+    const adminId = new mongoose.Types.ObjectId();
+    const userId = new mongoose.Types.ObjectId();
+    mock.method(User, "findById", () => ({
+      select: async () => ({ _id: userId, accountStatus: "active" }),
+    }));
+    const req = {
+      params: { id: userId.toString() },
+      body: { status: "banned", reason: "   " },
+      user: { _id: adminId },
+    };
+    const res = createResponse();
+    let nextError;
+
+    await updateUserStatus(req, res, (error) => {
+      nextError = error;
+    });
+
+    assert.equal(nextError.statusCode, 400);
+    assert.equal(nextError.message, "A reason is required to suspend or ban an account");
+  });
+
+  it("does not require a reason to reactivate an account", async () => {
+    const adminId = new mongoose.Types.ObjectId();
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
+      accountStatus: "suspended",
+      async save() {},
+    };
+    mock.method(User, "findById", () => ({
+      select: async () => user,
+    }));
+    mock.method(UserStatusLog, "create", async (payload) => payload);
+    mock.method(DeviceToken, "find", async () => []);
+    mock.method(Notification, "create", async (payload) => payload);
+
+    const req = {
+      params: { id: userId.toString() },
+      body: { status: "active" },
+      user: { _id: adminId },
+    };
+    const res = createResponse();
+
+    await updateUserStatus(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(user.accountStatus, "active");
+  });
+
   it("prevents admins from suspending or banning themselves", async () => {
     const adminId = new mongoose.Types.ObjectId();
     mock.method(User, "findById", () => ({

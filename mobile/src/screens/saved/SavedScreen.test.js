@@ -1,10 +1,15 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import SavedScreen from "./SavedScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
 const mockNavigate = jest.fn();
+let mockFocusCallback = null;
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: (callback) => {
+    mockFocusCallback = callback;
+    return require("react").useEffect(callback, [callback]);
+  },
 }));
 
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
@@ -56,6 +61,25 @@ describe("SavedScreen", () => {
 
     await waitFor(() => expect(queryByText("Cozy studio")).toBeNull());
     expect(removeFavorite).toHaveBeenCalledWith("p1");
+  });
+
+  it("refetches on refocus, so a favorite added elsewhere shows up without remounting", async () => {
+    useAuth.mockReturnValue({ signedIn: true });
+    fetchFavorites.mockResolvedValueOnce([]);
+
+    const { findByText } = await render(<SavedScreen />);
+
+    await findByText("No saved listings yet");
+
+    fetchFavorites.mockResolvedValueOnce([
+      { _id: "fav1", property: { _id: "p1", title: "Cozy studio", price: { rent: 15000 } } },
+    ]);
+
+    await act(async () => {
+      await mockFocusCallback();
+    });
+
+    await findByText("Cozy studio");
   });
 
   it("shows an empty state with no saved properties", async () => {

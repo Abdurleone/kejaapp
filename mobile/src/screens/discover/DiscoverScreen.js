@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { createSavedSearch, fetchFavorites, fetchProperties, saveFavorite } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -82,11 +83,15 @@ export default function DiscoverScreen({ navigation }) {
     }
   }, [signedIn]);
 
-  useEffect(() => {
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadFavorites();
-  }, [loadFavorites]);
+  // Runs on every focus, not just the first mount - so saving/unsaving a
+  // property from PropertyDetailScreen (or unsaving it from the Saved tab)
+  // is reflected here on return, instead of the stale savedIds snapshot from
+  // whenever Discover last mounted.
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [loadFavorites])
+  );
 
   // Deriving the fetch from appliedFilters (rather than calling a shared
   // loadProperties function ad hoc from every handler) is what makes the

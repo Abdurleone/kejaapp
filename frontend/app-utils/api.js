@@ -242,34 +242,36 @@ export const updateAdminUserStatus = async (userId, payload) => {
 
 const adminReviewsCacheTtlMs = 15000;
 
-export const fetchAdminReviews = async () => {
-  const cacheKey = "adminReviews:";
+export const fetchAdminReviews = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `adminReviews:${queryString}`;
   const cached = getCached(cacheKey);
 
   if (cached) {
     return cached;
   }
 
-  const response = await apiFetch("/api/admin/reviews", {
+  const response = await apiFetch(`/api/admin/reviews${queryString}`, {
     method: "GET",
   });
-  const data = response.data || [];
+  const data = { reviews: response.data || [], pagination: response.pagination };
   setCached(cacheKey, data, adminReviewsCacheTtlMs);
   return data;
 };
 
-export const fetchReportedReviews = async () => {
-  const cacheKey = "reportedReviews:";
+export const fetchReportedReviews = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `reportedReviews:${queryString}`;
   const cached = getCached(cacheKey);
 
   if (cached) {
     return cached;
   }
 
-  const response = await apiFetch("/api/admin/reviews/reported", {
+  const response = await apiFetch(`/api/admin/reviews/reported${queryString}`, {
     method: "GET",
   });
-  const data = response.data || [];
+  const data = { reviews: response.data || [], pagination: response.pagination };
   setCached(cacheKey, data, adminReviewsCacheTtlMs);
   return data;
 };
@@ -381,7 +383,6 @@ export const createMoverRequest = async ({
     method: "POST",
     body: { mover, property, homeSize, message, preferredDate, pickupLat, pickupLng },
   });
-  clearRequestCache("myMoverRequests");
   return response.data;
 };
 
@@ -422,7 +423,6 @@ export const updateMoverRequestStatus = async (moverRequestId, { status, respons
     method: "PUT",
     body: { status, response: replyMessage },
   });
-  clearRequestCache("myMoverRequests");
   clearRequestCache("receivedMoverRequests");
   return result.data;
 };
@@ -474,7 +474,7 @@ export const fetchAdminFeedback = async (query = {}) => {
   const response = await apiFetch(`/api/admin/feedback${queryString}`, {
     method: "GET",
   });
-  const data = response.data || [];
+  const data = { feedback: response.data || [], pagination: response.pagination };
   setCached(cacheKey, data, adminFeedbackCacheTtlMs);
   return data;
 };

@@ -168,6 +168,10 @@ const updateUserStatus = asyncHandler(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Admins cannot suspend or ban their own account");
   }
 
+  if ((req.body.status === "suspended" || req.body.status === "banned") && !req.body.reason?.trim()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "A reason is required to suspend or ban an account");
+  }
+
   const previousStatus = user.accountStatus || "active";
   const reason = sanitizeText(req.body.reason);
 

@@ -90,9 +90,12 @@ describe("FeedbackPage - admin view", () => {
   });
 
   it("lists all feedback with submitter info", async () => {
-    fetchAdminFeedback.mockResolvedValue([
-      { _id: "fb-1", message: "Please add dark mode", status: "open", submitter: { name: "Jane Tenant", role: "tenant" } },
-    ]);
+    fetchAdminFeedback.mockResolvedValue({
+      feedback: [
+        { _id: "fb-1", message: "Please add dark mode", status: "open", submitter: { name: "Jane Tenant", role: "tenant" } },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
 
     renderWithAuth(<FeedbackPage />, { currentUser: { role: "admin" } });
 
@@ -101,9 +104,12 @@ describe("FeedbackPage - admin view", () => {
   });
 
   it("lets an admin respond to feedback", async () => {
-    fetchAdminFeedback.mockResolvedValue([
-      { _id: "fb-1", message: "Please add dark mode", status: "open", submitter: { name: "Jane Tenant", role: "tenant" } },
-    ]);
+    fetchAdminFeedback.mockResolvedValue({
+      feedback: [
+        { _id: "fb-1", message: "Please add dark mode", status: "open", submitter: { name: "Jane Tenant", role: "tenant" } },
+      ],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
     respondToFeedback.mockResolvedValue({
       _id: "fb-1",
       message: "Please add dark mode",
@@ -124,8 +130,40 @@ describe("FeedbackPage - admin view", () => {
     expect(await screen.findByText(/Added in the next release!/)).toBeInTheDocument();
   });
 
+  it("paginates the feedback list past the first page", async () => {
+    fetchAdminFeedback.mockImplementation(({ page } = {}) =>
+      Promise.resolve(
+        page === 2
+          ? {
+              feedback: [
+                { _id: "fb-page2", message: "Second page item", status: "open", submitter: { name: "Sam", role: "tenant" } },
+              ],
+              pagination: { page: 2, pages: 2, total: 21 },
+            }
+          : {
+              feedback: [
+                { _id: "fb-page1", message: "First page item", status: "open", submitter: { name: "Jane", role: "tenant" } },
+              ],
+              pagination: { page: 1, pages: 2, total: 21 },
+            }
+      )
+    );
+    const user = userEvent.setup();
+
+    renderWithAuth(<FeedbackPage />, { currentUser: { role: "admin" } });
+
+    expect(await screen.findByText("First page item")).toBeInTheDocument();
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(await screen.findByText("Second page item")).toBeInTheDocument();
+    expect(screen.queryByText("First page item")).not.toBeInTheDocument();
+    expect(fetchAdminFeedback).toHaveBeenLastCalledWith({ page: 2 });
+  });
+
   it("shows the empty state when there's no feedback yet", async () => {
-    fetchAdminFeedback.mockResolvedValue([]);
+    fetchAdminFeedback.mockResolvedValue({ feedback: [], pagination: { page: 1, pages: 1, total: 0 } });
 
     renderWithAuth(<FeedbackPage />, { currentUser: { role: "admin" } });
 

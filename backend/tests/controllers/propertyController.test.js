@@ -12,6 +12,7 @@ import {
   removePropertyImage,
   updateProperty,
 } from "../../controllers/propertyController.js";
+import { cacheResponse, invalidateNamespace } from "../../middlewares/responseCache.js";
 import Favorite from "../../models/Favorite.js";
 import Inquiry from "../../models/Inquiry.js";
 import Mover from "../../models/Mover.js";
@@ -19,12 +20,19 @@ import MoverRequest from "../../models/MoverRequest.js";
 import Property from "../../models/Property.js";
 import PropertyImageFingerprint from "../../models/PropertyImageFingerprint.js";
 import Review from "../../models/Review.js";
+import SavedSearch from "../../models/SavedSearch.js";
 import UserViolation from "../../models/UserViolation.js";
 import ViewingRequest from "../../models/ViewingRequest.js";
+import DeviceToken from "../../models/DeviceToken.js";
+import Notification from "../../models/Notification.js";
 
 const createResponse = () => ({
   body: null,
   statusCode: 200,
+  headers: {},
+  setHeader(name, value) {
+    this.headers[name] = value;
+  },
   status(code) {
     this.statusCode = code;
     return this;
@@ -152,6 +160,141 @@ describe("propertyController", () => {
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(property.images, [{ url: "https://real-upload.example/a.jpg" }]);
+  });
+
+  it("notifies matching saved searches when an update flips a property from draft to available", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const savedSearchUser = new mongoose.Types.ObjectId();
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: { _id: ownerId, equals: (id) => ownerId.equals(id) },
+      status: "draft",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Property, "findById", async () => property);
+    mock.method(SavedSearch, "find", () => ({ lean: async () => [{ _id: new mongoose.Types.ObjectId(), user: savedSearchUser }] }));
+    mock.method(Property, "aggregate", async () => [{ 0: [{ _id: "match" }] }]);
+    mock.method(DeviceToken, "find", async () => []);
+    const create = mock.method(Notification, "create", async (payload) => payload);
+
+    const req = {
+      params: { id: property._id.toString() },
+      body: { status: "available" },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await updateProperty(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(create.mock.callCount(), 1);
+    assert.equal(create.mock.calls[0].arguments[0].user, savedSearchUser);
+  });
+
+  it("does not re-notify saved searches on an edit that leaves an already-available property available", async () => {
+    const ownerId = new mongoose.Types.ObjectId();
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: { _id: ownerId, equals: (id) => ownerId.equals(id) },
+      status: "available",
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Property, "findById", async () => property);
+    const savedSearchFind = mock.method(SavedSearch, "find", () => ({ lean: async () => [] }));
+
+    const req = {
+      params: { id: property._id.toString() },
+      body: { title: "Updated title" },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+
+    await updateProperty(req, res, (error) => {
+      throw error;
+    });
+
+    assert.equal(savedSearchFind.mock.callCount(), 0, "notifyMatchingSavedSearches should not run again on every edit");
+  });
+
+  it("invalidates the movers cache namespace when a property's location actually changes", async () => {
+    await invalidateNamespace("movers");
+    const ownerId = new mongoose.Types.ObjectId();
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: { _id: ownerId, equals: (id) => ownerId.equals(id) },
+      status: "available",
+      location: { coordinates: { coordinates: [36.8, -1.3] } },
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Property, "findById", async () => property);
+
+    const moversMiddleware = cacheResponse({ namespace: "movers", ttlMs: 60000 });
+    const moversReq = { originalUrl: `/api/properties/${property._id}/movers` };
+    const seedRes = createResponse();
+    moversMiddleware(moversReq, seedRes, () => seedRes.status(200).json({ data: { affiliates: [], nearby: [] } }));
+    assert.equal(seedRes.headers["X-Cache"], "MISS");
+
+    const req = {
+      params: { id: property._id.toString() },
+      body: {
+        location: { county: "Nairobi", town: "Westlands", area: "Kilimani", coordinates: { type: "Point", coordinates: [36.9, -1.4] } },
+      },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+    await updateProperty(req, res, (error) => {
+      throw error;
+    });
+
+    const afterRes = createResponse();
+    moversMiddleware(moversReq, afterRes, () => afterRes.status(200).json({ data: { affiliates: [], nearby: [] } }));
+    assert.equal(afterRes.headers["X-Cache"], "MISS", "a location change should have invalidated the cached movers response");
+  });
+
+  it("leaves the movers cache alone when an update doesn't touch location", async () => {
+    await invalidateNamespace("movers");
+    const ownerId = new mongoose.Types.ObjectId();
+    const property = {
+      _id: new mongoose.Types.ObjectId(),
+      owner: { _id: ownerId, equals: (id) => ownerId.equals(id) },
+      status: "available",
+      location: { coordinates: { coordinates: [36.8, -1.3] } },
+      async save() {},
+      async populate() {
+        return this;
+      },
+    };
+    mock.method(Property, "findById", async () => property);
+
+    const moversMiddleware = cacheResponse({ namespace: "movers", ttlMs: 60000 });
+    const moversReq = { originalUrl: `/api/properties/${property._id}/movers` };
+    const seedRes = createResponse();
+    moversMiddleware(moversReq, seedRes, () => seedRes.status(200).json({ data: { affiliates: [], nearby: [] } }));
+    assert.equal(seedRes.headers["X-Cache"], "MISS");
+
+    const req = {
+      params: { id: property._id.toString() },
+      body: { title: "Updated title" },
+      user: { _id: ownerId, role: "landlord" },
+    };
+    const res = createResponse();
+    await updateProperty(req, res, (error) => {
+      throw error;
+    });
+
+    const afterRes = createResponse();
+    moversMiddleware(moversReq, afterRes, () => afterRes.status(200).json({ data: { affiliates: [], nearby: [] } }));
+    assert.equal(afterRes.headers["X-Cache"], "HIT", "an unrelated edit should not invalidate the movers cache");
   });
 
   it("lists only available properties by default", async () => {

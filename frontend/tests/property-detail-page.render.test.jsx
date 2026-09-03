@@ -139,6 +139,28 @@ describe("PropertyDetailPage", () => {
     expect(screen.queryByText("Accessibility features")).not.toBeInTheDocument();
   });
 
+  it("shows the owner's contact notes when present", async () => {
+    renderDetailPage({
+      property: {
+        ...sampleProperty,
+        contact: { preferredMethod: "phone", phone: "+254700000000", notes: "Ask for John" },
+      },
+    });
+
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.getByText("Ask for John")).toBeInTheDocument();
+  });
+
+  it("still shows the Contact section when notes are the only contact detail set", async () => {
+    renderDetailPage({
+      property: { ...sampleProperty, contact: { notes: "Call the gate, not the unit" } },
+    });
+
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.getByText("Contact")).toBeInTheDocument();
+    expect(screen.getByText("Call the gate, not the unit")).toBeInTheDocument();
+  });
+
   it("shows a Verified agency badge only when the owner is a verified agency", async () => {
     renderDetailPage({
       property: { ...sampleProperty, owner: { ...sampleProperty.owner, role: "agency", verified: true } },

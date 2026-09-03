@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   affiliateMover,
   fetchMoverProfileStatus,
@@ -65,12 +65,6 @@ const MoverCard = memo(function MoverCard({ mover, user, navigation, onAffiliate
         <Text style={styles.costValue}>{formatKes(mover.basePrice)}</Text>
         <Text style={styles.costLabel}>base price</Text>
       </View>
-      {mover.ratingCount > 0 ? (
-        <Text style={styles.cardMessage}>
-          {Number(mover.ratingAverage || 0).toFixed(1)} rating ({mover.ratingCount})
-        </Text>
-      ) : null}
-
       {listingManagerRoles.includes(user?.role) ? (
         <>
           {affiliateError ? <Text style={styles.error}>{affiliateError}</Text> : null}
@@ -529,12 +523,26 @@ function MoverDashboard({ styles, highlightId }) {
     }
   }, []);
 
-  useEffect(() => {
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [load]);
+  // Runs on every focus, not just the first mount - so tapping a "new mover
+  // request" push notification's deep link (which lands here with a fresh
+  // highlightId) is guaranteed to see that request in the freshly-loaded
+  // list, instead of whatever was already in state from the last time this
+  // tab was visited. Mirrors WorkspaceScreen's identical highlightId pattern.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      // Kicking off a real fetch here, not deriving avoidable state.
+      setLoading(true);
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [load])
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -624,7 +632,8 @@ const createStyles = (colors) =>
       borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 12,
-      paddingVertical: 8,
+      minHeight: 44,
+      justifyContent: "center",
     },
     filterChipActive: {
       backgroundColor: colors.green,

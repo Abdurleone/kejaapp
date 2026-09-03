@@ -1,9 +1,13 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import PropertyDetailScreen from "./PropertyDetailScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
+let mockFocusCallbacks = [];
 jest.mock("@react-navigation/native", () => ({
-  useFocusEffect: (callback) => require("react").useEffect(callback, [callback]),
+  useFocusEffect: (callback) => {
+    mockFocusCallbacks.push(callback);
+    return require("react").useEffect(callback, [callback]);
+  },
 }));
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
 jest.mock("../../context/SettingsContext.js", () => ({
@@ -54,6 +58,7 @@ const renderScreen = (navigation = { navigate: jest.fn() }) =>
 describe("PropertyDetailScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusCallbacks = [];
     useTheme.mockReturnValue({ colors: lightColors });
     useSettings.mockReturnValue({ apiBaseUrl: "http://localhost:5000" });
     fetchFavorites.mockResolvedValue([]);
@@ -140,6 +145,26 @@ describe("PropertyDetailScreen", () => {
 
     await waitFor(() => expect(getByText("Saved")).toBeTruthy());
     expect(saveFavorite).toHaveBeenCalledWith("p1");
+  });
+
+  it("refetches saved state on refocus, so unsaving elsewhere is reflected without remounting", async () => {
+    useAuth.mockReturnValue({ signedIn: true, user: { _id: "u1", role: "tenant" } });
+    fetchProperty.mockResolvedValue(baseProperty);
+    fetchFavorites.mockResolvedValueOnce([{ property: { _id: "p1" } }]);
+
+    const { findByText, getByText } = await renderScreen();
+    await findByText("Cozy studio");
+
+    await waitFor(() => expect(getByText("Saved")).toBeTruthy());
+
+    // Unsaved elsewhere (e.g. the Saved tab) while this screen was out of focus.
+    fetchFavorites.mockResolvedValueOnce([]);
+
+    await act(async () => {
+      await Promise.all(mockFocusCallbacks.map((callback) => callback()));
+    });
+
+    await waitFor(() => expect(getByText("Save")).toBeTruthy());
   });
 
   it("shows a retry action when loading fails, and retries on demand", async () => {

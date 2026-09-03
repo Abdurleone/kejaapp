@@ -390,7 +390,8 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
 
   const cost = property.costSummary || {};
   const contact = property.contact || {};
-  const hasContactInfo = contact.phone || contact.email || contact.whatsapp || contact.availableHours;
+  const hasContactInfo =
+    contact.phone || contact.email || contact.whatsapp || contact.availableHours || contact.notes;
   const isScheduled = property.viewingType === "scheduled";
   const preferredContactUrl = getPreferredContactUrl(contact);
   const hasMovers = propertyMovers.affiliates.length > 0 || propertyMovers.nearby.length > 0;
@@ -581,6 +582,7 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
                 </span>
               )}
             </div>
+            {contact.notes && <p className="muted-copy">{contact.notes}</p>}
             {preferredContactUrl && (
               <a
                 className="primary-button contact-cta"
@@ -600,6 +602,17 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
             <div className="property-meta">
               {property.amenities.map((amenity) => (
                 <span key={amenity}>{amenity}</span>
+              ))}
+            </div>
+          </>
+        )}
+
+        {property.accessibilityFeatures?.length > 0 && (
+          <>
+            <h3>Accessibility features</h3>
+            <div className="property-meta">
+              {property.accessibilityFeatures.map((feature) => (
+                <span key={feature}>{accessibilityFeatureLabels[feature] || feature}</span>
               ))}
             </div>
           </>

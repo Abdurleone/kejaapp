@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchInquiries, fetchViewingRequests } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import { RequestCardSkeletonList } from "../../components/RequestCardSkeleton.js";
@@ -97,16 +97,29 @@ export default function RequestsScreen() {
     }
   }, [loadingMoreViewings, viewingsPagination]);
 
-  useEffect(() => {
-    if (!signedIn) {
-      return;
-    }
+  // Runs on every focus, not just the first mount - so a newly-sent inquiry
+  // or viewing request (sent from PropertyDetailScreen, which navigates back
+  // here rather than remounting this tab) shows up without a manual
+  // pull-to-refresh.
+  useFocusEffect(
+    useCallback(() => {
+      if (!signedIn) {
+        return undefined;
+      }
 
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [signedIn, load]);
+      let active = true;
+
+      // Kicking off a real fetch here, not deriving avoidable state.
+      setLoading(true);
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [signedIn, load])
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -245,7 +258,8 @@ const createStyles = (colors) =>
       borderColor: colors.stroke,
       borderRadius: 999,
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      minHeight: 44,
+      justifyContent: "center",
     },
     tabActive: {
       backgroundColor: colors.green,
