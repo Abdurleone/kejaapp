@@ -1078,6 +1078,56 @@ dialog {
   stroke: var(--stroke);
 }
 
+/* The one moving part of the illustration - the matatu itself. A slow idle
+   bounce on the whole vehicle plus independently-spinning wheels, both
+   subtle enough to read as "the engine's running", not a cartoon driving
+   past. transform-box: fill-box makes each rotation/translation relative to
+   that element's own bounding box rather than the shared 400x400 viewBox
+   origin, so the wheels spin in place and the bus bounces around its own
+   center instead of the SVG canvas's corner. */
+.landing-bus {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: landing-bus-idle 2.6s ease-in-out infinite;
+}
+
+.landing-bus-wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: landing-wheel-spin 2.2s linear infinite;
+}
+
+@keyframes landing-bus-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes landing-wheel-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-bus,
+  .landing-bus-wheel {
+    animation: none;
+  }
+}
+
+.landing-sticker-group {
+  position: relative;
+  width: fit-content;
+}
+
 .landing-sticker {
   display: inline-flex;
   align-items: center;
@@ -1095,6 +1145,27 @@ dialog {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+/* A second, smaller decal overlapping the main sticker's corner - real
+   matatu-poster art layers several stickers, not just one, tilted at
+   different angles like they were stuck on at different times. */
+.landing-sticker-seal {
+  position: absolute;
+  top: -11px;
+  right: -13px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--on-accent);
+  border: 3px solid var(--stroke);
+  box-shadow: var(--shadow-pop-sm);
+  transform: rotate(11deg);
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .landing-copy {
