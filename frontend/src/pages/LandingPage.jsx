@@ -51,6 +51,23 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
         preserveAspectRatio="xMidYMax slice"
         aria-hidden="true"
       >
+        <defs>
+          {/* Chrome trim - a matatu's bumper and hubcaps are the one place on
+              an otherwise flat-color poster illustration where a real metal
+              highlight belongs, so these are the only two gradients on the
+              whole page. The hub's off-center highlight (35%/35% instead of
+              50%/50%) is deliberate - a dead-center highlight wouldn't read
+              as spinning once .landing-bus-wheel rotates it. */}
+          <linearGradient id="landing-chrome-trim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#eef2f5" />
+            <stop offset="45%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#93a0aa" />
+          </linearGradient>
+          <radialGradient id="landing-chrome-hub" cx="35%" cy="35%" r="70%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#8b98a1" />
+          </radialGradient>
+        </defs>
         <circle cx="320" cy="90" r="46" fill="#fffaf0" opacity="0.85" />
         <g className="mp-outline" stroke="#17130d" strokeWidth="4" strokeLinejoin="round">
           <rect x="30" y="150" width="60" height="180" fill="#fff8e6" />
@@ -68,19 +85,49 @@ export default function LandingPage({ onStart, onNavigateLegal }) {
         </g>
         <g className="mp-outline">
           <rect x="0" y="330" width="400" height="70" fill="#17130d" />
+        </g>
+        {/* The bus body + wheels are a separate group from the road above so
+            landing-bus's idle-bounce animation moves the vehicle without
+            dragging the ground along with it - the wheels still paint over
+            the road since this group comes after it in document order. */}
+        <g className="mp-outline landing-bus">
           <rect x="40" y="290" width="150" height="55" rx="10" fill="#d21023" stroke="#17130d" strokeWidth="4" />
           <rect x="40" y="290" width="150" height="18" fill="#fff8e6" stroke="#17130d" strokeWidth="4" />
-          <circle cx="70" cy="352" r="16" fill="#17130d" />
-          <circle cx="70" cy="352" r="7" fill="#c7cdd2" />
-          <circle cx="160" cy="352" r="16" fill="#17130d" />
-          <circle cx="160" cy="352" r="7" fill="#c7cdd2" />
+          {/* Chrome bumper */}
+          <rect
+            x="36"
+            y="338"
+            width="158"
+            height="9"
+            rx="4"
+            fill="url(#landing-chrome-trim)"
+            stroke="#17130d"
+            strokeWidth="2.5"
+          />
+          {/* A second, smaller decal - real matatu bodywork is plastered with
+              overlapping stickers, not just one placard. */}
+          <circle cx="178" cy="328" r="9" fill="#054a2b" stroke="#17130d" strokeWidth="2.5" />
+          <text x="178" y="331.5" textAnchor="middle" fontFamily="Bungee" fontSize="7.5" fill="#fff8e6">
+            NRB
+          </text>
+          <g className="landing-bus-wheel">
+            <circle cx="70" cy="352" r="16" fill="#17130d" />
+            <circle cx="70" cy="352" r="7" fill="url(#landing-chrome-hub)" />
+          </g>
+          <g className="landing-bus-wheel">
+            <circle cx="160" cy="352" r="16" fill="#17130d" />
+            <circle cx="160" cy="352" r="7" fill="url(#landing-chrome-hub)" />
+          </g>
           <text x="115" y="316" textAnchor="middle" fontFamily="Bungee" fontSize="14" fill="#fff8e6">
             KEJA
           </text>
         </g>
       </svg>
       <div className="landing-copy">
-        <span className="landing-sticker">Karibu Nyumbani</span>
+        <div className="landing-sticker-group">
+          <span className="landing-sticker">Karibu Nyumbani</span>
+          <span className="landing-sticker-seal" aria-hidden="true">★</span>
+        </div>
         <h2>Find the right home in Nairobi and beyond.</h2>
         <p>
           KejaApp helps you discover verified rentals, save favorites, and manage
