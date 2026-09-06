@@ -326,6 +326,65 @@ describe("App - per-route document metadata", () => {
   });
 });
 
+// Covers the "saved" and "movers" cases in App.jsx's renderCurrentPage()
+// switch - both must be gated by canAccessView(role, view) like the rest of
+// the switch, not left to render the real page (and its guaranteed-403
+// fetch) for a role roleViewAccess doesn't grant the view to.
+describe("App - saved/movers route access gating", () => {
+  beforeEach(() => {
+    fetchDashboardSummary.mockResolvedValue({ notifications: { unread: 0 } });
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("does not render the real Saved page for a non-tenant navigating directly to /saved", async () => {
+    fetchCurrentUser.mockResolvedValue({ _id: "l1", name: "Jane Landlord", role: "landlord" });
+    window.history.pushState({}, "", "/saved");
+
+    render(<App />);
+
+    expect(
+      await screen.findByText("Sign in to see your saved rentals and manage favorites.")
+    ).toBeInTheDocument();
+  });
+
+  it("still lets a signed-in tenant reach the real Saved page", async () => {
+    fetchCurrentUser.mockResolvedValue({ _id: "t1", name: "Jane Tenant", role: "tenant" });
+    window.history.pushState({}, "", "/saved");
+
+    render(<App />);
+
+    const savedTab = await screen.findByRole("tab", { name: "Saved" });
+    expect(savedTab).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.queryByText("Sign in to see your saved rentals and manage favorites.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render the real Movers page for a role roleViewAccess excludes (admin) navigating directly to /movers", async () => {
+    fetchCurrentUser.mockResolvedValue({ _id: "a1", name: "Ada Admin", role: "admin" });
+    window.history.pushState({}, "", "/movers");
+
+    render(<App />);
+
+    expect(await screen.findByText("This page is not available for your account type.")).toBeInTheDocument();
+  });
+
+  it("still lets a signed-in tenant reach the real Movers page", async () => {
+    fetchCurrentUser.mockResolvedValue({ _id: "t1", name: "Jane Tenant", role: "tenant" });
+    window.history.pushState({}, "", "/movers");
+
+    render(<App />);
+
+    const moversTab = await screen.findByRole("tab", { name: "Movers" });
+    expect(moversTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByText("This page is not available for your account type.")).not.toBeInTheDocument();
+  });
+});
+
 describe("App - unmatched routes and footer", () => {
   beforeEach(() => {
     fetchPublicTestimonials.mockResolvedValue([]);

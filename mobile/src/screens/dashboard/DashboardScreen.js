@@ -1,5 +1,6 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { fetchDashboardSummary } from "../../api/index.js";
 import { useAuth } from "../../context/AuthContext.js";
 import DashboardSkeleton from "../../components/DashboardSkeleton.js";
@@ -57,16 +58,28 @@ export default function DashboardScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!signedIn) {
-      return;
-    }
+  // Runs on every focus, not just the first mount - so tiles reflect
+  // actions taken on other tabs (a new inquiry, a completed viewing, a
+  // verification decision) without a manual pull-to-refresh.
+  useFocusEffect(
+    useCallback(() => {
+      if (!signedIn) {
+        return undefined;
+      }
 
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [signedIn, load]);
+      let active = true;
+
+      // Kicking off a real fetch here, not deriving avoidable state.
+      setLoading(true);
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [signedIn, load])
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);

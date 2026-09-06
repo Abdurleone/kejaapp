@@ -3,14 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PropertyEditPage from "../src/pages/PropertyEditPage.jsx";
 
-const { fetchPropertyById, updateProperty } = vi.hoisted(() => ({
+const { fetchPropertyById, updateProperty, addPropertyImage } = vi.hoisted(() => ({
   fetchPropertyById: vi.fn(),
   updateProperty: vi.fn(),
+  addPropertyImage: vi.fn(),
 }));
 
 vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, fetchPropertyById, updateProperty };
+  return { ...actual, fetchPropertyById, updateProperty, addPropertyImage };
 });
 
 const sampleProperty = {
@@ -102,6 +103,40 @@ describe("PropertyEditPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Back to workspace" }));
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not discard unsaved form edits when the image manager reports an update", async () => {
+    fetchPropertyById.mockResolvedValue(sampleProperty);
+    // The server's response to the image-only mutation reflects the
+    // *last-saved* description ("stale" relative to what the landlord is
+    // mid-typing below), plus the newly added image.
+    addPropertyImage.mockResolvedValue({
+      data: {
+        ...sampleProperty,
+        description: "Stale server description",
+        images: [{ _id: "img-1", url: "https://example.com/photo.jpg" }],
+      },
+      imageReview: { status: "clear" },
+    });
+    const user = userEvent.setup();
+
+    render(<PropertyEditPage propertyId="prop-1" apiBaseUrl="http://localhost:5000" onBack={vi.fn()} />);
+    await screen.findByDisplayValue("Modern Kilimani Apartment");
+
+    const descriptionInput = screen.getByLabelText("Description");
+    await user.type(descriptionInput, "In-progress unsaved description");
+
+    await user.type(screen.getByPlaceholderText("Or paste an image URL"), "https://example.com/photo.jpg");
+    await user.click(screen.getByRole("button", { name: "Add by URL" }));
+
+    await waitFor(() => expect(addPropertyImage).toHaveBeenCalled());
+    await screen.findByText("Image added.");
+
+    // The image gallery reflects the new server data...
+    expect(screen.getByAltText("")).toHaveAttribute("src", expect.stringContaining("photo.jpg"));
+    // ...but the unsaved description the landlord was typing must survive.
+    expect(screen.getByDisplayValue("In-progress unsaved description")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("Stale server description")).not.toBeInTheDocument();
   });
 
   it("shows a save error without losing the loaded form", async () => {

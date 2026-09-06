@@ -1,10 +1,15 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import AdminScreen from "./AdminScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
 const mockNavigate = jest.fn();
+let mockFocusCallback = null;
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: (callback) => {
+    mockFocusCallback = callback;
+    return require("react").useEffect(callback, [callback]);
+  },
 }));
 
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));
@@ -44,6 +49,31 @@ describe("AdminScreen", () => {
     fireEvent.press(getByText("Jane Doe"));
 
     expect(mockNavigate).toHaveBeenCalledWith("AdminUserDetail", { userId: "u1" });
+  });
+
+  it("refetches the user list on every focus, not just the first mount (staleness guard)", async () => {
+    // Regression test: tapping a row navigates to AdminUserDetailScreen,
+    // which can suspend/ban/reinstate the user but never reports back -
+    // going back used to show the stale badge until a manual pull-to-refresh.
+    fetchAdminUsers.mockResolvedValue({
+      users: [{ _id: "u1", name: "Jane Doe", email: "jane@example.com", role: "tenant", accountStatus: "active" }],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+
+    const { getByText } = await render(<AdminScreen />);
+    await waitFor(() => expect(getByText("Active")).toBeTruthy());
+
+    fetchAdminUsers.mockResolvedValue({
+      users: [{ _id: "u1", name: "Jane Doe", email: "jane@example.com", role: "tenant", accountStatus: "suspended" }],
+      pagination: { page: 1, pages: 1, total: 1 },
+    });
+
+    await act(async () => {
+      mockFocusCallback();
+    });
+
+    await waitFor(() => expect(fetchAdminUsers).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getByText("Suspended")).toBeTruthy());
   });
 
   it("shows an empty state when no users match the search", async () => {

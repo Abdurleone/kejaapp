@@ -73,6 +73,20 @@ export const deleteUserCascade = async (userId) => {
       $or: [{ requester: userId }, { owner: userId }, { reviewedBy: userId }],
     }),
     Review.deleteMany(reviewCleanupFilter),
+    // Same reasoning as AgencyVerification above: a review this user merely
+    // hid or reported (as a moderator/reporter), on someone else's review,
+    // belongs to a different, still-existing user and must survive - the
+    // actor reference is cleared instead of the whole document being
+    // deleted. Reviews authored by this user are already handled by the
+    // deleteMany above, so those are excluded here to avoid double-handling.
+    Review.updateMany(
+      { hiddenBy: userId, user: { $ne: userId } },
+      { $unset: { hiddenBy: "" } }
+    ),
+    Review.updateMany(
+      { "report.reportedBy": userId, user: { $ne: userId } },
+      { $unset: { "report.reportedBy": "" } }
+    ),
     Notification.deleteMany({ user: userId }),
     AgencyVerification.deleteMany({ user: userId }),
     // Only the deleted user's own submission is deleted above - a
@@ -111,12 +125,15 @@ export const deleteUserCascade = async (userId) => {
     MoverRequest.deleteMany({
       $or: [{ tenant: userId }, { moverAccount: userId }, { respondedBy: userId }],
     }),
-    Feedback.deleteMany({
-      $or: [
-        { submitter: userId },
-        { "response.respondedBy": userId },
-      ],
-    }),
+    Feedback.deleteMany({ submitter: userId }),
+    // Same reasoning as AgencyVerification above: feedback this user merely
+    // responded to (as an admin) belongs to a different, still-existing
+    // user and must survive account deletion - the responder reference is
+    // cleared instead of the whole document being deleted.
+    Feedback.updateMany(
+      { "response.respondedBy": userId, submitter: { $ne: userId } },
+      { $unset: { "response.respondedBy": "" } }
+    ),
     SavedSearch.deleteMany({ user: userId }),
     DeviceToken.deleteMany({ user: userId }),
     PushSubscription.deleteMany({ user: userId }),

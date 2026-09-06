@@ -310,7 +310,7 @@ function App() {
 
         return <DiscoverPage onOpenProperty={(propertyId) => navigate(getPropertyDetailPath(propertyId))} />;
       case "saved":
-        if (!signedIn) {
+        if (!signedIn || !canAccessView(currentUser?.role, "saved")) {
           return (
             <div className="panel">
               <p className="muted-copy">Sign in to see your saved rentals and manage favorites.</p>
@@ -400,6 +400,14 @@ function App() {
           />
         );
       case "movers":
+        if (!canAccessView(currentUser?.role, "movers")) {
+          return (
+            <div className="panel">
+              <p className="muted-copy">This page is not available for your account type.</p>
+            </div>
+          );
+        }
+
         return <MoversPage highlightId={highlightRequestId} />;
       case "admin":
         if (!signedIn || !canAccessView(currentUser?.role, "admin")) {

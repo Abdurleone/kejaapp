@@ -213,7 +213,7 @@ describe("PropertyDetailPage", () => {
   it("saves the listing, then reflects it as Saved and disables the button", async () => {
     saveFavorite.mockResolvedValue({});
     const user = userEvent.setup();
-    renderDetailPage();
+    renderDetailPage({ signedIn: true, currentUser: { _id: "tenant-1", role: "tenant" } });
 
     await screen.findByText("Modern Kilimani Apartment");
     const saveButton = screen.getByRole("button", { name: "Save" });
@@ -221,6 +221,27 @@ describe("PropertyDetailPage", () => {
 
     expect(saveFavorite).toHaveBeenCalledWith("prop-1");
     await waitFor(() => expect(screen.getByRole("button", { name: "Saved" })).toBeDisabled());
+  });
+
+  // The Save/favorite action is tenant-only server-side (saveFavorite is
+  // gated to roleGroups.tenantOnly in the backend) - a non-tenant clicking it
+  // would only ever get a swallowed 403. The button should never be offered
+  // to a role that can't use it.
+  it("shows the Save button to a signed-in tenant but not to a landlord viewing their own listing", async () => {
+    const { unmount } = renderDetailPage({ signedIn: true, currentUser: { _id: "tenant-1", role: "tenant" } });
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    unmount();
+
+    renderDetailPage({ currentUser: { _id: "owner-1", role: "landlord" } });
+    expect(await screen.findByText("Modern Kilimani Apartment")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
+  });
+
+  it("does not show the Save button to a signed-out visitor", async () => {
+    renderDetailPage({ signedIn: false });
+    await screen.findByText("Modern Kilimani Apartment");
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
   });
 
   it("requires a message before sending an inquiry, and never calls createInquiry for a blank one", async () => {

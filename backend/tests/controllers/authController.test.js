@@ -175,6 +175,8 @@ describe("authController", () => {
     trackReviewerUnset(AgencyVerification, "AgencyVerification");
     trackReviewerUnset(UserStatusLog, "UserStatusLog");
     trackReviewerUnset(MoverVerification, "MoverVerification");
+    trackReviewerUnset(Feedback, "Feedback");
+    trackReviewerUnset(Review, "Review");
 
     const req = { user: { _id: userId } };
     const res = createResponse();
@@ -197,6 +199,13 @@ describe("authController", () => {
     assert.deepEqual(reviewerUnsetCalls.MoverVerification, [
       { reviewedBy: userId, user: { $ne: userId } },
     ]);
+    assert.deepEqual(reviewerUnsetCalls.Feedback, [
+      { "response.respondedBy": userId, submitter: { $ne: userId } },
+    ]);
+    assert.deepEqual(reviewerUnsetCalls.Review, [
+      { hiddenBy: userId, user: { $ne: userId } },
+      { "report.reportedBy": userId, user: { $ne: userId } },
+    ]);
     // Owned-property side (shared cascade) then actor-only side (local).
     assert.deepEqual(deleteManyCalls.MoverRequest, [
       { property: { $in: [] } },
@@ -206,9 +215,11 @@ describe("authController", () => {
       { property: { $in: [] } },
       { $or: [{ sender: userId }, { owner: userId }, { respondedBy: userId }] },
     ]);
-    assert.deepEqual(deleteManyCalls.Feedback, [
-      { $or: [{ submitter: userId }, { "response.respondedBy": userId }] },
-    ]);
+    // Only the deleted user's own submitted feedback is deleted - feedback
+    // they merely responded to (as an admin) belongs to another user and
+    // survives, with the responder reference unset instead (asserted via
+    // reviewerUnsetCalls.Feedback above).
+    assert.deepEqual(deleteManyCalls.Feedback, [{ submitter: userId }]);
     assert.deepEqual(deleteManyCalls.SavedSearch, [{ user: userId }]);
     assert.deepEqual(deleteManyCalls.DeviceToken, [{ user: userId }]);
     assert.deepEqual(moverAffiliateUpdate.filter, { affiliatedOwners: userId });
@@ -267,6 +278,8 @@ describe("authController", () => {
     mock.method(AgencyVerification, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(UserStatusLog, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(MoverVerification, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(Feedback, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(Review, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const req = { user: { _id: userId } };
     const res = createResponse();
@@ -322,6 +335,8 @@ describe("authController", () => {
     mock.method(AgencyVerification, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(UserStatusLog, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(MoverVerification, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(Feedback, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(Review, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const recomputedIds = [];
     mock.method(Review, "updatePropertyRating", async (propertyId) => {

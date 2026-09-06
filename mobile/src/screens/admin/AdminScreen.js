@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   dismissReviewReport,
   fetchAdminReviews,
@@ -121,39 +121,55 @@ function UsersSegment({ styles }) {
   // before the next one fires whenever search/role/retryKey changes, so a
   // still-in-flight, now-stale request - e.g. an out-of-order response to an
   // earlier keystroke - can never overwrite a newer one.
-  useEffect(() => {
-    let active = true;
+  //
+  // Wrapped in useFocusEffect (rather than a plain useEffect) so that
+  // returning from AdminUserDetailScreen after suspending/banning/
+  // reinstating a user refetches and shows the updated status, without
+  // losing the search/role dual-trigger above: react-navigation's
+  // useFocusEffect re-runs this same callback both on every focus event and
+  // whenever search/role/retryKey change while already focused (mirrors
+  // NotificationsScreen's identical filter+focus dual trigger), so there's
+  // no separate effect to fight with and no duplicate fetch.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-    const load = async () => {
-      setLoading(true);
-      setError("");
+      const load = async () => {
+        setLoading(true);
+        setError("");
 
-      try {
-        const { users: data, pagination: paginationData } = await fetchAdminUsers({
-          page: 1,
-          search: search || undefined,
-          role: role || undefined,
-        });
-        if (active) {
-          setUsers(data);
-          setPagination(paginationData);
+        try {
+          const { users: data, pagination: paginationData } = await fetchAdminUsers({
+            page: 1,
+            search: search || undefined,
+            role: role || undefined,
+          });
+          if (active) {
+            setUsers(data);
+            setPagination(paginationData);
+          }
+        } catch (err) {
+          if (active) setError(err.message || "Failed to load users.");
+        } finally {
+          if (active) {
+            setLoading(false);
+            setRefreshing(false);
+          }
         }
-      } catch (err) {
-        if (active) setError(err.message || "Failed to load users.");
-      } finally {
-        if (active) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    };
+      };
 
-    load();
+      load();
 
-    return () => {
-      active = false;
-    };
-  }, [search, role, retryKey]);
+      return () => {
+        active = false;
+      };
+      // retryKey is intentionally kept in the dependency list even though
+      // it's unused in the body - it exists purely to give handleRefresh/
+      // handleRetry a way to force a new callback identity (and therefore a
+      // refetch) without touching search/role.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search, role, retryKey])
+  );
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !pagination || pagination.page >= pagination.pages) {
@@ -558,7 +574,8 @@ const createStyles = (colors) =>
       borderColor: colors.green,
       borderRadius: 999,
       paddingHorizontal: 14,
-      paddingVertical: 8,
+      minHeight: 44,
+      justifyContent: "center",
     },
     secondaryButtonText: {
       ...boldText,

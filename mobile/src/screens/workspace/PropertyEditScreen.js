@@ -584,7 +584,8 @@ const createStyles = (colors) =>
       aspectRatio: 4 / 3,
     },
     photoRemoveButton: {
-      paddingVertical: 8,
+      minHeight: 44,
+      justifyContent: "center",
       alignItems: "center",
     },
     photoRemoveButtonText: {

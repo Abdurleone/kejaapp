@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   changeCurrentUserPassword,
   deleteCurrentAccount,
@@ -51,12 +51,24 @@ function SavedSearchesCard({ styles }) {
     }
   }, []);
 
-  useEffect(() => {
-    // Kicking off a real fetch here, not deriving avoidable state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    load().finally(() => setLoading(false));
-  }, [load]);
+  // Runs on every focus, not just the first mount - so a saved search
+  // created from Discover's location filters (which navigates back here
+  // rather than remounting this tab) shows up without a manual app restart.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      // Kicking off a real fetch here, not deriving avoidable state.
+      setLoading(true);
+      load().finally(() => {
+        if (active) setLoading(false);
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [load])
+  );
 
   const handleDelete = async (savedSearchId) => {
     setDeletingId(savedSearchId);

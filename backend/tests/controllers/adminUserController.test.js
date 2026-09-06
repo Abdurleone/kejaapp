@@ -510,6 +510,8 @@ describe("adminUserController", () => {
     mock.method(AgencyVerification, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(UserStatusLog, "updateMany", async () => ({ modifiedCount: 0 }));
     mock.method(MoverVerification, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(Review, "updateMany", async () => ({ modifiedCount: 0 }));
+    mock.method(Feedback, "updateMany", async () => ({ modifiedCount: 0 }));
 
     const req = { params: { id: targetId.toString() }, user: { _id: adminId } };
     const res = createResponse();

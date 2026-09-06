@@ -49,6 +49,16 @@ const run = async () => {
   ).lean();
   const reviewedPairs = new Set(existingReviews.map(({ property, user }) => `${property}:${user}`));
 
+  // A legitimate approved -> cancelled transition (via
+  // updateViewingRequestStatus) can land in the window between the find()
+  // calls above and this loop reaching a given item - re-checking the live
+  // status immediately before acting on it stops that race from silently
+  // un-cancelling a viewing back to "completed".
+  const isStillApproved = async (id) => {
+    const current = await ViewingRequest.findById(id, "status").lean();
+    return Boolean(current) && current.status === "approved";
+  };
+
   // Sequential, one notify-then-save per viewing request (not a batch
   // Promise.all followed by a separate bulk updateMany): if one
   // notification fails mid-run, only the requests not yet processed stay
@@ -56,8 +66,21 @@ const run = async () => {
   // leave every already-notified request's reviewPromptSentAt unset too,
   // causing them to be re-notified on every subsequent run indefinitely.
   for (const viewingRequest of pastViewings) {
+    // Checked once before the notification (so a since-cancelled viewing
+    // isn't prompted at all) and again immediately before the save (in case
+    // the cancellation lands in the narrower gap while the notification was
+    // in flight) - either check failing means someone else already moved
+    // this viewing on, so it's left untouched for this run.
+    if (!(await isStillApproved(viewingRequest._id))) {
+      continue;
+    }
+
     if (!reviewedPairs.has(`${propertyId(viewingRequest)}:${viewingRequest.requester}`)) {
       await notifyReviewPrompt(viewingRequest);
+    }
+
+    if (!(await isStillApproved(viewingRequest._id))) {
+      continue;
     }
 
     viewingRequest.status = "completed";
