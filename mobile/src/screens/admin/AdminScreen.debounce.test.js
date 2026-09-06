@@ -11,6 +11,7 @@ import { lightColors } from "../../theme/colors.js";
 const mockNavigate = jest.fn();
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: (callback) => require("react").useEffect(callback, [callback]),
 }));
 
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));

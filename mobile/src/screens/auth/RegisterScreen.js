@@ -286,7 +286,8 @@ const createStyles = (colors) =>
     borderColor: colors.stroke,
     borderRadius: 999,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
   },
   roleChipActive: {
     backgroundColor: colors.green,

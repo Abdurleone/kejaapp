@@ -122,8 +122,16 @@ export default function PropertyEditPage({ propertyId, apiBaseUrl, onBack, onSav
         property={property}
         apiBaseUrl={apiBaseUrl}
         onPropertyUpdated={(updated) => {
+          // `updated` is the server's response to an image-only mutation
+          // (add/remove photo). It reflects every field as last saved, so
+          // rebuilding the whole form from it (propertyToForm(updated))
+          // would silently discard any other in-progress edit the landlord
+          // hasn't saved yet. `property` itself is fine to replace wholesale
+          // since PropertyImageManager (and the gallery it renders) reads
+          // images straight off `property`, not off `form` - `form` has no
+          // images field at all, so there's nothing image-related in it to
+          // refresh.
           setProperty(updated);
-          setForm(propertyToForm(updated));
         }}
       />
     </div>

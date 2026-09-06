@@ -713,14 +713,16 @@ export default function PropertyDetailPage({ propertyId, apiBaseUrl, onBack }) {
         )}
 
         <div className="card-actions">
-          <button
-            className="primary-button"
-            type="button"
-            disabled={isSaved || saving}
-            onClick={handleSave}
-          >
-            {saving ? "Saving..." : isSaved ? "Saved" : "Save"}
-          </button>
+          {signedIn && currentUser?.role === "tenant" && (
+            <button
+              className="primary-button"
+              type="button"
+              disabled={isSaved || saving}
+              onClick={handleSave}
+            >
+              {saving ? "Saving..." : isSaved ? "Saved" : "Save"}
+            </button>
+          )}
           <button
             className="secondary-button"
             type="button"

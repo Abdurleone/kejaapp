@@ -1,11 +1,16 @@
 import { Alert, Linking } from "react-native";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import AccountScreen from "./AccountScreen.js";
 import { lightColors } from "../../theme/colors.js";
 
 const mockNavigate = jest.fn();
+let mockFocusCallback = null;
 jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: (callback) => {
+    mockFocusCallback = callback;
+    return require("react").useEffect(callback, [callback]);
+  },
 }));
 jest.mock("../../context/AuthContext.js", () => ({ useAuth: jest.fn() }));
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));
@@ -76,6 +81,32 @@ describe("AccountScreen", () => {
 
     await waitFor(() => expect(queryByText("in Nairobi")).toBeNull());
     expect(deleteSavedSearch).toHaveBeenCalledWith("s1");
+  });
+
+  it("reloads saved searches on every focus, not just the first mount (staleness guard)", async () => {
+    // Regression test: a saved search created from Discover's location
+    // filters used to never appear here until app restart, since Account
+    // only fetched once at mount and MainTabs keeps tab screens mounted
+    // across switches.
+    useAuth.mockReturnValue({
+      signedIn: true,
+      user: { name: "Jane Doe", role: "tenant" },
+      logout: jest.fn(),
+    });
+    fetchSavedSearches.mockResolvedValue([]);
+
+    const { getByText, queryByText } = await render(<AccountScreen />);
+    await waitFor(() => expect(queryByText("Loading...")).toBeNull());
+    expect(getByText(/no saved searches yet/i)).toBeTruthy();
+
+    fetchSavedSearches.mockResolvedValue([{ _id: "s1", county: "Nairobi" }]);
+
+    await act(async () => {
+      mockFocusCallback();
+    });
+
+    await waitFor(() => expect(fetchSavedSearches).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getByText("in Nairobi")).toBeTruthy());
   });
 
   it("edits and saves the profile, updating the displayed name", async () => {
