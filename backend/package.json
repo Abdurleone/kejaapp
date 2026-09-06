@@ -30,6 +30,9 @@
     "test:coverage": "node --experimental-test-coverage --test",
     "lint": "eslint ."
   },
+  "overrides": {
+    "qs": "^6.16.0"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1121.0",
     "@sentry/node": "^10.72.0",
