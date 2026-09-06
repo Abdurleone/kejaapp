@@ -363,7 +363,7 @@ button:disabled {
 .danger-button,
 .legal-action {
   min-height: 38px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: var(--stroke-width-sm) solid transparent;
   padding: 8px 14px;
   text-decoration: none;
@@ -383,6 +383,12 @@ button:disabled {
   flex: 0 0 auto;
   background: transparent;
   color: var(--muted);
+}
+
+.tab-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
 }
 
 .notification-badge {
@@ -674,8 +680,9 @@ button:disabled {
   font-size: 0.86rem;
 }
 
-.property-photo-fallback span:first-child {
-  font-size: 1.8rem;
+.property-photo-fallback-icon {
+  width: 1.8rem;
+  height: 1.8rem;
   opacity: 0.6;
 }
 

@@ -13,7 +13,19 @@ export default function PropertyImage({ src, alt, eager }) {
   if (!src || errored) {
     return (
       <div className="property-photo-fallback">
-        <span aria-hidden="true">🏠</span>
+        <svg
+          className="property-photo-fallback-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 11.5 12 4l8 7.5" />
+          <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" />
+        </svg>
         <span>Photo unavailable</span>
       </div>
     );
