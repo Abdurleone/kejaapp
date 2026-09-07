@@ -72,9 +72,10 @@ DELETE /api/favorites/:propertyId
 ## Reviews
 
 ```text
-POST   /api/reviews
+POST   /api/reviews                                       tenant only; requires a completed viewing on record
 GET    /api/reviews/mine                                  landlord, agency
 PUT    /api/reviews/:id/response                          landlord, agency property owner only
+POST   /api/reviews/:id/report                            any signed-in user except the review's own author
 GET    /api/properties/:id/reviews
 ```
 
@@ -155,7 +156,10 @@ GET    /api/admin/users/:id/summary
 GET    /api/admin/users/:id/status-history
 PUT    /api/admin/users/:id/status
 DELETE /api/admin/users/:id                                  full cascade delete; admin cannot target their own account
-GET    /api/admin/reviews
+GET    /api/admin/reviews                                    read-only
+GET    /api/admin/reviews/reported                           only reviews with an active report
+PUT    /api/admin/reviews/:id/hide                            hides (never deletes) a reported review
+PUT    /api/admin/reviews/:id/dismiss-report                  clears the report, review stays visible
 GET    /api/admin/agencies/verifications
 PUT    /api/admin/agencies/verifications/:id/approve
 PUT    /api/admin/agencies/verifications/:id/reject
