@@ -31,7 +31,9 @@ Two ways, both from the property detail page:
 
 ## 5. Leaving a review
 
-After interacting with a property (not your own listing — you can't review something you own), you can submit a rating and comment. The owner may respond publicly, but no one — not the owner, not an admin — can delete your review. This keeps reviews an honest signal for other tenants.
+You can only review a property after a completed viewing on record for it (not your own listing — you can't review something you own). The owner may respond publicly, but no one — not the owner, not an admin — can delete your review or change its rating. This keeps reviews an honest signal for other tenants.
+
+Any review (including yours) can be **reported** by another signed-in user if it violates the [Acceptable Use Policy](../compliance/acceptable-use-policy.md) — fake, abusive, or otherwise inappropriate content. A report doesn't hide anything by itself; an admin investigates and either hides the review from public view (only if the report is upheld) or dismisses it, leaving the review untouched. You'll want to know this both ways: if someone reports one of yours in bad faith, dismissal means nothing changes; if you spot a genuinely fake or abusive review on a listing, reporting it is how you'd flag that.
 
 ## 6. Saving a search & alerts
 
