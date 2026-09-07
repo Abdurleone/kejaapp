@@ -73,3 +73,7 @@ As an admin, you have visibility into other users' account details, violation hi
 - Submit platform feedback.
 - Delete or alter a review or its rating.
 - Change their own account's status.
+
+## 8. Deleting your own account
+
+Admin accounts aren't exempt from self-service deletion — the same "type `DELETE` to confirm" flow described in [Deleting Your Account](deleting-your-account.md) works for you too, and it's a genuinely different action from suspending/banning a user in [Section 2](#2-managing-user-accounts). One thing specific to this role: moderation actions you've taken on *other* users' accounts (a status change you logged, a verification you approved, a review you hid, a feedback response you gave) all stay in place afterward — only your own attribution on those records is cleared, since the record itself belongs to the other user, not you.
