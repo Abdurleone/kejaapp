@@ -49,4 +49,4 @@ Verification documents and business details you submit are visible only to admin
 
 ## 8. Deleting your account
 
-See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a landlord/agency, this removes your profile, your listings, inquiries/viewing requests/reviews tied to those listings, agency verification records, and notifications. See the [Data Protection Policy](../compliance/data-protection-policy.md#9-retention-and-deletion) for the exact scope.
+See [Deleting Your Account](deleting-your-account.md) for the full walkthrough and exactly what's removed as a landlord/agency.

@@ -58,4 +58,4 @@ If a landlord, agency, or mover doesn't hold up their end of an arrangement, Kej
 
 ## 9. Deleting your account
 
-See the [General Guide §6](general-manual.md#6-your-data-and-privacy) for how to actually do it. As a tenant, this removes your profile, saved properties, inquiries, viewing requests, reviews, notifications, mover service requests, feedback submissions, and saved searches. See the [Data Protection Policy](../compliance/data-protection-policy.md#9-retention-and-deletion) for the full scope.
+See [Deleting Your Account](deleting-your-account.md) for the full walkthrough and exactly what's removed as a tenant.

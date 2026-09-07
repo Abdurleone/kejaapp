@@ -6,6 +6,7 @@ This is the starting point for using KejaApp, whatever role you sign up as. For 
 - [Landlord & Agency Manual](landlord-agency-manual.md)
 - [Mover Manual](mover-manual.md)
 - [Admin Manual](admin-manual.md)
+- [Deleting Your Account](deleting-your-account.md) — the full walkthrough, for any role
 
 ## 1. What KejaApp is
 
@@ -47,7 +48,7 @@ See the [Data Protection Policy](../compliance/data-protection-policy.md) for wh
 
 - KejaApp never sells your data.
 - Your contact details are only shared with another user when needed to complete something you initiated (an inquiry, a viewing, a mover request).
-- You can delete your account and its associated data at any time from the Account page (type `DELETE` to confirm), or by emailing `privacy@kejaapp.com` if you can't sign in.
+- You can delete your account and its associated data at any time from the Account page (type `DELETE` to confirm), or by emailing `privacy@kejaapp.com` if you can't sign in — see [Deleting Your Account](deleting-your-account.md) for the full walkthrough and exactly what's removed.
 
 ## 7. Getting help
 
