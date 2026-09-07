@@ -12,7 +12,7 @@ What admins do have:
 - Agency and mover verification review.
 - Violation review (duplicate-listing-image detections and any other flagged issue).
 - Platform feedback review and response.
-- A read-only view of reviews across the platform, for moderation visibility (not deletion — no one can delete a review, including admins).
+- Review moderation, scoped narrowly to reports — see [Section 3a](#3a-review-moderation) below. Outside of an upheld report, reviews are otherwise read-only to you: **no one, including admins, can ever delete a review or alter its rating.**
 
 ## 2. Managing user accounts
 
@@ -34,6 +34,15 @@ Agency and mover verification requests both list `pending`/`approved`/`rejected`
 - **Reject** — requires a reason, notifies the submitter with that reason, and does not block the business from continuing to operate or resubmitting.
 
 Base your decision only on the submitted business details/documents — verification is a trust signal for other users, not a mechanism to control who may participate on the platform (see [Code of Ethics §2.2](../compliance/code-of-ethics.md#22-non-discrimination-and-fair-access)).
+
+## 3a. Review moderation
+
+Any signed-in user (except the review's own author) can report a review with a reason — a tenant, another tenant, or the property's own owner might all have a legitimate cause. Your **reported-reviews queue** shows only reviews with an active, unresolved report; once you act on one, it drops out of the queue. Two actions, and only two:
+
+- **Hide** — the review disappears from the property's public review list immediately. This is the closest KejaApp ever gets to suppressing a review, and it's reserved for a report you've actually upheld after investigation — not a routine "I disagree with this" action. The review record itself is never deleted; its rating is never altered.
+- **Dismiss the report** — the review stays exactly as it was, fully visible, with no lasting mark against it. Use this when the report doesn't hold up.
+
+There is no third option and no way to edit a review's text or rating directly — moderation here means choosing whether a reported review stays visible, nothing more.
 
 ## 4. Violation review
 
