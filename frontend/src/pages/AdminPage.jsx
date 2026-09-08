@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
+  fetchAdminAnalytics,
   fetchAdminUsers,
   fetchAdminUserSummary,
   fetchAdminUserStatusHistory,
@@ -18,7 +19,31 @@ const statusOptions = ["active", "suspended", "banned"];
 const sections = [
   { key: "users", label: "Users" },
   { key: "reviews", label: "Reviews" },
+  { key: "analytics", label: "Analytics" },
 ];
+
+const StatTile = ({ value, label }) => (
+  <div>
+    <strong>{value}</strong>
+    <span>{label}</span>
+  </div>
+);
+
+// Left-joins two {day, ...}-shaped arrays (from two separate aggregations,
+// signups vs. logins) into one zero-filled row per day present in either.
+const mergeByDay = (signupsByDay, loginsByDay) => {
+  const rows = {};
+  signupsByDay.forEach(({ day, count }) => {
+    rows[day] = rows[day] || { day, signups: 0, success: 0, failed: 0 };
+    rows[day].signups = count;
+  });
+  loginsByDay.forEach(({ day, success, failed }) => {
+    rows[day] = rows[day] || { day, signups: 0, success: 0, failed: 0 };
+    rows[day].success = success;
+    rows[day].failed = failed;
+  });
+  return Object.values(rows).sort((a, b) => a.day.localeCompare(b.day));
+};
 
 function UserDetail({ userId, currentUser, onStatusUpdated }) {
   const [summary, setSummary] = useState(null);
@@ -436,6 +461,103 @@ function AdminReviewsPanel() {
   );
 }
 
+function AdminAnalyticsPanel() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const result = await fetchAdminAnalytics({ days: 30 });
+        if (active) setData(result);
+      } catch (err) {
+        if (active) setError(err.message || "Failed to load analytics.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, [retryKey]);
+
+  if (loading) {
+    return (
+      <div className="stack" role="status" aria-label="Loading analytics">
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+        <span className="skeleton skeleton-line skeleton-line--full" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="stack">
+        <p className="error-text">{error}</p>
+        <button className="secondary-button" type="button" onClick={() => setRetryKey((key) => key + 1)}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <p className="muted-copy">No analytics data available.</p>;
+  }
+
+  const dailyRows = mergeByDay(data.signupsByDay, data.loginsByDay);
+
+  return (
+    <div className="stack">
+      <h4>Total users by role ({data.totalUsers} total)</h4>
+      <div className="stat-grid">
+        {Object.entries(data.usersByRole).map(([role, count]) => (
+          <StatTile key={role} value={count} label={formatStatusLabel(role)} />
+        ))}
+      </div>
+
+      <h4>Last {data.rangeDays} days</h4>
+      {dailyRows.length === 0 ? (
+        <p className="muted-copy">No sign-up or sign-in activity in this range yet.</p>
+      ) : (
+        <div className="table-panel">
+          <table>
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Sign-ups</th>
+                <th>Successful sign-ins</th>
+                <th>Failed sign-ins</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dailyRows.map((row) => (
+                <tr key={row.day}>
+                  <td>{row.day}</td>
+                  <td>{row.signups}</td>
+                  <td>{row.success}</td>
+                  <td>{row.failed}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { currentUser } = useAuth();
   const [section, setSection] = useState("users");
@@ -534,6 +656,11 @@ export default function AdminPage() {
         <div className="panel stack">
           <h3>Reviews</h3>
           <AdminReviewsPanel />
+        </div>
+      ) : section === "analytics" ? (
+        <div className="panel stack">
+          <h3>Analytics</h3>
+          <AdminAnalyticsPanel />
         </div>
       ) : (
       <>

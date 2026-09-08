@@ -19,6 +19,7 @@ import DeviceToken from "../../models/DeviceToken.js";
 import Favorite from "../../models/Favorite.js";
 import Feedback from "../../models/Feedback.js";
 import Inquiry from "../../models/Inquiry.js";
+import LoginEvent from "../../models/LoginEvent.js";
 import Mover from "../../models/Mover.js";
 import MoverRequest from "../../models/MoverRequest.js";
 import MoverVerification from "../../models/MoverVerification.js";
@@ -559,6 +560,11 @@ describe("authController", () => {
       return { select: async () => user };
     });
     mock.method(AuthSession, "create", async (payload) => payload);
+    let loginEventPayload;
+    mock.method(LoginEvent, "create", async (payload) => {
+      loginEventPayload = payload;
+      return payload;
+    });
 
     const req = {
       body: { identifier: "SwiftCheetah284", password: "password123" },
@@ -576,10 +582,18 @@ describe("authController", () => {
     ]);
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.user.username, "swiftcheetah284");
+    assert.equal(loginEventPayload.user, user._id);
+    assert.equal(loginEventPayload.success, true);
+    assert.equal(loginEventPayload.method, "password");
   });
 
-  it("rejects an unknown identifier with a generic message", async () => {
+  it("rejects an unknown identifier with a generic message, but still records the failed attempt", async () => {
     mock.method(User, "findOne", () => ({ select: async () => null }));
+    let loginEventPayload;
+    mock.method(LoginEvent, "create", async (payload) => {
+      loginEventPayload = payload;
+      return payload;
+    });
     const req = { body: { identifier: "nobody", password: "whatever" } };
     const res = createResponse();
     let nextError;
@@ -590,6 +604,12 @@ describe("authController", () => {
 
     assert.equal(nextError.statusCode, 401);
     assert.equal(nextError.message, "Invalid credentials");
+    // No `user` key at all for an unmatched identifier - the schema's own
+    // `default: null` covers it once actually persisted.
+    assert.equal(loginEventPayload.user, undefined);
+    assert.equal(loginEventPayload.identifier, "nobody");
+    assert.equal(loginEventPayload.success, false);
+    assert.equal(loginEventPayload.method, "password");
   });
 
   describe("loginUser account lockout", () => {
@@ -609,6 +629,11 @@ describe("authController", () => {
     it("increments failedLoginAttempts on a wrong password, without locking below the threshold", async () => {
       const user = makeUser({ failedLoginAttempts: 1 });
       mock.method(User, "findOne", () => ({ select: async () => user }));
+      let loginEventPayload;
+      mock.method(LoginEvent, "create", async (payload) => {
+        loginEventPayload = payload;
+        return payload;
+      });
       const req = { body: { identifier: "tenant1", password: "wrong" } };
       const res = createResponse();
       let nextError;
@@ -620,11 +645,18 @@ describe("authController", () => {
       assert.equal(nextError.statusCode, 401);
       assert.equal(user.failedLoginAttempts, 2);
       assert.equal(user.lockedUntil, null);
+      assert.equal(loginEventPayload.user, user._id);
+      assert.equal(loginEventPayload.success, false);
     });
 
     it("locks the account once failedLoginAttempts reaches the configured max", async () => {
       const user = makeUser({ failedLoginAttempts: env.maxFailedLoginAttempts - 1 });
       mock.method(User, "findOne", () => ({ select: async () => user }));
+      let loginEventPayload;
+      mock.method(LoginEvent, "create", async (payload) => {
+        loginEventPayload = payload;
+        return payload;
+      });
       const req = { body: { identifier: "tenant1", password: "wrong" } };
       const res = createResponse();
       let nextError;
@@ -638,9 +670,10 @@ describe("authController", () => {
       assert.equal(user.failedLoginAttempts, env.maxFailedLoginAttempts);
       assert.ok(user.lockedUntil instanceof Date);
       assert.ok(user.lockedUntil.getTime() >= before + env.accountLockDurationMs);
+      assert.equal(loginEventPayload.success, false);
     });
 
-    it("rejects a login attempt against an already-locked account without calling matchPassword", async () => {
+    it("rejects a login attempt against an already-locked account without calling matchPassword, but still records the failed attempt", async () => {
       let matchPasswordCalled = false;
       const user = makeUser({
         failedLoginAttempts: env.maxFailedLoginAttempts,
@@ -651,6 +684,11 @@ describe("authController", () => {
         },
       });
       mock.method(User, "findOne", () => ({ select: async () => user }));
+      let loginEventPayload;
+      mock.method(LoginEvent, "create", async (payload) => {
+        loginEventPayload = payload;
+        return payload;
+      });
       const req = { body: { identifier: "tenant1", password: "correct-password" } };
       const res = createResponse();
       let nextError;
@@ -662,6 +700,8 @@ describe("authController", () => {
       assert.equal(nextError.statusCode, 401);
       assert.match(nextError.message, /temporarily locked/);
       assert.equal(matchPasswordCalled, false);
+      assert.equal(loginEventPayload.user, user._id);
+      assert.equal(loginEventPayload.success, false);
     });
 
     it("resets failedLoginAttempts and lockedUntil on a successful login", async () => {
@@ -674,6 +714,7 @@ describe("authController", () => {
       });
       mock.method(User, "findOne", () => ({ select: async () => user }));
       mock.method(AuthSession, "create", async (payload) => payload);
+      mock.method(LoginEvent, "create", async (payload) => payload);
       const req = { body: { identifier: "tenant1", password: "correct-password" }, headers: {} };
       const res = createResponse();
 
@@ -696,6 +737,7 @@ describe("authController", () => {
       });
       mock.method(User, "findOne", () => ({ select: async () => user }));
       mock.method(AuthSession, "create", async (payload) => payload);
+      mock.method(LoginEvent, "create", async (payload) => payload);
       const req = { body: { identifier: "tenant1", password: "correct-password" }, headers: {} };
       const res = createResponse();
 
@@ -868,6 +910,11 @@ describe("authController", () => {
         };
       });
       mock.method(AuthSession, "create", async (payload) => payload);
+      let loginEventCreateCalled = false;
+      mock.method(LoginEvent, "create", async (payload) => {
+        loginEventCreateCalled = true;
+        return payload;
+      });
 
       const req = { body: { idToken: "some-token" }, headers: {} };
       const res = createResponse();
@@ -882,6 +929,9 @@ describe("authController", () => {
       assert.equal(createdPayload.roleConfirmed, false);
       assert.equal(createdPayload.password, undefined);
       assert.equal(res.body.user.roleConfirmed, false);
+      // A brand-new account is a signup (already counted via User.createdAt),
+      // not a sign-in - must not double-count the same event as both.
+      assert.equal(loginEventCreateCalled, false);
     });
 
     it("logs in an existing user by googleId without creating a new account", async () => {
@@ -913,6 +963,11 @@ describe("authController", () => {
         createCalled = true;
       });
       mock.method(AuthSession, "create", async (payload) => payload);
+      let loginEventPayload;
+      mock.method(LoginEvent, "create", async (payload) => {
+        loginEventPayload = payload;
+        return payload;
+      });
 
       const req = { body: { idToken: "some-token" }, headers: {} };
       const res = createResponse();
@@ -925,6 +980,9 @@ describe("authController", () => {
       assert.equal(createCalled, false);
       assert.equal(res.statusCode, 200);
       assert.equal(res.body.user.role, "landlord");
+      assert.equal(loginEventPayload.user, existingUser._id);
+      assert.equal(loginEventPayload.success, true);
+      assert.equal(loginEventPayload.method, "google");
     });
 
     it("links an existing local account by email instead of erroring or resetting its role", async () => {
@@ -959,6 +1017,11 @@ describe("authController", () => {
         createCalled = true;
       });
       mock.method(AuthSession, "create", async (payload) => payload);
+      let loginEventPayload;
+      mock.method(LoginEvent, "create", async (payload) => {
+        loginEventPayload = payload;
+        return payload;
+      });
 
       const req = { body: { idToken: "some-token" }, headers: {} };
       const res = createResponse();
@@ -971,6 +1034,9 @@ describe("authController", () => {
       assert.equal(createCalled, false);
       assert.equal(res.statusCode, 200);
       assert.equal(res.body.user.role, "agency");
+      assert.equal(loginEventPayload.user, localUser._id);
+      assert.equal(loginEventPayload.success, true);
+      assert.equal(loginEventPayload.method, "google");
     });
   });
 

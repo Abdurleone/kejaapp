@@ -9,6 +9,7 @@ Admins moderate **users**, not **listings**. There is no admin path anywhere in 
 What admins do have:
 
 - User account search, review, and status moderation.
+- A read-only **Analytics** dashboard — see [Section 2a](#2a-analytics-dashboard) below.
 - Agency and mover verification review.
 - Violation review (duplicate-listing-image detections and any other flagged issue).
 - Platform feedback review and response.
@@ -25,6 +26,19 @@ From the Admin console:
 Treat every status change as auditable: it will show up in that user's history, visible to any admin who later reviews the account, and to the user themself.
 
 A separate, irreversible capability exists at the API level (`DELETE /api/admin/users/:id`, not yet exposed as a button in the Admin console) that fully deletes an account and everything it owns — the same cascade the self-service "delete my account" flow uses, not just a status change. Unlike a status change, this leaves no audit trail for the deleted account itself (its own status history is deleted along with it) — reserve it for clear administrative cleanup (e.g. spam or test accounts), not as an escalation of the suspend/ban workflow, which is deliberately the reversible, logged path for actual moderation decisions. You cannot delete your own account this way — use Account settings instead.
+
+## 2a. Analytics dashboard
+
+A new **Analytics** tab alongside Users and Reviews shows:
+
+- **Total users by role** (tenant/landlord/agency/mover/admin) — an all-time snapshot, not limited to the date range below.
+- **Sign-ups per day** for the last 30 days.
+- **Sign-ins per day** for the last 30 days, split into successful and failed attempts — a failed-attempt spike is worth a look alongside the account-lockout mechanism already described in [Section 2](#2-managing-user-accounts).
+
+Two things worth knowing about how these numbers behave:
+
+- **Deleting an account is permanent and retroactive here too.** Sign-up counts are computed from each account's own creation date, not a separate log — once an account is deleted (self-service or by you), its historical sign-up day no longer counts toward past totals. This is the same "no soft-delete" behavior described in [Deleting Your Account](deleting-your-account.md), just visible from a different angle.
+- **The 30-day window is fixed for now** — there's no custom date-range picker yet.
 
 ## 3. Reviewing verification requests
 

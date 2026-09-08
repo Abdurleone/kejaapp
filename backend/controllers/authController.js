@@ -3,13 +3,14 @@ import env from "../config/env.js";
 import httpStatus from "../constants/httpStatus.js";
 import { roleGroups } from "../constants/rbac.js";
 import AuthSession from "../models/AuthSession.js";
+import LoginEvent from "../models/LoginEvent.js";
 import User from "../models/User.js";
 import { deleteUserCascade } from "../services/userDeletionService.js";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import parseCookies from "../utils/cookies.js";
 import generateToken from "../utils/generateToken.js";
-import { logSecurityEvent } from "../utils/logger.js";
+import { logError, logSecurityEvent } from "../utils/logger.js";
 import { compareAgainstDummyHash } from "../utils/passwords.js";
 import { sanitizeText } from "../utils/sanitizeText.js";
 import { generateOpaqueToken, hashToken } from "../utils/tokens.js";
@@ -55,6 +56,12 @@ const createRefreshSession = async (req, user) => {
   });
 
   return refreshToken;
+};
+
+// Fire-and-forget: a failure recording an analytics event must never break a
+// real login/registration, so this is deliberately never awaited by callers.
+const recordLoginEvent = (fields) => {
+  LoginEvent.create(fields).catch((err) => logError("Failed to record login event", err));
 };
 
 const getRefreshTokenFromRequest = (req) => {
@@ -166,6 +173,7 @@ const loginUser = asyncHandler(async (req, res) => {
   // shouldn't get another free bcrypt-cost guess against it while locked.
   if (user?.lockedUntil && user.lockedUntil > new Date()) {
     logSecurityEvent("Login attempt against locked account", `identifier=${normalizedIdentifier}`);
+    recordLoginEvent({ user: user._id, success: false, method: "password", ipAddress: req.ip });
     throw new ApiError(
       httpStatus.UNAUTHORIZED,
       "Account temporarily locked due to too many failed login attempts. Try again later."
@@ -189,6 +197,9 @@ const loginUser = asyncHandler(async (req, res) => {
       }
 
       await user.save();
+      recordLoginEvent({ user: user._id, success: false, method: "password", ipAddress: req.ip });
+    } else {
+      recordLoginEvent({ identifier: normalizedIdentifier, success: false, method: "password", ipAddress: req.ip });
     }
 
     throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
@@ -199,6 +210,8 @@ const loginUser = asyncHandler(async (req, res) => {
     user.lockedUntil = null;
     await user.save();
   }
+
+  recordLoginEvent({ user: user._id, success: true, method: "password", ipAddress: req.ip });
 
   await sendAuthResponse(req, res, httpStatus.OK, user);
 });
@@ -236,6 +249,7 @@ const googleAuth = asyncHandler(async (req, res) => {
   const normalizedEmail = email.toLowerCase();
 
   let user = await User.findOne({ googleId });
+  let isNewAccount = false;
 
   if (!user) {
     // A Google-verified email matching an existing password account is the
@@ -249,6 +263,7 @@ const googleAuth = asyncHandler(async (req, res) => {
   }
 
   if (!user) {
+    isNewAccount = true;
     const username = await generateUniqueUsername(User);
 
     user = await User.create({
@@ -263,6 +278,13 @@ const googleAuth = asyncHandler(async (req, res) => {
       role: roleGroups.publicRegistration[0],
       roleConfirmed: false,
     });
+  }
+
+  // A brand-new account is a signup, already counted via User.createdAt -
+  // logging it here too would double-count the same event across both
+  // analytics metrics. Only the two existing-account paths are sign-ins.
+  if (!isNewAccount) {
+    recordLoginEvent({ user: user._id, success: true, method: "google", ipAddress: req.ip });
   }
 
   await sendAuthResponse(req, res, httpStatus.OK, user);

@@ -3,6 +3,7 @@ import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, Text
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   dismissReviewReport,
+  fetchAdminAnalytics,
   fetchAdminReviews,
   fetchAdminUsers,
   fetchReportedReviews,
@@ -25,7 +26,33 @@ const roleFilters = [
 const tabs = [
   { key: "users", label: "Users" },
   { key: "reviews", label: "Reviews" },
+  { key: "analytics", label: "Analytics" },
 ];
+
+const StatTile = memo(function StatTile({ value, label, styles }) {
+  return (
+    <View style={styles.tile}>
+      <Text style={styles.tileValue}>{value}</Text>
+      <Text style={styles.tileLabel}>{label}</Text>
+    </View>
+  );
+});
+
+// Left-joins two {day, ...}-shaped arrays (from two separate aggregations,
+// signups vs. logins) into one zero-filled row per day present in either.
+const mergeByDay = (signupsByDay, loginsByDay) => {
+  const rows = {};
+  signupsByDay.forEach(({ day, count }) => {
+    rows[day] = rows[day] || { day, signups: 0, success: 0, failed: 0 };
+    rows[day].signups = count;
+  });
+  loginsByDay.forEach(({ day, success, failed }) => {
+    rows[day] = rows[day] || { day, signups: 0, success: 0, failed: 0 };
+    rows[day].success = success;
+    rows[day].failed = failed;
+  });
+  return Object.values(rows).sort((a, b) => a.day.localeCompare(b.day));
+};
 
 const UserRow = memo(function UserRow({ user, onPress, styles }) {
   return (
@@ -409,6 +436,73 @@ function ReviewsSegment({ styles }) {
   );
 }
 
+function AnalyticsSegment({ styles }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setError("");
+
+    try {
+      const result = await fetchAdminAnalytics({ days: 30 });
+      setData(result);
+    } catch (err) {
+      setError(err.message || "Failed to load analytics.");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Kicking off a real fetch here, not deriving avoidable state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  if (loading) {
+    return (
+      <ScrollView contentContainerStyle={styles.list}>
+        <Text style={styles.cardMessage}>Loading analytics...</Text>
+      </ScrollView>
+    );
+  }
+
+  if (error) {
+    return <MessageView title="Couldn't load analytics" message={error} actionLabel="Retry" onAction={load} />;
+  }
+
+  if (!data) {
+    return <MessageView title="No analytics data" message="Nothing to show yet." />;
+  }
+
+  const dailyRows = mergeByDay(data.signupsByDay, data.loginsByDay);
+
+  return (
+    <ScrollView contentContainerStyle={styles.list}>
+      <Text style={styles.cardTitle}>Total users by role ({data.totalUsers})</Text>
+      <View style={styles.tileRow}>
+        {Object.entries(data.usersByRole).map(([role, count]) => (
+          <StatTile key={role} value={count} label={formatStatusLabel(role)} styles={styles} />
+        ))}
+      </View>
+
+      <Text style={styles.cardTitle}>Last {data.rangeDays} days</Text>
+      {dailyRows.length === 0 ? (
+        <Text style={styles.cardMessage}>No sign-up or sign-in activity in this range yet.</Text>
+      ) : (
+        dailyRows.map((row) => (
+          <View key={row.day} style={styles.card}>
+            <Text style={styles.cardSubtitle}>{row.day}</Text>
+            <Text style={styles.cardMessage}>
+              Sign-ups {row.signups} · Success {row.success} · Failed {row.failed}
+            </Text>
+          </View>
+        ))
+      )}
+    </ScrollView>
+  );
+}
+
 export default function AdminScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -428,7 +522,13 @@ export default function AdminScreen() {
         ))}
       </View>
 
-      {tab === "users" ? <UsersSegment styles={styles} /> : <ReviewsSegment styles={styles} />}
+      {tab === "users" ? (
+        <UsersSegment styles={styles} />
+      ) : tab === "reviews" ? (
+        <ReviewsSegment styles={styles} />
+      ) : (
+        <AnalyticsSegment styles={styles} />
+      )}
     </View>
   );
 }
@@ -581,5 +681,33 @@ const createStyles = (colors) =>
       ...boldText,
       color: colors.green,
       fontSize: 13,
+    },
+    tileRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+      marginBottom: 12,
+    },
+    tile: {
+      ...colors.shadowSm,
+      flexGrow: 1,
+      minWidth: 130,
+      backgroundColor: colors.surface,
+      borderWidth: colors.strokeWidthSm,
+      borderColor: colors.stroke,
+      borderRadius: colors.radius,
+      padding: 14,
+      gap: 4,
+    },
+    tileValue: {
+      ...boldText,
+      fontSize: 20,
+      color: colors.green,
+    },
+    tileLabel: {
+      ...bodyText,
+      fontSize: 12,
+      color: colors.muted,
+      textTransform: "capitalize",
     },
   });

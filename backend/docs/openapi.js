@@ -978,6 +978,29 @@ const openApiSpec = {
         },
       },
     },
+    "/api/admin/analytics": {
+      get: {
+        tags: ["Admin"],
+        summary: "Sign-up/sign-in counts and user totals by role",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "days",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+            },
+            description: "Range in days for the daily breakdowns, default 30, clamped 1-365. Role totals are always all-time.",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Analytics summary",
+          },
+        },
+      },
+    },
     "/api/admin/users": {
       get: {
         tags: ["Admin"],

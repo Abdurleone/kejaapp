@@ -198,6 +198,24 @@ export const fetchDashboardSummary = async () => {
   return response.data;
 };
 
+const adminAnalyticsCacheTtlMs = 15000;
+
+export const fetchAdminAnalytics = async (query = {}) => {
+  const queryString = buildQueryString(query);
+  const cacheKey = `adminAnalytics:${queryString}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await apiFetch(`/api/admin/analytics${queryString}`, {
+    method: "GET",
+  });
+  setCached(cacheKey, response.data, adminAnalyticsCacheTtlMs);
+  return response.data;
+};
+
 const adminUsersCacheTtlMs = 15000;
 
 export const fetchAdminUsers = async (query = {}) => {
