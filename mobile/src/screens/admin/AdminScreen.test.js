@@ -14,6 +14,7 @@ jest.mock("@react-navigation/native", () => ({
 
 jest.mock("../../context/ThemeContext.js", () => ({ useTheme: jest.fn() }));
 jest.mock("../../api/index.js", () => ({
+  fetchAdminAnalytics: jest.fn(),
   fetchAdminUsers: jest.fn(),
   fetchAdminReviews: jest.fn(),
   fetchReportedReviews: jest.fn(),
@@ -23,6 +24,7 @@ jest.mock("../../api/index.js", () => ({
 
 import { useTheme } from "../../context/ThemeContext.js";
 import {
+  fetchAdminAnalytics,
   fetchAdminUsers,
   fetchAdminReviews,
   fetchReportedReviews,
@@ -225,5 +227,50 @@ describe("AdminScreen", () => {
 
     await waitFor(() => expect(dismissReviewReport).toHaveBeenCalledWith("r1"));
     await waitFor(() => expect(queryByText("Fake review")).toBeNull());
+  });
+
+  it("switches to the Analytics segment and shows role tiles plus the daily breakdown", async () => {
+    fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
+    fetchAdminAnalytics.mockResolvedValue({
+      rangeDays: 30,
+      totalUsers: 7,
+      usersByRole: { tenant: 5, landlord: 2, agency: 0, mover: 0, admin: 0 },
+      signupsByDay: [{ day: "2026-09-01", count: 2 }],
+      loginsByDay: [{ day: "2026-09-01", success: 4, failed: 1 }],
+    });
+
+    const { getByText } = await render(<AdminScreen />);
+
+    await waitFor(() => expect(getByText("No users match this search")).toBeTruthy());
+
+    fireEvent.press(getByText("Analytics"));
+
+    await waitFor(() => expect(getByText("Total users by role (7)")).toBeTruthy());
+    expect(getByText("5")).toBeTruthy();
+    expect(getByText("2026-09-01")).toBeTruthy();
+    expect(fetchAdminAnalytics).toHaveBeenCalledWith({ days: 30 });
+  });
+
+  it("shows an error with Retry when analytics fails to load", async () => {
+    fetchAdminUsers.mockResolvedValue({ users: [], pagination: { page: 1, pages: 1, total: 0 } });
+    fetchAdminAnalytics.mockRejectedValueOnce(new Error("Analytics down"));
+    fetchAdminAnalytics.mockResolvedValueOnce({
+      rangeDays: 30,
+      totalUsers: 0,
+      usersByRole: { tenant: 0, landlord: 0, agency: 0, mover: 0, admin: 0 },
+      signupsByDay: [],
+      loginsByDay: [],
+    });
+
+    const { getByText } = await render(<AdminScreen />);
+
+    await waitFor(() => expect(getByText("No users match this search")).toBeTruthy());
+    fireEvent.press(getByText("Analytics"));
+
+    await waitFor(() => expect(getByText("Analytics down")).toBeTruthy());
+
+    fireEvent.press(getByText("Retry"));
+
+    await waitFor(() => expect(getByText("Total users by role (0)")).toBeTruthy());
   });
 });

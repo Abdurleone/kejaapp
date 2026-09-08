@@ -318,6 +318,11 @@ export const respondToFeedback = async (feedbackId, { message }) => {
 
 // --- Admin ---
 
+export const fetchAdminAnalytics = async (query = {}) => {
+  const response = await apiFetch(`/api/admin/analytics${buildQueryString(query)}`, { method: "GET" });
+  return response.data;
+};
+
 export const fetchAdminUsers = async (query = {}) => {
   const response = await apiFetch(`/api/admin/users${buildQueryString(query)}`, { method: "GET" });
   return { users: response.data || [], pagination: response.pagination };

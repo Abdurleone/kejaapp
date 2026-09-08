@@ -5,6 +5,7 @@ import AdminPage from "../src/pages/AdminPage.jsx";
 import { renderWithAuth } from "./helpers/renderWithAuth.jsx";
 
 const {
+  fetchAdminAnalytics,
   fetchAdminUsers,
   fetchAdminUserSummary,
   fetchAdminUserStatusHistory,
@@ -14,6 +15,7 @@ const {
   dismissReviewReport,
   updateAdminUserStatus,
 } = vi.hoisted(() => ({
+  fetchAdminAnalytics: vi.fn(),
   fetchAdminUsers: vi.fn(),
   fetchAdminUserSummary: vi.fn(),
   fetchAdminUserStatusHistory: vi.fn(),
@@ -28,6 +30,7 @@ vi.mock("../app-utils.js", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
+    fetchAdminAnalytics,
     fetchAdminUsers,
     fetchAdminUserSummary,
     fetchAdminUserStatusHistory,
@@ -279,6 +282,80 @@ describe("AdminPage", () => {
     expect(await screen.findByText("Second Page Property")).toBeInTheDocument();
     expect(screen.queryByText("First Page Property")).not.toBeInTheDocument();
     expect(fetchAdminReviews).toHaveBeenLastCalledWith({ page: 2 });
+  });
+
+  it("switches to the Analytics segment and renders role tiles plus the daily breakdown", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchAdminAnalytics.mockResolvedValue({
+      rangeDays: 30,
+      totalUsers: 7,
+      usersByRole: { tenant: 5, landlord: 2, agency: 0, mover: 0, admin: 0 },
+      signupsByDay: [{ day: "2026-09-01", count: 2 }],
+      loginsByDay: [{ day: "2026-09-01", success: 4, failed: 1 }],
+    });
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+
+    await user.click(screen.getByRole("button", { name: "Analytics" }));
+
+    expect(await screen.findByText("Total users by role (7 total)")).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("2026-09-01")).toBeInTheDocument();
+    expect(fetchAdminAnalytics).toHaveBeenCalledWith({ days: 30 });
+  });
+
+  it("shows a loading skeleton before the analytics data resolves", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    let resolveAnalytics;
+    fetchAdminAnalytics.mockReturnValue(
+      new Promise((resolve) => {
+        resolveAnalytics = resolve;
+      })
+    );
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+
+    await user.click(screen.getByRole("button", { name: "Analytics" }));
+
+    expect(screen.getByRole("status", { name: "Loading analytics" })).toBeInTheDocument();
+
+    resolveAnalytics({
+      rangeDays: 30,
+      totalUsers: 0,
+      usersByRole: { tenant: 0, landlord: 0, agency: 0, mover: 0, admin: 0 },
+      signupsByDay: [],
+      loginsByDay: [],
+    });
+
+    expect(await screen.findByText("Total users by role (0 total)")).toBeInTheDocument();
+  });
+
+  it("shows an error with Retry when analytics fails to load", async () => {
+    fetchAdminUsers.mockResolvedValue(usersPage);
+    fetchAdminAnalytics.mockRejectedValueOnce(new Error("Analytics down"));
+    fetchAdminAnalytics.mockResolvedValueOnce({
+      rangeDays: 30,
+      totalUsers: 0,
+      usersByRole: { tenant: 0, landlord: 0, agency: 0, mover: 0, admin: 0 },
+      signupsByDay: [],
+      loginsByDay: [],
+    });
+    const user = userEvent.setup();
+
+    renderWithAuth(<AdminPage />, { currentUser: adminUser });
+    await screen.findByText("Jane Tenant");
+
+    await user.click(screen.getByRole("button", { name: "Analytics" }));
+
+    expect(await screen.findByText("Analytics down")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Total users by role (0 total)")).toBeInTheDocument();
   });
 
   it("switches to the Reported tab and shows the report reason/reporter", async () => {

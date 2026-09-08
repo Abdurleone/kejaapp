@@ -1,4 +1,5 @@
 import express from "express";
+import { getAdminAnalytics } from "../controllers/adminAnalyticsController.js";
 import {
   approveAgencyVerification,
   listAgencyVerifications,
@@ -45,6 +46,7 @@ const router = express.Router();
 
 router.use(protect, authorize("admin"));
 
+router.get("/analytics", getAdminAnalytics);
 router.get("/users", listUsers);
 router.get("/users/:id/summary", getUserSummary);
 router.get("/users/:id/status-history", listUserStatusHistory);

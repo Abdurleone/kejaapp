@@ -150,6 +150,7 @@ GET    /api/feedback/public                                  no auth required
 ## Admin
 
 ```text
+GET    /api/admin/analytics?days=30                          sign-up/sign-in counts (range-limited) + user totals by role (always all-time)
 GET    /api/admin/users
 GET    /api/admin/users/:id
 GET    /api/admin/users/:id/summary
