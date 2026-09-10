@@ -505,6 +505,11 @@ function App() {
       setCurrentUser={setCurrentUser}
     >
       <div className="app-shell">
+        {import.meta.env.VITE_DEMO_MODE === "true" && (
+          <div className="demo-banner" role="status">
+            This is a demo environment — data resets automatically and isn&apos;t permanent.
+          </div>
+        )}
         <header className={`app-header${showSplash ? " app-header--splash" : ""}`}>
           <div className="brand-block">
             <button type="button" className="brand-mark-button" onClick={() => navigate("/")} aria-label="Go to homepage">

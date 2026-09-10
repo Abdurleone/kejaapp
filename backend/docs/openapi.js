@@ -864,6 +864,31 @@ const openApiSpec = {
         },
       },
     },
+    "/api/demo/reset/{secret}": {
+      post: {
+        tags: ["Demo"],
+        summary:
+          "Drops and reseeds the demo database. Only reachable when DEMO_MODE=true (404s otherwise, including in production); the path segment must match DEMO_RESET_SECRET",
+        parameters: [
+          {
+            name: "secret",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Demo database dropped and reseeded",
+          },
+          404: {
+            description: "DEMO_MODE is not true on this environment, or the secret didn't match",
+          },
+        },
+      },
+    },
     "/api/device-tokens": {
       post: {
         tags: ["Device tokens"],

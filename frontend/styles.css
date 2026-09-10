@@ -157,6 +157,21 @@ button:disabled {
   --band-accent2: #054a2b;
 }
 
+.demo-banner {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  padding: 8px clamp(16px, 4vw, 36px);
+  background: var(--amber);
+  /* --amber is a light/bright tint in both themes, so a fixed dark ink
+     color (rather than the theme-flipping --ink token) keeps this readable
+     in both light and dark mode without a separate dark-mode override. */
+  color: #17130d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 .app-header {
   position: sticky;
   top: 0;

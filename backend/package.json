@@ -25,6 +25,7 @@
     "restore": "node scripts/restoreDatabase.js",
     "seed": "node seeders/seedDemoData.js",
     "cleanup-test-data": "node scripts/cleanupTestData.js",
+    "reset-demo-data": "node scripts/resetDemoData.js",
     "start": "node server.js",
     "test": "node --test",
     "test:coverage": "node --experimental-test-coverage --test",

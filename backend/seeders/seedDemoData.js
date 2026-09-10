@@ -1271,21 +1271,30 @@ const upsertImageFingerprints = async (savedProperties) => {
   }
 };
 
+// Assumes a live DB connection already exists - split out from seedDemoData
+// below so a caller that must never tear down its own connection (the demo
+// reset HTTP endpoint, which shares the running server's single long-lived
+// connection) can run the actual seeding steps without also running
+// seedDemoData's own connect/disconnect wrapper. See
+// backend/services/demoResetService.js.
+const runSeed = async () => {
+  const savedUsers = await upsertUsers();
+  await upsertMovers(savedUsers);
+  await upsertMoverVerifications(savedUsers);
+  await upsertAgencyVerifications(savedUsers);
+  const savedProperties = await upsertProperties(savedUsers);
+  await upsertInquiries(savedUsers, savedProperties);
+  await upsertViewingRequests(savedUsers, savedProperties);
+  await upsertReviews(savedUsers, savedProperties);
+  await upsertImageFingerprints(savedProperties);
+
+  console.log("Demo data seeded successfully");
+};
+
 const seedDemoData = async () => {
   try {
     await connectDB();
-
-    const savedUsers = await upsertUsers();
-    await upsertMovers(savedUsers);
-    await upsertMoverVerifications(savedUsers);
-    await upsertAgencyVerifications(savedUsers);
-    const savedProperties = await upsertProperties(savedUsers);
-    await upsertInquiries(savedUsers, savedProperties);
-    await upsertViewingRequests(savedUsers, savedProperties);
-    await upsertReviews(savedUsers, savedProperties);
-    await upsertImageFingerprints(savedProperties);
-
-    console.log("Demo data seeded successfully");
+    await runSeed();
   } catch (error) {
     console.error(`Demo seed failed: ${error.message}`);
     process.exitCode = 1;
@@ -1305,6 +1314,7 @@ export {
   movers,
   moverVerifications,
   properties,
+  runSeed,
   seedDemoData,
   users,
   viewingRequests,
