@@ -56,6 +56,27 @@ MongoDB is **not** provisioned — bring your own Atlas (or other) connection st
 
 **Known limitations:** the service spins down after 15 min idle on the free plan (cold start on next request, though uploaded images aren't affected if using the `s3` driver); single backend instance (no horizontal scaling, though Redis-backed rate limiting already supports it if you scale up); auto-deploys on push with no CI gate (a red `main` doesn't block a Render deploy unless you disable auto-deploy). This Blueprint (backend+frontend + Redis) is entirely on free plans — malware scanning (ClamAV) is deliberately left off this path since it needs more RAM than the free plan allows; uploads just skip scanning rather than erroring (see `docs/devops.md` for adding it back on a paid plan).
 
+## Demo environment
+
+A second, fully independent Render Blueprint (`render.demo.yaml`, repo root) for a public-facing demo, isolated from production: its own free-tier MongoDB Atlas database, its own Docker image build (separate `VITE_API_BASE_URL`/`VITE_GOOGLE_CLIENT_ID`/`VITE_DEMO_MODE` build args), its own `JWT_SECRET`. No Redis, no S3, and `GOOGLE_CLIENT_ID`/`SENTRY_DSN`/`VAPID_*`/`MPESA_*` are all left unset — see `render.demo.yaml`'s own comments for why each is safe to omit (all use `backend/config/env.js`'s existing "empty = disabled" convention). A build-time `VITE_DEMO_MODE=true` flag shows a small banner on the site (`frontend/src/App.jsx`) so visitors know it's a demo. Net cost: $0 (one Render free-plan web service + one Atlas M0 database).
+
+**First-time setup:**
+1. Create a free MongoDB Atlas project/cluster/database (separate from production's) and get its connection string.
+2. Render dashboard → **New > Blueprint**, point at this repo, and use the option to specify a non-default blueprint file path (`render.demo.yaml` instead of `render.yaml`) — verify this option's exact current location in Render's UI.
+3. Set the `sync: false` secrets on the resulting `kejaapp-demo` service: `MONGODB_URI` (the Atlas string from step 1) and `DEMO_RESET_SECRET` (generate one, e.g. `openssl rand -hex 32`).
+4. Deploy. Once Render assigns a real subdomain, correct `CORS_ORIGIN` and `VITE_API_BASE_URL` in `render.demo.yaml` to match it exactly (see that file's comments — this mirrors the exact `kejaapp-backend` → `kejaapp-backend-7iu3` naming surprise already hit on the production service) and redeploy.
+5. Run `npm --prefix backend run reset-demo-data -- --confirm` once (with `DEMO_MODE=true` and `MONGODB_URI` pointed at the demo Atlas database in your local shell) to seed it the first time, or trigger it via the HTTP endpoint below.
+
+**Resetting demo data:** the demo database is dropped entirely and reseeded from `backend/seeders/seedDemoData.js`'s known-good fixture data — simpler and more robust than a growing per-model deletion list (see `backend/services/propertyCascadeService.js`'s own history of exactly that problem). Two ways to trigger it, both calling the same `backend/services/demoResetService.js` logic:
+
+- CLI: `npm --prefix backend run reset-demo-data` (dry run, reports collection counts) or `-- --confirm` (actually drops + reseeds). Refuses to run at all unless `DEMO_MODE=true` is set in its own environment — a belt-and-suspenders guard on top of `--confirm`, so this can never accidentally be pointed at production even by mistake.
+- HTTP: `POST /api/demo/reset/<DEMO_RESET_SECRET>` — a webhook-style, secret-gated endpoint (same pattern as the M-Pesa callback route), 404s outright unless `DEMO_MODE=true` on the target environment.
+
+**Not yet scheduled** — reset is manual/on-demand only for now. Same three options already assessed for the unrelated scheduled-notification-jobs gap (see this file's own CI section and `docs/project/Roadmap.md`'s Next list) apply here too, deliberately deferred rather than choosing now:
+1. A native Render Cron Job hitting the CLI script directly (~$1+/mo, no budget approved).
+2. A free external cron-ping service (e.g. cron-job.org) hitting `POST /api/demo/reset/<secret>` on a schedule — no Render cost, the endpoint above is already built and ready for this.
+3. Waiting for the GitHub Actions billing lock (see this file's CI section) to clear and using a scheduled workflow.
+
 ## Object storage
 
 Render (and Kubernetes) have no reliable persistent disk, so `backend/services/fileStorageService.js` supports two drivers via `STORAGE_DRIVER`:

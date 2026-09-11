@@ -404,6 +404,14 @@ const env = {
       ? "CustomerBuyGoodsOnline"
       : "CustomerPayBillOnline",
   mpesaAccountReference: process.env.MPESA_ACCOUNT_REFERENCE || "KejaApp Support",
+  // Demo-only safety gate - see backend/scripts/resetDemoData.js and
+  // backend/controllers/demoController.js. false everywhere except the
+  // dedicated demo Render service (render.demo.yaml); never set on
+  // render.yaml's production service.
+  demoMode: parseBoolean(process.env.DEMO_MODE, false, "DEMO_MODE"),
+  // Secret gating POST /api/demo/reset/:secret, same sync:false/constant-
+  // time-comparison pattern as mpesaCallbackSecret above.
+  demoResetSecret: process.env.DEMO_RESET_SECRET || "",
 };
 
 // Computed after the object above rather than inline, since it depends on

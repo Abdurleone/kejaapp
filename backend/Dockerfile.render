@@ -23,8 +23,14 @@ COPY frontend/ ./
 # through as build args too, which is what render.yaml relies on here.
 ARG VITE_API_BASE_URL
 ARG VITE_GOOGLE_CLIENT_ID
+# Drives a small "this is a demo" banner (frontend/src/App.jsx) - unset on
+# every build except the demo deployment's (render.demo.yaml), where an
+# unset ARG resolves to an empty string, which the banner's `=== "true"`
+# check already treats as false. No default needed.
+ARG VITE_DEMO_MODE
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ENV VITE_DEMO_MODE=$VITE_DEMO_MODE
 
 RUN npm run build
 

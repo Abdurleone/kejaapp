@@ -15,6 +15,7 @@ import { accessLogStream, nairobiTimestamp } from "./utils/logger.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import demoRoutes from "./routes/demoRoutes.js";
 import deviceTokenRoutes from "./routes/deviceTokenRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
@@ -127,6 +128,7 @@ app.use("/api/auth", createRateLimiter({
   max: env.authRateLimitMax,
 }), authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/demo", demoRoutes);
 app.use("/api/device-tokens", deviceTokenRoutes);
 app.use("/api/docs", docsRoutes);
 app.use("/api/favorites", favoriteRoutes);
