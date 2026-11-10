@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { Expo } from "expo-server-sdk";
-import webpush from "web-push";
+import webpush from "../../services/webPushClient.js";
 import { afterEach, describe, it, mock } from "../helpers/nodeTestCompat.js";
 import { sendPushNotifications, sendWebPushNotifications } from "../../services/pushNotificationService.js";
 import DeviceToken from "../../models/DeviceToken.js";

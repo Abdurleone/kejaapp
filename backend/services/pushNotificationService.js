@@ -1,5 +1,5 @@
 import { Expo } from "expo-server-sdk";
-import webpush from "web-push";
+import webpush from "./webPushClient.js";
 import env from "../config/env.js";
 import DeviceToken from "../models/DeviceToken.js";
 import PushReceipt from "../models/PushReceipt.js";
