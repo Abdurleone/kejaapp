@@ -160,6 +160,13 @@ app.use((req, res, next) => {
 app.use(notFound);
 
 if (env.sentryDsn) {
+  // Deprecated in @sentry/node 11 (removed in 12) in favor of
+  // expressIntegration()'s automatic capture - kept on purpose: that automatic
+  // path relies on ESM loader hooks patching `express` before it's imported,
+  // which a plain `import "./instrument.js"` at the top of server.js doesn't
+  // guarantee (Node links every static import before any module body runs).
+  // This explicit middleware captures regardless. Revisit by switching the
+  // start command to `node --import ./instrument.js server.js` before v12.
   Sentry.setupExpressErrorHandler(app);
 }
 
